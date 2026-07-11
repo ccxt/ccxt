@@ -173,31 +173,45 @@ impl BtcboxCore {
 impl crate::exchange::DerivedExchange for BtcboxCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::parse_market(me, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::parse_balance(me, response)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BtcboxCore.
-        BtcboxCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BtcboxCore as *mut BtcboxCore) };
+        BtcboxCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -469,7 +483,7 @@ impl BtcboxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promise1: Value = self.call_method(Value::Str("public_get_tickers".to_string()), &[]).await;
+        let mut promise1: Value = self.public_get_tickers(&[]).await;
         let mut promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".to_string()), Value::Str("webApiGetAjaxCoinCoinInfo".to_string()), Value::Bool(true), &[]).await;
         let mut response1response2Variable = promise_all(&Value::List(vec![promise1.clone(), promise2.clone()])).await;
         let mut response1: Value = get_value(&response1response2Variable, &Value::Int(0));
@@ -483,8 +497,8 @@ impl BtcboxCore {
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_444: bool = true;
-            while { if !__for_first_444 { i = add(&i, &Value::Int(1)); } __for_first_444 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_429: bool = true;
+            while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbolParts: Value = split(&marketId, &Value::Str("_".to_string()));
@@ -659,8 +673,8 @@ impl BtcboxCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_445: bool = true;
-            while { if !__for_first_445 { i = add(&i, &Value::Int(1)); } __for_first_445 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut currency: Value = self.currency(code.clone());
@@ -694,7 +708,7 @@ impl BtcboxCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -726,7 +740,8 @@ impl BtcboxCore {
         if is_greater_than(&numSymbols, &Value::Int(1)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_depth(&[__ws_arg_0]).await;
         return self.parse_order_book(response.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[]);
 
     Value::Null
@@ -788,7 +803,8 @@ impl BtcboxCore {
         if is_greater_than(&numSymbols, &Value::Int(1)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_ticker(&[__ws_arg_1]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -809,13 +825,13 @@ impl BtcboxCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -884,7 +900,8 @@ impl BtcboxCore {
         if is_greater_than(&numSymbols, &Value::Int(1)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_orders(&[__ws_arg_2]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -919,7 +936,8 @@ impl BtcboxCore {
                 m.insert("coin".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_add".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_add(&[__ws_arg_3]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -953,7 +971,8 @@ impl BtcboxCore {
                 m.insert("coin".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_cancel(&[__ws_arg_4]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -974,7 +993,7 @@ impl BtcboxCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1065,7 +1084,8 @@ impl BtcboxCore {
                 m.insert("coin".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
             m
         }), &[params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_view".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_view(&[__ws_arg_5]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1088,7 +1108,8 @@ impl BtcboxCore {
                 m.insert("coin".to_string(), get_value(&market, &Value::Str("baseId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_list(&[__ws_arg_6]).await;
         //
         // [
         //      {
@@ -1107,8 +1128,8 @@ impl BtcboxCore {
         if is_equal(&type_var, &Value::Str("open".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_446: bool = true;
-                while { if !__for_first_446 { i = add(&i, &Value::Int(1)); } __for_first_446 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_431: bool = true;
+                while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 add_element_to_object(get_value_mut(&mut orders, &i), &Value::Str("status".to_string()), Value::Str("open".to_string()));
             }
             }

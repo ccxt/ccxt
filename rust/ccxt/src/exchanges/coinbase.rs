@@ -236,51 +236,75 @@ impl CoinbaseCore {
 impl crate::exchange::DerivedExchange for CoinbaseCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_account(self, account)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_account(me, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::parse_conversion(me, conversion, &[from_currency.clone(), to_currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinbaseCore.
-        CoinbaseCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinbaseCore as *mut CoinbaseCore) };
+        CoinbaseCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -448,7 +472,7 @@ impl CoinbaseCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.coinbase.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://developers.coinbase.com/api/v2".to_string()), Value::Str("https://docs.cloud.coinbase.com/advanced-trade/docs/welcome".to_string())]));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome".to_string()), Value::Str("https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference".to_string())]));
         m.insert("fees".to_string(), Value::List(vec![Value::Str("https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees".to_string()), Value::Str("https://www.coinbase.com/advanced-fees".to_string())]));
         m.insert("referral".to_string(), Value::Str("https://www.coinbase.com/join/58cbe25a355148797479dbd2".to_string()));
     m
@@ -651,6 +675,7 @@ impl CoinbaseCore {
         m.insert("jumio_face_match_verification_required".to_string(), Value::Str("AuthenticationError".to_string()).clone());
         m.insert("unverified_email".to_string(), Value::Str("AuthenticationError".to_string()).clone());
         m.insert("authentication_error".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("unauthorized".to_string(), Value::Str("AuthenticationError".to_string()).clone());
         m.insert("invalid_authentication_method".to_string(), Value::Str("AuthenticationError".to_string()).clone());
         m.insert("invalid_token".to_string(), Value::Str("AuthenticationError".to_string()).clone());
         m.insert("revoked_token".to_string(), Value::Str("AuthenticationError".to_string()).clone());
@@ -658,6 +683,7 @@ impl CoinbaseCore {
         m.insert("invalid_scope".to_string(), Value::Str("AuthenticationError".to_string()).clone());
         m.insert("not_found".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("rate_limit_exceeded".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("resource_exhausted".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
         m.insert("internal_server_error".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("UNSUPPORTED_ORDER_CONFIGURATION".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("INSUFFICIENT_FUND".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
@@ -849,7 +875,8 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/time
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -864,7 +891,7 @@ impl CoinbaseCore {
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         let mut response: Value = Value::Null;
         if is_equal(&method, &Value::Str("v2PublicGetTime".to_string())) {
-            response = self.call_method(Value::Str("v2_public_get_time".to_string()), &[params.clone()]).await;
+            response = self.v2_public_get_time(&[params.clone()]).await;
             //
             //     {
             //         "data": {
@@ -878,7 +905,7 @@ impl CoinbaseCore {
     m
 })]);
         }  else {
-            response = self.call_method(Value::Str("v3_public_get_brokerage_time".to_string()), &[params.clone()]).await;
+            response = self.v3_public_get_brokerage_time(&[params.clone()]).await;
         }
         return self.safe_timestamp2(response.clone(), Value::Str("epoch".to_string()), Value::Str("epochSeconds".to_string()), &[]);
 
@@ -889,8 +916,8 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
@@ -925,7 +952,8 @@ impl CoinbaseCore {
                 m.insert("limit".to_string(), Value::Int(100));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_accounts(&[__ws_arg_0]).await;
         //
         //     {
         //         "pagination": {
@@ -1005,7 +1033,8 @@ impl CoinbaseCore {
                 m.insert("limit".to_string(), Value::Int(250));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_accounts(&[__ws_arg_1]).await;
         //
         //     {
         //         "accounts": [
@@ -1054,7 +1083,7 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#fetchPortfolios
  * @description fetch all the portfolios
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -1063,13 +1092,13 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_portfolios".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v3_private_get_brokerage_portfolios(&[params.clone()]).await;
         let mut portfolios: Value = self.safe_list_k(response.clone(), "portfolios", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { i = add(&i, &Value::Int(1)); } __for_first_494 = false; is_less_than(&i, &get_array_length(&portfolios)) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&portfolios)) } {
             let mut portfolio: Value = get_value(&portfolios, &i);
             let mut portfolio: Value = get_value(&portfolios, &i);
             append_to_array(&mut result, Value::Map({
@@ -1169,7 +1198,7 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1185,8 +1214,8 @@ impl CoinbaseCore {
             self.load_accounts(&[]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_495: bool = true;
-                while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
+                let mut __for_first_479: bool = true;
+                while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
                 let mut account: Value = get_value(&self.accounts, &i);
                 if is_equal(&get_value(&account, &Value::Str("code".to_string())), &code) && is_equal(&get_value(&account, &Value::Str("type".to_string())), &Value::Str("wallet".to_string())) {
                     accountId = get_value(&account, &Value::Str("id".to_string()));
@@ -1203,7 +1232,8 @@ impl CoinbaseCore {
                 m.insert("account_id".to_string(), accountId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_accounts_account_id_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_accounts_account_id_addresses(&[__ws_arg_2]).await;
         //
         //     {
         //         "data": {
@@ -1264,7 +1294,7 @@ impl CoinbaseCore {
  * @name coinbase#fetchMySells
  * @ignore
  * @description fetch sells
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
+ * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
  * @param {string} symbol not used by coinbase fetchMySells ()
  * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
  * @param {int} [limit] max number of sells to return, default is undefined
@@ -1283,7 +1313,8 @@ impl CoinbaseCore {
         let mut request: Value = self.prepare_account_request(&[limit.clone(), params.clone()]);
         self.load_markets(&[]).await;
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
-        let mut sells: Value = self.call_method(Value::Str("v2_private_get_accounts_account_id_sells".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[query.clone()]);
+        let mut sells: Value = self.v2_private_get_accounts_account_id_sells(&[__ws_arg_3]).await;
         return self.parse_trades(get_value(&sells, &Value::Str("data".to_string())), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -1294,7 +1325,7 @@ impl CoinbaseCore {
  * @name coinbase#fetchMyBuys
  * @ignore
  * @description fetch buys
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
+ * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
  * @param {string} symbol not used by coinbase fetchMyBuys ()
  * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
  * @param {int} [limit] max number of buys to return, default is undefined
@@ -1313,7 +1344,8 @@ impl CoinbaseCore {
         let mut request: Value = self.prepare_account_request(&[limit.clone(), params.clone()]);
         self.load_markets(&[]).await;
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
-        let mut buys: Value = self.call_method(Value::Str("v2_private_get_accounts_account_id_buys".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[query.clone()]);
+        let mut buys: Value = self.v2_private_get_accounts_account_id_buys(&[__ws_arg_4]).await;
         return self.parse_trades(get_value(&buys, &Value::Str("data".to_string())), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -1330,7 +1362,8 @@ impl CoinbaseCore {
         let mut request: Value = Value::Null;
         { let __destr_tmp = self.prepare_account_request_with_currency_code(&[code.clone(), limit.clone(), params.clone()]).await; request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(method.clone(), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_5]).await;
         return self.parse_transactions(get_value(&response, &Value::Str("data".to_string())), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -1340,7 +1373,8 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#fetchWithdrawals
  * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1371,7 +1405,8 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#fetchDeposits
  * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1402,7 +1437,7 @@ impl CoinbaseCore {
  * @method
  * @name coinbase#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
@@ -1669,7 +1704,7 @@ impl CoinbaseCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchMyBuys, fetchMySells
@@ -1823,9 +1858,10 @@ impl CoinbaseCore {
 /*
  * @method
  * @name coinbase#fetchMarkets
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @description retrieves data on all markets for coinbase
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching markets
@@ -1875,8 +1911,8 @@ impl CoinbaseCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_497: bool = true;
-            while { if !__for_first_497 { i = add(&i, &Value::Int(1)); } __for_first_497 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
+            let mut __for_first_481: bool = true;
+            while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -1885,8 +1921,8 @@ impl CoinbaseCore {
             if is_equal(&type_var, &Value::Str("crypto".to_string())) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_496: bool = true;
-                    while { if !__for_first_496 { j = add(&j, &Value::Int(1)); } __for_first_496 = false; is_less_than(&j, &get_array_length(&data)) } {
+                    let mut __for_first_480: bool = true;
+                    while { if !__for_first_480 { j = add(&j, &Value::Int(1)); } __for_first_480 = false; is_less_than(&j, &get_array_length(&data)) } {
                     let mut quoteCurrency: Value = get_value(&data, &j);
                     let mut quoteCurrency: Value = get_value(&data, &j);
                     let mut quoteId: Value = self.safe_string_k(quoteCurrency.clone(), "id", &[]);
@@ -1972,9 +2008,9 @@ impl CoinbaseCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMarkets".to_string()), Value::Str("usePrivate".to_string()), &[Value::Bool(false)]); usePrivate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut spotUnresolvedPromises: Value = Value::List(vec![]);
         if is_true(&usePrivate) {
-            append_to_array(&mut spotUnresolvedPromises, self.call_method(Value::Str("v3_private_get_brokerage_products".to_string()), &[params.clone()]).await);
+            append_to_array(&mut spotUnresolvedPromises, self.v3_private_get_brokerage_products(&[params.clone()]).await);
         }  else {
-            append_to_array(&mut spotUnresolvedPromises, self.call_method(Value::Str("v3_public_get_brokerage_market_products".to_string()), &[params.clone()]).await);
+            append_to_array(&mut spotUnresolvedPromises, self.v3_public_get_brokerage_market_products(&[params.clone()]).await);
         }
         //
         //    {
@@ -2022,7 +2058,7 @@ impl CoinbaseCore {
         //    }
         //
         if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
-            append_to_array(&mut spotUnresolvedPromises, self.call_method(Value::Str("v3_private_get_brokerage_transaction_summary".to_string()), &[params.clone()]).await);
+            append_to_array(&mut spotUnresolvedPromises, self.v3_private_get_brokerage_transaction_summary(&[params.clone()]).await);
         }
         //
         //    {
@@ -2050,11 +2086,12 @@ impl CoinbaseCore {
         let mut promises: Value = promise_all(&spotUnresolvedPromises).await;
         let mut unresolvedContractPromises: Value = Value::List(vec![]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            unresolvedContractPromises = Value::List(vec![self.call_method(Value::Str("v3_public_get_brokerage_market_products".to_string()), &[self.extend(params.clone(), &[Value::Map({
+            let __ws_arg_6 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("product_type".to_string(), Value::Str("FUTURE".to_string()));
     m
-})])]).await, self.call_method(Value::Str("v3_public_get_brokerage_market_products".to_string()), &[self.extend(params.clone(), &[Value::Map({
+})]);
+            unresolvedContractPromises = Value::List(vec![self.v3_public_get_brokerage_market_products(&[__ws_arg_6]).await, self.v3_public_get_brokerage_market_products(&[self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("product_type".to_string(), Value::Str("FUTURE".to_string()));
         m.insert("contract_expiry_type".to_string(), Value::Str("PERPETUAL".to_string()));
@@ -2130,32 +2167,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_498: bool = true;
-            while { if !__for_first_498 { i = add(&i, &Value::Int(1)); } __for_first_498 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_spot_market(get_value(&data, &i), feeTier.clone()));
         }
         }
         let mut futureData: Value = self.safe_list_k(expiringFutures.clone(), "products", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_499: bool = true;
-            while { if !__for_first_499 { i = add(&i, &Value::Int(1)); } __for_first_499 = false; is_less_than(&i, &get_array_length(&futureData)) } {
+            let mut __for_first_483: bool = true;
+            while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&futureData)) } {
             append_to_array(&mut result, self.parse_contract_market(get_value(&futureData, &i), expiringFeeTier.clone()));
         }
         }
         let mut perpetualData: Value = self.safe_list_k(perpetualFutures.clone(), "products", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_500: bool = true;
-            while { if !__for_first_500 { i = add(&i, &Value::Int(1)); } __for_first_500 = false; is_less_than(&i, &get_array_length(&perpetualData)) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&perpetualData)) } {
             append_to_array(&mut result, self.parse_contract_market(get_value(&perpetualData, &i), perpetualFeeTier.clone()));
         }
         }
         let mut newMarkets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_501: bool = true;
-            while { if !__for_first_501 { i = add(&i, &Value::Int(1)); } __for_first_501 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut market: Value = get_value(&result, &i);
             let mut market: Value = get_value(&result, &i);
             let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
@@ -2519,7 +2556,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut expires: Value = self.safe_integer_k(options.clone(), "expires", &[Value::Int(1000)]);
         let mut now: Value = self.milliseconds();
         if is_true(&(is_equal(&timestamp, &Value::Null))) || is_true(&(is_greater_than(&(subtract(&now, &timestamp)), &expires))) {
-            let mut promises: Value = Value::List(vec![self.call_method(Value::Str("v2_public_get_currencies".to_string()), &[params.clone()]).await, self.call_method(Value::Str("v2_public_get_currencies_crypto".to_string()), &[params.clone()]).await]);
+            let mut promises: Value = Value::List(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
             let mut promisesResult: Value = promise_all(&promises).await;
             let mut fiatResponse: Value = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2553,10 +2590,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //
             let mut fiatData: Value = self.safe_list_k(fiatResponse.clone(), "data", &[Value::List(vec![])]);
             let mut cryptoData: Value = self.safe_list_k(cryptoResponse.clone(), "data", &[Value::List(vec![])]);
-            let mut exchangeRates: Value = self.call_method(Value::Str("v2_public_get_exchange_rates".to_string()), &[params.clone()]).await;
+            let mut exchangeRates: Value = self.v2_public_get_exchange_rates(&[params.clone()]).await;
+            let __ws_arg_7 = self.array_concat(fiatData.clone(), cryptoData.clone());
             { let __be_tmp = self.extend(options.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currencies".to_string(), self.array_concat(fiatData.clone(), cryptoData.clone()));
+        m.insert("currencies".to_string(), __ws_arg_7);
         m.insert("exchangeRates".to_string(), exchangeRates.clone());
         m.insert("timestamp".to_string(), now.clone());
     m
@@ -2574,8 +2612,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -2584,7 +2622,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::List(vec![self.call_method(Value::Str("v2_public_get_currencies".to_string()), &[params.clone()]).await, self.call_method(Value::Str("v2_public_get_currencies_crypto".to_string()), &[params.clone()]).await, self.call_method(Value::Str("v2_public_get_exchange_rates".to_string()), &[params.clone()]).await]);
+        let mut promises: Value = Value::List(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params.clone()]).await]);
         let mut promisesResult: Value = promise_all(&promises).await;
         let mut fiatResponse: Value = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2649,8 +2687,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_502: bool = true;
-            while { if !__for_first_502 { i = add(&i, &Value::Int(1)); } __for_first_502 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currency: Value = get_value(&currencies, &i);
             let mut currency: Value = get_value(&currencies, &i);
             let mut assetId: Value = self.safe_string_k(currency.clone(), "asset_id", &[]);
@@ -2703,8 +2741,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_503: bool = true;
-            while { if !__for_first_503 { i = add(&i, &Value::Int(1)); } __for_first_503 = false; is_less_than(&i, &get_array_length(&ratesIds)) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&ratesIds)) } {
             let mut currencyId: Value = get_value(&ratesIds, &i);
             let mut currencyId: Value = get_value(&ratesIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2727,8 +2765,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        { let __be_tmp = self.extend(networks.clone(), &[get_value(&self.options, &Value::Str("networks".to_string()))]); add_element_to_object(&mut self.options, &Value::Str("networks".to_string()), __be_tmp); };
-        { let __be_tmp = self.extend(networksById.clone(), &[get_value(&self.options, &Value::Str("networksById".to_string()))]); add_element_to_object(&mut self.options, &Value::Str("networksById".to_string()), __be_tmp); };
+        let __ws_arg_8 = get_value(&self.options, &Value::Str("networks".to_string()));
+        { let __be_tmp = self.extend(networks.clone(), &[__ws_arg_8]); add_element_to_object(&mut self.options, &Value::Str("networks".to_string()), __be_tmp); };
+        let __ws_arg_9 = get_value(&self.options, &Value::Str("networksById".to_string()));
+        { let __be_tmp = self.extend(networksById.clone(), &[__ws_arg_9]); add_element_to_object(&mut self.options, &Value::Str("networksById".to_string()), __be_tmp); };
         return result;
 
     Value::Null
@@ -2738,8 +2778,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
@@ -2772,7 +2813,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_exchange_rates".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_exchange_rates(&[__ws_arg_10]).await;
         //
         //     {
         //         "data":{
@@ -2802,8 +2844,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut delimiter: Value = Value::Str("-".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_504: bool = true;
-            while { if !__for_first_504 { i = add(&i, &Value::Int(1)); } __for_first_504 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut marketId: Value = add(&add(&baseId, &delimiter), &quoteId);
@@ -2841,9 +2883,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut usePrivate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickers".to_string()), Value::Str("usePrivate".to_string()), &[Value::Bool(false)]); usePrivate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&usePrivate) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_products".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_products(&[__ws_arg_11]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_public_get_brokerage_market_products".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_public_get_brokerage_market_products(&[__ws_arg_12]).await;
         }
         //
         //     {
@@ -2889,8 +2933,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_505: bool = true;
-            while { if !__for_first_505 { i = add(&i, &Value::Int(1)); } __for_first_505 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "product_id", &[]);
@@ -2908,10 +2952,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
@@ -2943,15 +2986,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         }), &[params.clone()]);
-        let mut spot: Value = self.call_method(Value::Str("v2_public_get_prices_symbol_spot".to_string()), &[request.clone()]).await;
+        let mut spot: Value = self.v2_public_get_prices_symbol_spot(&[request.clone()]).await;
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        let mut ask: Value = self.call_method(Value::Str("v2_public_get_prices_symbol_buy".to_string()), &[request.clone()]).await;
+        let mut ask: Value = self.v2_public_get_prices_symbol_buy(&[request.clone()]).await;
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        let mut bid: Value = self.call_method(Value::Str("v2_public_get_prices_symbol_sell".to_string()), &[request.clone()]).await;
+        let mut bid: Value = self.v2_public_get_prices_symbol_sell(&[request.clone()]).await;
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
@@ -2996,9 +3039,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTicker".to_string()), Value::Str("usePrivate".to_string()), &[Value::Bool(false)]); usePrivate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_true(&usePrivate) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_products_product_id_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_13]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_public_get_brokerage_market_products_product_id_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_14]).await;
         }
         //
         //     {
@@ -3190,8 +3235,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut b: Value = Value::Int(0);
-            let mut __for_first_506: bool = true;
-            while { if !__for_first_506 { b = add(&b, &Value::Int(1)); } __for_first_506 = false; is_less_than(&b, &get_array_length(&balances)) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { b = add(&b, &Value::Int(1)); } __for_first_490 = false; is_less_than(&b, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &b);
             let mut balance: Value = get_value(&balances, &b);
             let mut type_var: Value = self.safe_string_k(balance.clone(), "type", &[]);
@@ -3247,9 +3292,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @param {string} [params.type] "spot" (default) or "swap" or "future"
@@ -3273,13 +3318,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut method: Value = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("v3PrivateGetBrokerageAccounts".to_string())]);
         if is_equal(&marketType, &Value::Str("future".to_string())) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_cfm_balance_summary".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_cfm_balance_summary(&[__ws_arg_15]).await;
         }  else if is_true(&(isV3)) || is_true(&(is_equal(&method, &Value::Str("v3PrivateGetBrokerageAccounts".to_string())))) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), Value::Int(250));
-            response = self.call_method(Value::Str("v3_private_get_brokerage_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_accounts(&[__ws_arg_16]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), Value::Int(250));
-            response = self.call_method(Value::Str("v2_private_get_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_accounts(&[__ws_arg_17]).await;
         }
         //
         // v2PrivateGetAccounts
@@ -3362,7 +3410,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchLedger
  * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -3393,7 +3441,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_accounts_account_id_transactions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_18]).await;
         let mut ledger: Value = self.parse_ledger(get_value(&response, &Value::Str("data".to_string())), &[currency.clone(), since.clone(), limit.clone()]);
         let mut length: Value = get_array_length(&ledger);
         if is_equal(&length, &Value::Int(0)) {
@@ -3777,8 +3826,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_accounts(&[Value::Bool(false), params.clone()]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i = add(&i, &Value::Int(1)); } __for_first_507 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
+            let mut __for_first_491: bool = true;
+            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
             let mut account: Value = get_value(&self.accounts, &i);
             if is_equal(&get_value(&account, &Value::Str("code".to_string())), &code) {
                 return get_value(&account, &Value::Str("id".to_string()));
@@ -3848,7 +3897,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3874,7 +3923,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#createOrder
  * @description create a trade order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -4104,9 +4153,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&preview) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("preview".to_string()), Value::Str("test".to_string())]), &[]);
             request = self.omit(request.clone(), Value::Str("client_order_id".to_string()), &[]);
-            response = self.call_method(Value::Str("v3_private_post_brokerage_orders_preview".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_19]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_private_post_brokerage_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_post_brokerage_orders(&[__ws_arg_20]).await;
         }
         //
         // successful order
@@ -4165,7 +4216,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -4363,7 +4414,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#cancelOrder
  * @description cancels an open order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string} id order id
  * @param {string} symbol not used by coinbase cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4389,7 +4440,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string[]} ids order ids
  * @param {string} symbol not used by coinbase cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4411,7 +4462,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("order_ids".to_string(), ids.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_post_brokerage_orders_batch_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_post_brokerage_orders_batch_cancel(&[__ws_arg_21]).await;
         //
         //     {
         //         "results": [
@@ -4426,8 +4478,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orders: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_508: bool = true;
-            while { if !__for_first_508 { i = add(&i, &Value::Int(1)); } __for_first_508 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { i = add(&i, &Value::Int(1)); } __for_first_492 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut success: Value = self.safe_bool_k(get_value(&orders, &i), "success", &[]);
             if !is_equal(&success, &Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelOrders() has failed, check your arguments and parameters".to_string()))));
@@ -4443,7 +4495,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#editOrder
  * @description edit a trade order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -4478,9 +4530,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         if is_true(&preview) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("preview".to_string()), Value::Str("test".to_string())]), &[]);
-            response = self.call_method(Value::Str("v3_private_post_brokerage_orders_edit_preview".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_post_brokerage_orders_edit_preview(&[__ws_arg_22]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_private_post_brokerage_orders_edit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_post_brokerage_orders_edit(&[__ws_arg_23]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -4491,7 +4545,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order
  * @param {string} id the order id
  * @param {string} symbol unified market symbol that the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4513,7 +4567,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_orders_historical_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_order_id(&[__ws_arg_24]).await;
         //
         //     {
         //         "order": {
@@ -4566,7 +4621,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol that the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4611,7 +4666,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_orders_historical_batch".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_25]).await;
         //
         //     {
         //         "orders": [
@@ -4699,7 +4755,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_orders_historical_batch".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_26]).await;
         //
         //     {
         //         "orders": [
@@ -4758,7 +4815,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchOpenOrders
  * @description fetches information on all currently open orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -4790,7 +4847,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of closed order structures to retrieve
@@ -4822,7 +4879,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of canceled order structures to retrieve
@@ -4846,7 +4903,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -4902,9 +4960,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut usePrivate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("usePrivate".to_string()), &[Value::Bool(false)]); usePrivate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&usePrivate) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_products_product_id_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_products_product_id_candles(&[__ws_arg_27]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_public_get_brokerage_market_products_product_id_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[__ws_arg_28]).await;
         }
         //
         //     {
@@ -4937,7 +4997,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
  * @param {string} symbol unified market symbol of the trades
  * @param {int} [since] not used by coinbase fetchTrades
  * @param {int} [limit] the maximum number of trade structures to fetch
@@ -4976,9 +5037,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut usePrivate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("usePrivate".to_string()), &[Value::Bool(false)]); usePrivate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&usePrivate) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_products_product_id_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_29]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_public_get_brokerage_market_products_product_id_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_30]).await;
         }
         //
         //     {
@@ -5006,7 +5069,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills
  * @param {string} symbol unified market symbol of the trades
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of trade structures to fetch
@@ -5051,7 +5114,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_sequence_timestamp".to_string()), self.iso8601(until.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_orders_historical_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_fills(&[__ws_arg_31]).await;
         //
         //     {
         //         "fills": [
@@ -5091,7 +5155,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5118,9 +5183,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut usePrivate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("usePrivate".to_string()), &[Value::Bool(false)]); usePrivate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&usePrivate) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_product_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_product_book(&[__ws_arg_32]).await;
         }  else {
-            response = self.call_method(Value::Str("v3_public_get_brokerage_market_product_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_public_get_brokerage_market_product_book(&[__ws_arg_33]).await;
         }
         //
         //     {
@@ -5157,7 +5224,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -5177,7 +5244,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&symbols, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("product_ids".to_string()), self.market_ids(&[symbols.clone()]));
         }
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_best_bid_ask".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_best_bid_ask(&[__ws_arg_34]).await;
         //
         //     {
         //         "pricebooks": [
@@ -5255,7 +5323,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("destination_tag".to_string()), tag.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_accounts_account_id_transactions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_accounts_account_id_transactions(&[__ws_arg_35]).await;
         //
         //     {
         //         "data": {
@@ -5321,7 +5390,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -5335,7 +5404,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Null;
         { let __destr_tmp = self.prepare_account_request_with_currency_code(&[get_value(&currency, &Value::Str("code".to_string())), Value::Null, params.clone()]).await; request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_accounts_account_id_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_36]).await;
         //
         //    {
         //        pagination: {
@@ -5486,7 +5556,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#deposit
  * @description make a deposit
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
  * @param {string} code unified currency code
  * @param {float} amount the amount to deposit
  * @param {string} id the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
@@ -5520,7 +5590,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("commit".to_string(), Value::Bool(true));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_accounts_account_id_deposits".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_accounts_account_id_deposits(&[__ws_arg_37]).await;
         //
         //     {
         //         "data": {
@@ -5571,7 +5642,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchDeposit
  * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
  * @param {string} id deposit id
  * @param {string} [code] unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5602,7 +5673,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("deposit_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_accounts_account_id_deposits_deposit_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_deposits_deposit_id(&[__ws_arg_38]).await;
         //
         //     {
         //         "data": {
@@ -5653,7 +5725,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchDepositMethodIds
  * @description fetch the deposit id for a fiat currency associated with this account
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
@@ -5663,7 +5735,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_payment_methods".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v3_private_get_brokerage_payment_methods(&[params.clone()]).await;
         //
         //     {
         //         "payment_methods": [
@@ -5693,7 +5765,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchDepositMethodId
  * @description fetch the deposit id for a fiat currency associated with this account
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method
  * @param {string} id the deposit payment method id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
@@ -5709,7 +5781,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("payment_method_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_payment_methods_payment_method_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_payment_methods_payment_method_id(&[__ws_arg_39]).await;
         //
         //     {
         //         "payment_method": {
@@ -5744,9 +5817,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_509: bool = true;
-            while { if !__for_first_509 { i = add(&i, &Value::Int(1)); } __for_first_509 = false; is_less_than(&i, &get_array_length(&ids)) } {
-            let mut id: Value = self.extend(self.parse_deposit_method_id(get_value(&ids, &i)), &[params.clone()]);
+            let mut __for_first_493: bool = true;
+            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let __ws_arg_40 = self.parse_deposit_method_id(get_value(&ids, &i));
+            let mut id: Value = self.extend(__ws_arg_40, &[params.clone()]);
             append_to_array(&mut result, id.clone());
         }
         }
@@ -5773,7 +5847,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchConvertQuote
  * @description fetch a quote for converting from one currency to another
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
@@ -5797,7 +5871,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("amount".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_post_brokerage_convert_quote".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_post_brokerage_convert_quote(&[__ws_arg_41]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5811,7 +5886,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#createConvertTrade
  * @description convert from one currency to another
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade
  * @param {string} id the id of the trade that you want to make
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
@@ -5833,7 +5908,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("to_account".to_string(), toCode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_post_brokerage_convert_trade_trade_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_post_brokerage_convert_trade_trade_id(&[__ws_arg_42]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5847,7 +5923,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchConvertTrade
  * @description fetch the data for a conversion trade
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade
  * @param {string} id the id of the trade that you want to commit
  * @param {string} code the unified currency code that was converted from
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5876,7 +5952,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("to_account".to_string(), toCode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_convert_trade_trade_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_convert_trade_trade_id(&[__ws_arg_43]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5918,7 +5995,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#closePosition
  * @description *futures only* closes open positions for a market
- * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] not used by coinbase
  * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -5945,7 +6022,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" closePosition() requires a clientOrderId parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
-        let mut response: Value = self.call_method(Value::Str("v3_private_post_brokerage_orders_close_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_post_brokerage_orders_close_position(&[__ws_arg_44]).await;
         let mut order: Value = self.safe_dict_k(response.clone(), "success_response", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5959,8 +6037,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchPositions
  * @description fetch all open positions
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
@@ -5982,7 +6060,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchPositions".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("future".to_string())) {
-            response = self.call_method(Value::Str("v3_private_get_brokerage_cfm_positions".to_string()), &[params.clone()]).await;
+            response = self.v3_private_get_brokerage_cfm_positions(&[params.clone()]).await;
         }  else {
             let mut portfolio: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("portfolio".to_string()), &[]); portfolio = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -5994,7 +6072,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("portfolio_uuid".to_string(), portfolio.clone());
                 m
             });
-            response = self.call_method(Value::Str("v3_private_get_brokerage_intx_positions_portfolio_uuid".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_intx_positions_portfolio_uuid(&[__ws_arg_45]).await;
         }
         let mut positions: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
         return self.parse_positions(positions.clone(), &[symbols.clone()]);
@@ -6006,8 +6085,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
@@ -6032,7 +6111,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("product_id".to_string(), productId.clone());
                 m
             });
-            response = self.call_method(Value::Str("v3_private_get_brokerage_cfm_positions_product_id".to_string()), &[self.extend(futureRequest.clone(), &[params.clone()])]).await;
+            let __ws_arg_46 = self.extend(futureRequest.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_cfm_positions_product_id(&[__ws_arg_46]).await;
         }  else {
             let mut portfolio: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("portfolio".to_string()), &[]); portfolio = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6045,7 +6125,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("portfolio_uuid".to_string(), portfolio.clone());
                 m
             });
-            response = self.call_method(Value::Str("v3_private_get_brokerage_intx_positions_portfolio_uuid_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v3_private_get_brokerage_intx_positions_portfolio_uuid_symbol(&[__ws_arg_47]).await;
         }
         let mut position: Value = self.safe_dict_k(response.clone(), "position", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6216,7 +6297,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name coinbase#fetchTradingFees
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap'
@@ -6237,7 +6318,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("product_type".to_string(), productType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_transaction_summary".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_transaction_summary(&[__ws_arg_48]).await;
         //
         // {
         //     total_volume: '0',
@@ -6273,8 +6355,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_510: bool = true;
-            while { if !__for_first_510 { i = add(&i, &Value::Int(1)); } __for_first_510 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_494: bool = true;
+            while { if !__for_first_494 { i = add(&i, &Value::Int(1)); } __for_first_494 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             if is_true(&(is_true(&isSpot) && is_true(&get_value(&market, &Value::Str("spot".to_string()))))) || is_true(&(!is_true(&isSpot) && !is_true(&get_value(&market, &Value::Str("spot".to_string()))))) {
@@ -6299,7 +6381,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchPortfolioDetails
  * @description Fetch details for a specific portfolio by UUID
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown
  * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
  * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
  * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
@@ -6315,7 +6397,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("portfolio_uuid".to_string(), portfolioUuid.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v3_private_get_brokerage_portfolios_portfolio_uuid".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[__ws_arg_49]).await;
         let mut result: Value = self.parse_portfolio_details(response.clone());
         return result;
 
@@ -6334,8 +6417,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsedPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_511: bool = true;
-            while { if !__for_first_511 { i = add(&i, &Value::Int(1)); } __for_first_511 = false; is_less_than(&i, &get_array_length(&spotPositions)) } {
+            let mut __for_first_495: bool = true;
+            while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&spotPositions)) } {
             let mut position: Value = get_value(&spotPositions, &i);
             let mut position: Value = get_value(&spotPositions, &i);
             let mut currencyCode: Value = self.safe_string_k(position.clone(), "asset", &[Value::Str("Unknown".to_string())]);
@@ -6500,9 +6583,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }
                 // v3: 'GET' doesn't need payload in the signature. inside url is enough
-                // https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-request
+                // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
-                // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
+                // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 let mut isCloudAPiKey: Value = Value::Bool(is_true(&(is_greater_than_or_equal(&get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())), &Value::Int(0)))) || is_true(&(Value::Bool(starts_with(&self.secret, &Value::Str("-----BEGIN".to_string()))))));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 let mut isV2CloudAPiKey: Value = Value::Bool(is_equal(&get_array_length(&self.secret), &Value::Int(88)) || is_true(&self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)])) || is_true(&Value::Bool(ends_with(&self.secret, &Value::Str("=".to_string())))));
@@ -6653,7 +6736,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name coinbase#fetchDepositAddresses
  * @description fetch deposit addresses for multiple currencies (when available)
- * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] account ID to fetch deposit addresses for
@@ -6667,7 +6750,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.load_markets(&[]).await;
         let mut request: Value = self.prepare_account_request(&[Value::Null, params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_accounts_account_id_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_50]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_deposit_addresses(data.clone(), &[codes.clone(), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();

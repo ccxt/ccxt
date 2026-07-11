@@ -199,59 +199,87 @@ impl ArkhamCore {
 impl crate::exchange::DerivedExchange for ArkhamCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_account(self, account)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_account(me, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_income(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_income(me, info, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::parse_market_leverage_tiers(me, info, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ArkhamCore.
-        ArkhamCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ArkhamCore as *mut ArkhamCore) };
+        ArkhamCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -778,7 +806,7 @@ impl ArkhamCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_public_get_assets(&[params.clone()]).await;
         //
         //    [
         //        {
@@ -810,8 +838,8 @@ impl ArkhamCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_183: bool = true;
-            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_182: bool = true;
+            while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut currency: Value = get_value(&response, &i);
             let mut currency: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
@@ -823,8 +851,8 @@ impl ArkhamCore {
             let mut chains: Value = self.safe_list_k(currency.clone(), "chains", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_182: bool = true;
-                while { if !__for_first_182 { j = add(&j, &Value::Int(1)); } __for_first_182 = false; is_less_than(&j, &get_array_length(&chains)) } {
+                let mut __for_first_181: bool = true;
+                while { if !__for_first_181 { j = add(&j, &Value::Int(1)); } __for_first_181 = false; is_less_than(&j, &get_array_length(&chains)) } {
                 let mut chain: Value = get_value(&chains, &j);
                 let mut chain: Value = get_value(&chains, &j);
                 let mut networkId: Value = self.safe_string_k(chain.clone(), "symbol", &[]);
@@ -911,7 +939,7 @@ impl ArkhamCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_pairs".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_public_get_pairs(&[params.clone()]).await;
         //
         //    [
         //        {
@@ -966,8 +994,8 @@ impl ArkhamCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_184: bool = true;
-            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_183: bool = true;
+            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1075,7 +1103,7 @@ impl ArkhamCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_server_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_public_get_server_time(&[params.clone()]).await;
         return self.safe_integer_product(response.clone(), Value::Str("serverTime".to_string()), Value::Float(0.001), &[]);
 
     Value::Null
@@ -1107,7 +1135,8 @@ impl ArkhamCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_book(&[__ws_arg_0]).await;
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1195,7 +1224,8 @@ impl ArkhamCore {
         // exchange needs microseconds
         { let __be_tmp = multiply(&get_value(&request, &Value::Str("start".to_string())), &Value::Int(1000)); add_element_to_object(&mut request, &Value::Str("start".to_string()), __be_tmp); };
         { let __be_tmp = multiply(&get_value(&request, &Value::Str("end".to_string())), &Value::Int(1000)); add_element_to_object(&mut request, &Value::Str("end".to_string()), __be_tmp); };
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_candles(&[__ws_arg_1]).await;
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1214,7 +1244,7 @@ impl ArkhamCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_public_get_tickers(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1240,7 +1270,8 @@ impl ArkhamCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_ticker(&[__ws_arg_2]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1307,13 +1338,14 @@ impl ArkhamCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_trades(&[__ws_arg_3]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -1407,7 +1439,8 @@ impl ArkhamCore {
                 m.insert("id".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_orders_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_orders_id(&[__ws_arg_4]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -1446,7 +1479,8 @@ impl ArkhamCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // note, API does not work for this param
         }
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_orders_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_orders_history(&[__ws_arg_5]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1481,15 +1515,17 @@ impl ArkhamCore {
         params = self.omit(params.clone(), Value::Str("trigger".to_string()), &[]);
         let mut response: Value = Value::Null;
         if is_true(&isTriggerOrder) {
-            response = self.call_method(Value::Str("v1_private_get_trigger_orders".to_string()), &[self.extend(Value::Map({
+            let __ws_arg_6 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()])]).await;
+            }), &[params.clone()]);
+            response = self.v1_private_get_trigger_orders(&[__ws_arg_6]).await;
         }  else {
-            response = self.call_method(Value::Str("v1_private_get_orders".to_string()), &[self.extend(Value::Map({
+            let __ws_arg_7 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()])]).await;
+            }), &[params.clone()]);
+            response = self.v1_private_get_orders(&[__ws_arg_7]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1536,9 +1572,11 @@ impl ArkhamCore {
             }
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("v1_private_post_trigger_orders_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_post_trigger_orders_cancel(&[__ws_arg_8]).await;
         }  else {
-            response = self.call_method(Value::Str("v1_private_post_orders_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_post_orders_cancel(&[__ws_arg_9]).await;
         }
         return self.parse_order(response.clone(), &[]);
 
@@ -1567,11 +1605,11 @@ impl ArkhamCore {
         params = self.omit(params.clone(), Value::Str("trigger".to_string()), &[]);
         let mut response: Value = Value::Null;
         if is_true(&isTriggerOrder) {
-            response = self.call_method(Value::Str("v1_private_post_trigger_orders_cancel_all".to_string()), &[params.clone()]).await;
+            response = self.v1_private_post_trigger_orders_cancel_all(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("v1_private_post_orders_cancel_all".to_string()), &[params.clone()]).await;
+            response = self.v1_private_post_orders_cancel_all(&[params.clone()]).await;
         }
-        return self.parse_orders(response.clone(), &[Value::Null]);
+        return self.parse_orders(response.clone(), &[]);
 
     Value::Null
 }
@@ -1609,9 +1647,9 @@ impl ArkhamCore {
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if is_true(&isTriggerOrder) {
-            response = self.call_method(Value::Str("v1_private_post_trigger_orders_new".to_string()), &[request.clone()]).await;
+            response = self.v1_private_post_trigger_orders_new(&[request.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("v1_private_post_orders_new".to_string()), &[request.clone()]).await;
+            response = self.v1_private_post_orders_new(&[request.clone()]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -1688,7 +1726,7 @@ impl ArkhamCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -1915,7 +1953,8 @@ impl ArkhamCore {
             { let __be_tmp = self.sum(&[get_value(&request, &Value::Str("from".to_string())), multiply(&defaultRange, &Value::Int(1000))]); add_element_to_object(&mut request, &Value::Str("to".to_string()), __be_tmp); };
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("until".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_trades_time".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_trades_time(&[__ws_arg_10]).await;
         return self.parse_trades(response.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -1944,7 +1983,8 @@ impl ArkhamCore {
         if !is_equal(&accountId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("subAccountId".to_string()), accountId.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_user".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_user(&[__ws_arg_11]).await;
         //
         //    {
         //        "id": "2959123",
@@ -2020,7 +2060,7 @@ impl ArkhamCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_balances".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_private_get_account_balances(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -2037,8 +2077,8 @@ impl ArkhamCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_184: bool = true;
+            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -2079,7 +2119,8 @@ impl ArkhamCore {
                 m.insert("chain".to_string(), networkCode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_post_account_deposit_addresses_new".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_post_account_deposit_addresses_new(&[__ws_arg_12]).await;
         //
         //    {
         //        "addresses": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
@@ -2116,7 +2157,8 @@ impl ArkhamCore {
                 m.insert("chain".to_string(), self.network_code_to_id(networkCode.clone(), &[]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_deposit_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_account_deposit_addresses(&[__ws_arg_13]).await;
         //
         //    {
         //        "addresses": [
@@ -2125,9 +2167,10 @@ impl ArkhamCore {
         //    }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "addresses", &[]);
+        let mut networkCodeUnified: Value = networkCode.clone(); // java req
         let mut parsed: Value = self.parse_deposit_addresses(data.clone(), &[Value::Null, Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), networkCodeUnified.clone());
     m
 })]);
         return self.index_by(parsed.clone(), Value::Str("network".to_string()));
@@ -2206,7 +2249,8 @@ impl ArkhamCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_deposits".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_account_deposits(&[__ws_arg_14]).await;
         //
         //    [
         //        {
@@ -2298,7 +2342,7 @@ impl ArkhamCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_fees".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_private_get_account_fees(&[params.clone()]).await;
         //
         // {
         //   "perpMakerFee": "1.23",
@@ -2318,8 +2362,8 @@ impl ArkhamCore {
         let mut perpTaker: Value = self.safe_number_k(response.clone(), "perpTakerFee", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_185: bool = true;
+            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&self.markets, &symbol);
@@ -2375,7 +2419,8 @@ impl ArkhamCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_funding_rate_payments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_account_funding_rate_payments(&[__ws_arg_15]).await;
         return self.parse_incomes(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2435,7 +2480,8 @@ impl ArkhamCore {
                 m.insert("symbol".to_string(), marketId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_account_leverage(&[__ws_arg_16]).await;
         //
         // might be empty if not changed from default value (which is 1x)
         //
@@ -2512,7 +2558,8 @@ impl ArkhamCore {
                 m.insert("leverage".to_string(), leverageString.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_post_account_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_post_account_leverage(&[__ws_arg_17]).await;
         return self.parse_leverage(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2536,7 +2583,7 @@ impl ArkhamCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_account_positions".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_private_get_account_positions(&[params.clone()]).await;
         return self.parse_positions(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2631,7 +2678,7 @@ impl ArkhamCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.load_markets(&[]).await;
-        let mut withdrawalAddresses: Value = self.call_method(Value::Str("v1_private_get_account_withdrawal_addresses".to_string()), &[]).await;
+        let mut withdrawalAddresses: Value = self.v1_private_get_account_withdrawal_addresses(&[]).await;
         //
         //    [
         //        {
@@ -2666,8 +2713,8 @@ impl ArkhamCore {
         let mut foundWithdrawalObject: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_187: bool = true;
-            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&withdrawalObjects)) } {
+            let mut __for_first_186: bool = true;
+            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&withdrawalObjects)) } {
             let mut withdrawalObject: Value = get_value(&withdrawalObjects, &i);
             let mut withdrawalObject: Value = get_value(&withdrawalObjects, &i);
             if is_equal(&get_value(&withdrawalObject, &Value::Str("chain".to_string())), &networkCode) {
@@ -2680,7 +2727,8 @@ impl ArkhamCore {
             panic!("{}", crate::exchange_errors::invalid_address(add(&add(&add(&add(&self.id, &Value::Str(" withdraw() can not find whitelisted withdrawal address for ".to_string())), &address), &Value::Str(" with network ".to_string())), &networkCode)));
         }
         add_element_to_object(&mut request, &Value::Str("addressId".to_string()), self.safe_integer_k(foundWithdrawalObject.clone(), "id", &[]));
-        let mut response: Value = self.call_method(Value::Str("v1_private_post_account_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_post_account_withdraw(&[__ws_arg_18]).await;
         //
         // response is a weird string like:
         //
@@ -2717,7 +2765,7 @@ impl ArkhamCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchLeverageTiers() requires a symbols argument".to_string()))));
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_margin_schedules".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_public_get_margin_schedules(&[params.clone()]).await;
         return self.parse_leverage_tiers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2735,8 +2783,8 @@ impl ArkhamCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_188: bool = true;
-            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_187: bool = true;
+            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -2764,19 +2812,21 @@ impl ArkhamCore {
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_189: bool = true;
-            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_188: bool = true;
+            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "market", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".to_string())]);
             let mut maxNotional: Value = self.safe_number_k(tier.clone(), "positionLimit", &[]);
+            let mut curr: Value = ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), get_value(&market, &Value::Str("base".to_string())), get_value(&market, &Value::Str("quote".to_string())));
+            let mut notional: Value = minNotional.clone();
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[i.clone(), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
-                    m.insert("currency".to_string(), ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), get_value(&market, &Value::Str("base".to_string())), get_value(&market, &Value::Str("quote".to_string()))));
-                    m.insert("minNotional".to_string(), minNotional.clone());
+                    m.insert("currency".to_string(), curr.clone());
+                    m.insert("minNotional".to_string(), notional.clone());
                     m.insert("maxNotional".to_string(), maxNotional.clone());
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "marginRate", &[]));
                     m.insert("maxLeverage".to_string(), self.safe_integer_k(tier.clone(), "leverageRate", &[]));
@@ -2800,8 +2850,8 @@ impl ArkhamCore {
         let mut keys: Value = object_keys(&timeframes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_190: bool = true;
-            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_189: bool = true;
+            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut timeframe: Value = get_value(&keys, &i);
             let mut timeframe: Value = get_value(&keys, &i);
             let mut durationInMicroseconds: Value = self.safe_integer(timeframes.clone(), timeframe.clone(), &[]);

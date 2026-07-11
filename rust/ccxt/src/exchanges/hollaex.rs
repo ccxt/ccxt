@@ -167,6 +167,7 @@ impl HollaexCore {
             "fetch_withdrawals" => self.fetch_withdrawals(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -188,43 +189,69 @@ impl HollaexCore {
 impl crate::exchange::DerivedExchange for HollaexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_balance(me, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HollaexCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_currency(me, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HollaexCore.
-        HollaexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const HollaexCore as *mut HollaexCore) };
+        HollaexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -602,7 +629,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_constants".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_constants(&[params.clone()]).await;
         //
         //     {
         //         "coins": {
@@ -655,8 +682,8 @@ impl HollaexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_760: bool = true;
-            while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_730: bool = true;
+            while { if !__for_first_730 { i = add(&i, &Value::Int(1)); } __for_first_730 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&pairs, &key);
@@ -747,7 +774,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_constants".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_constants(&[params.clone()]).await;
         //
         //    {
         //        "coins": {
@@ -818,41 +845,36 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut keys: Value = object_keys(&coins);
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_762: bool = true;
-            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&keys)) } {
-            let mut key: Value = get_value(&keys, &i);
-            let mut key: Value = get_value(&keys, &i);
-            let mut currency: Value = get_value(&coins, &key);
-            let mut id: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut withdrawalLimits: Value = self.safe_list_k(currency.clone(), "withdrawal_limits", &[Value::List(vec![])]);
-            let mut rawType: Value = self.safe_string_k(currency.clone(), "type", &[]);
-            let mut type_var: Value = ternary(is_true(&(is_equal(&rawType, &Value::Str("blockchain".to_string())))), Value::Str("crypto".to_string()), Value::Str("other".to_string()));
-            let mut rawNetworks: Value = self.safe_dict_k(currency.clone(), "withdrawal_fees", &[Value::Map({
+        let mut values: Value = object_values(&coins);
+        return self.parse_currencies(values.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut withdrawalLimits: Value = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::List(vec![])]);
+        let mut rawType: Value = self.safe_string_k(rawCurrency.clone(), "type", &[]);
+        let mut type_var: Value = ternary(is_true(&(is_equal(&rawType, &Value::Str("blockchain".to_string())))), Value::Str("crypto".to_string()), Value::Str("other".to_string()));
+        let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut networkIds: Value = object_keys(&rawNetworks);
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_761: bool = true;
-                while { if !__for_first_761 { j = add(&j, &Value::Int(1)); } __for_first_761 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
-                let mut networkId: Value = get_value(&networkIds, &j);
-                let mut networkId: Value = get_value(&networkIds, &j);
-                let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+        let mut networks: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut networkIds: Value = object_keys(&rawNetworks);
+        {
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { j = add(&j, &Value::Int(1)); } __for_first_731 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+            let mut networkId: Value = get_value(&networkIds, &j);
+            let mut networkId: Value = get_value(&networkIds, &j);
+            let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -874,26 +896,26 @@ impl HollaexCore {
         m.insert("info".to_string(), networkEntry.clone());
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("numericId".to_string(), self.safe_integer_k(currency.clone(), "id", &[]));
+        m.insert("numericId".to_string(), self.safe_integer_k(rawCurrency.clone(), "id", &[]));
         m.insert("code".to_string(), code.clone());
-        m.insert("info".to_string(), currency.clone());
-        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "fullname", &[]));
-        m.insert("active".to_string(), self.safe_bool_k(currency.clone(), "active", &[]));
-        m.insert("deposit".to_string(), self.safe_bool_k(currency.clone(), "allow_deposit", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(currency.clone(), "allow_withdrawal", &[]));
-        m.insert("fee".to_string(), self.safe_number_k(currency.clone(), "withdrawal_fee", &[]));
-        m.insert("precision".to_string(), self.safe_number_k(currency.clone(), "increment_unit", &[]));
+        m.insert("info".to_string(), rawCurrency.clone());
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "fullname", &[]));
+        m.insert("active".to_string(), self.safe_bool_k(rawCurrency.clone(), "active", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "allow_deposit", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "allow_withdrawal", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawal_fee", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(rawCurrency.clone(), "increment_unit", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(currency.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(currency.clone(), "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(rawCurrency.clone(), "max", &[]));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
@@ -907,10 +929,7 @@ impl HollaexCore {
         m.insert("networks".to_string(), networks.clone());
         m.insert("type".to_string(), type_var.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -933,7 +952,7 @@ impl HollaexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_orderbooks".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_orderbooks(&[params.clone()]).await;
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -941,8 +960,8 @@ impl HollaexCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_763: bool = true;
-            while { if !__for_first_763 { i = add(&i, &Value::Int(1)); } __for_first_763 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_732: bool = true;
+            while { if !__for_first_732 { i = add(&i, &Value::Int(1)); } __for_first_732 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut orderbook: Value = get_value(&response, &marketId);
@@ -979,7 +998,8 @@ impl HollaexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_orderbook(&[__ws_arg_0]).await;
         //
         //     {
         //         "btc-usdt": {
@@ -1027,7 +1047,8 @@ impl HollaexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_ticker(&[__ws_arg_1]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1050,7 +1071,7 @@ impl HollaexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1069,15 +1090,16 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&tickers);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_764: bool = true;
-            while { if !__for_first_764 { i = add(&i, &Value::Int(1)); } __for_first_764 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_733: bool = true;
+            while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[key.clone()]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".to_string())]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut result, &symbol, self.extend(self.parse_ticker(ticker.clone(), &[market.clone()]), &[params.clone()]));
+            let __ws_arg_2 = self.parse_ticker(ticker.clone(), &[market.clone()]);
+            add_element_to_object(&mut result, &symbol, self.extend(__ws_arg_2, &[params.clone()]));
         }
         }
         return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -1171,7 +1193,8 @@ impl HollaexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades(&[__ws_arg_3]).await;
         //
         //     {
         //         "btc-usdt": [
@@ -1191,7 +1214,7 @@ impl HollaexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1270,7 +1293,7 @@ impl HollaexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_tiers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_tiers(&[params.clone()]).await;
         //
         //     {
         //         "1": {
@@ -1321,8 +1344,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_765: bool = true;
-            while { if !__for_first_765 { i = add(&i, &Value::Int(1)); } __for_first_765 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { i = add(&i, &Value::Int(1)); } __for_first_734 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut makerString: Value = self.safe_string(makerFees.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
@@ -1392,7 +1415,8 @@ impl HollaexCore {
         add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int(divide(&start, &Value::Int(1000)))); // convert to seconds
         add_element_to_object(&mut request, &Value::Str("to".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000)))); // convert to seconds
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("public_get_chart".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_chart(&[__ws_arg_4]).await;
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1417,8 +1441,8 @@ impl HollaexCore {
         let mut currencyIds: Value = object_keys(&self.currencies_by_id);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_766: bool = true;
-            while { if !__for_first_766 { i = add(&i, &Value::Int(1)); } __for_first_766 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1447,7 +1471,7 @@ impl HollaexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_user_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_user_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -1475,7 +1499,8 @@ impl HollaexCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order(&[__ws_arg_5]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -1505,7 +1530,8 @@ impl HollaexCore {
                 m.insert("open".to_string(), Value::Bool(true));
             m
         });
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_6]).await;
 
     Value::Null
 }
@@ -1534,7 +1560,8 @@ impl HollaexCore {
                 m.insert("open".to_string(), Value::Bool(false));
             m
         });
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_7]).await;
 
     Value::Null
 }
@@ -1561,7 +1588,8 @@ impl HollaexCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order(&[__ws_arg_8]).await;
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -1628,7 +1656,8 @@ impl HollaexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50, max 100
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders(&[__ws_arg_9]).await;
         //
         //     {
         //         "count": 1,
@@ -1678,7 +1707,7 @@ impl HollaexCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -1805,7 +1834,8 @@ impl HollaexCore {
 }));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stop".to_string())]), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order(&[__ws_arg_10]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1833,7 +1863,8 @@ impl HollaexCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_delete_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order(&[__ws_arg_11]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -1865,7 +1896,8 @@ impl HollaexCore {
         let mut market: Value = Value::Null;
         market = self.market(symbol.clone());
         add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-        let mut response: Value = self.call_method(Value::Str("private_delete_order_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order_all(&[__ws_arg_12]).await;
         return self.parse_orders(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1906,7 +1938,8 @@ impl HollaexCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_user_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_trades(&[__ws_arg_13]).await;
         //
         //     {
         //         "count": 1,
@@ -1982,7 +2015,7 @@ impl HollaexCore {
         self.load_markets(&[]).await;
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_get_user".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_user(&[params.clone()]).await;
         //
         //     {
         //         "id":620,
@@ -2070,7 +2103,8 @@ impl HollaexCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_user_deposits".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_deposits(&[__ws_arg_14]).await;
         //
         //     {
         //         "count": 1,
@@ -2127,7 +2161,8 @@ impl HollaexCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_user_withdrawals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_15]).await;
         //
         //     {
         //         "count": 1,
@@ -2196,7 +2231,8 @@ impl HollaexCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_user_withdrawals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_16]).await;
         //
         //     {
         //         "count": 1,
@@ -2370,7 +2406,8 @@ impl HollaexCore {
                 m.insert("network".to_string(), self.network_code_to_id(network.clone(), &[code.clone()]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_user_withdrawal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_user_withdrawal(&[__ws_arg_17]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -2444,8 +2481,8 @@ impl HollaexCore {
             let mut keysLength: Value = get_array_length(&keys);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_767: bool = true;
-                while { if !__for_first_767 { i = add(&i, &Value::Int(1)); } __for_first_767 = false; is_less_than(&i, &keysLength) } {
+                let mut __for_first_736: bool = true;
+                while { if !__for_first_736 { i = add(&i, &Value::Int(1)); } __for_first_736 = false; is_less_than(&i, &keysLength) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = get_value(&withdrawalFees, &key);
@@ -2483,7 +2520,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_constants".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_constants(&[params.clone()]).await;
         //
         //     {
         //         "coins":{

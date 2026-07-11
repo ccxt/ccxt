@@ -183,6 +183,7 @@ impl BitmexCore {
             "nonce" => self.nonce(),
             "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -217,75 +218,117 @@ impl BitmexCore {
 impl crate::exchange::DerivedExchange for BitmexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_ledger_entry(me, entry, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitmexCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_currency(me, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_open_interest(self, interest, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_open_interest(me, interest, &[market.clone()])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_liquidation(self, liquidation, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_liquidation(me, liquidation, &[market.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_funding_rate_history(self, entry, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_funding_rate_history(me, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_adl_rank(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_adl_rank(me, info, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitmexCore.
-        BitmexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitmexCore as *mut BitmexCore) };
+        BitmexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -795,84 +838,47 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_wallet_assets".to_string()), &[params.clone()]).await;
-        //
-        //    {
-        //        "XBt": {
-        //            "asset": "XBT",
-        //            "currency": "XBt",
-        //            "majorCurrency": "XBT",
-        //            "name": "Bitcoin",
-        //            "currencyType": "Crypto",
-        //            "scale": "8",
-        //            // "mediumPrecision": "8",
-        //            // "shorterPrecision": "4",
-        //            // "symbol": "₿",
-        //            // "tickLog": "0",
-        //            // "weight": "1",
-        //            "enabled": true,
-        //            "isMarginCurrency": true,
-        //            "minDepositAmount": "10000",
-        //            "minWithdrawalAmount": "1000",
-        //            "maxWithdrawalAmount": "100000000000000",
-        //            "networks": [
-        //                {
-        //                    "asset": "btc",
-        //                    "tokenAddress": "",
-        //                    "depositEnabled": true,
-        //                    "withdrawalEnabled": true,
-        //                    "withdrawalFee": "20000",
-        //                    "minFee": "20000",
-        //                    "maxFee": "10000000"
-        //                }
-        //            ]
-        //        },
-        //     }
-        //
-        let mut result: Value = Value::Map({
+        let mut response: Value = self.public_get_wallet_assets(&[params.clone()]).await;
+        return self.parse_currencies(response.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut currency: Value) -> Value {
+        let mut asset: Value = self.safe_string_k(currency.clone(), "asset", &[]);
+        let mut code: Value = self.safe_currency_code(asset.clone(), &[]);
+        let mut id: Value = self.safe_string_k(currency.clone(), "currency", &[]);
+        let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
+        let mut chains: Value = self.safe_value_k(currency.clone(), "networks", &[Value::List(vec![])]);
+        let mut depositEnabled: Value = Value::Bool(false);
+        let mut withdrawEnabled: Value = Value::Bool(false);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut scale: Value = self.safe_string_k(currency.clone(), "scale", &[]);
+        let mut precisionString: Value = self.parse_precision(&[scale.clone()]);
+        let mut precision: Value = self.parse_number(precisionString.clone(), &[]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut currency: Value = get_value(&response, &i);
-            let mut currency: Value = get_value(&response, &i);
-            let mut asset: Value = self.safe_string_k(currency.clone(), "asset", &[]);
-            let mut code: Value = self.safe_currency_code(asset.clone(), &[]);
-            let mut id: Value = self.safe_string_k(currency.clone(), "currency", &[]);
-            let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
-            let mut chains: Value = self.safe_value_k(currency.clone(), "networks", &[Value::List(vec![])]);
-            let mut depositEnabled: Value = Value::Bool(false);
-            let mut withdrawEnabled: Value = Value::Bool(false);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut scale: Value = self.safe_string_k(currency.clone(), "scale", &[]);
-            let mut precisionString: Value = self.parse_precision(&[scale.clone()]);
-            let mut precision: Value = self.parse_number(precisionString.clone(), &[]);
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_371: bool = true;
-                while { if !__for_first_371 { j = add(&j, &Value::Int(1)); } __for_first_371 = false; is_less_than(&j, &get_array_length(&chains)) } {
-                let mut chain: Value = get_value(&chains, &j);
-                let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string_k(chain.clone(), "asset", &[]);
-                let mut network: Value = self.network_id_to_code(&[networkId.clone()]);
-                let mut withdrawalFeeRaw: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
-                let mut withdrawalFee: Value = self.parse_number(crate::precise::Precise::stringMul(&withdrawalFeeRaw, &precisionString), &[]);
-                let mut isDepositEnabled: Value = self.safe_bool_k(chain.clone(), "depositEnabled", &[Value::Bool(false)]);
-                let mut isWithdrawEnabled: Value = self.safe_bool_k(chain.clone(), "withdrawalEnabled", &[Value::Bool(false)]);
-                let mut active: Value = Value::Bool(is_true(&isDepositEnabled) && is_true(&isWithdrawEnabled));
-                if is_true(&isDepositEnabled) {
-                    depositEnabled = Value::Bool(true);
-                }
-                if is_true(&isWithdrawEnabled) {
-                    withdrawEnabled = Value::Bool(true);
-                }
-                add_element_to_object(&mut networks, &network, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { j = add(&j, &Value::Int(1)); } __for_first_363 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "asset", &[]);
+            let mut network: Value = self.network_id_to_code(&[networkId.clone()]);
+            let mut withdrawalFeeRaw: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
+            let mut withdrawalFee: Value = self.parse_number(crate::precise::Precise::stringMul(&withdrawalFeeRaw, &precisionString), &[]);
+            let mut isDepositEnabled: Value = self.safe_bool_k(chain.clone(), "depositEnabled", &[Value::Bool(false)]);
+            let mut isWithdrawEnabled: Value = self.safe_bool_k(chain.clone(), "withdrawalEnabled", &[Value::Bool(false)]);
+            let mut active: Value = Value::Bool(is_true(&isDepositEnabled) && is_true(&isWithdrawEnabled));
+            if is_true(&isDepositEnabled) {
+                depositEnabled = Value::Bool(true);
+            }
+            if is_true(&isWithdrawEnabled) {
+                withdrawEnabled = Value::Bool(true);
+            }
+            add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -900,18 +906,18 @@ impl BitmexCore {
 }));
     m
 }));
-            }
-            }
-            let mut currencyEnabled: Value = self.safe_value_k(currency.clone(), "enabled", &[]);
-            let mut currencyActive: Value = Value::Bool(is_true(&currencyEnabled) || is_true(&(is_true(&depositEnabled) || is_true(&withdrawEnabled))));
-            let mut minWithdrawalString: Value = self.safe_string_k(currency.clone(), "minWithdrawalAmount", &[]);
-            let mut minWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&minWithdrawalString, &precisionString), &[]);
-            let mut maxWithdrawalString: Value = self.safe_string_k(currency.clone(), "maxWithdrawalAmount", &[]);
-            let mut maxWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&maxWithdrawalString, &precisionString), &[]);
-            let mut minDepositString: Value = self.safe_string_k(currency.clone(), "minDepositAmount", &[]);
-            let mut minDeposit: Value = self.parse_number(crate::precise::Precise::stringMul(&minDepositString, &precisionString), &[]);
-            let mut isCrypto: Value = Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "currencyType", &[]), &Value::Str("Crypto".to_string())));
-            add_element_to_object(&mut result, &code, Value::Map({
+        }
+        }
+        let mut currencyEnabled: Value = self.safe_value_k(currency.clone(), "enabled", &[]);
+        let mut currencyActive: Value = Value::Bool(is_true(&currencyEnabled) || is_true(&(is_true(&depositEnabled) || is_true(&withdrawEnabled))));
+        let mut minWithdrawalString: Value = self.safe_string_k(currency.clone(), "minWithdrawalAmount", &[]);
+        let mut minWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&minWithdrawalString, &precisionString), &[]);
+        let mut maxWithdrawalString: Value = self.safe_string_k(currency.clone(), "maxWithdrawalAmount", &[]);
+        let mut maxWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&maxWithdrawalString, &precisionString), &[]);
+        let mut minDepositString: Value = self.safe_string_k(currency.clone(), "minDepositAmount", &[]);
+        let mut minDeposit: Value = self.parse_number(crate::precise::Precise::stringMul(&minDepositString, &precisionString), &[]);
+        let mut isCrypto: Value = Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "currencyType", &[]), &Value::Str("Crypto".to_string())));
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
@@ -948,9 +954,6 @@ impl BitmexCore {
         m.insert("type".to_string(), ternary(is_true(&isCrypto), Value::Str("crypto".to_string()), Value::Str("other".to_string())));
     m
 }));
-        }
-        }
-        return result;
 
     Value::Null
 }
@@ -1028,7 +1031,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_instrument_active".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_instrument_active(&[params.clone()]).await;
         return self.parse_markets(response.clone());
 
     Value::Null
@@ -1235,8 +1238,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_373: bool = true;
-            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_364: bool = true;
+            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1273,7 +1276,8 @@ impl BitmexCore {
                 m.insert("currency".to_string(), Value::Str("all".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_user_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_margin(&[__ws_arg_0]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -1305,7 +1309,8 @@ impl BitmexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book_l2".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_order_book_l2(&[__ws_arg_1]).await;
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -1318,8 +1323,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { i = add(&i, &Value::Int(1)); } __for_first_374 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_365: bool = true;
+            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             let mut side: Value = ternary(is_true(&(is_equal(&get_value(&order, &Value::Str("side".to_string())), &Value::Str("Sell".to_string())))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
@@ -1430,7 +1435,7 @@ impl BitmexCore {
         if is_true(&Value::Bool(in_op(&request, &Value::Str("filter".to_string())))) {
             { let __be_tmp = self.json(get_value(&request, &Value::Str("filter".to_string()))); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_order".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_get_order(&[request.clone()]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1548,7 +1553,7 @@ impl BitmexCore {
         if is_true(&Value::Bool(in_op(&request, &Value::Str("filter".to_string())))) {
             { let __be_tmp = self.json(get_value(&request, &Value::Str("filter".to_string()))); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_execution_trade_history".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_get_execution_trade_history(&[request.clone()]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1715,7 +1720,8 @@ impl BitmexCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_user_wallet_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_wallet_history(&[__ws_arg_2]).await;
         return self.parse_ledger(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1759,7 +1765,8 @@ impl BitmexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_user_wallet_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_wallet_history(&[__ws_arg_3]).await;
         let mut transactions: Value = self.filter_by_array(response.clone(), Value::Str("transactType".to_string()), &[Value::List(vec![Value::Str("Withdrawal".to_string()), Value::Str("Deposit".to_string())]), Value::Bool(false)]);
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -1829,14 +1836,15 @@ impl BitmexCore {
         if !is_equal(&status, &Value::Null) {
             status = self.parse_transaction_status(status.clone());
         }
+        let mut code: Value = get_value(&currency, &Value::Str("code".to_string()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "transactID", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "tx", &[]));
         m.insert("type".to_string(), type_var.clone());
-        m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), get_value(&currency, &Value::Str("code".to_string()))]));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), code.clone()]));
         m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
         m.insert("status".to_string(), status.clone());
         m.insert("timestamp".to_string(), transactTime.clone());
@@ -1884,7 +1892,8 @@ impl BitmexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_instrument".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_instrument(&[__ws_arg_4]).await;
         let mut ticker: Value = self.safe_value(response.clone(), Value::Int(0), &[]);
         if is_equal(&ticker, &Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&add(&self.id, &Value::Str(" fetchTicker() symbol ".to_string())), &symbol), &Value::Str(" not found".to_string()))));
@@ -1911,7 +1920,7 @@ impl BitmexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_instrument_active_and_indices".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_instrument_active_and_indices(&[params.clone()]).await;
         // same response as under "fetchMarkets"
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1919,8 +1928,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_375: bool = true;
-            while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
@@ -2059,7 +2068,8 @@ impl BitmexCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("reverse".to_string()), Value::Bool(true));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_trade_bucketed".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trade_bucketed(&[__ws_arg_5]).await;
         //
         //     [
         //         {"timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
@@ -2071,8 +2081,8 @@ impl BitmexCore {
         if is_true(&fetchOHLCVOpenTimestamp) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_376: bool = true;
-                while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_367: bool = true;
+                while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&result)) } {
                 { let __be_tmp = subtract(&get_value(&get_value(&result, &i), &Value::Int(0)), &duration); add_element_to_object(get_value_mut(&mut result, &i), &Value::Int(0), __be_tmp); };
             }
             }
@@ -2082,7 +2092,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -2238,7 +2248,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -2388,7 +2398,8 @@ impl BitmexCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_trade".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trade(&[__ws_arg_6]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2419,6 +2430,7 @@ impl BitmexCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = self.capitalize(type_var.clone());
+        let mut capitalizeOrderType: Value = orderType.clone();
         let mut reduceOnly: Value = self.safe_value_k(params.clone(), "reduceOnly", &[]);
         if !is_equal(&reduceOnly, &Value::Null) {
             if is_true(&(!is_true(&get_value(&market, &Value::Str("swap".to_string()))))) && is_true(&(!is_true(&get_value(&market, &Value::Str("future".to_string()))))) {
@@ -2434,7 +2446,7 @@ impl BitmexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("side".to_string(), self.capitalize(side.clone()));
                 m.insert("orderQty".to_string(), qty.clone());
-                m.insert("ordType".to_string(), orderType.clone());
+                m.insert("ordType".to_string(), capitalizeOrderType.clone());
                 m.insert("text".to_string(), brokerId.clone());
             m
         });
@@ -2498,7 +2510,8 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order(&[__ws_arg_7]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2566,7 +2579,8 @@ impl BitmexCore {
         }
         let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".to_string())]);
         add_element_to_object(&mut request, &Value::Str("text".to_string()), brokerId.clone());
-        let mut response: Value = self.call_method(Value::Str("private_put_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_put_order(&[__ws_arg_8]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -2601,7 +2615,8 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_delete_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order(&[__ws_arg_9]).await;
         let mut order: Value = self.safe_value(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2647,7 +2662,8 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_delete_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order(&[__ws_arg_10]).await;
         return self.parse_orders(response.clone(), &[]);
 
     Value::Null
@@ -2678,7 +2694,8 @@ impl BitmexCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_delete_order_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order_all(&[__ws_arg_11]).await;
         return self.parse_orders(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2704,7 +2721,8 @@ impl BitmexCore {
                 m.insert("timeout".to_string(), ternary(is_true(&(is_greater_than(&timeout, &Value::Int(0)))), self.parse_to_int(divide(&timeout, &Value::Int(1000))), Value::Int(0)));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_order_cancel_all_after".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_cancel_all_after(&[__ws_arg_12]).await;
         return response;
 
     Value::Null
@@ -2764,7 +2782,7 @@ impl BitmexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_position".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_position(&[params.clone()]).await;
         //
         //     [
         //         {
@@ -3056,7 +3074,8 @@ impl BitmexCore {
         if !is_equal(&self.twofa, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("otpToken".to_string()), totp(self.twofa.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_user_request_withdrawal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_user_request_withdrawal(&[__ws_arg_13]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -3078,13 +3097,13 @@ impl BitmexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_instrument_active_and_indices".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_instrument_active_and_indices(&[params.clone()]).await;
         // same response as under "fetchMarkets"
         let mut filteredResponse: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_377: bool = true;
-            while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_368: bool = true;
+            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -3194,7 +3213,8 @@ impl BitmexCore {
         if is_true(&(is_equal(&since, &Value::Null))) && is_true(&(is_equal(&until, &Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("reverse".to_string()), Value::Bool(true));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_funding".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_funding(&[__ws_arg_14]).await;
         return self.parse_funding_rate_histories(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3259,7 +3279,8 @@ impl BitmexCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        return self.call_method(Value::Str("private_post_position_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_position_leverage(&[__ws_arg_15]).await;
 
     Value::Null
 }
@@ -3299,7 +3320,8 @@ impl BitmexCore {
                 m.insert("enabled".to_string(), enabled.clone());
             m
         });
-        return self.call_method(Value::Str("private_post_position_isolate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_position_isolate(&[__ws_arg_16]).await;
 
     Value::Null
 }
@@ -3327,13 +3349,15 @@ impl BitmexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
+        let mut parsedNetwork: Value = self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
-                m.insert("network".to_string(), self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
+                m.insert("network".to_string(), parsedNetwork.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_user_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_deposit_address(&[__ws_arg_17]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -3403,8 +3427,8 @@ impl BitmexCore {
             let mut precision: Value = self.parse_precision(&[scale.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_378: bool = true;
-                while { if !__for_first_378 { i = add(&i, &Value::Int(1)); } __for_first_378 = false; is_less_than(&i, &networksLength) } {
+                let mut __for_first_369: bool = true;
+                while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &networksLength) } {
                 let mut network: Value = get_value(&networks, &i);
                 let mut network: Value = get_value(&networks, &i);
                 let mut networkId: Value = self.safe_string_k(network.clone(), "asset", &[]);
@@ -3456,7 +3480,7 @@ impl BitmexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut assets: Value = self.call_method(Value::Str("public_get_wallet_assets".to_string()), &[params.clone()]).await;
+        let mut assets: Value = self.public_get_wallet_assets(&[params.clone()]).await;
         return self.parse_deposit_withdraw_fees(assets.clone(), &[codes.clone(), Value::Str("asset".to_string())]);
 
     Value::Null
@@ -3483,7 +3507,8 @@ impl BitmexCore {
             m
         });
         let mut response: Value = Value::Null;
-        response = self.call_method(Value::Str("public_get_stats".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        response = self.public_get_stats(&[__ws_arg_18]).await;
         //
         //    [
         //        {
@@ -3601,7 +3626,8 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("public_get_liquidation".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_liquidation(&[__ws_arg_19]).await;
         return self.parse_liquidations(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3654,7 +3680,7 @@ impl BitmexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut response: Value = self.call_method(Value::Str("private_get_position".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_position(&[params.clone()]).await;
         return self.parse_adl_ranks(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3842,7 +3868,8 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(since.clone()));
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_settlement".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_settlement(&[__ws_arg_20]).await;
         return self.parse_settlements(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3855,8 +3882,8 @@ impl BitmexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_379: bool = true;
-            while { if !__for_first_379 { i = add(&i, &Value::Int(1)); } __for_first_379 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_370: bool = true;
+            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), &[market.clone()]));
         }
         }
@@ -3918,7 +3945,8 @@ impl BitmexCore {
                 m.insert("execInst".to_string(), Value::Str("Close".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order(&[__ws_arg_21]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null

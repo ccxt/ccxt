@@ -96,6 +96,34 @@ fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
 
 // ─── factories ────────────────────────────────────────────────────────────
 
+/// `new Bids(deltas, depth)` — TS side-class shorthand for an
+/// `OrderBookSide` constructed with `is_bid: true`. The transpiled
+/// per-exchange WS code (`bitmart`, `bitvavo`, …) uses this when
+/// patching an inner side of an order book snapshot. Returns the same
+/// `__sideKind` marker as `OrderBook::new`'s seeded sides.
+pub struct Bids;
+impl Bids {
+    pub fn new(deltas: Value, depth: Value) -> Value {
+        let max_depth = match &depth {
+            Value::Int(n) if *n > 0 => *n,
+            _ => MAX_DEPTH_SENTINEL,
+        };
+        new_side(SIDE_PLAIN, /*is_bid=*/ true, max_depth, &deltas)
+    }
+}
+
+/// `new Asks(deltas, depth)` — the ask-side companion.
+pub struct Asks;
+impl Asks {
+    pub fn new(deltas: Value, depth: Value) -> Value {
+        let max_depth = match &depth {
+            Value::Int(n) if *n > 0 => *n,
+            _ => MAX_DEPTH_SENTINEL,
+        };
+        new_side(SIDE_PLAIN, /*is_bid=*/ false, max_depth, &deltas)
+    }
+}
+
 pub struct OrderBook;
 impl OrderBook {
     /// `new OrderBook(snapshot)` or `new OrderBook(snapshot, depth)`.

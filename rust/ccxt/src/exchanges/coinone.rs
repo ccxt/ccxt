@@ -156,6 +156,7 @@ impl CoinoneCore {
             "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -171,27 +172,45 @@ impl CoinoneCore {
 impl crate::exchange::DerivedExchange for CoinoneCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinoneCore.
-        CoinoneCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinoneCore.
-        CoinoneCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinoneCore.
-        CoinoneCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinoneCore.
-        CoinoneCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::parse_balance(me, response)
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on CoinoneCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::parse_currency(me, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinoneCore.
-        CoinoneCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinoneCore.
-        CoinoneCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinoneCore as *mut CoinoneCore) };
+        CoinoneCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -483,7 +502,7 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_currencies".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_currencies(&[params.clone()]).await;
         //
         //     {
         //         "result": "success",
@@ -504,33 +523,29 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
         let mut currencies: Value = self.safe_list_k(response.clone(), "currencies", &[Value::List(vec![])]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i = add(&i, &Value::Int(1)); } __for_first_567 = false; is_less_than(&i, &get_array_length(&currencies)) } {
-            let mut entry: Value = get_value(&currencies, &i);
-            let mut entry: Value = get_value(&currencies, &i);
-            let mut id: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut isWithdrawEnabled: Value = Value::Bool(is_equal(&self.safe_string_k(entry.clone(), "withdraw_status", &[Value::Str("".to_string())]), &Value::Str("normal".to_string())));
-            let mut isDepositEnabled: Value = Value::Bool(is_equal(&self.safe_string_k(entry.clone(), "deposit_status", &[Value::Str("".to_string())]), &Value::Str("normal".to_string())));
-            let mut type_var: Value = ternary(is_true(&(!is_equal(&code, &Value::Str("KRW".to_string())))), Value::Str("crypto".to_string()), Value::Str("fiat".to_string()));
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        return self.parse_currencies(currencies.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut isWithdrawEnabled: Value = Value::Bool(is_equal(&self.safe_string_k(rawCurrency.clone(), "withdraw_status", &[Value::Str("".to_string())]), &Value::Str("normal".to_string())));
+        let mut isDepositEnabled: Value = Value::Bool(is_equal(&self.safe_string_k(rawCurrency.clone(), "deposit_status", &[Value::Str("".to_string())]), &Value::Str("normal".to_string())));
+        let mut type_var: Value = ternary(is_true(&(!is_equal(&code, &Value::Str("KRW".to_string())))), Value::Str("crypto".to_string()), Value::Str("fiat".to_string()));
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("info".to_string(), entry.clone());
-        m.insert("name".to_string(), self.safe_string_k(entry.clone(), "name", &[]));
+        m.insert("info".to_string(), rawCurrency.clone());
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), isDepositEnabled.clone());
         m.insert("withdraw".to_string(), isWithdrawEnabled.clone());
-        m.insert("fee".to_string(), self.safe_number_k(entry.clone(), "withdrawal_fee", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(entry.clone(), "max_precision", &[])]), &[]));
+        m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawal_fee", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "max_precision", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -541,7 +556,7 @@ impl CoinoneCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(entry.clone(), "withdrawal_min_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawal_min_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -553,10 +568,7 @@ impl CoinoneCore {
 }));
         m.insert("type".to_string(), type_var.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -579,7 +591,7 @@ impl CoinoneCore {
                 m.insert("quote_currency".to_string(), Value::Str("KRW".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_ticker_new_quote_currency".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.v2_public_get_ticker_new_quote_currency(&[request.clone()]).await;
         //
         //     {
         //         "result": "success",
@@ -617,8 +629,8 @@ impl CoinoneCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_568: bool = true;
-            while { if !__for_first_568 { i = add(&i, &Value::Int(1)); } __for_first_568 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_548: bool = true;
+            while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut entry: Value = self.safe_value(tickers.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
             let mut baseId: Value = self.safe_string_upper(entry.clone(), Value::Str("target_currency".to_string()), &[]);
@@ -706,8 +718,8 @@ impl CoinoneCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i = add(&i, &Value::Int(1)); } __for_first_569 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_549: bool = true;
+            while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut balance: Value = get_value(&balances, &currencyId);
@@ -737,7 +749,7 @@ impl CoinoneCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_account_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_private_post_account_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -770,7 +782,8 @@ impl CoinoneCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // only support 5, 10, 15, 16
         }
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_orderbook_quote_currency_target_currency".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_orderbook_quote_currency_target_currency(&[__ws_arg_0]).await;
         //
         //     {
         //         "result": "success",
@@ -830,9 +843,11 @@ impl CoinoneCore {
             market = self.market(first.clone());
             add_element_to_object(&mut request, &Value::Str("quote_currency".to_string()), get_value(&market, &Value::Str("quote".to_string())));
             add_element_to_object(&mut request, &Value::Str("target_currency".to_string()), get_value(&market, &Value::Str("base".to_string())));
-            response = self.call_method(Value::Str("v2_public_get_ticker_new_quote_currency_target_currency".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_1]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_ticker_new_quote_currency".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_ticker_new_quote_currency(&[__ws_arg_2]).await;
         }
         //
         //     {
@@ -895,7 +910,8 @@ impl CoinoneCore {
                 m.insert("target_currency".to_string(), get_value(&market, &Value::Str("base".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_ticker_new_quote_currency_target_currency".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_3]).await;
         //
         //     {
         //         "result": "success",
@@ -1003,7 +1019,7 @@ impl CoinoneCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1103,7 +1119,8 @@ impl CoinoneCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::Math::min(&limit, &Value::Int(200)));
         }
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_trades_quote_currency_target_currency".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_trades_quote_currency_target_currency(&[__ws_arg_4]).await;
         //
         //     {
         //         "result": "success",
@@ -1161,7 +1178,8 @@ impl CoinoneCore {
             m
         });
         let mut method: Value = add(&add(&Value::Str("privatePostOrder".to_string()), &self.capitalize(type_var.clone())), &self.capitalize(side.clone()));
-        let mut response: Value = self.call_method(method.clone(), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_5]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1193,7 +1211,8 @@ impl CoinoneCore {
                 m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_order_query_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_order_query_order(&[__ws_arg_6]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1214,7 +1233,7 @@ impl CoinoneCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -1366,7 +1385,8 @@ impl CoinoneCore {
                 m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_order_limit_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_limit_orders(&[__ws_arg_7]).await;
         //
         //     {
         //         "result": "success",
@@ -1418,7 +1438,8 @@ impl CoinoneCore {
                 m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_order_complete_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_order_complete_orders(&[__ws_arg_8]).await;
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -1479,7 +1500,8 @@ impl CoinoneCore {
                 m.insert("currency".to_string(), self.market_id(symbol.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_order_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_order_cancel(&[__ws_arg_9]).await;
         return self.safe_order(response.clone(), &[]);
 
     Value::Null
@@ -1500,7 +1522,7 @@ impl CoinoneCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_account_deposit_address".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_private_post_account_deposit_address(&[params.clone()]).await;
         //
         //     {
         //         "result": "success",
@@ -1526,8 +1548,8 @@ impl CoinoneCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i = add(&i, &Value::Int(1)); } __for_first_570 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_550: bool = true;
+            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&walletAddress, &key);
@@ -1595,12 +1617,13 @@ impl CoinoneCore {
             self.check_required_credentials(&[]);
             url = add(&url, &request);
             let mut nonce: Value = to_string_val(&self.nonce());
-            let mut json: Value = self.json(self.extend(Value::Map({
+            let __ws_arg_10 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_token".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), nonce.clone());
                 m
-            }), &[params.clone()]));
+            }), &[params.clone()]);
+            let mut json: Value = self.json(__ws_arg_10);
             let mut payload: Value = self.string_to_base64(json.clone(), &[]);
             body = payload.clone();
             let mut secret: Value = to_upper(&self.secret);

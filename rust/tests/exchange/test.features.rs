@@ -16,8 +16,8 @@ pub fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> Value 
     let mut keys: Value = object_keys(&features);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1183: bool = true;
-        while { if !__for_first_1183 { i = add(&i, &Value::Int(1)); } __for_first_1183 = false; is_less_than(&i, &get_array_length(&keys)) } {
+        let mut __for_first_1143: bool = true;
+        while { if !__for_first_1143 { i = add(&i, &Value::Int(1)); } __for_first_1143 = false; is_less_than(&i, &get_array_length(&keys)) } {
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), keys.clone(), i.clone(), marketTypes.clone()]);
         let mut marketType: Value = get_value(&keys, &i);
         let mut value: Value = get_value(&features, &marketType);
@@ -31,8 +31,8 @@ pub fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> Value 
             let mut subKeys: Value = object_keys(&value);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1182: bool = true;
-                while { if !__for_first_1182 { j = add(&j, &Value::Int(1)); } __for_first_1182 = false; is_less_than(&j, &get_array_length(&subKeys)) } {
+                let mut __for_first_1142: bool = true;
+                while { if !__for_first_1142 { j = add(&j, &Value::Int(1)); } __for_first_1142 = false; is_less_than(&j, &get_array_length(&subKeys)) } {
                 let mut subKey: Value = get_value(&subKeys, &j);
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), subKeys.clone(), j.clone(), subTypes.clone()]);
                 let mut subValue: Value = get_value(&value, &subKey);
@@ -156,8 +156,8 @@ pub fn testFeaturesInner(mut exchange: Value, mut skippedProperties: Value, mut 
     let mut allMethods: Value = object_keys(&get_value(&exchange, &Value::Str("has".to_string())));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1184: bool = true;
-        while { if !__for_first_1184 { i = add(&i, &Value::Int(1)); } __for_first_1184 = false; is_less_than(&i, &get_array_length(&featureKeys)) } {
+        let mut __for_first_1144: bool = true;
+        while { if !__for_first_1144 { i = add(&i, &Value::Int(1)); } __for_first_1144 = false; is_less_than(&i, &get_array_length(&featureKeys)) } {
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), featureKeys.clone(), i.clone(), allMethods.clone()]);
         crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), featureObj.clone(), format.clone(), Value::Null.clone(), Value::Bool(true).clone()]); // deep structure check
     }

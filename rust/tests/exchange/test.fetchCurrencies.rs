@@ -38,8 +38,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         let mut skipMajorCurrencyCheck: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("activeMajorCurrencies".to_string()))));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1188: bool = true;
-            while { if !__for_first_1188 { i = add(&i, &Value::Int(1)); } __for_first_1188 = false; is_less_than(&i, &currenciesLength) } {
+            let mut __for_first_1148: bool = true;
+            while { if !__for_first_1148 { i = add(&i, &Value::Int(1)); } __for_first_1148 = false; is_less_than(&i, &currenciesLength) } {
             let mut currency: Value = get_value(&values, &i);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
@@ -48,7 +48,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
                 numInactiveCurrencies = add(&numInactiveCurrencies, &Value::Int(1));
             }
             // ensure that major currencies are active and enabled for deposit and withdrawal
-            let mut code: Value = exchange.safe_string(currency.clone(), Value::Str("code".to_string()), &[Value::Null]);
+            let mut code: Value = exchange.safe_string(currency.clone(), Value::Str("code".to_string()), &[]);
             let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".to_string()), &[]);
             let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".to_string()), &[]);
             if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) {
@@ -74,8 +74,8 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
     let mut keys: Value = object_keys(&currencyValues);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1189: bool = true;
-        while { if !__for_first_1189 { i = add(&i, &Value::Int(1)); } __for_first_1189 = false; is_less_than(&i, &get_array_length(&keys)) } {
+        let mut __for_first_1149: bool = true;
+        while { if !__for_first_1149 { i = add(&i, &Value::Int(1)); } __for_first_1149 = false; is_less_than(&i, &get_array_length(&keys)) } {
         let mut key: Value = get_value(&keys, &i);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".to_string()));

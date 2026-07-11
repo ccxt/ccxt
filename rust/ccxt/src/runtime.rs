@@ -419,6 +419,18 @@ pub fn remove(obj: &mut Value, key: &Value) {
     }
 }
 
+/// `Array.prototype.shift()` — removes and returns the first element.
+/// Called as a free function from transpiled WS code (`shift(stored)`).
+/// Returns `Value::Null` if the array is empty or the target isn't an
+/// array.
+pub fn shift(mut arr: Value) -> Value {
+    if let Value::Arr(a) = &mut arr {
+        let inner = Arc::make_mut(a);
+        if !inner.is_empty() { return inner.remove(0); }
+    }
+    Value::Null
+}
+
 pub fn in_op(obj: &Value, key: &Value) -> bool {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => m.contains_key(k),

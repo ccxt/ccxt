@@ -324,6 +324,7 @@ impl BinanceusCore {
         m.insert("defaultType".to_string(), Value::Str("spot".to_string()));
         m.insert("fetchMargins".to_string(), Value::Bool(false));
         m.insert("quoteOrderQty".to_string(), Value::Bool(false));
+        m.insert("fetchCurrencies".to_string(), Value::Bool(false));
     m
 }));
         m.insert("has".to_string(), Value::Map({

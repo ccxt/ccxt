@@ -175,27 +175,39 @@ impl YobitCore {
 impl crate::exchange::DerivedExchange for YobitCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on YobitCore.
-        YobitCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const YobitCore as *mut YobitCore) };
+        YobitCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on YobitCore.
-        YobitCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const YobitCore as *mut YobitCore) };
+        YobitCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on YobitCore.
-        YobitCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const YobitCore as *mut YobitCore) };
+        YobitCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on YobitCore.
-        YobitCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const YobitCore as *mut YobitCore) };
+        YobitCore::parse_balance(me, response)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on YobitCore.
-        YobitCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const YobitCore as *mut YobitCore) };
+        YobitCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on YobitCore.
-        YobitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const YobitCore as *mut YobitCore) };
+        YobitCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -663,8 +675,8 @@ impl YobitCore {
         let mut currencyIds: Value = object_keys(&self.extend(free.clone(), &[total.clone()]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1152: bool = true;
-            while { if !__for_first_1152 { i = add(&i, &Value::Int(1)); } __for_first_1152 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1101: bool = true;
+            while { if !__for_first_1101 { i = add(&i, &Value::Int(1)); } __for_first_1101 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -693,7 +705,7 @@ impl YobitCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_get_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_get_info(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -712,7 +724,7 @@ impl YobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_info(&[params.clone()]).await;
         //
         //     {
         //         "server_time":1615856752,
@@ -739,8 +751,8 @@ impl YobitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1153: bool = true;
-            while { if !__for_first_1153 { i = add(&i, &Value::Int(1)); } __for_first_1153 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_1102: bool = true;
+            while { if !__for_first_1102 { i = add(&i, &Value::Int(1)); } __for_first_1102 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&markets, &id);
@@ -853,7 +865,8 @@ impl YobitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default = 150, max = 2000
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_depth_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_depth_pair(&[__ws_arg_0]).await;
         let mut market_id_in_reponse: Value = (Value::Bool(in_op(&response, &get_value(&market, &Value::Str("id".to_string())))));
         if !is_true(&market_id_in_reponse) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" order book is empty or not available".to_string()))));
@@ -884,7 +897,8 @@ impl YobitCore {
         self.load_markets(&[]).await;
         let mut ids: Value = Value::Null;
         if is_equal(&symbols, &Value::Null) {
-            ids = join(&self.ids, &Value::Str("-".to_string()));
+            let mut allIds: Value = self.ids.clone();
+            ids = join(&allIds, &Value::Str("-".to_string()));
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if is_greater_than(&get_array_length(&ids), &Value::Int(2048)) {
                 let mut numIds: Value = get_array_length(&self.ids);
@@ -902,7 +916,8 @@ impl YobitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_depth_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_depth_pair(&[__ws_arg_1]).await;
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -910,8 +925,8 @@ impl YobitCore {
         ids = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1154: bool = true;
-            while { if !__for_first_1154 { i = add(&i, &Value::Int(1)); } __for_first_1154 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1103: bool = true;
+            while { if !__for_first_1103 { i = add(&i, &Value::Int(1)); } __for_first_1103 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut symbol: Value = self.safe_symbol(id.clone(), &[]);
@@ -978,7 +993,8 @@ impl YobitCore {
                 m.insert("pair".to_string(), idsString.clone());
             m
         });
-        let mut tickers: Value = self.call_method(Value::Str("public_get_ticker_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut tickers: Value = self.public_get_ticker_pair(&[__ws_arg_2]).await;
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -986,8 +1002,8 @@ impl YobitCore {
         let mut keys: Value = object_keys(&tickers);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_1155: bool = true;
-            while { if !__for_first_1155 { k = add(&k, &Value::Int(1)); } __for_first_1155 = false; is_less_than(&k, &get_array_length(&keys)) } {
+            let mut __for_first_1104: bool = true;
+            while { if !__for_first_1104 { k = add(&k, &Value::Int(1)); } __for_first_1104 = false; is_less_than(&k, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &k);
             let mut id: Value = get_value(&keys, &k);
             let mut ticker: Value = get_value(&tickers, &id);
@@ -1032,8 +1048,8 @@ impl YobitCore {
             let mut ids: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1156: bool = true;
-                while { if !__for_first_1156 { i = add(&i, &Value::Int(1)); } __for_first_1156 = false; is_less_than(&i, &get_array_length(&self.ids)) } {
+                let mut __for_first_1105: bool = true;
+                while { if !__for_first_1105 { i = add(&i, &Value::Int(1)); } __for_first_1105 = false; is_less_than(&i, &get_array_length(&self.ids)) } {
                 let mut id: Value = get_value(&self.ids, &i);
                 let mut prefix: Value = ternary(is_true(&(is_equal(&ids, &Value::Str("".to_string())))), Value::Str("".to_string()), Value::Str("-".to_string()));
                 ids = add(&ids, &add(&prefix, &id));
@@ -1064,8 +1080,8 @@ impl YobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1157: bool = true;
-            while { if !__for_first_1157 { i = add(&i, &Value::Int(1)); } __for_first_1157 = false; is_less_than(&i, &get_array_length(&resultAll)) } {
+            let mut __for_first_1106: bool = true;
+            while { if !__for_first_1106 { i = add(&i, &Value::Int(1)); } __for_first_1106 = false; is_less_than(&i, &get_array_length(&resultAll)) } {
             let mut result: Value = self.filter_by_array_tickers(get_value(&resultAll, &i), Value::Str("symbol".to_string()), &[symbols.clone()]);
             finalResult = self.extend(finalResult.clone(), &[result.clone()]);
         }
@@ -1095,7 +1111,7 @@ impl YobitCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1211,7 +1227,8 @@ impl YobitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_trades_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades_pair(&[__ws_arg_3]).await;
         //
         //      {
         //          "doge_usdt": [
@@ -1251,7 +1268,7 @@ impl YobitCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_info(&[params.clone()]).await;
         //
         //     {
         //         "server_time":1615856752,
@@ -1282,8 +1299,8 @@ impl YobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1158: bool = true;
-            while { if !__for_first_1158 { i = add(&i, &Value::Int(1)); } __for_first_1158 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_1107: bool = true;
+            while { if !__for_first_1107 { i = add(&i, &Value::Int(1)); } __for_first_1107 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut pair: Value = self.safe_dict(pairs.clone(), marketId.clone(), &[Value::Map({
@@ -1344,7 +1361,8 @@ impl YobitCore {
                 m.insert("rate".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_trade".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade(&[__ws_arg_4]).await;
         //
         //      {
         //          "success":1,
@@ -1394,7 +1412,8 @@ impl YobitCore {
                 m.insert("order_id".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_5]).await;
         //
         //      {
         //          "success":1,
@@ -1437,7 +1456,7 @@ impl YobitCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder (private)
@@ -1562,22 +1581,25 @@ impl YobitCore {
     m
 }));
         self.load_markets(&[]).await;
+        let mut intId: Value = crate::runtime::parse_int(&id);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), crate::runtime::parse_int(&id));
+                m.insert("order_id".to_string(), intId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_order_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_info(&[__ws_arg_6]).await;
         id = to_string_val(&id);
         let mut orders: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(self.extend(Value::Map({
+        let __ws_arg_7 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
     m
-}), &[get_value(&orders, &id)]), &[]);
+}), &[get_value(&orders, &id)]);
+        return self.parse_order(__ws_arg_7, &[]);
 
     Value::Null
 }
@@ -1614,7 +1636,8 @@ impl YobitCore {
             let mut marketInner: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), get_value(&marketInner, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_active_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_active_orders(&[__ws_arg_8]).await;
         //
         //      {
         //          "success":1,
@@ -1683,7 +1706,8 @@ impl YobitCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("since".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_history(&[__ws_arg_9]).await;
         //
         //      {
         //          "success":1,
@@ -1708,14 +1732,15 @@ impl YobitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1159: bool = true;
-            while { if !__for_first_1159 { i = add(&i, &Value::Int(1)); } __for_first_1159 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1108: bool = true;
+            while { if !__for_first_1108 { i = add(&i, &Value::Int(1)); } __for_first_1108 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = self.safe_string(ids.clone(), i.clone(), &[]);
-            let mut trade: Value = self.parse_trade(self.extend(get_value(&trades, &id), &[Value::Map({
+            let __ws_arg_10 = self.extend(get_value(&trades, &id), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("trade_id".to_string(), id.clone());
     m
-})]), &[market.clone()]);
+})]);
+            let mut trade: Value = self.parse_trade(__ws_arg_10, &[market.clone()]);
             append_to_array(&mut result, trade.clone());
         }
         }
@@ -1743,7 +1768,8 @@ impl YobitCore {
                 m.insert("need_new".to_string(), Value::Int(1));
             m
         });
-        let mut response: Value = self.fetch_deposit_address(code.clone(), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.fetch_deposit_address(code.clone(), &[__ws_arg_11]).await;
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
         return Value::Map({
@@ -1794,7 +1820,8 @@ impl YobitCore {
                 m.insert("need_new".to_string(), Value::Int(0));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_get_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_deposit_address(&[__ws_arg_12]).await;
         let mut address: Value = self.safe_string(get_value(&response, &Value::Str("return".to_string())), Value::Str("address".to_string()), &[]);
         self.check_address(&[address.clone()]);
         return Value::Map({
@@ -1843,7 +1870,8 @@ impl YobitCore {
         if !is_equal(&tag, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_withdraw_coins_to_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_withdraw_coins_to_address(&[__ws_arg_13]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1891,12 +1919,13 @@ impl YobitCore {
         if is_equal(&api, &Value::Str("private".to_string())) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
-            body = self.urlencode(self.extend(Value::Map({
+            let __ws_arg_14 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), nonce.clone());
                     m.insert("method".to_string(), path.clone());
                 m
-            }), &[query.clone()]), &[]);
+            }), &[query.clone()]);
+            body = self.urlencode(__ws_arg_14, &[]);
             let mut signature: Value = self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();

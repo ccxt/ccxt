@@ -185,31 +185,45 @@ impl TokocryptoCore {
 impl crate::exchange::DerivedExchange for TokocryptoCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on TokocryptoCore.
-        TokocryptoCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const TokocryptoCore as *mut TokocryptoCore) };
+        TokocryptoCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1031,7 +1045,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_open_v1_common_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_open_v1_common_time(&[params.clone()]).await;
         return self.safe_integer_k(response.clone(), "timestamp", &[]);
 
     Value::Null
@@ -1050,7 +1064,7 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_open_v1_common_symbols".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_open_v1_common_symbols(&[params.clone()]).await;
         //
         //     {
         //         "code":0,
@@ -1098,8 +1112,8 @@ impl TokocryptoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1069: bool = true;
-            while { if !__for_first_1069 { i = add(&i, &Value::Int(1)); } __for_first_1069 = false; is_less_than(&i, &get_array_length(&list)) } {
+            let mut __for_first_1019: bool = true;
+            while { if !__for_first_1019 { i = add(&i, &Value::Int(1)); } __for_first_1019 = false; is_less_than(&i, &get_array_length(&list)) } {
             let mut market: Value = get_value(&list, &i);
             let mut market: Value = get_value(&list, &i);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
@@ -1118,8 +1132,8 @@ impl TokocryptoCore {
             let mut permissions: Value = self.safe_value_k(market.clone(), "permissions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1068: bool = true;
-                while { if !__for_first_1068 { j = add(&j, &Value::Int(1)); } __for_first_1068 = false; is_less_than(&j, &get_array_length(&permissions)) } {
+                let mut __for_first_1018: bool = true;
+                while { if !__for_first_1018 { j = add(&j, &Value::Int(1)); } __for_first_1018 = false; is_less_than(&j, &get_array_length(&permissions)) } {
                 if is_equal(&get_value(&permissions, &j), &Value::Str("TRD_GRP_003".to_string())) {
                     active = Value::Bool(false);
                     break;
@@ -1280,10 +1294,12 @@ impl TokocryptoCore {
         let mut response: Value = Value::Null;
         if is_equal(&get_value(&market, &Value::Str("quote".to_string())), &Value::Str("USDT".to_string())) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), add(&get_value(&market, &Value::Str("baseId".to_string())), &get_value(&market, &Value::Str("quoteId".to_string()))));
-            response = self.call_method(Value::Str("binance_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.binance_get_depth(&[__ws_arg_0]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("public_get_open_v1_market_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_open_v1_market_depth(&[__ws_arg_1]).await;
         }
         //
         // future
@@ -1323,7 +1339,7 @@ impl TokocryptoCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // aggregate trades
@@ -1506,7 +1522,8 @@ impl TokocryptoCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            let mut responseInner: Value = self.call_method(Value::Str("public_get_open_v1_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            let mut responseInner: Value = self.public_get_open_v1_market_trades(&[__ws_arg_2]).await;
             //
             //    {
             //       "code": 0,
@@ -1544,9 +1561,11 @@ impl TokocryptoCore {
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), Value::Int(3600000)]));
-            response = self.call_method(Value::Str("binance_get_agg_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.binance_get_agg_trades(&[__ws_arg_3]).await;
         }  else {
-            response = self.call_method(Value::Str("binance_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            response = self.binance_get_trades(&[__ws_arg_4]).await;
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1659,7 +1678,7 @@ impl TokocryptoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("binance_get_ticker24hr".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.binance_get_ticker24hr(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1695,7 +1714,8 @@ impl TokocryptoCore {
                 m.insert("symbol".to_string(), add(&get_value(&market, &Value::Str("baseId".to_string())), &get_value(&market, &Value::Str("quoteId".to_string()))));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("binance_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.binance_get_ticker24hr(&[__ws_arg_5]).await;
         if is_true(&Value::Bool(is_array(&response))) {
             let mut firstTicker: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1724,7 +1744,7 @@ impl TokocryptoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("binance_get_ticker_book_ticker".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.binance_get_ticker_book_ticker(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1789,9 +1809,11 @@ impl TokocryptoCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&get_value(&market, &Value::Str("quote".to_string())), &Value::Str("USDT".to_string())) {
-            response = self.call_method(Value::Str("binance_get_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.binance_get_klines(&[__ws_arg_6]).await;
         }  else {
-            response = self.call_method(Value::Str("public_get_open_v1_market_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_open_v1_market_klines(&[__ws_arg_7]).await;
         }
         //
         //     [
@@ -1831,7 +1853,8 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_account_spot".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_account_spot(&[__ws_arg_8]).await;
         return self.parse_balance_custom(response.clone(), &[type_var.clone(), marginMode.clone()]);
 
     Value::Null
@@ -1855,8 +1878,8 @@ impl TokocryptoCore {
         let mut balances: Value = self.safe_value_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1070: bool = true;
-            while { if !__for_first_1070 { i = add(&i, &Value::Int(1)); } __for_first_1070 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1020: bool = true;
+            while { if !__for_first_1020 { i = add(&i, &Value::Int(1)); } __for_first_1020 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -1897,7 +1920,7 @@ impl TokocryptoCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -2223,7 +2246,8 @@ impl TokocryptoCore {
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             }
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_open_v1_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_open_v1_orders(&[__ws_arg_9]).await;
         //
         //     {
         //         "code": 0,
@@ -2282,7 +2306,8 @@ impl TokocryptoCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_orders(&[__ws_arg_10]).await;
         //
         //     {
         //         "code": 0,
@@ -2362,7 +2387,8 @@ impl TokocryptoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_orders(&[__ws_arg_11]).await;
         //
         //     {
         //         "code": 0,
@@ -2430,7 +2456,8 @@ impl TokocryptoCore {
                 m.insert("type".to_string(), Value::Int(1));
             m
         }); // -1 = all, 1 = open, 2 = closed
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_12]).await;
 
     Value::Null
 }
@@ -2459,7 +2486,8 @@ impl TokocryptoCore {
                 m.insert("type".to_string(), Value::Int(2));
             m
         }); // -1 = all, 1 = open, 2 = closed
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_13]).await;
 
     Value::Null
 }
@@ -2485,7 +2513,8 @@ impl TokocryptoCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_open_v1_orders_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_open_v1_orders_cancel(&[__ws_arg_14]).await;
         //
         //     {
         //         "code": 0,
@@ -2562,7 +2591,8 @@ impl TokocryptoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_orders_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_orders_trades(&[__ws_arg_15]).await;
         //
         //     {
         //         "code": 0,
@@ -2631,7 +2661,8 @@ impl TokocryptoCore {
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_deposits_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await;
         //
         //     {
         //         "code":0,
@@ -2713,7 +2744,8 @@ impl TokocryptoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_deposits".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_deposits(&[__ws_arg_17]).await;
         //
         //     {
         //         "code":0,
@@ -2784,7 +2816,8 @@ impl TokocryptoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_open_v1_withdraws".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_open_v1_withdraws(&[__ws_arg_18]).await;
         //
         //     {
         //         "code":0,
@@ -3017,7 +3050,8 @@ impl TokocryptoCore {
         if !is_equal(&networkId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), to_upper(&networkId));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_open_v1_withdraws".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[query.clone()]);
+        let mut response: Value = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -3060,9 +3094,10 @@ impl TokocryptoCore {
             self.check_required_credentials(&[]);
             let mut query: Value = Value::Null;
             let mut defaultRecvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[]);
+            let __ws_arg_20 = self.nonce();
             let mut extendedParams: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), self.nonce());
+                    m.insert("timestamp".to_string(), __ws_arg_20);
                 m
             }), &[params.clone()]);
             if !is_equal(&defaultRecvWindow, &Value::Null) {
@@ -3199,8 +3234,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut byLimit: Value = get_value(&config, &Value::Str("byLimit".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1071: bool = true;
-                while { if !__for_first_1071 { i = add(&i, &Value::Int(1)); } __for_first_1071 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_1021: bool = true;
+                while { if !__for_first_1021 { i = add(&i, &Value::Int(1)); } __for_first_1021 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {

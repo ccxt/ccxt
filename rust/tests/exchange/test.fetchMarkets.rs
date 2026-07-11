@@ -17,8 +17,8 @@ pub async fn testFetchMarkets(mut exchange: Value, mut skippedProperties: Value)
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marketValues.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1200: bool = true;
-        while { if !__for_first_1200 { i = add(&i, &Value::Int(1)); } __for_first_1200 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        let mut __for_first_1160: bool = true;
+        while { if !__for_first_1160 { i = add(&i, &Value::Int(1)); } __for_first_1160 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }
@@ -35,8 +35,8 @@ fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value 
     });
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1201: bool = true;
-        while { if !__for_first_1201 { i = add(&i, &Value::Int(1)); } __for_first_1201 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        let mut __for_first_1161: bool = true;
+        while { if !__for_first_1161 { i = add(&i, &Value::Int(1)); } __for_first_1161 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
         let mut market: Value = get_value(&marketValues, &i);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&ids, &symbol)))) {

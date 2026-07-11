@@ -107,4 +107,8 @@ pub fn testPrecise() {
     assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&Value::Str("-3.1415".to_string()), &Value::Str("-2".to_string())))));
     assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&Value::Str("3.1415".to_string()), &Value::Str("3.1415".to_string())))));
     assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&Value::Str("3.1415".to_string()), &Value::Str("3.14150000000000000000001".to_string())))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("5".to_string()), &Value::Str("3".to_string())), &Value::Str("7".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("10".to_string()), &Value::Str("5".to_string())), &Value::Str("15".to_string())))))); // 1010 | 0101 = 1111 = 15
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("0".to_string()), &Value::Str("0".to_string())), &Value::Str("0".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("7".to_string()), &Value::Str("0".to_string())), &Value::Str("7".to_string()))))));
 }

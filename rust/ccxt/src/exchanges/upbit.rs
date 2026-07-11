@@ -195,43 +195,63 @@ impl UpbitCore {
 impl crate::exchange::DerivedExchange for UpbitCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_balance(me, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on UpbitCore.
-        UpbitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const UpbitCore as *mut UpbitCore) };
+        UpbitCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -605,7 +625,8 @@ impl UpbitCore {
                 m.insert("currency".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_withdraws_chance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_withdraws_chance(&[__ws_arg_0]).await;
         //
         //     {
         //         "member_level": {
@@ -732,7 +753,8 @@ impl UpbitCore {
                 m.insert("market".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_chance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_chance(&[__ws_arg_1]).await;
         //
         //     {
         //         "bid_fee": "0.0015",
@@ -859,7 +881,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_market_all".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_market_all(&[params.clone()]).await;
         return self.parse_markets(response.clone());
 
     Value::Null
@@ -951,8 +973,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1078: bool = true;
-            while { if !__for_first_1078 { i = add(&i, &Value::Int(1)); } __for_first_1078 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1028: bool = true;
+            while { if !__for_first_1028 { i = add(&i, &Value::Int(1)); } __for_first_1028 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -983,7 +1005,7 @@ impl UpbitCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_accounts".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_accounts(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -1023,7 +1045,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_orderbook(&[__ws_arg_2]).await;
         //
         //     [ {          market:   "BTC-ETH",
         //               "timestamp":    1542899030043,
@@ -1058,8 +1081,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1079: bool = true;
-            while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1029: bool = true;
+            while { if !__for_first_1029 { i = add(&i, &Value::Int(1)); } __for_first_1029 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut orderbook: Value = get_value(&response, &i);
             let mut orderbook: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(orderbook.clone(), "market", &[]);
@@ -1190,11 +1213,11 @@ impl UpbitCore {
         let mut queries: Value = self.ids_query_strings(ids.clone(), Value::Int(6400)); // seems upbit server limitations
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1080: bool = true;
-            while { if !__for_first_1080 { i = add(&i, &Value::Int(1)); } __for_first_1080 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1030: bool = true;
+            while { if !__for_first_1030 { i = add(&i, &Value::Int(1)); } __for_first_1030 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut idsQuery: Value = get_value(&queries, &i);
             let mut idsQuery: Value = get_value(&queries, &i);
-            append_to_array(&mut promises, self.call_method(Value::Str("public_get_ticker".to_string()), &[Value::Map({
+            append_to_array(&mut promises, self.public_get_ticker(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("markets".to_string(), idsQuery.clone());
                 m
@@ -1241,8 +1264,8 @@ impl UpbitCore {
         let mut queries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1081: bool = true;
-            while { if !__for_first_1081 { i = add(&i, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1031: bool = true;
+            while { if !__for_first_1031 { i = add(&i, &Value::Int(1)); } __for_first_1031 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if !is_equal(&idsString, &Value::Str("".to_string())) {
@@ -1284,7 +1307,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -1393,7 +1416,8 @@ impl UpbitCore {
                 m.insert("count".to_string(), limit.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_trades_ticks".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_3]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1421,7 +1445,8 @@ impl UpbitCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_chance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_chance(&[__ws_arg_4]).await;
         //
         //     {
         //         "bid_fee": "0.0005",
@@ -1496,8 +1521,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1082: bool = true;
-            while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
+            let mut __for_first_1032: bool = true;
+            while { if !__for_first_1032 { i = add(&i, &Value::Int(1)); } __for_first_1032 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
             let mut element: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1566,9 +1591,11 @@ impl UpbitCore {
         if is_equal(&timeframeValue, &Value::Str("minutes".to_string())) {
             let mut numMinutes: Value = math_round(&divide(&timeframePeriod, &Value::Int(60)));
             add_element_to_object(&mut request, &Value::Str("unit".to_string()), numMinutes.clone());
-            response = self.call_method(Value::Str("public_get_candles_timeframe_unit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_candles_timeframe_unit(&[__ws_arg_5]).await;
         }  else {
-            response = self.call_method(Value::Str("public_get_candles_timeframe".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_candles_timeframe(&[__ws_arg_6]).await;
         }
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -1712,9 +1739,11 @@ impl UpbitCore {
         let mut response: Value = Value::Null;
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), Value::Str("test".to_string())]), &[]);
         if is_true(&test) {
-            response = self.call_method(Value::Str("private_post_orders_test".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_orders_test(&[__ws_arg_7]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_orders(&[__ws_arg_8]).await;
         }
         return self.parse_order(response.clone(), &[]);
 
@@ -1744,7 +1773,8 @@ impl UpbitCore {
                 m.insert("uuid".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_delete_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order(&[__ws_arg_9]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -1857,7 +1887,8 @@ impl UpbitCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string())]), &[]);
         // console.log ('check the each request params: ', request);
-        let mut response: Value = self.call_method(Value::Str("private_post_orders_cancel_and_new".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_orders_cancel_and_new(&[__ws_arg_10]).await;
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
         //     side: 'bid',                                         //previous order data
@@ -1924,7 +1955,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default is 100
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deposits".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposits(&[__ws_arg_11]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1959,7 +1991,8 @@ impl UpbitCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deposit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposit(&[__ws_arg_12]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -1998,7 +2031,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default is 100
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_withdraws".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_withdraws(&[__ws_arg_13]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2033,7 +2067,8 @@ impl UpbitCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_withdraw(&[__ws_arg_14]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -2145,7 +2180,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         // {
         //   "market": "KRW-USDT",
@@ -2266,8 +2301,8 @@ impl UpbitCore {
             cost = Value::Str("0".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1083: bool = true;
-                while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &numTrades) } {
+                let mut __for_first_1033: bool = true;
+                while { if !__for_first_1033 { i = add(&i, &Value::Int(1)); } __for_first_1033 = false; is_less_than(&i, &numTrades) } {
                 let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade.clone(), "cost", &[]));
@@ -2356,7 +2391,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_open".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_open(&[__ws_arg_15]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2401,7 +2437,8 @@ impl UpbitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_closed".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_16]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2446,7 +2483,8 @@ impl UpbitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_closed".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_17]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2475,7 +2513,8 @@ impl UpbitCore {
                 m.insert("uuid".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order(&[__ws_arg_18]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -2498,7 +2537,7 @@ impl UpbitCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_deposits_coin_addresses".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_deposits_coin_addresses(&[params.clone()]).await;
         return self.parse_deposit_addresses(response.clone(), &[codes.clone()]);
 
     Value::Null
@@ -2556,12 +2595,13 @@ impl UpbitCore {
         if is_equal(&networkCode, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDepositAddress requires params[\"network\"]".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deposits_coin_address".to_string()), &[self.extend(Value::Map({
+        let __ws_arg_19 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("net_type".to_string(), self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
             m
-        }), &[params.clone()])]).await;
+        }), &[params.clone()]);
+        let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_19]).await;
         return self.parse_deposit_address(response.clone(), &[]);
 
     Value::Null
@@ -2590,7 +2630,8 @@ impl UpbitCore {
             m
         });
         // https://github.com/ccxt/ccxt/issues/6452
-        let mut response: Value = self.call_method(Value::Str("private_post_deposits_generate_coin_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_deposits_generate_coin_address(&[__ws_arg_20]).await;
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -2658,9 +2699,11 @@ impl UpbitCore {
                 add_element_to_object(&mut request, &Value::Str("secondary_address".to_string()), tag.clone());
             }
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-            response = self.call_method(Value::Str("private_post_withdraws_coin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdraws_coin(&[__ws_arg_21]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_withdraws_krw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdraws_krw(&[__ws_arg_22]).await;
         }
         return self.parse_transaction(response.clone(), &[]);
 

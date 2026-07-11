@@ -16,6 +16,13 @@ default = []
 # progress — the transpiler produces syntactically-valid Rust but most
 # method bodies don't yet typecheck against the typed Exchange base.
 transpiled-base = []
+# Includes the transpiled WS (pro) exchanges in `src/pro/<id>.rs`. Work
+# in progress — the structural transpile (struct shape, parent Deref)
+# works but several per-exchange method bodies still need transpiler
+# fixes. Enable to opt in; default builds skip the per-id files so the
+# hand-written `pro::{cache, order_book}` modules stay usable on their
+# own.
+transpiled-ws = ["transpiled-base"]
 
 [dependencies]
 # HTTP client (async)

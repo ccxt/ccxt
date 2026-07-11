@@ -168,6 +168,7 @@ impl BitrueCore {
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -194,51 +195,81 @@ impl BitrueCore {
 impl crate::exchange::DerivedExchange for BitrueCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_balance(me, response)
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitrueCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_currency(me, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitrueCore.
-        BitrueCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitrueCore as *mut BitrueCore) };
+        BitrueCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -930,6 +961,7 @@ impl BitrueCore {
         m.insert("You don't have permission.".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("Market is closed.".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("Too many requests. Please try again later.".to_string(), Value::Str("DDoSProtection".to_string()).clone());
+        m.insert("quantity less then minQty".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("-1000".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("-1001".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("-1002".to_string(), Value::Str("AuthenticationError".to_string()).clone());
@@ -1021,7 +1053,7 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("spot_v1_public_get_ping".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_v1_public_get_ping(&[params.clone()]).await;
         //
         // empty means working status.
         //
@@ -1056,7 +1088,7 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("spot_v1_public_get_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_v1_public_get_time(&[params.clone()]).await;
         return self.safe_integer_k(response.clone(), "serverTime", &[]);
 
     Value::Null
@@ -1074,7 +1106,7 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("spot_v1_public_get_exchange_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_v1_public_get_exchange_info(&[params.clone()]).await;
         //
         //     {
         //         "timezone":"CTT",
@@ -1121,34 +1153,30 @@ impl BitrueCore {
         //         ],
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut coins: Value = self.safe_list_k(response.clone(), "coins", &[Value::List(vec![])]);
+        return self.parse_currencies(coins.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "coin", &[]);
+        let mut name: Value = self.safe_string_k(rawCurrency.clone(), "coinFulName", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut networkDetails: Value = self.safe_list_k(rawCurrency.clone(), "chainDetail", &[Value::List(vec![])]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut coins: Value = self.safe_list_k(response.clone(), "coins", &[Value::List(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&coins)) } {
-            let mut currency: Value = get_value(&coins, &i);
-            let mut currency: Value = get_value(&coins, &i);
-            let mut id: Value = self.safe_string_k(currency.clone(), "coin", &[]);
-            let mut name: Value = self.safe_string_k(currency.clone(), "coinFulName", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut networkDetails: Value = self.safe_list_k(currency.clone(), "chainDetail", &[Value::List(vec![])]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_385: bool = true;
-                while { if !__for_first_385 { j = add(&j, &Value::Int(1)); } __for_first_385 = false; is_less_than(&j, &get_array_length(&networkDetails)) } {
-                let mut entry: Value = get_value(&networkDetails, &j);
-                let mut entry: Value = get_value(&networkDetails, &j);
-                let mut networkId: Value = self.safe_string_k(entry.clone(), "chain", &[]);
-                let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                add_element_to_object(&mut networks, &network, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { j = add(&j, &Value::Int(1)); } __for_first_375 = false; is_less_than(&j, &get_array_length(&networkDetails)) } {
+            let mut entry: Value = get_value(&networkDetails, &j);
+            let mut entry: Value = get_value(&networkDetails, &j);
+            let mut networkId: Value = self.safe_string_k(entry.clone(), "chain", &[]);
+            let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+            add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -1170,15 +1198,15 @@ impl BitrueCore {
 }));
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), name.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("precision".to_string(), Value::Null);
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -1197,10 +1225,7 @@ impl BitrueCore {
     m
 }));
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1232,16 +1257,16 @@ impl BitrueCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_376: bool = true;
+            while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&types)) } {
             let mut marketType: Value = get_value(&types, &i);
             let mut marketType: Value = get_value(&types, &i);
             if is_equal(&marketType, &Value::Str("spot".to_string())) {
-                append_to_array(&mut promisesRaw, self.call_method(Value::Str("spot_v1_public_get_exchange_info".to_string()), &[params.clone()]).await);
+                append_to_array(&mut promisesRaw, self.spot_v1_public_get_exchange_info(&[params.clone()]).await);
             }  else if is_equal(&marketType, &Value::Str("linear".to_string())) {
-                append_to_array(&mut promisesRaw, self.call_method(Value::Str("fapi_v1_public_get_contracts".to_string()), &[params.clone()]).await);
+                append_to_array(&mut promisesRaw, self.fapi_v1_public_get_contracts(&[params.clone()]).await);
             }  else if is_equal(&marketType, &Value::Str("inverse".to_string())) {
-                append_to_array(&mut promisesRaw, self.call_method(Value::Str("dapi_v1_public_get_contracts".to_string()), &[params.clone()]).await);
+                append_to_array(&mut promisesRaw, self.dapi_v1_public_get_contracts(&[params.clone()]).await);
             }  else {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string())), &marketType), &Value::Str("\" is not a supported market type".to_string()))));
             }
@@ -1386,6 +1411,7 @@ impl BitrueCore {
         if is_equal(&minCost, &Value::Null) {
             minCost = self.safe_number_k(market.clone(), "minOrderMoney", &[]);
         }
+        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1398,7 +1424,7 @@ impl BitrueCore {
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), settleId.clone());
         m.insert("type".to_string(), type_var.clone());
-        m.insert("spot".to_string(), Value::Bool((is_equal(&type_var, &Value::Str("spot".to_string())))));
+        m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isContract.clone());
         m.insert("future".to_string(), Value::Bool(false));
@@ -1510,8 +1536,8 @@ impl BitrueCore {
         let mut balances: Value = self.safe_value2(response.clone(), Value::Str("balances".to_string()), Value::Str("account".to_string()), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_377: bool = true;
+            while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("asset".to_string()), Value::Str("marginCoin".to_string()), &[]);
@@ -1555,20 +1581,20 @@ impl BitrueCore {
         let mut result: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("swap".to_string())) {
             if !is_equal(&subType, &Value::Null) && is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("dapi_v2_private_get_account".to_string()), &[params.clone()]).await;
+                response = self.dapi_v2_private_get_account(&[params.clone()]).await;
                 result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             }  else {
-                response = self.call_method(Value::Str("fapi_v2_private_get_account".to_string()), &[params.clone()]).await;
+                response = self.fapi_v2_private_get_account(&[params.clone()]).await;
                 result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             }
         }  else {
-            response = self.call_method(Value::Str("spot_v1_private_get_account".to_string()), &[params.clone()]).await;
+            response = self.spot_v1_private_get_account(&[params.clone()]).await;
             result = response.clone();
         }
         return self.parse_balance(result.clone());
@@ -1610,9 +1636,11 @@ impl BitrueCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v1_public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v1_public_get_depth(&[__ws_arg_0]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v1_public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v1_public_get_depth(&[__ws_arg_1]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             let mut request: Value = Value::Map({
@@ -1626,7 +1654,8 @@ impl BitrueCore {
                 }
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
-            response = self.call_method(Value::Str("spot_v1_public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_public_get_depth(&[__ws_arg_2]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook only support spot & swap markets".to_string()))));
         }
@@ -1764,9 +1793,11 @@ impl BitrueCore {
                 m
             });
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v1_public_get_ticker(&[__ws_arg_3]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v1_public_get_ticker(&[__ws_arg_4]).await;
             }
             data = response.clone();
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -1775,7 +1806,8 @@ impl BitrueCore {
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m
             });
-            response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_5]).await;
             data = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1833,9 +1865,11 @@ impl BitrueCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v1_public_get_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v1_public_get_klines(&[__ws_arg_6]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v1_public_get_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v1_public_get_klines(&[__ws_arg_7]).await;
             }
             data = response.clone();
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -1857,7 +1891,8 @@ impl BitrueCore {
                 params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("fromIdx".to_string()), until.clone());
             }
-            response = self.call_method(Value::Str("spot_v1_public_get_market_kline".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_public_get_market_kline(&[__ws_arg_8]).await;
             data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOHLCV only support spot & swap markets".to_string()))));
@@ -1931,9 +1966,11 @@ impl BitrueCore {
                 m
             });
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v1_public_get_ticker(&[__ws_arg_9]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v1_public_get_ticker(&[__ws_arg_10]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             let mut request: Value = Value::Map({
@@ -1941,7 +1978,8 @@ impl BitrueCore {
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m
             });
-            response = self.call_method(Value::Str("spot_v1_public_get_ticker_book_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_public_get_ticker_book_ticker(&[__ws_arg_11]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks only support spot & swap markets".to_string()))));
         }
@@ -2011,7 +2049,8 @@ impl BitrueCore {
             if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers does not support swap markets, please use fetchTicker instead".to_string()))));
             }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-                response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+                response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_12]).await;
                 data = response.clone();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers only support spot & swap markets".to_string()))));
@@ -2021,7 +2060,8 @@ impl BitrueCore {
             if !is_equal(&type_var, &Value::Str("spot".to_string())) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers only support spot when symbols are not proved".to_string()))));
             }
-            response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_13]).await;
             data = response.clone();
         }
         //
@@ -2071,8 +2111,8 @@ impl BitrueCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_389: bool = true;
-            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_378: bool = true;
+            while { if !__for_first_378 { i = add(&i, &Value::Int(1)); } __for_first_378 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2086,7 +2126,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2217,7 +2257,8 @@ impl BitrueCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 1000
             }
-            response = self.call_method(Value::Str("spot_v1_public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_public_get_trades(&[__ws_arg_14]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades only support spot markets".to_string()))));
         }
@@ -2245,7 +2286,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder - spot
@@ -2479,9 +2520,11 @@ impl BitrueCore {
             add_element_to_object(&mut request, &Value::Str("leverage".to_string()), self.parse_to_numeric(leverage.clone()));
             params = self.omit(params.clone(), Value::List(vec![Value::Str("leverage".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string())]), &[]);
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v2_private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v2_private_post_order(&[__ws_arg_15]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v2_private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v2_private_post_order(&[__ws_arg_16]).await;
             }
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2504,7 +2547,8 @@ impl BitrueCore {
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             }
-            response = self.call_method(Value::Str("spot_v1_private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_private_post_order(&[__ws_arg_17]).await;
             data = response.clone();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder only support spot & swap markets".to_string()))));
@@ -2556,9 +2600,11 @@ impl BitrueCore {
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("contractName".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v2_private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v2_private_get_order(&[__ws_arg_18]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v2_private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v2_private_get_order(&[__ws_arg_19]).await;
             }
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2567,7 +2613,8 @@ impl BitrueCore {
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone()); // spot market id is mandatory
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("spot_v1_private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_private_get_order(&[__ws_arg_20]).await;
             data = response.clone();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder only support spot & swap markets".to_string()))));
@@ -2615,7 +2662,8 @@ impl BitrueCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 1000
         }
-        let mut response: Value = self.call_method(Value::Str("spot_v1_private_get_all_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_v1_private_get_all_orders(&[__ws_arg_21]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2655,14 +2703,17 @@ impl BitrueCore {
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("contractName".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v2_private_get_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v2_private_get_open_orders(&[__ws_arg_22]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v2_private_get_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v2_private_get_open_orders(&[__ws_arg_23]).await;
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("spot_v1_private_get_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_private_get_open_orders(&[__ws_arg_24]).await;
             data = response.clone();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders only support spot & swap markets".to_string()))));
@@ -2715,9 +2766,11 @@ impl BitrueCore {
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("contractName".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v2_private_post_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v2_private_post_cancel(&[__ws_arg_25]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v2_private_post_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v2_private_post_cancel(&[__ws_arg_26]).await;
             }
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2725,7 +2778,8 @@ impl BitrueCore {
 })]);
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("spot_v1_private_delete_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v1_private_delete_order(&[__ws_arg_27]).await;
             data = response.clone();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder only support spot & swap markets".to_string()))));
@@ -2763,9 +2817,11 @@ impl BitrueCore {
                 m
             });
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v2_private_post_all_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v2_private_post_all_open_orders(&[__ws_arg_28]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v2_private_post_all_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v2_private_post_all_open_orders(&[__ws_arg_29]).await;
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
@@ -2819,14 +2875,17 @@ impl BitrueCore {
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("contractName".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("fapi_v2_private_get_my_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+                response = self.fapi_v2_private_get_my_trades(&[__ws_arg_30]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("dapi_v2_private_get_my_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+                response = self.dapi_v2_private_get_my_trades(&[__ws_arg_31]).await;
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("spot_v2_private_get_my_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_v2_private_get_my_trades(&[__ws_arg_32]).await;
             data = response.clone();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades only support spot & swap markets".to_string()))));
@@ -2872,7 +2931,8 @@ impl BitrueCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("spot_v1_private_get_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_v1_private_get_deposit_history(&[__ws_arg_33]).await;
         //
         //     {
         //         "code":200,
@@ -2951,7 +3011,8 @@ impl BitrueCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("spot_v1_private_get_withdraw_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_v1_private_get_withdraw_history(&[__ws_arg_34]).await;
         //
         //    {
         //        "code": 200,
@@ -3183,7 +3244,8 @@ impl BitrueCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("tag".to_string()), tag.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("spot_v1_private_post_withdraw_commit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_v1_private_post_withdraw_commit(&[__ws_arg_35]).await;
         //
         //     {
         //         "code": 200,
@@ -3244,8 +3306,8 @@ impl BitrueCore {
         if !is_equal(&chainDetailLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_390: bool = true;
-                while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &chainDetailLength) } {
+                let mut __for_first_379: bool = true;
+                while { if !__for_first_379 { i = add(&i, &Value::Int(1)); } __for_first_379 = false; is_less_than(&i, &chainDetailLength) } {
                 let mut chainDetail: Value = get_value(&chainDetails, &i);
                 let mut chainDetail: Value = get_value(&chainDetails, &i);
                 let mut networkId: Value = self.safe_string_k(chainDetail.clone(), "chain", &[]);
@@ -3295,7 +3357,7 @@ impl BitrueCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("spot_v1_public_get_exchange_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_v1_public_get_exchange_info(&[params.clone()]).await;
         let mut coins: Value = self.safe_list_k(response.clone(), "coins", &[]);
         return self.parse_deposit_withdraw_fees(coins.clone(), &[codes.clone(), Value::Str("coin".to_string())]);
 
@@ -3393,7 +3455,8 @@ impl BitrueCore {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("fapi_v2_private_get_futures_transfer_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.fapi_v2_private_get_futures_transfer_history(&[__ws_arg_36]).await;
         //
         //     {
         //         'code': '0',
@@ -3446,7 +3509,8 @@ impl BitrueCore {
                 m.insert("transferType".to_string(), add(&add(&fromId, &Value::Str("_to_".to_string())), &toId));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("fapi_v2_private_post_futures_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.fapi_v2_private_post_futures_transfer(&[__ws_arg_37]).await;
         //
         //     {
         //         'code': '0',
@@ -3499,9 +3563,11 @@ impl BitrueCore {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage only support swap markets".to_string()))));
         }
         if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-            response = self.call_method(Value::Str("fapi_v2_private_post_level_edit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            response = self.fapi_v2_private_post_level_edit(&[__ws_arg_38]).await;
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-            response = self.call_method(Value::Str("dapi_v2_private_post_level_edit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+            response = self.dapi_v2_private_post_level_edit(&[__ws_arg_39]).await;
         }
         return response;
 
@@ -3557,9 +3623,11 @@ impl BitrueCore {
             m
         });
         if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-            response = self.call_method(Value::Str("fapi_v2_private_post_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+            response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await;
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-            response = self.call_method(Value::Str("dapi_v2_private_post_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+            response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await;
         }
         return self.parse_margin_modification(response.clone(), &[market.clone()]);
 
@@ -3590,12 +3658,13 @@ impl BitrueCore {
             self.check_required_credentials(&[]);
             let mut recvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]);
             if is_equal(&type_var, &Value::Str("spot".to_string())) || is_equal(&type_var, &Value::Str("open".to_string())) {
-                let mut query: Value = self.urlencode(self.extend(Value::Map({
+                let __ws_arg_42 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("timestamp".to_string(), self.nonce());
                         m.insert("recvWindow".to_string(), recvWindow.clone());
                     m
-                }), &[params.clone()]), &[]);
+                }), &[params.clone()]);
+                let mut query: Value = self.urlencode(__ws_arg_42, &[]);
                 let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
                 query = add(&query, &add(&add(&Value::Str("&".to_string()), &Value::Str("signature=".to_string())), &signature));
                 headers = Value::Map({
@@ -3753,8 +3822,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut byLimit: Value = get_value(&config, &Value::Str("byLimit".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_391: bool = true;
-                while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_380: bool = true;
+                while { if !__for_first_380 { i = add(&i, &Value::Int(1)); } __for_first_380 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {

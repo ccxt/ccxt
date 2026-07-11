@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut withoutSymbol: Value = testFetchTickersHelper(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = testFetchTickersHelper(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
+    let mut withoutSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
+    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
     let mut results: Value = promise_all(&Value::List(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
-    testFetchTickersAmounts(exchange.clone(), skippedProperties.clone(), get_value(&results, &Value::Int(0)));
+    fetchTickersAmountsTest(exchange.clone(), skippedProperties.clone(), get_value(&results, &Value::Int(0)));
     return results;
 
     Value::Null
 }
-pub async fn testFetchTickersHelper(mut exchange: Value, mut skippedProperties: Value, mut argSymbols: Value, optional_args: &[Value]) -> Value {
+async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Value, mut argSymbols: Value, optional_args: &[Value]) -> Value {
     let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
     let mut method: Value = Value::Str("fetchTickers".to_string());
     let mut response: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_tickers", vec![argSymbols.clone(), argParams.clone()]).await;
@@ -31,8 +31,8 @@ pub async fn testFetchTickersHelper(mut exchange: Value, mut skippedProperties: 
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1211: bool = true;
-        while { if !__for_first_1211 { i = add(&i, &Value::Int(1)); } __for_first_1211 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_1171: bool = true;
+        while { if !__for_first_1171 { i = add(&i, &Value::Int(1)); } __for_first_1171 = false; is_less_than(&i, &get_array_length(&values)) } {
         // todo: symbol check here
         let mut ticker: Value = get_value(&values, &i);
         testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
@@ -42,7 +42,7 @@ pub async fn testFetchTickersHelper(mut exchange: Value, mut skippedProperties: 
 
     Value::Null
 }
-pub fn testFetchTickersAmounts(mut exchange: Value, mut skippedProperties: Value, mut tickers: Value) {
+fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mut tickers: Value) {
     let mut tickersValues: Value = object_values(&tickers);
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("checkActiveSymbols".to_string()))))) {
         //

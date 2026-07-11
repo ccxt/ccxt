@@ -216,59 +216,87 @@ impl DeepcoinCore {
 impl crate::exchange::DerivedExchange for DeepcoinCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_market(me, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_funding_rate_history(self, entry, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_funding_rate_history(me, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeepcoinCore.
-        DeepcoinCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeepcoinCore as *mut DeepcoinCore) };
+        DeepcoinCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -774,16 +802,16 @@ impl DeepcoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_608: bool = true;
-            while { if !__for_first_608 { i = add(&i, &Value::Int(1)); } __for_first_608 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&types)) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(get_value(&types, &i), &[params.clone()]).await);
         }
         }
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_609: bool = true;
-            while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { i = add(&i, &Value::Int(1)); } __for_first_587 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
         }
         }
@@ -802,7 +830,8 @@ impl DeepcoinCore {
                 m.insert("instType".to_string(), self.convert_to_instrument_type(type_var.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_market_instruments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_market_instruments(&[__ws_arg_0]).await;
         //
         // spot
         //
@@ -912,6 +941,14 @@ impl DeepcoinCore {
         let mut maxLimitSize: Value = self.safe_string_k(market.clone(), "maxLmtSz", &[]);
         let mut maxAmount: Value = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize, &maxLimitSize), &[]);
         let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
+        let mut isMargin: Value = Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
+        let mut isInverse: Value = ternary(is_true(&swap), Value::Bool((!is_true(&isLinear))), Value::Null);
+        let __ws_arg_1 = self.safe_number_k(market.clone(), "ctVal", &[]);
+        let __ws_arg_2 = self.safe_number_k(market.clone(), "lotSz", &[]);
+        let __ws_arg_3 = self.safe_number_k(market.clone(), "tickSz", &[]);
+        let __ws_arg_4 = self.parse_number(Value::Str("1".to_string()), &[]);
+        let __ws_arg_5 = self.parse_number(maxLeverage.clone(), &[]);
+        let __ws_arg_6 = self.safe_number_k(market.clone(), "minSz", &[]);
         return self.extend(fees.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -924,15 +961,15 @@ impl DeepcoinCore {
         m.insert("settleId".to_string(), settleId.clone());
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string()))))));
+        m.insert("margin".to_string(), isMargin.clone());
         m.insert("swap".to_string(), swap.clone());
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(is_equal(&state, &Value::Str("live".to_string()))));
         m.insert("contract".to_string(), swap.clone());
         m.insert("linear".to_string(), isLinear.clone());
-        m.insert("inverse".to_string(), ternary(is_true(&swap), Value::Bool((!is_true(&isLinear))), Value::Null));
-        m.insert("contractSize".to_string(), ternary(is_true(&swap), self.safe_number_k(market.clone(), "ctVal", &[]), Value::Null));
+        m.insert("inverse".to_string(), isInverse.clone());
+        m.insert("contractSize".to_string(), ternary(is_true(&swap), __ws_arg_1, Value::Null));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -940,21 +977,21 @@ impl DeepcoinCore {
         m.insert("created".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.safe_number_k(market.clone(), "lotSz", &[]));
-        m.insert("price".to_string(), self.safe_number_k(market.clone(), "tickSz", &[]));
+        m.insert("amount".to_string(), __ws_arg_2);
+        m.insert("price".to_string(), __ws_arg_3);
     m
 }));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
-        m.insert("max".to_string(), self.parse_number(maxLeverage.clone(), &[]));
+        m.insert("min".to_string(), __ws_arg_4);
+        m.insert("max".to_string(), __ws_arg_5);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minSz", &[]));
+        m.insert("min".to_string(), __ws_arg_6);
         m.insert("max".to_string(), maxAmount.clone());
     m
 }));
@@ -985,8 +1022,8 @@ impl DeepcoinCore {
         let mut symbols: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&markets, &symbol);
@@ -1028,7 +1065,8 @@ impl DeepcoinCore {
                 m.insert("sz".to_string(), limit.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_market_books".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_market_books(&[__ws_arg_7]).await;
         //
         //     {
         //         "code": "0",
@@ -1127,11 +1165,14 @@ impl DeepcoinCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&price, &Value::Str("mark".to_string())) {
-            response = self.call_method(Value::Str("public_get_deepcoin_market_mark_price_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_deepcoin_market_mark_price_candles(&[__ws_arg_8]).await;
         }  else if is_equal(&price, &Value::Str("index".to_string())) {
-            response = self.call_method(Value::Str("public_get_deepcoin_market_index_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_deepcoin_market_index_candles(&[__ws_arg_9]).await;
         }  else {
-            response = self.call_method(Value::Str("public_get_deepcoin_market_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_deepcoin_market_candles(&[__ws_arg_10]).await;
         }
         //
         //     {
@@ -1190,7 +1231,8 @@ impl DeepcoinCore {
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_market_tickers(&[__ws_arg_11]).await;
         let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
@@ -1294,7 +1336,8 @@ impl DeepcoinCore {
         }
         let mut productGroup: Value = self.get_product_group_from_market(market.clone());
         add_element_to_object(&mut request, &Value::Str("productGroup".to_string()), productGroup.clone());
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1315,7 +1358,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -1420,7 +1463,8 @@ impl DeepcoinCore {
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_account_balances".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_account_balances(&[__ws_arg_13]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -1451,8 +1495,8 @@ impl DeepcoinCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -1516,7 +1560,8 @@ impl DeepcoinCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_asset_deposit_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_asset_deposit_list(&[__ws_arg_14]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1579,7 +1624,8 @@ impl DeepcoinCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_asset_withdraw_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_asset_withdraw_list(&[__ws_arg_15]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1692,7 +1738,8 @@ impl DeepcoinCore {
                 m.insert("lang".to_string(), Value::Str("en".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_asset_recharge_chain_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_asset_recharge_chain_list(&[__ws_arg_16]).await;
         //
         //     {
         //         "code": "0",
@@ -1769,8 +1816,8 @@ impl DeepcoinCore {
         if is_true(&(!is_equal(&network, &Value::Null))) && is_true(&(is_greater_than(&length, &Value::Int(1)))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_612: bool = true;
-                while { if !__for_first_612 { i = add(&i, &Value::Int(1)); } __for_first_612 = false; is_less_than(&i, &length) } {
+                let mut __for_first_590: bool = true;
+                while { if !__for_first_590 { i = add(&i, &Value::Int(1)); } __for_first_590 = false; is_less_than(&i, &length) } {
                 let mut entry: Value = get_value(&addressess, &i);
                 let mut entry: Value = get_value(&addressess, &i);
                 if is_equal(&get_value(&entry, &Value::Str("network".to_string())), &network) {
@@ -1865,7 +1912,8 @@ impl DeepcoinCore {
             add_element_to_object(&mut request, &Value::Str("before".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_account_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_account_bills(&[__ws_arg_17]).await;
         //
         //     {
         //         "code": "0",
@@ -1997,7 +2045,8 @@ impl DeepcoinCore {
                 m.insert("uid".to_string(), userId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_deepcoin_asset_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_deepcoin_asset_transfer(&[__ws_arg_18]).await;
         //
         //     {
         //         "code": "0",
@@ -2103,7 +2152,7 @@ impl DeepcoinCore {
         let mut response: Value = Value::Null;
         if !is_equal(&triggerPrice, &Value::Null) {
             // trigger orders
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_trigger_order".to_string()), &[request.clone()]).await;
+            response = self.private_post_deepcoin_trade_trigger_order(&[request.clone()]).await;
         }  else {
             // regular orders
             //
@@ -2119,7 +2168,7 @@ impl DeepcoinCore {
             //         }
             //     }
             //
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_order".to_string()), &[request.clone()]).await;
+            response = self.private_post_deepcoin_trade_order(&[request.clone()]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2472,7 +2521,8 @@ impl DeepcoinCore {
                 m.insert("ordId".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_trade_finish_order_by_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_trade_finish_order_by_id(&[__ws_arg_19]).await;
         //
         //     {
         //         "code": "0",
@@ -2556,7 +2606,8 @@ impl DeepcoinCore {
                 m.insert("ordId".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_trade_order_by_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_trade_order_by_id(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&data);
         if is_equal(&length, &Value::Int(0)) {
@@ -2656,7 +2707,8 @@ impl DeepcoinCore {
             //         ]
             //     }
             //
-            response = self.call_method(Value::Str("private_get_deepcoin_trade_trigger_orders_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_deepcoin_trade_trigger_orders_history(&[__ws_arg_21]).await;
         }  else {
             //
             //     {
@@ -2704,7 +2756,8 @@ impl DeepcoinCore {
             //         ]
             //     }
             //
-            response = self.call_method(Value::Str("private_get_deepcoin_trade_orders_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_deepcoin_trade_orders_history(&[__ws_arg_22]).await;
         }
         // todo handle with since, until and pagination
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -2858,7 +2911,8 @@ impl DeepcoinCore {
             //         ]
             //     }
             //
-            response = self.call_method(Value::Str("private_get_deepcoin_trade_trigger_orders_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_deepcoin_trade_trigger_orders_pending(&[__ws_arg_23]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("index".to_string()), index.clone());
             //
@@ -2907,7 +2961,8 @@ impl DeepcoinCore {
             //         ]
             //     }
             //
-            response = self.call_method(Value::Str("private_get_deepcoin_trade_v2_orders_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_24]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone(), Value::Map({
@@ -2951,9 +3006,11 @@ impl DeepcoinCore {
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         if is_true(&trigger) {
             params = self.omit(params.clone(), Value::Str("trigger".to_string()), &[]);
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_cancel_trigger_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_deepcoin_trade_cancel_trigger_order(&[__ws_arg_25]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_deepcoin_trade_cancel_order(&[__ws_arg_26]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3000,15 +3057,17 @@ impl DeepcoinCore {
         }
         let mut merged: Value = Value::Bool(true);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelAllOrders".to_string()), Value::Str("merged".to_string()), &[merged.clone()]); merged = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut isMergedMode: Value = ternary(is_true(&merged), Value::Int(1), Value::Int(0));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentID".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("ProductGroup".to_string(), productGroup.clone());
                 m.insert("IsCrossMargin".to_string(), encodedMarginMode.clone());
-                m.insert("IsMergeMode".to_string(), ternary(is_true(&merged), Value::Int(1), Value::Int(0)));
+                m.insert("IsMergeMode".to_string(), isMergedMode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_deepcoin_trade_swap_cancel_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_deepcoin_trade_swap_cancel_all(&[__ws_arg_27]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
@@ -3068,7 +3127,8 @@ impl DeepcoinCore {
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPx".to_string()), ternary(is_true(&symbol), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()), self.number_to_string(takeProfitPrice.clone())));
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_replace_order_sltp".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await;
         }  else {
             if !is_equal(&price, &Value::Null) {
                 if !is_equal(&symbol, &Value::Null) {
@@ -3084,7 +3144,8 @@ impl DeepcoinCore {
                     add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.number_to_string(amount.clone()));
                 }
             }
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_replace_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_deepcoin_trade_replace_order(&[__ws_arg_29]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3123,14 +3184,15 @@ impl DeepcoinCore {
                 m.insert("OrderSysIDs".to_string(), ids.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_deepcoin_trade_batch_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_deepcoin_trade_batch_cancel_order(&[__ws_arg_30]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // regular order
@@ -3322,7 +3384,8 @@ impl DeepcoinCore {
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_account_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_account_positions(&[__ws_arg_31]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_positions(data.clone(), &[Value::List(vec![get_value(&market, &Value::Str("symbol".to_string()))])]);
 
@@ -3359,7 +3422,8 @@ impl DeepcoinCore {
                 m.insert("instType".to_string(), instrumentType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_account_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_account_positions(&[__ws_arg_32]).await;
         //
         //     {
         //         "code": "0",
@@ -3495,7 +3559,8 @@ impl DeepcoinCore {
                 m.insert("mrgPosition".to_string(), mrgPosition.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_deepcoin_account_set_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_deepcoin_account_set_leverage(&[__ws_arg_33]).await;
         return response;
 
     Value::Null
@@ -3537,7 +3602,8 @@ impl DeepcoinCore {
                 m.insert("instType".to_string(), instType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_trade_fund_rate_current_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_trade_fund_rate_current_funding_rate(&[__ws_arg_34]).await;
         //
         //     {
         //         "code": "0",
@@ -3591,7 +3657,8 @@ impl DeepcoinCore {
                 m.insert("instType".to_string(), self.get_product_group_from_market(market.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_trade_fund_rate_current_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_trade_fund_rate_current_funding_rate(&[__ws_arg_35]).await;
         //
         //     {
         //         "code": "0",
@@ -3689,7 +3756,8 @@ impl DeepcoinCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // default 20, max 100
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_deepcoin_trade_fund_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_deepcoin_trade_fund_rate_history(&[__ws_arg_36]).await;
         //
         //     {
         //         "code": "0",
@@ -3801,7 +3869,8 @@ impl DeepcoinCore {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deepcoin_trade_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deepcoin_trade_fills(&[__ws_arg_37]).await;
         //
         //     {
         //         "code": "0",
@@ -3901,13 +3970,15 @@ impl DeepcoinCore {
         });
         let mut response: Value = Value::Null;
         if is_equal(&positionId, &Value::Null) && is_equal(&positionIds, &Value::Null) {
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_batch_close_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_deepcoin_trade_batch_close_position(&[__ws_arg_38]).await;
         }  else {
             if !is_equal(&positionId, &Value::Null) {
                 params = self.omit(params.clone(), Value::Str("positionId".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("positionIds".to_string()), Value::List(vec![positionId.clone()]));
             }
-            response = self.call_method(Value::Str("private_post_deepcoin_trade_close_position_by_ids".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_order(data.clone(), &[market.clone()]);
@@ -3982,8 +4053,8 @@ impl DeepcoinCore {
         if !is_equal(&errorList, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_613: bool = true;
-                while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&errorList)) } {
+                let mut __for_first_591: bool = true;
+                while { if !__for_first_591 { i = add(&i, &Value::Int(1)); } __for_first_591 = false; is_less_than(&i, &get_array_length(&errorList)) } {
                 let mut entry: Value = self.safe_dict(errorList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

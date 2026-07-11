@@ -220,67 +220,99 @@ impl XtCore {
 impl crate::exchange::DerivedExchange for XtCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::parse_market_leverage_tiers(me, info, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on XtCore.
-        XtCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const XtCore as *mut XtCore) };
+        XtCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1177,7 +1209,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_spot_get_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_spot_get_time(&[params.clone()]).await;
         //
         //     {
         //         "rc": 0,
@@ -1207,7 +1239,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promisesRaw: Value = Value::List(vec![self.call_method(Value::Str("public_spot_get_wallet_support_currency".to_string()), &[params.clone()]).await, self.call_method(Value::Str("public_spot_get_currencies".to_string()), &[params.clone()]).await]);
+        let mut promisesRaw: Value = Value::List(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params.clone()]).await]);
         let mut chainsResponsecurrenciesResponseVariable = promise_all(&promisesRaw).await;
         let mut chainsResponse: Value = get_value(&chainsResponsecurrenciesResponseVariable, &Value::Int(0));
         let mut currenciesResponse: Value = get_value(&chainsResponsecurrenciesResponseVariable, &Value::Int(1));
@@ -1272,8 +1304,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1141: bool = true;
-            while { if !__for_first_1141 { i = add(&i, &Value::Int(1)); } __for_first_1141 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
+            let mut __for_first_1090: bool = true;
+            while { if !__for_first_1090 { i = add(&i, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -1289,8 +1321,8 @@ impl XtCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1140: bool = true;
-                while { if !__for_first_1140 { j = add(&j, &Value::Int(1)); } __for_first_1140 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+                let mut __for_first_1089: bool = true;
+                while { if !__for_first_1089 { j = add(&j, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chain", &[]);
@@ -1414,7 +1446,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_spot_get_symbol".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_spot_get_symbol(&[params.clone()]).await;
         //
         //     {
         //         "rc": 0,
@@ -1482,7 +1514,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut markets: Value = promise_all(&Value::List(vec![self.call_method(Value::Str("public_linear_get_future_market_v1_public_symbol_list".to_string()), &[params.clone()]).await, self.call_method(Value::Str("public_inverse_get_future_market_v1_public_symbol_list".to_string()), &[params.clone()]).await])).await;
+        let mut markets: Value = promise_all(&Value::List(vec![self.public_linear_get_future_market_v1_public_symbol_list(&[params.clone()]).await, self.public_inverse_get_future_market_v1_public_symbol_list(&[params.clone()]).await])).await;
         //
         //     {
         //         "returnCode": 0,
@@ -1555,8 +1587,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1142: bool = true;
-            while { if !__for_first_1142 { i = add(&i, &Value::Int(1)); } __for_first_1142 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1091: bool = true;
+            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
         }
         }
@@ -1699,8 +1731,8 @@ impl XtCore {
         let mut amountPrecision: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1143: bool = true;
-            while { if !__for_first_1143 { i = add(&i, &Value::Int(1)); } __for_first_1143 = false; is_less_than(&i, &get_array_length(&filters)) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&filters)) } {
             let mut entry: Value = get_value(&filters, &i);
             let mut entry: Value = get_value(&filters, &i);
             let mut filter: Value = self.safe_string_k(entry.clone(), "filter", &[]);
@@ -1898,11 +1930,14 @@ impl XtCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_kline".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_linear_get_future_market_v1_public_q_kline(&[__ws_arg_0]).await;
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_kline".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_inverse_get_future_market_v1_public_q_kline(&[__ws_arg_1]).await;
         }  else {
-            response = self.call_method(Value::Str("public_spot_get_kline".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_kline(&[__ws_arg_2]).await;
         }
         //
         // spot
@@ -2015,7 +2050,8 @@ impl XtCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
             }
-            response = self.call_method(Value::Str("public_spot_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_depth(&[__ws_arg_3]).await;
         }  else {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("level".to_string()), crate::runtime::Math::min(&limit, &Value::Int(50)));
@@ -2023,9 +2059,11 @@ impl XtCore {
                 add_element_to_object(&mut request, &Value::Str("level".to_string()), Value::Int(50));
             }
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_linear_get_future_market_v1_public_q_depth(&[__ws_arg_4]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_inverse_get_future_market_v1_public_q_depth(&[__ws_arg_5]).await;
             }
         }
         //
@@ -2115,11 +2153,14 @@ impl XtCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_agg_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_linear_get_future_market_v1_public_q_agg_ticker(&[__ws_arg_6]).await;
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_agg_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_inverse_get_future_market_v1_public_q_agg_ticker(&[__ws_arg_7]).await;
         }  else {
-            response = self.call_method(Value::Str("public_spot_get_ticker24h".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_ticker24h(&[__ws_arg_8]).await;
         }
         //
         // spot
@@ -2208,11 +2249,14 @@ impl XtCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_agg_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_inverse_get_future_market_v1_public_q_agg_tickers(&[__ws_arg_9]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_agg_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_linear_get_future_market_v1_public_q_agg_tickers(&[__ws_arg_10]).await;
         }  else {
-            response = self.call_method(Value::Str("public_spot_get_ticker24h".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_ticker24h(&[__ws_arg_11]).await;
         }
         //
         // spot
@@ -2269,8 +2313,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1144: bool = true;
-            while { if !__for_first_1144 { i = add(&i, &Value::Int(1)); } __for_first_1144 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[market.clone()]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -2311,7 +2355,8 @@ impl XtCore {
         if !is_equal(&subType, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks() is not available for swap and future markets, only spot markets are supported".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("public_spot_get_ticker_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_spot_get_ticker_book(&[__ws_arg_12]).await;
         //
         //     {
         //         "rc": 0,
@@ -2454,15 +2499,18 @@ impl XtCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
             }
-            response = self.call_method(Value::Str("public_spot_get_trade_recent".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_trade_recent(&[__ws_arg_13]).await;
         }  else {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("num".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
             }
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_deal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_linear_get_future_market_v1_public_q_deal(&[__ws_arg_14]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_deal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_inverse_get_future_market_v1_public_q_deal(&[__ws_arg_15]).await;
             }
         }
         //
@@ -2550,9 +2598,11 @@ impl XtCore {
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
             }
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_trade_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_order_trade_list(&[__ws_arg_16]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_order_trade_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_order_trade_list(&[__ws_arg_17]).await;
             }
         }  else {
             let mut marginMode: Value = Value::Null;
@@ -2562,7 +2612,8 @@ impl XtCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            response = self.call_method(Value::Str("private_spot_get_trade".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_trade(&[__ws_arg_18]).await;
         }
         //
         // spot and margin
@@ -2632,7 +2683,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot: fetchTrades
@@ -2834,11 +2885,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isContractWallet: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_user_v1_balance_list".to_string()), &[params.clone()]).await;
+            response = self.private_inverse_get_future_user_v1_balance_list(&[params.clone()]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&isContractWallet) {
-            response = self.call_method(Value::Str("private_linear_get_future_user_v1_balance_list".to_string()), &[params.clone()]).await;
+            response = self.private_linear_get_future_user_v1_balance_list(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("private_spot_get_balances".to_string()), &[params.clone()]).await;
+            response = self.private_spot_get_balances(&[params.clone()]).await;
         }
         //
         // spot
@@ -2933,8 +2984,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1145: bool = true;
-            while { if !__for_first_1145 { i = add(&i, &Value::Int(1)); } __for_first_1145 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1094: bool = true;
+            while { if !__for_first_1094 { i = add(&i, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("currency".to_string()), Value::Str("coin".to_string()), &[]);
@@ -3077,7 +3128,8 @@ impl XtCore {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), timeInForce.clone());
-        let mut response: Value = self.call_method(Value::Str("private_spot_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_post_order(&[__ws_arg_19]).await;
         //
         //     {
         //         "rc": 0,
@@ -3144,9 +3196,11 @@ impl XtCore {
             add_element_to_object(&mut request, &Value::Str("entrustType".to_string()), entrustType.clone());
             params = self.omit(params.clone(), Value::Str("triggerPrice".to_string()), &[]);
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_create_plan".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_entrust_create_plan(&[__ws_arg_20]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_create_plan".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_entrust_create_plan(&[__ws_arg_21]).await;
             }
         }  else if is_true(&isStopLoss) || is_true(&isTakeProfit) {
             if is_true(&isStopLoss) {
@@ -3156,17 +3210,21 @@ impl XtCore {
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_create_profit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_entrust_create_profit(&[__ws_arg_22]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_create_profit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_entrust_create_profit(&[__ws_arg_23]).await;
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderSide".to_string()), to_upper(&side));
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), to_upper(&type_var));
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_order_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_order_create(&[__ws_arg_24]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_order_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_order_create(&[__ws_arg_25]).await;
             }
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -3221,23 +3279,30 @@ impl XtCore {
         if is_true(&trigger) {
             params = self.omit(params.clone(), Value::Str("stop".to_string()), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_plan_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_entrust_plan_detail(&[__ws_arg_26]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_plan_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_entrust_plan_detail(&[__ws_arg_27]).await;
             }
         }  else if is_true(&stopLossTakeProfit) {
             params = self.omit(params.clone(), Value::Str("stopLossTakeProfit".to_string()), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_profit_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_entrust_profit_detail(&[__ws_arg_28]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_profit_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_entrust_profit_detail(&[__ws_arg_29]).await;
             }
         }  else if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_get_future_trade_v1_order_detail(&[__ws_arg_30]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
-            response = self.call_method(Value::Str("private_linear_get_future_trade_v1_order_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_get_future_trade_v1_order_detail(&[__ws_arg_31]).await;
         }  else {
-            response = self.call_method(Value::Str("private_spot_get_order_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_order_order_id(&[__ws_arg_32]).await;
         }
         //
         // spot
@@ -3412,20 +3477,25 @@ impl XtCore {
         if is_true(&trigger) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_plan_list_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_entrust_plan_list_history(&[__ws_arg_33]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_plan_list_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_entrust_plan_list_history(&[__ws_arg_34]).await;
             }
         }  else if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_list_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_get_future_trade_v1_order_list_history(&[__ws_arg_35]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
-            response = self.call_method(Value::Str("private_linear_get_future_trade_v1_order_list_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_get_future_trade_v1_order_list_history(&[__ws_arg_36]).await;
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             let mut marginOrSpotRequest: Value = ternary(is_true(&(!is_equal(&marginMode, &Value::Null))), Value::Str("LEVER".to_string()), Value::Str("SPOT".to_string()));
             add_element_to_object(&mut request, &Value::Str("bizType".to_string()), marginOrSpotRequest.clone());
-            response = self.call_method(Value::Str("private_spot_get_history_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_history_order(&[__ws_arg_37]).await;
         }
         //
         //  spot and margin
@@ -3610,22 +3680,28 @@ impl XtCore {
         if is_true(&trigger) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_plan_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_entrust_plan_list(&[__ws_arg_38]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_plan_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_entrust_plan_list(&[__ws_arg_39]).await;
             }
         }  else if is_true(&stopLossTakeProfit) {
             params = self.omit(params.clone(), Value::Str("stopLossTakeProfit".to_string()), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_profit_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_entrust_profit_list(&[__ws_arg_40]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_profit_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_entrust_profit_list(&[__ws_arg_41]).await;
             }
         }  else if is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_get_future_trade_v1_order_list(&[__ws_arg_42]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_get_future_trade_v1_order_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_get_future_trade_v1_order_list(&[__ws_arg_43]).await;
             }
         }  else {
             let mut marginMode: Value = Value::Null;
@@ -3640,9 +3716,11 @@ impl XtCore {
                     request = self.omit(request.clone(), Value::Str("size".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
                 }
-                response = self.call_method(Value::Str("private_spot_get_history_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_get_history_order(&[__ws_arg_44]).await;
             }  else {
-                response = self.call_method(Value::Str("private_spot_get_open_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_get_open_order(&[__ws_arg_45]).await;
             }
         }
         //
@@ -3969,23 +4047,30 @@ impl XtCore {
         if is_true(&trigger) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_cancel_plan".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_46]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_cancel_plan".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_47]).await;
             }
         }  else if is_true(&stopLossTakeProfit) {
             params = self.omit(params.clone(), Value::Str("stopLossTakeProfit".to_string()), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_cancel_profit_stop".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_profit_stop(&[__ws_arg_48]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_cancel_profit_stop".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_profit_stop(&[__ws_arg_49]).await;
             }
         }  else if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_order_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_post_future_trade_v1_order_cancel(&[__ws_arg_50]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
-            response = self.call_method(Value::Str("private_linear_post_future_trade_v1_order_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_post_future_trade_v1_order_cancel(&[__ws_arg_51]).await;
         }  else {
-            response = self.call_method(Value::Str("private_spot_delete_order_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_delete_order_order_id(&[__ws_arg_52]).await;
         }
         //
         // spot
@@ -4058,27 +4143,34 @@ impl XtCore {
         if is_true(&trigger) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_cancel_all_plan".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_plan(&[__ws_arg_53]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_cancel_all_plan".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_plan(&[__ws_arg_54]).await;
             }
         }  else if is_true(&stopLossTakeProfit) {
             params = self.omit(params.clone(), Value::Str("stopLossTakeProfit".to_string()), &[]);
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
-                response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_cancel_all_profit_stop".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_profit_stop(&[__ws_arg_55]).await;
             }  else {
-                response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_cancel_all_profit_stop".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_profit_stop(&[__ws_arg_56]).await;
             }
         }  else if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_order_cancel_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_post_future_trade_v1_order_cancel_all(&[__ws_arg_57]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
-            response = self.call_method(Value::Str("private_linear_post_future_trade_v1_order_cancel_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_post_future_trade_v1_order_cancel_all(&[__ws_arg_58]).await;
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             let mut marginOrSpotRequest: Value = ternary(is_true(&(!is_equal(&marginMode, &Value::Null))), Value::Str("LEVER".to_string()), Value::Str("SPOT".to_string()));
             add_element_to_object(&mut request, &Value::Str("bizType".to_string()), marginOrSpotRequest.clone());
-            response = self.call_method(Value::Str("private_spot_delete_open_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_delete_open_order(&[__ws_arg_59]).await;
         }
         return Value::List(vec![self.safe_order(response.clone(), &[])]);
 
@@ -4116,13 +4208,14 @@ impl XtCore {
         if !is_equal(&subType, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() does not support swap and future orders, only spot orders are accepted".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_delete_batch_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_delete_batch_order(&[__ws_arg_60]).await;
         return Value::List(vec![self.safe_order(response.clone(), &[])]);
 
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot: createOrder
@@ -4360,9 +4453,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchLedger".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_user_v1_balance_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_get_future_user_v1_balance_bills(&[__ws_arg_61]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
-            response = self.call_method(Value::Str("private_linear_get_future_user_v1_balance_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_get_future_user_v1_balance_bills(&[__ws_arg_62]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported".to_string()))));
         }
@@ -4491,7 +4586,8 @@ impl XtCore {
                 m.insert("chain".to_string(), networkId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_deposit_address(&[__ws_arg_63]).await;
         //
         //     {
         //         "rc": 0,
@@ -4570,7 +4666,8 @@ impl XtCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 10, max 200
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_deposit_history(&[__ws_arg_64]).await;
         //
         //     {
         //         "rc": 0,
@@ -4642,7 +4739,8 @@ impl XtCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 10, max 200
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_withdraw_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_withdraw_history(&[__ws_arg_65]).await;
         //
         //     {
         //         "rc": 0,
@@ -4719,7 +4817,8 @@ impl XtCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("memo".to_string()), tag.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_post_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_post_withdraw(&[__ws_arg_66]).await;
         //
         //     {
         //         "rc": 0,
@@ -4880,9 +4979,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("setLeverage".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_post_future_user_v1_position_adjust_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_post_future_user_v1_position_adjust_leverage(&[__ws_arg_67]).await;
         }  else {
-            response = self.call_method(Value::Str("private_linear_post_future_user_v1_position_adjust_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_68 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_post_future_user_v1_position_adjust_leverage(&[__ws_arg_68]).await;
         }
         return response;
 
@@ -4952,9 +5053,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("modifyMarginHelper".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_post_future_user_v1_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_post_future_user_v1_position_margin(&[__ws_arg_69]).await;
         }  else {
-            response = self.call_method(Value::Str("private_linear_post_future_user_v1_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_70 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_post_future_user_v1_position_margin(&[__ws_arg_70]).await;
         }
         return self.parse_margin_modification(response.clone(), &[market.clone()]);
 
@@ -5001,9 +5104,9 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchLeverageTiers".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_leverage_bracket_list".to_string()), &[params.clone()]).await;
+            response = self.public_inverse_get_future_market_v1_public_leverage_bracket_list(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_leverage_bracket_list".to_string()), &[params.clone()]).await;
+            response = self.public_linear_get_future_market_v1_public_leverage_bracket_list(&[params.clone()]).await;
         }
         //
         //     {
@@ -5062,8 +5165,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1146: bool = true;
-            while { if !__for_first_1146 { i = add(&i, &Value::Int(1)); } __for_first_1146 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1095: bool = true;
+            while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5108,9 +5211,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchMarketLeverageTiers".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_leverage_bracket_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_inverse_get_future_market_v1_public_leverage_bracket_detail(&[__ws_arg_71]).await;
         }  else {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_leverage_bracket_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_72 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_linear_get_future_market_v1_public_leverage_bracket_detail(&[__ws_arg_72]).await;
         }
         //
         //     {
@@ -5166,18 +5271,19 @@ impl XtCore {
         let mut brackets: Value = self.safe_value_k(info.clone(), "leverageBrackets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1147: bool = true;
-            while { if !__for_first_1147 { i = add(&i, &Value::Int(1)); } __for_first_1147 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_1096: bool = true;
+            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string()), Value::Str("contract".to_string())]);
+            let mut minNotional: Value = self.safe_number(get_value(&brackets, &subtract(&i, &Value::Int(1))), Value::Str("maxNominalValue".to_string()), &[Value::Int(0)]);
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_integer_k(tier.clone(), "bracket", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string()), Value::Str("contract".to_string())]));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("settle".to_string())));
-                    m.insert("minNotional".to_string(), self.safe_number(get_value(&brackets, &subtract(&i, &Value::Int(1))), Value::Str("maxNominalValue".to_string()), &[Value::Int(0)]));
+                    m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), self.safe_number_k(tier.clone(), "maxNominalValue", &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintMarginRate", &[]));
                     m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLeverage", &[]));
@@ -5238,9 +5344,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingRateHistory".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_funding_rate_record".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_73 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_inverse_get_future_market_v1_public_q_funding_rate_record(&[__ws_arg_73]).await;
         }  else {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_funding_rate_record".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_linear_get_future_market_v1_public_q_funding_rate_record(&[__ws_arg_74]).await;
         }
         //
         //     {
@@ -5270,8 +5378,8 @@ impl XtCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1148: bool = true;
-            while { if !__for_first_1148 { i = add(&i, &Value::Int(1)); } __for_first_1148 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1097: bool = true;
+            while { if !__for_first_1097 { i = add(&i, &Value::Int(1)); } __for_first_1097 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5341,9 +5449,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingRate".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_75 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_inverse_get_future_market_v1_public_q_funding_rate(&[__ws_arg_75]).await;
         }  else {
-            response = self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_linear_get_future_market_v1_public_q_funding_rate(&[__ws_arg_76]).await;
         }
         //
         //     {
@@ -5449,9 +5559,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingHistory".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_user_v1_balance_funding_rate_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_get_future_user_v1_balance_funding_rate_list(&[__ws_arg_77]).await;
         }  else {
-            response = self.call_method(Value::Str("private_linear_get_future_user_v1_balance_funding_rate_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_get_future_user_v1_balance_funding_rate_list(&[__ws_arg_78]).await;
         }
         //
         //     {
@@ -5482,8 +5594,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1149: bool = true;
-            while { if !__for_first_1149 { i = add(&i, &Value::Int(1)); } __for_first_1149 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1098: bool = true;
+            while { if !__for_first_1098 { i = add(&i, &Value::Int(1)); } __for_first_1098 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             append_to_array(&mut result, self.parse_funding_history(entry.clone(), &[market.clone()]));
@@ -5552,9 +5664,11 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPosition".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_user_v1_position_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_inverse_get_future_user_v1_position_list(&[__ws_arg_79]).await;
         }  else {
-            response = self.call_method(Value::Str("private_linear_get_future_user_v1_position_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_linear_get_future_user_v1_position_list(&[__ws_arg_80]).await;
         }
         //
         //     {
@@ -5584,8 +5698,8 @@ impl XtCore {
         let mut positions: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1150: bool = true;
-            while { if !__for_first_1150 { i = add(&i, &Value::Int(1)); } __for_first_1150 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1099: bool = true;
+            while { if !__for_first_1099 { i = add(&i, &Value::Int(1)); } __for_first_1099 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5621,9 +5735,9 @@ impl XtCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPositions".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
-            response = self.call_method(Value::Str("private_inverse_get_future_user_v1_position_list".to_string()), &[params.clone()]).await;
+            response = self.private_inverse_get_future_user_v1_position_list(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("private_linear_get_future_user_v1_position_list".to_string()), &[params.clone()]).await;
+            response = self.private_linear_get_future_user_v1_position_list(&[params.clone()]).await;
         }
         //
         //     {
@@ -5654,8 +5768,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1151: bool = true;
-            while { if !__for_first_1151 { i = add(&i, &Value::Int(1)); } __for_first_1151 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1100: bool = true;
+            while { if !__for_first_1100 { i = add(&i, &Value::Int(1)); } __for_first_1100 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5757,7 +5871,8 @@ impl XtCore {
                 m.insert("to".to_string(), toAccountId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_spot_post_balance_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_post_balance_transfer(&[__ws_arg_81]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -5827,7 +5942,8 @@ impl XtCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_linear_post_future_user_v1_position_change_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_linear_post_future_user_v1_position_change_type(&[__ws_arg_82]).await;
         return response;
 
     Value::Null
@@ -5891,20 +6007,25 @@ impl XtCore {
             { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("editOrder".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_equal(&subType, &Value::Str("inverse".to_string())) {
                 if is_true(&isStopLoss) || is_true(&isTakeProfit) {
-                    response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_entrust_update_profit_stop".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_83]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_inverse_post_future_trade_v1_order_update".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_inverse_post_future_trade_v1_order_update(&[__ws_arg_84]).await;
                 }
             }  else {
                 if is_true(&isStopLoss) || is_true(&isTakeProfit) {
-                    response = self.call_method(Value::Str("private_linear_post_future_trade_v1_entrust_update_profit_stop".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_85]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_linear_post_future_trade_v1_order_update".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_linear_post_future_trade_v1_order_update(&[__ws_arg_86]).await;
                 }
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
-            response = self.call_method(Value::Str("private_spot_put_order_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_put_order_order_id(&[__ws_arg_87]).await;
         }
         let mut result: Value = ternary(is_true(&(get_value(&market, &Value::Str("swap".to_string())))), response.clone(), self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

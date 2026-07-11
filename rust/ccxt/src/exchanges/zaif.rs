@@ -170,35 +170,51 @@ impl ZaifCore {
 impl crate::exchange::DerivedExchange for ZaifCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::parse_market(me, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::parse_balance(me, response)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ZaifCore.
-        ZaifCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ZaifCore as *mut ZaifCore) };
+        ZaifCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -493,7 +509,7 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut markets: Value = self.call_method(Value::Str("public_get_currency_pairs_all".to_string()), &[params.clone()]).await;
+        let mut markets: Value = self.public_get_currency_pairs_all(&[params.clone()]).await;
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -595,8 +611,8 @@ impl ZaifCore {
         let mut currencyIds: Value = object_keys(&funds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1160: bool = true;
-            while { if !__for_first_1160 { i = add(&i, &Value::Int(1)); } __for_first_1160 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1109: bool = true;
+            while { if !__for_first_1109 { i = add(&i, &Value::Int(1)); } __for_first_1109 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -631,7 +647,7 @@ impl ZaifCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_get_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_get_info(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -660,7 +676,8 @@ impl ZaifCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_depth_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_depth_pair(&[__ws_arg_0]).await;
         return self.parse_order_book(response.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[]);
 
     Value::Null
@@ -733,13 +750,14 @@ impl ZaifCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut ticker: Value = self.call_method(Value::Str("public_get_ticker_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut ticker: Value = self.public_get_ticker_pair(&[__ws_arg_1]).await;
         return self.parse_ticker(ticker.clone(), &[market.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -807,7 +825,8 @@ impl ZaifCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_trades_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades_pair(&[__ws_arg_2]).await;
         //
         //      [
         //          {
@@ -864,7 +883,8 @@ impl ZaifCore {
                 m.insert("price".to_string(), price.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_trade".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade(&[__ws_arg_3]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -896,7 +916,8 @@ impl ZaifCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_4]).await;
         //
         //    {
         //        "success": 1,
@@ -917,7 +938,7 @@ impl ZaifCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1007,7 +1028,8 @@ impl ZaifCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_active_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_active_orders(&[__ws_arg_5]).await;
         return self.parse_orders(get_value(&response, &Value::Str("return".to_string())), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1042,7 +1064,8 @@ impl ZaifCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
         return self.parse_orders(get_value(&response, &Value::Str("return".to_string())), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1083,7 +1106,8 @@ impl ZaifCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("message".to_string()), tag.clone());
         }
-        let mut result: Value = self.call_method(Value::Str("private_post_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut result: Value = self.private_post_withdraw(&[__ws_arg_7]).await;
         //
         //     {
         //         "success": 1,
@@ -1192,12 +1216,13 @@ impl ZaifCore {
                 url = add(&url, &Value::Str("tapi".to_string()));
             }
             let mut nonce: Value = self.custom_nonce();
-            body = self.urlencode(self.extend(Value::Map({
+            let __ws_arg_8 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), path.clone());
                     m.insert("nonce".to_string(), nonce.clone());
                 m
-            }), &[params.clone()]), &[]);
+            }), &[params.clone()]);
+            body = self.urlencode(__ws_arg_8, &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));

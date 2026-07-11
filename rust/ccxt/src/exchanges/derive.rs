@@ -172,6 +172,7 @@ impl DeriveCore {
             "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "hash_order_message" => self.hash_order_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -198,47 +199,75 @@ impl DeriveCore {
 impl crate::exchange::DerivedExchange for DeriveCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_market(me, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_funding_rate(me, rate, &[market.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on DeriveCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_currency(me, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_income(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::parse_income(me, info, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeriveCore as *mut DeriveCore) };
+        DeriveCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -594,7 +623,7 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_post_get_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_post_get_time(&[params.clone()]).await;
         return self.safe_integer_k(response.clone(), "result", &[]);
 
     Value::Null
@@ -613,11 +642,7 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        let mut tokenResponse: Value = self.call_method(Value::Str("public_get_get_all_currencies".to_string()), &[params.clone()]).await;
+        let mut tokenResponse: Value = self.public_get_get_all_currencies(&[params.clone()]).await;
         //
         //    {
         //        "result": [
@@ -667,15 +692,15 @@ impl DeriveCore {
         // }
         //
         let mut currencies: Value = self.safe_list_k(tokenResponse.clone(), "result", &[Value::List(vec![])]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&currencies)) } {
-            let mut currency: Value = get_value(&currencies, &i);
-            let mut currency: Value = get_value(&currencies, &i);
-            let mut currencyId: Value = self.safe_string_k(currency.clone(), "currency", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        return self.parse_currencies(currencies.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("name".to_string(), Value::Null);
@@ -702,12 +727,9 @@ impl DeriveCore {
 }));
     m
 }));
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -795,7 +817,8 @@ impl DeriveCore {
                 m.insert("instrument_type".to_string(), Value::Str("erc20".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_get_all_instruments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_0]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -817,7 +840,8 @@ impl DeriveCore {
                 m.insert("instrument_type".to_string(), Value::Str("perp".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_get_all_instruments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_1]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -839,7 +863,8 @@ impl DeriveCore {
                 m.insert("instrument_type".to_string(), Value::Str("option".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_get_all_instruments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_2]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -902,6 +927,8 @@ impl DeriveCore {
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
         }
+        let mut contractSize: Value = ternary(is_true(&(spot)), Value::Null, Value::Int(1));
+        let mut isContract: Value = Value::Bool(is_true(&swap) || is_true(&option));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -919,10 +946,10 @@ impl DeriveCore {
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), option.clone());
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
-        m.insert("contract".to_string(), Value::Bool((is_true(&swap) || is_true(&option))));
+        m.insert("contract".to_string(), isContract.clone());
         m.insert("linear".to_string(), linear.clone());
         m.insert("inverse".to_string(), inverse.clone());
-        m.insert("contractSize".to_string(), ternary(is_true(&(spot)), Value::Null, Value::Int(1)));
+        m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_fee_rate", &[]));
@@ -992,7 +1019,8 @@ impl DeriveCore {
                 m.insert("instrument_name".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_ticker(&[__ws_arg_3]).await;
         //
         // spot
         //
@@ -1197,7 +1225,8 @@ impl DeriveCore {
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("to_timestamp".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_get_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_4]).await;
         //
         // {
         //     "result": {
@@ -1240,7 +1269,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
@@ -1330,7 +1359,8 @@ impl DeriveCore {
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("to_timestamp".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_get_funding_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_funding_rate_history(&[__ws_arg_5]).await;
         //
         // {
         //     "result": {
@@ -1352,8 +1382,8 @@ impl DeriveCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_608: bool = true;
+            while { if !__for_first_608 { i = add(&i, &Value::Int(1)); } __for_first_608 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
@@ -1598,9 +1628,11 @@ impl DeriveCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("test".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trigger_price_type".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_true(&test) {
-            response = self.call_method(Value::Str("private_post_order_debug".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_order_debug(&[__ws_arg_6]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_order(&[__ws_arg_7]).await;
         }
         //
         // {
@@ -1758,7 +1790,8 @@ impl DeriveCore {
         }
         add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
         params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_post_replace".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_replace(&[__ws_arg_8]).await;
         //
         //   {
         //     "result":
@@ -1881,13 +1914,16 @@ impl DeriveCore {
         if is_true(&isByClientOrder) {
             add_element_to_object(&mut request, &Value::Str("label".to_string()), clientOrderIdExchangeSpecific.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("label".to_string())]), &[]);
-            response = self.call_method(Value::Str("private_post_cancel_by_label".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_cancel_by_label(&[__ws_arg_9]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
             if is_true(&isTrigger) {
-                response = self.call_method(Value::Str("private_post_cancel_trigger_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_cancel_trigger_order(&[__ws_arg_10]).await;
             }  else {
-                response = self.call_method(Value::Str("private_post_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_cancel(&[__ws_arg_11]).await;
             }
         }
         //
@@ -1942,7 +1978,8 @@ impl DeriveCore {
         if is_true(&isByClientOrder) {
             add_element_to_object(&mut extendParams, &Value::Str("client_order_id".to_string()), clientOrderIdExchangeSpecific.clone());
         }
-        return self.extend(self.parse_order(order.clone(), &[market.clone()]), &[extendParams.clone()]);
+        let __ws_arg_12 = self.parse_order(order.clone(), &[market.clone()]);
+        return self.extend(__ws_arg_12, &[extendParams.clone()]);
 
     Value::Null
 }
@@ -1979,9 +2016,11 @@ impl DeriveCore {
         let mut response: Value = Value::Null;
         if !is_equal(&market, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("private_post_cancel_by_instrument".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_cancel_by_instrument(&[__ws_arg_13]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_cancel_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_cancel_all(&[__ws_arg_14]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2042,7 +2081,8 @@ impl DeriveCore {
         if is_true(&isTrigger) {
             add_element_to_object(&mut request, &Value::Str("status".to_string()), Value::Str("untriggered".to_string()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_orders(&[__ws_arg_15]).await;
         //
         // {
         //     "result": {
@@ -2205,7 +2245,7 @@ impl DeriveCore {
                 m.insert("post_only".to_string(), Value::Str("PO".to_string()));
             m
         });
-        return self.safe_string(timeInForces.clone(), timeInForce.clone(), &[Value::Null]);
+        return self.safe_string(timeInForces.clone(), timeInForce.clone(), &[]);
 
     Value::Null
 }
@@ -2228,7 +2268,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut rawOrder: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut rawOrder: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
@@ -2401,7 +2441,8 @@ impl DeriveCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_16]).await;
         //
         // {
         //     "result": {
@@ -2493,7 +2534,8 @@ impl DeriveCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_17]).await;
         //
         // {
         //     "result": {
@@ -2573,7 +2615,8 @@ impl DeriveCore {
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("subaccount_id".to_string())]), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_post_get_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_positions(&[__ws_arg_18]).await;
         //
         // {
         //     "result": {
@@ -2748,7 +2791,8 @@ impl DeriveCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_funding_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_funding_history(&[__ws_arg_19]).await;
         //
         // {
         //     "result": {
@@ -2850,7 +2894,8 @@ impl DeriveCore {
                 m.insert("wallet".to_string(), deriveWalletAddress.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_get_all_portfolios".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_all_portfolios(&[__ws_arg_20]).await;
         //
         // {
         //     "result": [{
@@ -2913,15 +2958,15 @@ impl DeriveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_610: bool = true;
+            while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut subaccount: Value = get_value(&response, &i);
             let mut subaccount: Value = get_value(&response, &i);
             let mut collaterals: Value = self.safe_list_k(subaccount.clone(), "collaterals", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_634: bool = true;
-                while { if !__for_first_634 { j = add(&j, &Value::Int(1)); } __for_first_634 = false; is_less_than(&j, &get_array_length(&collaterals)) } {
+                let mut __for_first_609: bool = true;
+                while { if !__for_first_609 { j = add(&j, &Value::Int(1)); } __for_first_609 = false; is_less_than(&j, &get_array_length(&collaterals)) } {
                 let mut balance: Value = get_value(&collaterals, &j);
                 let mut balance: Value = get_value(&collaterals, &j);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
@@ -2974,7 +3019,8 @@ impl DeriveCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_deposit_history(&[__ws_arg_21]).await;
         //
         // {
         //     "result": {
@@ -3035,7 +3081,8 @@ impl DeriveCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_withdrawal_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_withdrawal_history(&[__ws_arg_22]).await;
         //
         // {
         //     "result": {

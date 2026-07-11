@@ -169,31 +169,45 @@ impl PaymiumCore {
 impl crate::exchange::DerivedExchange for PaymiumCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::parse_balance(me, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
+        PaymiumCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -372,8 +386,8 @@ impl PaymiumCore {
         let mut currencies: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i = add(&i, &Value::Int(1)); } __for_first_1045 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_996: bool = true;
+            while { if !__for_first_996 { i = add(&i, &Value::Int(1)); } __for_first_996 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut code: Value = get_value(&currencies, &i);
             let mut code: Value = get_value(&currencies, &i);
             let mut currency: Value = self.currency(code.clone());
@@ -407,7 +421,7 @@ impl PaymiumCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_user".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_user(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -436,7 +450,8 @@ impl PaymiumCore {
                 m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_data_currency_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_data_currency_depth(&[__ws_arg_0]).await;
         return self.parse_order_book(response.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("amount".to_string())]);
 
     Value::Null
@@ -517,13 +532,14 @@ impl PaymiumCore {
                 m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut ticker: Value = self.call_method(Value::Str("public_get_data_currency_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut ticker: Value = self.public_get_data_currency_ticker(&[__ws_arg_1]).await;
         return self.parse_ticker(ticker.clone(), &[market.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("created_at_int".to_string()), &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "uuid", &[]);
@@ -578,7 +594,8 @@ impl PaymiumCore {
                 m.insert("currency".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_data_currency_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_data_currency_trades(&[__ws_arg_2]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -599,7 +616,7 @@ impl PaymiumCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_user_addresses".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_user_addresses(&[params.clone()]).await;
         return self.parse_deposit_address(response.clone(), &[]);
 
     Value::Null
@@ -625,7 +642,8 @@ impl PaymiumCore {
                 m.insert("address".to_string(), code.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_user_addresses_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_user_addresses_address(&[__ws_arg_3]).await;
         return self.parse_deposit_address(response.clone(), &[]);
 
     Value::Null
@@ -647,7 +665,7 @@ impl PaymiumCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_user_addresses".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_user_addresses(&[params.clone()]).await;
         return self.parse_deposit_addresses(response.clone(), &[codes.clone()]);
 
     Value::Null
@@ -710,7 +728,8 @@ impl PaymiumCore {
         if !is_equal(&type_var, &Value::Str("market".to_string())) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_user_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -742,7 +761,8 @@ impl PaymiumCore {
                 m.insert("uuid".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_delete_user_orders_uuid_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_user_orders_uuid_cancel(&[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -784,7 +804,8 @@ impl PaymiumCore {
                 m.insert("email".to_string(), toAccount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_user_email_transfers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_user_email_transfers(&[__ws_arg_6]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
     Value::Null

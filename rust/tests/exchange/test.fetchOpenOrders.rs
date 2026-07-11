@@ -16,8 +16,8 @@ pub async fn testFetchOpenOrders(mut exchange: Value, mut skippedProperties: Val
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1206: bool = true;
-        while { if !__for_first_1206 { i = add(&i, &Value::Int(1)); } __for_first_1206 = false; is_less_than(&i, &get_array_length(&orders)) } {
+        let mut __for_first_1166: bool = true;
+        while { if !__for_first_1166 { i = add(&i, &Value::Int(1)); } __for_first_1166 = false; is_less_than(&i, &get_array_length(&orders)) } {
         let mut order: Value = get_value(&orders, &i);
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), order.clone(), symbol.clone(), now.clone());
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order.clone(), Value::Str("status".to_string()).clone(), Value::List(vec![Value::Str("open".to_string())]).clone()]);

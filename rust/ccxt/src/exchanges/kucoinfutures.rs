@@ -370,10 +370,12 @@ impl KucoinfuturesCore {
         let mut response: Value = Value::Null;
         if is_equal(&toAccountString, &Value::Str("TRADE".to_string())) || is_equal(&toAccountString, &Value::Str("MAIN".to_string())) {
             add_element_to_object(&mut request, &Value::Str("recAccountType".to_string()), toAccountString.clone());
-            response = self.call_method(Value::Str("futures_private_post_transfer_out".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.futures_private_post_transfer_out(&[__ws_arg_0]).await;
         }  else if is_equal(&toAccount, &Value::Str("future".to_string())) || is_equal(&toAccount, &Value::Str("swap".to_string())) || is_equal(&toAccount, &Value::Str("contract".to_string())) {
             add_element_to_object(&mut request, &Value::Str("payAccountType".to_string()), self.parse_transfer_type(fromAccount.clone()));
-            response = self.call_method(Value::Str("futures_private_post_transfer_in".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.futures_private_post_transfer_in(&[__ws_arg_1]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".to_string()))));
         }
@@ -381,9 +383,11 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.extend(self.parse_transfer(data.clone(), &[currency.clone()]), &[Value::Map({
+        let __ws_arg_2 = self.parse_transfer(data.clone(), &[currency.clone()]);
+        let __ws_arg_3 = self.parse_number(amountToPrecision.clone(), &[]);
+        return self.extend(__ws_arg_2, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amountToPrecision.clone(), &[]));
+        m.insert("amount".to_string(), __ws_arg_3);
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
     m

@@ -179,6 +179,7 @@ impl AscendexCore {
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -215,79 +216,123 @@ impl AscendexCore {
 impl crate::exchange::DerivedExchange for AscendexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on AscendexCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_currency(me, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_open_interest(self, interest, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_open_interest(me, interest, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_income(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_income(me, info, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_margin_mode(me, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_market_leverage_tiers(me, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on AscendexCore.
-        AscendexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AscendexCore as *mut AscendexCore) };
+        AscendexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -912,7 +957,7 @@ impl AscendexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_assets(&[params.clone()]).await;
         //
         //    {
         //        "code": "0",
@@ -939,33 +984,29 @@ impl AscendexCore {
         //    }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::Map({
+        return self.parse_currencies(data.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "assetCode", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "blockChain", &[Value::List(vec![])]);
+        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "nativeScale", &[])]), &[]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_192: bool = true;
-            while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut currency: Value = get_value(&data, &i);
-            let mut currency: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string_k(currency.clone(), "assetCode", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut chains: Value = self.safe_list_k(currency.clone(), "blockChain", &[Value::List(vec![])]);
-            let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "nativeScale", &[])]), &[]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_191: bool = true;
-                while { if !__for_first_191 { j = add(&j, &Value::Int(1)); } __for_first_191 = false; is_less_than(&j, &get_array_length(&chains)) } {
-                let mut networkEtnry: Value = get_value(&chains, &j);
-                let mut networkEtnry: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string_k(networkEtnry.clone(), "chainName", &[]);
-                let mut networkCode: Value = self.network_code_to_id(networkId.clone(), &[]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_190: bool = true;
+            while { if !__for_first_190 { j = add(&j, &Value::Int(1)); } __for_first_190 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut networkEtnry: Value = get_value(&chains, &j);
+            let mut networkEtnry: Value = get_value(&chains, &j);
+            let mut networkId: Value = self.safe_string_k(networkEtnry.clone(), "chainName", &[]);
+            let mut networkCode: Value = self.network_code_to_id(networkId.clone(), &[]);
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(networkEtnry.clone(), "withdrawFee", &[]));
         m.insert("active".to_string(), Value::Null);
@@ -996,17 +1037,16 @@ impl AscendexCore {
 }));
     m
 }));
-            }
-            }
-            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("type".to_string(), Value::Null);
         m.insert("margin".to_string(), Value::Null);
-        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "assetName", &[]));
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "assetName", &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -1022,7 +1062,7 @@ impl AscendexCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(currency.clone(), "minWithdrawalAmt", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "minWithdrawalAmt", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1030,10 +1070,7 @@ impl AscendexCore {
 }));
         m.insert("networks".to_string(), networks.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1065,7 +1102,7 @@ impl AscendexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut productsPromise: Value = self.call_method(Value::Str("v1_public_get_products".to_string()), &[params.clone()]).await;
+        let mut productsPromise: Value = self.v1_public_get_products(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -1086,7 +1123,7 @@ impl AscendexCore {
         //         ]
         //     }
         //
-        let mut cashPromise: Value = self.call_method(Value::Str("v1_public_get_cash_products".to_string()), &[params.clone()]).await;
+        let mut cashPromise: Value = self.v1_public_get_cash_products(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -1128,8 +1165,8 @@ impl AscendexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_193: bool = true;
-            while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_191: bool = true;
+            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if is_greater_than_or_equal(&get_index_of(&id, &Value::Str("-PERP".to_string())), &Value::Int(0)) {
@@ -1231,7 +1268,7 @@ impl AscendexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut contracts: Value = self.call_method(Value::Str("v2_public_get_futures_contract".to_string()), &[params.clone()]).await;
+        let mut contracts: Value = self.v2_public_get_futures_contract(&[params.clone()]).await;
         //
         //    {
         //        "code": 0,
@@ -1273,8 +1310,8 @@ impl AscendexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_194: bool = true;
-            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_192: bool = true;
+            while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1381,7 +1418,8 @@ impl AscendexCore {
                 m.insert("requestTime".to_string(), self.milliseconds());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_exchange_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_exchange_info(&[__ws_arg_0]).await;
         //
         //    {
         //        "code": 0,
@@ -1416,7 +1454,7 @@ impl AscendexCore {
         let mut accountGroup: Value = self.safe_string_k(self.options.clone(), "account-group", &[]);
         let mut response: Value = Value::Null;
         if is_equal(&accountGroup, &Value::Null) {
-            response = self.call_method(Value::Str("v1_private_get_info".to_string()), &[params.clone()]).await;
+            response = self.v1_private_get_info(&[params.clone()]).await;
             //
             //     {
             //         "code":0,
@@ -1440,12 +1478,14 @@ impl AscendexCore {
             accountGroup = self.safe_string_k(data.clone(), "accountGroup", &[]);
             add_element_to_object(&mut self.options, &Value::Str("account-group".to_string()), accountGroup.clone());
         }
+        let mut finalResponse: Value = response.clone(); // java req
+        let mut finalAccountGroup: Value = accountGroup.clone();
         return Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), accountGroup.clone());
+        m.insert("id".to_string(), finalAccountGroup.clone());
         m.insert("type".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), finalResponse.clone());
     m
 })]);
 
@@ -1463,8 +1503,8 @@ impl AscendexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_195: bool = true;
-            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_193: bool = true;
+            while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -1490,8 +1530,8 @@ impl AscendexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_194: bool = true;
+            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -1524,8 +1564,8 @@ impl AscendexCore {
         let mut collaterals: Value = self.safe_list_k(data.clone(), "collaterals", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&collaterals)) } {
+            let mut __for_first_195: bool = true;
+            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&collaterals)) } {
             let mut balance: Value = get_value(&collaterals, &i);
             let mut balance: Value = get_value(&collaterals, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -1589,9 +1629,11 @@ impl AscendexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&marketType, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("margin".to_string())))) {
-            response = self.call_method(Value::Str("v1_private_account_category_get_balance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_private_account_category_get_balance(&[__ws_arg_1]).await;
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            response = self.call_method(Value::Str("v2_private_account_group_get_futures_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_account_group_get_futures_position(&[__ws_arg_2]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBalance() is not currently supported for ".to_string())), &marketType), &Value::Str(" markets".to_string()))));
         }
@@ -1671,7 +1713,8 @@ impl AscendexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_depth(&[__ws_arg_3]).await;
         //
         //     {
         //         "code":0,
@@ -1783,7 +1826,8 @@ impl AscendexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_ticker(&[__ws_arg_4]).await;
         //
         //     {
         //         "code":0,
@@ -1841,9 +1885,11 @@ impl AscendexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("v1_public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_public_get_ticker(&[__ws_arg_5]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_futures_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_futures_ticker(&[__ws_arg_6]).await;
         }
         //
         //     {
@@ -1958,7 +2004,8 @@ impl AscendexCore {
             add_element_to_object(&mut request, &Value::Str("n".to_string()), limit.clone()); // max 500
         }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_barhist".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_barhist(&[__ws_arg_7]).await;
         //
         //     {
         //         "code":0,
@@ -1985,7 +2032,7 @@ impl AscendexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -2053,7 +2100,8 @@ impl AscendexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("n".to_string()), limit.clone()); // max 100
         }
-        let mut response: Value = self.call_method(Value::Str("v1_public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_public_get_trades(&[__ws_arg_8]).await;
         //
         //     {
         //         "code":0,
@@ -2094,7 +2142,7 @@ impl AscendexCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -2308,7 +2356,8 @@ impl AscendexCore {
                 m.insert("account-group".to_string(), accountGroup.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_account_group_get_spot_fee".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_account_group_get_spot_fee(&[__ws_arg_9]).await;
         //
         //      {
         //         "code": "0",
@@ -2336,8 +2385,8 @@ impl AscendexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_196: bool = true;
+            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut marketId: Value = self.safe_string_k(fee.clone(), "symbol", &[]);
@@ -2496,9 +2545,9 @@ impl AscendexCore {
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            response = self.call_method(Value::Str("v2_private_account_group_post_futures_order".to_string()), &[request.clone()]).await;
+            response = self.v2_private_account_group_post_futures_order(&[request.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("v1_private_account_category_post_order".to_string()), &[request.clone()]).await;
+            response = self.v1_private_account_category_post_order(&[request.clone()]).await;
         }
         //
         // spot
@@ -2601,8 +2650,8 @@ impl AscendexCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_197: bool = true;
+            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2661,7 +2710,7 @@ impl AscendexCore {
             add_element_to_object(&mut request, &Value::Str("account-group".to_string()), accountGroup.clone());
             add_element_to_object(&mut request, &Value::Str("account-category".to_string()), accountCategory.clone());
             add_element_to_object(&mut request, &Value::Str("orders".to_string()), ordersRequests.clone());
-            response = self.call_method(Value::Str("v1_private_account_category_post_order_batch".to_string()), &[request.clone()]).await;
+            response = self.v1_private_account_category_post_order_batch(&[request.clone()]).await;
         }
         //
         // spot
@@ -2740,10 +2789,12 @@ impl AscendexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) {
-            response = self.call_method(Value::Str("v1_private_account_category_get_order_status".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v1_private_account_category_get_order_status(&[__ws_arg_10]).await;
         }  else if is_equal(&type_var, &Value::Str("swap".to_string())) {
             add_element_to_object(&mut request, &Value::Str("account-category".to_string()), accountCategory.clone());
-            response = self.call_method(Value::Str("v2_private_account_group_get_futures_order_status".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v2_private_account_group_get_futures_order_status(&[__ws_arg_11]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrder() is not currently supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
         }
@@ -2871,10 +2922,12 @@ impl AscendexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) {
-            response = self.call_method(Value::Str("v1_private_account_category_get_order_open".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v1_private_account_category_get_order_open(&[__ws_arg_12]).await;
         }  else if is_equal(&type_var, &Value::Str("swap".to_string())) {
             add_element_to_object(&mut request, &Value::Str("account-category".to_string()), accountCategory.clone());
-            response = self.call_method(Value::Str("v2_private_account_group_get_futures_order_open".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v2_private_account_group_get_futures_order_open(&[__ws_arg_13]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOpenOrders() is not currently supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
         }
@@ -2953,8 +3006,8 @@ impl AscendexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_198: bool = true;
+            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = self.parse_order(get_value(&data, &i), &[market.clone()]);
             append_to_array(&mut orders, order.clone());
         }
@@ -3035,20 +3088,23 @@ impl AscendexCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            response = self.call_method(Value::Str("v1_private_account_category_get_order_hist_current".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v1_private_account_category_get_order_hist_current(&[__ws_arg_14]).await;
         }  else if is_equal(&method, &Value::Str("v2PrivateDataGetOrderHist".to_string())) {
             add_element_to_object(&mut request, &Value::Str("account".to_string()), accountCategory.clone());
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            response = self.call_method(Value::Str("v2_private_data_get_order_hist".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v2_private_data_get_order_hist(&[__ws_arg_15]).await;
         }  else if is_equal(&method, &Value::Str("v2PrivateAccountGroupGetFuturesOrderHistCurrent".to_string())) {
             add_element_to_object(&mut request, &Value::Str("account-group".to_string()), accountGroup.clone());
             add_element_to_object(&mut request, &Value::Str("account-category".to_string()), accountCategory.clone());
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
             }
-            response = self.call_method(Value::Str("v2_private_account_group_get_futures_order_hist_current".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v2_private_account_group_get_futures_order_hist_current(&[__ws_arg_16]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchClosedOrders() is not currently supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
         }
@@ -3206,10 +3262,12 @@ impl AscendexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) {
-            response = self.call_method(Value::Str("v1_private_account_category_delete_order".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v1_private_account_category_delete_order(&[__ws_arg_17]).await;
         }  else if is_equal(&type_var, &Value::Str("swap".to_string())) {
             add_element_to_object(&mut request, &Value::Str("account-category".to_string()), accountCategory.clone());
-            response = self.call_method(Value::Str("v2_private_account_group_delete_futures_order".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v2_private_account_group_delete_futures_order(&[__ws_arg_18]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" cancelOrder() is not currently supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
         }
@@ -3336,10 +3394,12 @@ impl AscendexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) {
-            response = self.call_method(Value::Str("v1_private_account_category_delete_order_all".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v1_private_account_category_delete_order_all(&[__ws_arg_19]).await;
         }  else if is_equal(&type_var, &Value::Str("swap".to_string())) {
             add_element_to_object(&mut request, &Value::Str("account-category".to_string()), accountCategory.clone());
-            response = self.call_method(Value::Str("v2_private_account_group_delete_futures_order_all".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[query.clone()]);
+            response = self.v2_private_account_group_delete_futures_order_all(&[__ws_arg_20]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" cancelAllOrders() is not currently supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
         }
@@ -3413,7 +3473,8 @@ impl AscendexCore {
                 m.insert("blockchain".to_string(), networkId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_wallet_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_wallet_deposit_address(&[__ws_arg_21]).await;
         //
         //     {
         //         "code":0,
@@ -3574,7 +3635,8 @@ impl AscendexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v1_private_get_wallet_transactions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_wallet_transactions(&[__ws_arg_22]).await;
         //
         //     {
         //         "code": 0,
@@ -3716,7 +3778,8 @@ impl AscendexCore {
                 m.insert("account-group".to_string(), accountGroup.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_account_group_get_futures_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_account_group_get_futures_position(&[__ws_arg_23]).await;
         //
         //     {
         //         "code": 0,
@@ -3764,8 +3827,8 @@ impl AscendexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&position)) } {
+            let mut __for_first_199: bool = true;
+            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&position)) } {
             append_to_array(&mut result, self.parse_position(get_value(&position, &i), &[]));
         }
         }
@@ -3906,7 +3969,7 @@ impl AscendexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_pricing_data".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_futures_pricing_data(&[params.clone()]).await;
         //
         //     {
         //          "code": 0,
@@ -3962,7 +4025,8 @@ impl AscendexCore {
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_account_group_post_futures_isolated_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_account_group_post_futures_isolated_position_margin(&[__ws_arg_24]).await;
         //
         // Can only change margin for perpetual futures isolated margin positions
         //
@@ -3973,9 +4037,11 @@ impl AscendexCore {
         if is_equal(&type_var, &Value::Str("reduce".to_string())) {
             amount = crate::precise::Precise::stringAbs(&amount);
         }
-        return self.extend(self.parse_margin_modification(response.clone(), &[market.clone()]), &[Value::Map({
+        let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
+        let __ws_arg_25 = self.parse_margin_modification(response.clone(), &[market.clone()]);
+        return self.extend(__ws_arg_25, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), parsedAmount.clone());
         m.insert("type".to_string(), type_var.clone());
     m
 })]);
@@ -4090,7 +4156,8 @@ impl AscendexCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        return self.call_method(Value::Str("v2_private_account_group_post_futures_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        return self.v2_private_account_group_post_futures_leverage(&[__ws_arg_26]).await;
 
     Value::Null
 }
@@ -4139,7 +4206,8 @@ impl AscendexCore {
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" setMarginMode() supports swap contracts only".to_string()))));
         }
-        return self.call_method(Value::Str("v2_private_account_group_post_futures_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        return self.v2_private_account_group_post_futures_margin_type(&[__ws_arg_27]).await;
 
     Value::Null
 }
@@ -4159,7 +4227,7 @@ impl AscendexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_contract".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_futures_contract(&[params.clone()]).await;
         //
         //     {
         //         "code":0,
@@ -4230,8 +4298,8 @@ impl AscendexCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &get_array_length(&marginRequirements)) } {
+            let mut __for_first_200: bool = true;
+            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&marginRequirements)) } {
             let mut tier: Value = get_value(&marginRequirements, &i);
             let mut tier: Value = get_value(&marginRequirements, &i);
             let mut initialMarginRate: Value = self.safe_string_k(tier.clone(), "initialMarginRate", &[]);
@@ -4300,8 +4368,8 @@ impl AscendexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_203: bool = true;
-            while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &blockChainsLength) } {
+            let mut __for_first_201: bool = true;
+            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &blockChainsLength) } {
             let mut blockChain: Value = get_value(&blockChains, &i);
             let mut blockChain: Value = get_value(&blockChains, &i);
             let mut networkId: Value = self.safe_string_k(blockChain.clone(), "chainName", &[]);
@@ -4350,7 +4418,7 @@ impl AscendexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_assets(&[params.clone()]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone(), Value::Str("assetCode".to_string())]);
 
@@ -4399,7 +4467,8 @@ impl AscendexCore {
                 m.insert("toAccount".to_string(), toId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_private_account_group_post_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_private_account_group_post_transfer(&[__ws_arg_28]).await;
         //
         //    { "code": "0" }
         //
@@ -4498,7 +4567,8 @@ impl AscendexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_account_group_get_futures_funding_payments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_account_group_get_futures_funding_payments(&[__ws_arg_29]).await;
         //
         //     {
         //         "code": 0,
@@ -4581,7 +4651,8 @@ impl AscendexCore {
                 m.insert("account-group".to_string(), accountGroup.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_account_group_get_futures_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_account_group_get_futures_position(&[__ws_arg_30]).await;
         //
         //     {
         //         "code": 0,
@@ -4674,7 +4745,8 @@ impl AscendexCore {
                 m.insert("account-group".to_string(), accountGroup.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_account_group_get_futures_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_account_group_get_futures_position(&[__ws_arg_31]).await;
         //
         //     {
         //         "code": 0,
@@ -4745,7 +4817,8 @@ impl AscendexCore {
             m
         });
         let mut response: Value = Value::Null;
-        response = self.call_method(Value::Str("v2_public_get_futures_pricing_data".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        response = self.v2_public_get_futures_pricing_data(&[__ws_arg_32]).await;
         //
         //    {
         //        code: '0',

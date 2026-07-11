@@ -214,6 +214,7 @@ impl BitgetCore {
             "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -261,95 +262,147 @@ impl BitgetCore {
 impl crate::exchange::DerivedExchange for BitgetCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_currency(me, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_open_interest(self, interest, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_open_interest(me, interest, &[market.clone()])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_liquidation(self, liquidation, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_liquidation(me, liquidation, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_borrow_interest(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_borrow_interest(me, info, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_margin_mode(me, margin_mode, &[market.clone()])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_conversion(me, conversion, &[from_currency.clone(), to_currency.clone()])
     }
     fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_borrow_rate(self, info, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_borrow_rate(me, info, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_market_leverage_tiers(me, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
-        BitgetCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitgetCore as *mut BitgetCore) };
+        BitgetCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -2386,7 +2439,7 @@ impl BitgetCore {
         self.set_sandbox_mode(enabled.clone());
 }
 
-    pub fn handle_product_type_and_params(&self, optional_args: &[Value]) -> Value {
+    pub fn handle_product_type_and_params(&mut self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2450,7 +2503,7 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_common_get_v2_public_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_common_get_v2_public_time(&[params.clone()]).await;
         //
         //     {
         //         "code": "00000",
@@ -2494,9 +2547,10 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMarkets".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             return self.fetch_uta_markets(params.clone()).await;
-        }  else {
-            return self.fetch_default_markets(params.clone()).await;
         }
+        return self.fetch_default_markets(params.clone()).await;
+
+    Value::Null
 }
 
     pub async fn fetch_default_markets(&mut self, mut params: Value) -> Value {
@@ -2513,27 +2567,28 @@ impl BitgetCore {
         let mut fetchMargins: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { i = add(&i, &Value::Int(1)); } __for_first_326 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_319: bool = true;
+            while { if !__for_first_319 { i = add(&i, &Value::Int(1)); } __for_first_319 = false; is_less_than(&i, &get_array_length(&types)) } {
             let mut type_var: Value = get_value(&types, &i);
             let mut type_var: Value = get_value(&types, &i);
             if is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
                 let mut subTypes: Value = Value::List(vec![Value::Str("USDT-FUTURES".to_string()), Value::Str("COIN-FUTURES".to_string()), Value::Str("USDC-FUTURES".to_string()), Value::Str("SUSDT-FUTURES".to_string()), Value::Str("SCOIN-FUTURES".to_string()), Value::Str("SUSDC-FUTURES".to_string())]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_325: bool = true;
-                    while { if !__for_first_325 { j = add(&j, &Value::Int(1)); } __for_first_325 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
-                    append_to_array(&mut promises, self.call_method(Value::Str("public_mix_get_v2_mix_market_contracts".to_string()), &[self.extend(params.clone(), &[Value::Map({
+                    let mut __for_first_318: bool = true;
+                    while { if !__for_first_318 { j = add(&j, &Value::Int(1)); } __for_first_318 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
+                    let __ws_arg_0 = self.extend(params.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("productType".to_string(), get_value(&subTypes, &j));
                         m
-                    })])]).await);
+                    })]);
+                    append_to_array(&mut promises, self.public_mix_get_v2_mix_market_contracts(&[__ws_arg_0]).await);
                 }
                 }
             }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
-                append_to_array(&mut promises, self.call_method(Value::Str("public_spot_get_v2_spot_public_symbols".to_string()), &[params.clone()]).await);
+                append_to_array(&mut promises, self.public_spot_get_v2_spot_public_symbols(&[params.clone()]).await);
                 fetchMargins = Value::Bool(true);
-                append_to_array(&mut promises, self.call_method(Value::Str("public_margin_get_v2_margin_currencies".to_string()), &[params.clone()]).await);
+                append_to_array(&mut promises, self.public_margin_get_v2_margin_currencies(&[params.clone()]).await);
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &type_var), &Value::Str(" market".to_string()))));
             }
@@ -2545,8 +2600,8 @@ impl BitgetCore {
         add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_327: bool = true;
-            while { if !__for_first_327 { i = add(&i, &Value::Int(1)); } __for_first_327 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_320: bool = true;
+            while { if !__for_first_320 { i = add(&i, &Value::Int(1)); } __for_first_320 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
             let mut data: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
             let mut firstData: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -2623,8 +2678,8 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { i = add(&i, &Value::Int(1)); } __for_first_328 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_321: bool = true;
+            while { if !__for_first_321 { i = add(&i, &Value::Int(1)); } __for_first_321 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2802,22 +2857,22 @@ impl BitgetCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { i = add(&i, &Value::Int(1)); } __for_first_329 = false; is_less_than(&i, &get_array_length(&subTypes)) } {
+            let mut __for_first_322: bool = true;
+            while { if !__for_first_322 { i = add(&i, &Value::Int(1)); } __for_first_322 = false; is_less_than(&i, &get_array_length(&subTypes)) } {
             let mut req: Value = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("category".to_string(), get_value(&subTypes, &i));
                 m
             })]);
-            append_to_array(&mut promises, self.call_method(Value::Str("public_uta_get_v3_market_instruments".to_string()), &[req.clone()]).await);
+            append_to_array(&mut promises, self.public_uta_get_v3_market_instruments(&[req.clone()]).await);
         }
         }
         let mut results: Value = promise_all(&promises).await;
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { i = add(&i, &Value::Int(1)); } __for_first_330 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_323: bool = true;
+            while { if !__for_first_323 { i = add(&i, &Value::Int(1)); } __for_first_323 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
             let mut data: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
             markets = self.array_concat(markets.clone(), data.clone());
@@ -2915,8 +2970,8 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_331: bool = true;
-            while { if !__for_first_331 { i = add(&i, &Value::Int(1)); } __for_first_331 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_324: bool = true;
+            while { if !__for_first_324 { i = add(&i, &Value::Int(1)); } __for_first_324 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut category: Value = self.safe_string_k(market.clone(), "category", &[]);
@@ -3093,7 +3148,7 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_spot_get_v2_spot_public_coins".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_spot_get_v2_spot_public_coins(&[params.clone()]).await;
         //
         //    {
         //        "code": "00000",
@@ -3127,46 +3182,43 @@ impl BitgetCore {
         //            },
         //            ...
         //
-        let mut result: Value = Value::Map({
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        return self.parse_currencies(data.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::List(vec![])]);
+        let mut entry: Value = rawCurrency.clone();
+        let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut chains: Value = self.safe_list_k(entry.clone(), "chains", &[Value::List(vec![])]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::List(vec![])]);
+        let mut withdraw: Value = Value::Null;
+        let mut deposit: Value = Value::Null;
+        let mut chainsLength: Value = get_array_length(&chains);
+        if is_equal(&chainsLength, &Value::Int(0)) {
+            withdraw = Value::Bool(false);
+            deposit = Value::Bool(false);
+        }
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_333: bool = true;
-            while { if !__for_first_333 { i = add(&i, &Value::Int(1)); } __for_first_333 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut chains: Value = self.safe_value_k(entry.clone(), "chains", &[Value::List(vec![])]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut withdraw: Value = Value::Null;
-            let mut deposit: Value = Value::Null;
-            let mut chainsLength: Value = get_array_length(&chains);
-            if is_equal(&chainsLength, &Value::Int(0)) {
-                withdraw = Value::Bool(false);
-                deposit = Value::Bool(false);
-            }
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_332: bool = true;
-                while { if !__for_first_332 { j = add(&j, &Value::Int(1)); } __for_first_332 = false; is_less_than(&j, &chainsLength) } {
-                let mut chain: Value = get_value(&chains, &j);
-                let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
-                let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                network = to_upper(&network);
-                let mut withdrawable: Value = Value::Bool(is_equal(&self.safe_string_k(chain.clone(), "withdrawable", &[]), &Value::Str("true".to_string())));
-                let mut rechargeable: Value = Value::Bool(is_equal(&self.safe_string_k(chain.clone(), "rechargeable", &[]), &Value::Str("true".to_string())));
-                withdraw = ternary(is_true(&(is_equal(&withdraw, &Value::Null))), withdrawable.clone(), Value::Bool((is_true(&withdraw) || is_true(&withdrawable))));
-                deposit = ternary(is_true(&(is_equal(&deposit, &Value::Null))), rechargeable.clone(), Value::Bool((is_true(&deposit) || is_true(&rechargeable))));
-                add_element_to_object(&mut networks, &network, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_325: bool = true;
+            while { if !__for_first_325 { j = add(&j, &Value::Int(1)); } __for_first_325 = false; is_less_than(&j, &chainsLength) } {
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
+            let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+            network = to_upper(&network);
+            let mut withdrawable: Value = Value::Bool(is_equal(&self.safe_string_k(chain.clone(), "withdrawable", &[]), &Value::Str("true".to_string())));
+            let mut rechargeable: Value = Value::Bool(is_equal(&self.safe_string_k(chain.clone(), "rechargeable", &[]), &Value::Str("true".to_string())));
+            withdraw = ternary(is_true(&(is_equal(&withdraw, &Value::Null))), withdrawable.clone(), Value::Bool((is_true(&withdraw) || is_true(&withdrawable))));
+            deposit = ternary(is_true(&(is_equal(&deposit, &Value::Null))), rechargeable.clone(), Value::Bool((is_true(&deposit) || is_true(&rechargeable))));
+            add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -3194,11 +3246,11 @@ impl BitgetCore {
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "withdrawMinScale", &[])]), &[]));
     m
 }));
-            }
-            }
-            let mut active: Value = Value::Bool(is_true(&withdraw) && is_true(&deposit));
-            let mut isFiat: Value = self.in_array(code.clone(), fiatCurrencies.clone());
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        let mut active: Value = Value::Bool(is_true(&withdraw) && is_true(&deposit));
+        let mut isFiat: Value = self.in_array(code.clone(), fiatCurrencies.clone());
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), id.clone());
@@ -3235,10 +3287,7 @@ impl BitgetCore {
 }));
         m.insert("created".to_string(), Value::Null);
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -3285,14 +3334,17 @@ impl BitgetCore {
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_position_tier".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_position_tier(&[__ws_arg_1]).await;
         }  else if is_true(&(get_value(&market, &Value::Str("swap".to_string())))) || is_true(&(get_value(&market, &Value::Str("future".to_string())))) {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_query_position_lever".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_query_position_lever(&[__ws_arg_2]).await;
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_tier_data".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_tier_data(&[__ws_arg_3]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
             let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
             if is_equal(&code, &Value::Null) {
@@ -3301,7 +3353,8 @@ impl BitgetCore {
             params = self.omit(params.clone(), Value::Str("code".to_string()), &[]);
             let mut currency: Value = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&currency, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_tier_data".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_tier_data(&[__ws_arg_4]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarketLeverageTiers() symbol does not support market ".to_string())), &get_value(&market, &Value::Str("symbol".to_string())))));
         }
@@ -3437,8 +3490,8 @@ impl BitgetCore {
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_334: bool = true;
-            while { if !__for_first_334 { i = add(&i, &Value::Int(1)); } __for_first_334 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_326: bool = true;
+            while { if !__for_first_326 { i = add(&i, &Value::Int(1)); } __for_first_326 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut item: Value = get_value(&info, &i);
             let mut minimumNotional: Value = self.safe_number2(item.clone(), Value::Str("startUnit".to_string()), Value::Str("minTierValue".to_string()), &[]);
@@ -3515,7 +3568,8 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_v2_spot_wallet_deposit_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_v2_spot_wallet_deposit_records(&[__ws_arg_5]).await;
         //
         //     {
         //         "code": "00000",
@@ -3585,7 +3639,8 @@ impl BitgetCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("tag".to_string()), tag.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_post_v2_spot_wallet_withdrawal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_post_v2_spot_wallet_withdrawal(&[__ws_arg_6]).await;
         //
         //     {
         //          "code":"00000",
@@ -3669,7 +3724,8 @@ impl BitgetCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_v2_spot_wallet_withdrawal_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_v2_spot_wallet_withdrawal_records(&[__ws_arg_7]).await;
         //
         //     {
         //         "code": "00000",
@@ -3833,7 +3889,8 @@ impl BitgetCore {
         if !is_equal(&networkCode, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_v2_spot_wallet_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_v2_spot_wallet_deposit_address(&[__ws_arg_8]).await;
         //
         //     {
         //         "code": "00000",
@@ -3924,12 +3981,15 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_orderbook(&[__ws_arg_9]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("public_spot_get_v2_spot_market_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_v2_spot_market_orderbook(&[__ws_arg_10]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_merge_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_merge_depth(&[__ws_arg_11]).await;
         }
         //
         //     {
@@ -4150,12 +4210,15 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTicker".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_tickers(&[__ws_arg_12]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("public_spot_get_v2_spot_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_v2_spot_market_tickers(&[__ws_arg_13]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_ticker(&[__ws_arg_14]).await;
         }
         //
         // spot
@@ -4314,7 +4377,8 @@ impl BitgetCore {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_symbol_price".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_symbol_price(&[__ws_arg_15]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ticker(get_value(&data, &Value::Int(0)), &[market.clone()]);
@@ -4372,12 +4436,15 @@ impl BitgetCore {
                 }
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_tickers(&[__ws_arg_16]).await;
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) && is_equal(&passedSubType, &Value::Null) {
-            response = self.call_method(Value::Str("public_spot_get_v2_spot_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_spot_get_v2_spot_market_tickers(&[__ws_arg_17]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_18]).await;
         }
         //
         // spot
@@ -4501,7 +4568,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot, swap and future: fetchTrades
@@ -4726,7 +4793,8 @@ impl BitgetCore {
                 }
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_fills(&[__ws_arg_19]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             let mut spotOptions: Value = self.safe_value_k(options.clone(), "spot", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4740,9 +4808,11 @@ impl BitgetCore {
                 if !is_equal(&since, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 }
-                response = self.call_method(Value::Str("public_spot_get_v2_spot_market_fills_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_spot_get_v2_spot_market_fills_history(&[__ws_arg_20]).await;
             }  else if is_equal(&spotMethod, &Value::Str("publicSpotGetV2SpotMarketFills".to_string())) {
-                response = self.call_method(Value::Str("public_spot_get_v2_spot_market_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_spot_get_v2_spot_market_fills(&[__ws_arg_21]).await;
             }
         }  else {
             let mut swapOptions: Value = self.safe_value_k(options.clone(), "swap", &[Value::Map({
@@ -4758,9 +4828,11 @@ impl BitgetCore {
                 if !is_equal(&since, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 }
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_fills_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_fills_history(&[__ws_arg_22]).await;
             }  else if is_equal(&swapMethod, &Value::Str("publicMixGetV2MixMarketFills".to_string())) {
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_fills(&[__ws_arg_23]).await;
             }
         }
         //
@@ -4856,7 +4928,8 @@ impl BitgetCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("businessType".to_string()), Value::Str("mix".to_string()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_common_get_v2_common_trade_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_common_get_v2_common_trade_rate(&[__ws_arg_24]).await;
         //
         //     {
         //         "code": "00000",
@@ -4904,15 +4977,15 @@ impl BitgetCore {
             let mut margin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("margin".to_string()), &[]);
             if is_true(&(!is_equal(&marginMode, &Value::Null))) || is_true(&margin) {
-                response = self.call_method(Value::Str("public_margin_get_v2_margin_currencies".to_string()), &[params.clone()]).await;
+                response = self.public_margin_get_v2_margin_currencies(&[params.clone()]).await;
             }  else {
-                response = self.call_method(Value::Str("public_spot_get_v2_spot_public_symbols".to_string()), &[params.clone()]).await;
+                response = self.public_spot_get_v2_spot_public_symbols(&[params.clone()]).await;
             }
         }  else if is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut params, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_contracts".to_string()), &[params.clone()]).await;
+            response = self.public_mix_get_v2_mix_market_contracts(&[params.clone()]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &marketType), &Value::Str(" market".to_string()))));
         }
@@ -4994,8 +5067,8 @@ impl BitgetCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_327: bool = true;
+            while { if !__for_first_327 { i = add(&i, &Value::Int(1)); } __for_first_327 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5204,17 +5277,20 @@ impl BitgetCore {
                 }
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_candles(&[__ws_arg_25]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             // checks if we need history endpoint
             if is_true(&historicalEndpointNeeded) {
-                response = self.call_method(Value::Str("public_spot_get_v2_spot_market_history_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_spot_get_v2_spot_market_history_candles(&[__ws_arg_26]).await;
             }  else {
                 if !is_true(&limitDefined) {
                     add_element_to_object(&mut request, &Value::Str("limit".to_string()), Value::Int(1000));
                     limit = Value::Int(1000);
                 }
-                response = self.call_method(Value::Str("public_spot_get_v2_spot_market_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_spot_get_v2_spot_market_candles(&[__ws_arg_27]).await;
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
@@ -5226,24 +5302,25 @@ impl BitgetCore {
                 }
                 // Recent endpoint for mark/index prices
                 // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_candles".to_string()), &[self.extend(Value::Map({
+                let __ws_arg_28 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("kLineType".to_string(), priceType.clone());
                     m
-                }), &[extended.clone()])]).await;
+                }), &[extended.clone()]);
+                response = self.public_mix_get_v2_mix_market_candles(&[__ws_arg_28]).await;
             }  else if is_equal(&priceType, &Value::Str("mark".to_string())) {
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_history_mark_candles".to_string()), &[extended.clone()]).await;
+                response = self.public_mix_get_v2_mix_market_history_mark_candles(&[extended.clone()]).await;
             }  else if is_equal(&priceType, &Value::Str("index".to_string())) {
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_history_index_candles".to_string()), &[extended.clone()]).await;
+                response = self.public_mix_get_v2_mix_market_history_index_candles(&[extended.clone()]).await;
             }  else {
                 if is_true(&historicalEndpointNeeded) {
-                    response = self.call_method(Value::Str("public_mix_get_v2_mix_market_history_candles".to_string()), &[extended.clone()]).await;
+                    response = self.public_mix_get_v2_mix_market_history_candles(&[extended.clone()]).await;
                 }  else {
                     if !is_true(&limitDefined) {
                         add_element_to_object(&mut extended, &Value::Str("limit".to_string()), Value::Int(1000));
                         limit = Value::Int(1000);
                     }
-                    response = self.call_method(Value::Str("public_mix_get_v2_mix_market_candles".to_string()), &[extended.clone()]).await;
+                    response = self.public_mix_get_v2_mix_market_candles(&[extended.clone()]).await;
                 }
             }
         }
@@ -5291,7 +5368,8 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            response = self.call_method(Value::Str("private_uta_get_v3_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_account_assets(&[__ws_arg_29]).await;
             let mut results: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5302,13 +5380,17 @@ impl BitgetCore {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_account_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_accounts(&[__ws_arg_30]).await;
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_account_assets(&[__ws_arg_31]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_account_assets(&[__ws_arg_32]).await;
         }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_spot_get_v2_spot_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_account_assets(&[__ws_arg_33]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBalance() does not support ".to_string())), &marketType), &Value::Str(" accounts".to_string()))));
         }
@@ -5402,8 +5484,8 @@ impl BitgetCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i = add(&i, &Value::Int(1)); } __for_first_336 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_328: bool = true;
+            while { if !__for_first_328 { i = add(&i, &Value::Int(1)); } __for_first_328 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut entry: Value = get_value(&balance, &i);
             let mut entry: Value = get_value(&balance, &i);
             let mut account: Value = self.account();
@@ -5429,8 +5511,8 @@ impl BitgetCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i = add(&i, &Value::Int(1)); } __for_first_337 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_329: bool = true;
+            while { if !__for_first_329 { i = add(&i, &Value::Int(1)); } __for_first_329 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut entry: Value = get_value(&balance, &i);
             let mut entry: Value = get_value(&balance, &i);
             let mut account: Value = self.account();
@@ -5490,7 +5572,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, editOrder, closePosition
@@ -5758,8 +5840,8 @@ impl BitgetCore {
                 let mut feeObject: Value = Value::Null;
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_338: bool = true;
-                    while { if !__for_first_338 { i = add(&i, &Value::Int(1)); } __for_first_338 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
+                    let mut __for_first_330: bool = true;
+                    while { if !__for_first_330 { i = add(&i, &Value::Int(1)); } __for_first_330 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
                     let mut feeValue: Value = get_value(&feeValues, &i);
                     let mut feeValue: Value = get_value(&feeValues, &i);
                     if !is_equal(&self.safe_value_k(feeValue.clone(), "feeCoinCode", &[]), &Value::Null) {
@@ -5880,7 +5962,8 @@ impl BitgetCore {
                 m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
             m
         });
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, self.extend(req.clone(), &[params.clone()])]).await;
+        let __ws_arg_34 = self.extend(req.clone(), &[params.clone()]);
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, __ws_arg_34]).await;
 
     Value::Null
 }
@@ -5955,29 +6038,29 @@ impl BitgetCore {
         if is_true(&uta) {
             let mut request: Value = self.create_uta_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
             if is_true(&isStopLossOrTakeProfitTrigger) {
-                response = self.call_method(Value::Str("private_uta_post_v3_trade_place_strategy_order".to_string()), &[request.clone()]).await;
+                response = self.private_uta_post_v3_trade_place_strategy_order(&[request.clone()]).await;
             }  else {
-                response = self.call_method(Value::Str("private_uta_post_v3_trade_place_order".to_string()), &[request.clone()]).await;
+                response = self.private_uta_post_v3_trade_place_order(&[request.clone()]).await;
             }
         }  else {
             let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 if is_true(&isTriggerOrder) {
-                    response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_place_plan_order".to_string()), &[request.clone()]).await;
+                    response = self.private_spot_post_v2_spot_trade_place_plan_order(&[request.clone()]).await;
                 }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_post_v2_margin_isolated_place_order".to_string()), &[request.clone()]).await;
+                    response = self.private_margin_post_v2_margin_isolated_place_order(&[request.clone()]).await;
                 }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_post_v2_margin_crossed_place_order".to_string()), &[request.clone()]).await;
+                    response = self.private_margin_post_v2_margin_crossed_place_order(&[request.clone()]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_place_order".to_string()), &[request.clone()]).await;
+                    response = self.private_spot_post_v2_spot_trade_place_order(&[request.clone()]).await;
                 }
             }  else {
                 if is_true(&isTriggerOrder) || is_true(&isTrailingPercentOrder) {
-                    response = self.call_method(Value::Str("private_mix_post_v2_mix_order_place_plan_order".to_string()), &[request.clone()]).await;
+                    response = self.private_mix_post_v2_mix_order_place_plan_order(&[request.clone()]).await;
                 }  else if is_true(&isStopLossOrTakeProfitTrigger) {
-                    response = self.call_method(Value::Str("private_mix_post_v2_mix_order_place_tpsl_order".to_string()), &[request.clone()]).await;
+                    response = self.private_mix_post_v2_mix_order_place_tpsl_order(&[request.clone()]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_mix_post_v2_mix_order_place_order".to_string()), &[request.clone()]).await;
+                    response = self.private_mix_post_v2_mix_order_place_order(&[request.clone()]).await;
                 }
             }
         }
@@ -6001,7 +6084,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn create_uta_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_uta_order_request(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6127,7 +6210,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6168,6 +6251,13 @@ impl BitgetCore {
         let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
+        // const multipleTriggers = (isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        //     || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        //     || (isTakeProfitTriggerOrder && isTrailingPercentOrder);
+        // if (multipleTriggers) {
+        //     throw new crate::exchange_errors::exchange_error (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
+        //
         if is_greater_than(&self.sum(&[isTriggerOrder.clone(), isStopLossTriggerOrder.clone(), isTakeProfitTriggerOrder.clone(), isTrailingPercentOrder.clone()]), &Value::Int(1)) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent".to_string()))));
         }
@@ -6360,8 +6450,8 @@ impl BitgetCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i = add(&i, &Value::Int(1)); } __for_first_339 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_331: bool = true;
+            while { if !__for_first_331 { i = add(&i, &Value::Int(1)); } __for_first_331 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -6396,7 +6486,7 @@ impl BitgetCore {
         }
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut response: Value = self.call_method(Value::Str("private_uta_post_v3_trade_place_batch".to_string()), &[ordersRequests.clone()]).await;
+        let mut response: Value = self.private_uta_post_v3_trade_place_batch(&[ordersRequests.clone()]).await;
         //
         //     {
         //         "code": "00000",
@@ -6446,8 +6536,8 @@ impl BitgetCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_340: bool = true;
-            while { if !__for_first_340 { i = add(&i, &Value::Int(1)); } __for_first_340 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_332: bool = true;
+            while { if !__for_first_332 { i = add(&i, &Value::Int(1)); } __for_first_332 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -6499,13 +6589,13 @@ impl BitgetCore {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_post_v2_mix_order_batch_place_order".to_string()), &[request.clone()]).await;
+            response = self.private_mix_post_v2_mix_order_batch_place_order(&[request.clone()]).await;
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-            response = self.call_method(Value::Str("private_margin_post_v2_margin_isolated_batch_place_order".to_string()), &[request.clone()]).await;
+            response = self.private_margin_post_v2_margin_isolated_batch_place_order(&[request.clone()]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            response = self.call_method(Value::Str("private_margin_post_v2_margin_crossed_batch_place_order".to_string()), &[request.clone()]).await;
+            response = self.private_margin_post_v2_margin_crossed_batch_place_order(&[request.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_batch_orders".to_string()), &[request.clone()]).await;
+            response = self.private_spot_post_v2_spot_trade_batch_orders(&[request.clone()]).await;
         }
         //
         //     {
@@ -6611,6 +6701,12 @@ impl BitgetCore {
         let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("newCallbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
+        // const multipleTriggers = (isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder))
+        //     || (isStopLossOrder && (isTakeProfitOrder || isTrailingPercentOrder))
+        //     || (isTakeProfitOrder && isTrailingPercentOrder);
+        // if (multipleTriggers) {
+        //     throw new crate::exchange_errors::exchange_error (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
         if is_greater_than(&self.sum(&[isTriggerOrder.clone(), isStopLossOrder.clone(), isTakeProfitOrder.clone(), isTrailingPercentOrder.clone()]), &Value::Int(1)) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent".to_string()))));
         }
@@ -6647,12 +6743,14 @@ impl BitgetCore {
                     }
                 }
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-                response = self.call_method(Value::Str("private_uta_post_v3_trade_modify_strategy_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_modify_strategy_order(&[__ws_arg_35]).await;
             }  else {
                 if !is_equal(&price, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
                 }
-                response = self.call_method(Value::Str("private_uta_post_v3_trade_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_modify_order(&[__ws_arg_36]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
@@ -6678,10 +6776,12 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
             if !is_equal(&triggerPrice, &Value::Null) {
-                response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_modify_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_post_v2_spot_trade_modify_plan_order(&[__ws_arg_37]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-                response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_cancel_replace_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_post_v2_spot_trade_cancel_replace_order(&[__ws_arg_38]).await;
             }
         }  else {
             if is_true(&(!is_true(&get_value(&market, &Value::Str("swap".to_string()))))) && is_true(&(!is_true(&get_value(&market, &Value::Str("future".to_string()))))) {
@@ -6705,7 +6805,8 @@ impl BitgetCore {
                     add_element_to_object(&mut request, &Value::Str("newTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone()));
                 }
                 add_element_to_object(&mut request, &Value::Str("newCallbackRatio".to_string()), trailingPercent.clone());
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_modify_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_39]).await;
             }  else if is_true(&isTakeProfitOrder) || is_true(&isStopLossOrder) {
                 add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -6717,7 +6818,8 @@ impl BitgetCore {
                 }  else if is_true(&isTakeProfitOrder) {
                     add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
                 }
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_modify_tpsl_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_tpsl_order(&[__ws_arg_40]).await;
             }  else if is_true(&isTriggerOrder) {
                 add_element_to_object(&mut request, &Value::Str("newTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
                 if is_true(&hasStopLoss) {
@@ -6736,7 +6838,8 @@ impl BitgetCore {
                     let mut tpType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("mark_price".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("newStopSurplusTriggerType".to_string()), tpType.clone());
                 }
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_modify_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_41]).await;
             }  else {
                 let mut defaultNewClientOrderId: Value = self.uuid(&[]);
                 let mut newClientOrderId: Value = self.safe_string2(params.clone(), Value::Str("newClientOid".to_string()), Value::Str("newClientOrderId".to_string()), &[defaultNewClientOrderId.clone()]);
@@ -6750,7 +6853,8 @@ impl BitgetCore {
                     let mut tpTriggerPrice: Value = self.safe_value2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("newPresetStopSurplusPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
                 }
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_order(&[__ws_arg_42]).await;
             }
         }
         //
@@ -6850,9 +6954,11 @@ impl BitgetCore {
         }
         if is_true(&uta) {
             if is_true(&trigger) {
-                response = self.call_method(Value::Str("private_uta_post_v3_trade_cancel_strategy_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_cancel_strategy_order(&[__ws_arg_43]).await;
             }  else {
-                response = self.call_method(Value::Str("private_uta_post_v3_trade_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_cancel_order(&[__ws_arg_44]).await;
             }
         }  else if is_true(&(get_value(&market, &Value::Str("swap".to_string())))) || is_true(&(get_value(&market, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
@@ -6861,24 +6967,31 @@ impl BitgetCore {
             if is_true(&trailing) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_45]).await;
             }  else if is_true(&trigger) {
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_46]).await;
             }  else {
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_cancel_order(&[__ws_arg_47]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_post_v2_margin_isolated_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_post_v2_margin_isolated_cancel_order(&[__ws_arg_48]).await;
                 }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_post_v2_margin_crossed_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_post_v2_margin_crossed_cancel_order(&[__ws_arg_49]).await;
                 }
             }  else {
                 if is_true(&trigger) {
-                    response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_cancel_plan_order(&[__ws_arg_50]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_cancel_order(&[__ws_arg_51]).await;
                 }
             }
         }  else {
@@ -6970,8 +7083,8 @@ impl BitgetCore {
         let mut requestList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_341: bool = true;
-            while { if !__for_first_341 { i = add(&i, &Value::Int(1)); } __for_first_341 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_333: bool = true;
+            while { if !__for_first_333 { i = add(&i, &Value::Int(1)); } __for_first_333 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut individualId: Value = get_value(&ids, &i);
             let mut individualId: Value = get_value(&ids, &i);
             let mut order: Value = Value::Map({
@@ -6984,7 +7097,7 @@ impl BitgetCore {
             append_to_array(&mut requestList, order.clone());
         }
         }
-        let mut response: Value = self.call_method(Value::Str("private_uta_post_v3_trade_cancel_batch".to_string()), &[requestList.clone()]).await;
+        let mut response: Value = self.private_uta_post_v3_trade_cancel_batch(&[requestList.clone()]).await;
         //
         //     {
         //         "code": "00000",
@@ -7045,8 +7158,8 @@ impl BitgetCore {
         let mut orderIdList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_342: bool = true;
-            while { if !__for_first_342 { i = add(&i, &Value::Int(1)); } __for_first_342 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_334: bool = true;
+            while { if !__for_first_334 { i = add(&i, &Value::Int(1)); } __for_first_334 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut individualId: Value = get_value(&ids, &i);
             let mut individualId: Value = get_value(&ids, &i);
             let mut orderId: Value = Value::Map({
@@ -7071,21 +7184,26 @@ impl BitgetCore {
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
                 if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_post_v2_margin_crossed_batch_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_post_v2_margin_crossed_batch_cancel_order(&[__ws_arg_52]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_margin_post_v2_margin_isolated_batch_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_post_v2_margin_isolated_batch_cancel_order(&[__ws_arg_53]).await;
                 }
             }  else {
-                response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_batch_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_post_v2_spot_trade_batch_cancel_order(&[__ws_arg_54]).await;
             }
         }  else {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trigger) {
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_55]).await;
             }  else {
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_batch_cancel_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_56]).await;
             }
         }
         //
@@ -7162,7 +7280,8 @@ impl BitgetCore {
                 }
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_post_v3_trade_cancel_symbol_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_cancel_symbol_order(&[__ws_arg_57]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() does not support margin markets, you can use cancelOrders() instead".to_string()))));
@@ -7173,9 +7292,11 @@ impl BitgetCore {
                             m.insert("symbolList".to_string(), Value::List(vec![get_value(&market, &Value::Str("id".to_string()))]));
                         m
                     });
-                    response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_batch_cancel_plan_order".to_string()), &[self.extend(stopRequest.clone(), &[params.clone()])]).await;
+                    let __ws_arg_58 = self.extend(stopRequest.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_batch_cancel_plan_order(&[__ws_arg_58]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_cancel_symbol_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_cancel_symbol_order(&[__ws_arg_59]).await;
                 }
                 //
                 //     {
@@ -7202,9 +7323,11 @@ impl BitgetCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trigger) {
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_60]).await;
             }  else {
-                response = self.call_method(Value::Str("private_mix_post_v2_mix_order_batch_cancel_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_61]).await;
             }
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
@@ -7261,15 +7384,18 @@ impl BitgetCore {
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrder".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            response = self.call_method(Value::Str("private_uta_get_v3_trade_order_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_order_info(&[__ws_arg_62]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("private_spot_get_v2_spot_trade_order_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_trade_order_info(&[__ws_arg_63]).await;
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_order_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_order_detail(&[__ws_arg_64]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
@@ -7509,9 +7635,11 @@ impl BitgetCore {
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
             if is_true(&trigger) {
-                response = self.call_method(Value::Str("private_uta_get_v3_trade_unfilled_strategy_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_trade_unfilled_strategy_orders(&[__ws_arg_65]).await;
             }  else {
-                response = self.call_method(Value::Str("private_uta_get_v3_trade_unfilled_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_trade_unfilled_orders(&[__ws_arg_66]).await;
             }
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
             if !is_equal(&marginMode, &Value::Null) {
@@ -7520,15 +7648,19 @@ impl BitgetCore {
                     add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 }
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_get_v2_margin_isolated_open_orders(&[__ws_arg_67]).await;
                 }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_68 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_get_v2_margin_crossed_open_orders(&[__ws_arg_68]).await;
                 }
             }  else {
                 if is_true(&trigger) {
-                    response = self.call_method(Value::Str("private_spot_get_v2_spot_trade_current_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_get_v2_spot_trade_current_plan_order(&[__ws_arg_69]).await;
                 }  else {
-                    response = self.call_method(Value::Str("private_spot_get_v2_spot_trade_unfilled_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_70 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_get_v2_spot_trade_unfilled_orders(&[__ws_arg_70]).await;
                 }
             }
         }  else {
@@ -7536,13 +7668,16 @@ impl BitgetCore {
             if is_true(&trailing) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_71]).await;
             }  else if is_true(&isTrigger) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("normal_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_72 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_72]).await;
             }  else {
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_73 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_pending(&[__ws_arg_73]).await;
             }
         }
         //
@@ -7987,9 +8122,11 @@ impl BitgetCore {
                     add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 }
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_history_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_get_v2_margin_isolated_history_orders(&[__ws_arg_74]).await;
                 }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                    response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_history_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_75 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_get_v2_margin_crossed_history_orders(&[__ws_arg_75]).await;
                 }
             }  else if is_true(&trigger) {
                 if is_equal(&symbol, &Value::Null) {
@@ -8004,9 +8141,11 @@ impl BitgetCore {
                 if is_equal(&endTime, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("endTime".to_string()), now.clone());
                 }
-                response = self.call_method(Value::Str("private_spot_get_v2_spot_trade_history_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_get_v2_spot_trade_history_plan_order(&[__ws_arg_76]).await;
             }  else {
-                response = self.call_method(Value::Str("private_spot_get_v2_spot_trade_history_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_get_v2_spot_trade_history_orders(&[__ws_arg_77]).await;
             }
         }  else {
             let mut productType: Value = Value::Null;
@@ -8016,13 +8155,16 @@ impl BitgetCore {
             if is_true(&trailing) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_78]).await;
             }  else if is_true(&trigger) || is_true(&planTypeDefined) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("normal_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_79]).await;
             }  else {
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_history(&[__ws_arg_80]).await;
             }
         }
         //
@@ -8266,9 +8408,11 @@ impl BitgetCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if is_true(&trigger) {
-            response = self.call_method(Value::Str("private_uta_get_v3_trade_history_strategy_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_history_strategy_orders(&[__ws_arg_81]).await;
         }  else {
-            response = self.call_method(Value::Str("private_uta_get_v3_trade_history_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_history_orders(&[__ws_arg_82]).await;
         }
         //
         // uta
@@ -8423,7 +8567,8 @@ impl BitgetCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_spot_get_v2_spot_account_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_83]).await;
         }  else {
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -8431,7 +8576,8 @@ impl BitgetCore {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_account_bill".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_84]).await;
         }
         //
         // spot
@@ -8673,7 +8819,8 @@ impl BitgetCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&uta) {
-            response = self.call_method(Value::Str("private_uta_get_v3_trade_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_fills(&[__ws_arg_85]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -8682,18 +8829,22 @@ impl BitgetCore {
                         add_element_to_object(&mut request, &Value::Str("startTime".to_string()), subtract(&self.milliseconds(), &Value::Int(7776000000)));
                     }
                     if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                        response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                        let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
+                        response = self.private_margin_get_v2_margin_isolated_fills(&[__ws_arg_86]).await;
                     }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                        response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                        let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
+                        response = self.private_margin_get_v2_margin_crossed_fills(&[__ws_arg_87]).await;
                     }
                 }  else {
-                    response = self.call_method(Value::Str("private_spot_get_v2_spot_trade_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_get_v2_spot_trade_fills(&[__ws_arg_88]).await;
                 }
             }  else {
                 let mut productType: Value = Value::Null;
                 { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-                response = self.call_method(Value::Str("private_mix_get_v2_mix_order_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_fills(&[__ws_arg_89]).await;
             }
         }
         //
@@ -8874,7 +9025,8 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPosition".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_get_v3_position_current_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_90]).await;
             //
             //     {
             //         "code": "00000",
@@ -8921,7 +9073,8 @@ impl BitgetCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_position_single_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_single_position(&[__ws_arg_91]).await;
             //
             //     {
             //         "code": "00000",
@@ -9019,7 +9172,8 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_get_v3_position_current_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_92]).await;
         }  else if is_equal(&method, &Value::Str("privateMixGetV2MixPositionAllPosition".to_string())) {
             let mut marginCoin: Value = self.safe_string_k(params.clone(), "marginCoin", &[Value::Str("USDT".to_string())]);
             if !is_equal(&market, &Value::Null) {
@@ -9039,14 +9193,16 @@ impl BitgetCore {
             }
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), marginCoin.clone());
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_position_all_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_93]).await;
         }  else {
             isHistory = Value::Bool(true);
             if !is_equal(&market, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_position_history_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_94]).await;
         }
         //
         // privateMixGetV2MixPositionAllPosition
@@ -9162,8 +9318,8 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_343: bool = true;
-            while { if !__for_first_343 { i = add(&i, &Value::Int(1)); } __for_first_343 = false; is_less_than(&i, &get_array_length(&position)) } {
+            let mut __for_first_335: bool = true;
+            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&position)) } {
             append_to_array(&mut result, self.parse_position(get_value(&position, &i), &[market.clone()]));
         }
         }
@@ -9445,7 +9601,8 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_history_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_95]).await;
             //
             //     {
             //         "code": "00000",
@@ -9477,7 +9634,8 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_history_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_96]).await;
             //
             //     {
             //         "code": "00000",
@@ -9497,8 +9655,8 @@ impl BitgetCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_344: bool = true;
-            while { if !__for_first_344 { i = add(&i, &Value::Int(1)); } __for_first_344 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i = add(&i, &Value::Int(1)); } __for_first_336 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -9555,15 +9713,18 @@ impl BitgetCore {
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRate".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            response = self.call_method(Value::Str("public_uta_get_v3_market_current_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_97]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             let mut method: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRate".to_string()), Value::Str("method".to_string()), &[Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_equal(&method, &Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())) {
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_current_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_98]).await;
             }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketFundingTime".to_string())) {
-                response = self.call_method(Value::Str("public_mix_get_v2_mix_market_funding_time".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_99 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_99]).await;
             }
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -9639,7 +9800,8 @@ impl BitgetCore {
             //         },
             //     ]
             // }
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_100 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_100]).await;
         }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())) {
             //
             //     {
@@ -9658,7 +9820,8 @@ impl BitgetCore {
             //         ]
             //     }
             //
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_current_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_101 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_101]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -9845,13 +10008,15 @@ impl BitgetCore {
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_get_v3_account_financial_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_102]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("businessType".to_string()), Value::Str("contract_settle_fee".to_string()));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_account_bill".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_103]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -9917,8 +10082,8 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i = add(&i, &Value::Int(1)); } __for_first_345 = false; is_less_than(&i, &get_array_length(&contracts)) } {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i = add(&i, &Value::Int(1)); } __for_first_337 = false; is_less_than(&i, &get_array_length(&contracts)) } {
             let mut contract: Value = get_value(&contracts, &i);
             let mut contract: Value = get_value(&contracts, &i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
@@ -9959,10 +10124,13 @@ impl BitgetCore {
             m
         });
         params = self.omit(params.clone(), Value::Str("holdSide".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        return self.extend(self.parse_margin_modification(response.clone(), &[market.clone()]), &[Value::Map({
+        let __ws_arg_104 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_104]).await;
+        let __ws_arg_105 = self.parse_margin_modification(response.clone(), &[market.clone()]);
+        let __ws_arg_106 = self.parse_number(amount.clone(), &[]);
+        return self.extend(__ws_arg_105, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), __ws_arg_106);
         m.insert("type".to_string(), type_var.clone());
     m
 })]);
@@ -10078,7 +10246,8 @@ impl BitgetCore {
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_mix_get_v2_mix_account_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_107 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_107]).await;
         //
         //     {
         //         "code": "00000",
@@ -10180,11 +10349,13 @@ impl BitgetCore {
             }
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_post_v3_account_set_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_108 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_set_leverage(&[__ws_arg_108]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_109 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_account_set_leverage(&[__ws_arg_109]).await;
         }
         return response;
 
@@ -10229,7 +10400,8 @@ impl BitgetCore {
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_margin_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_110 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_110]).await;
         return response;
 
     Value::Null
@@ -10271,11 +10443,13 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("setPositionMode".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("holdMode".to_string()), posMode.clone());
-            response = self.call_method(Value::Str("private_uta_post_v3_account_set_hold_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_111 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_111]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("posMode".to_string()), posMode.clone());
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_position_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_112 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_account_set_position_mode(&[__ws_arg_112]).await;
         }
         return response;
 
@@ -10315,10 +10489,12 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenInterest".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_uta_get_v3_market_open_interest".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_113]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_open_interest".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_114 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_open_interest(&[__ws_arg_114]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10420,7 +10596,8 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_spot_get_v2_spot_account_transfer_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_115 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_v2_spot_account_transfer_records(&[__ws_arg_115]).await;
         //
         //     {
         //         "code": "00000",
@@ -10490,7 +10667,8 @@ impl BitgetCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_spot_post_v2_spot_wallet_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_116 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_post_v2_spot_wallet_transfer(&[__ws_arg_116]).await;
         //
         //     {
         //         "code": "00000",
@@ -10577,7 +10755,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_withdraw_fee(&mut self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -10626,8 +10804,8 @@ impl BitgetCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i = add(&i, &Value::Int(1)); } __for_first_346 = false; is_less_than(&i, &chainsLength) } {
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { i = add(&i, &Value::Int(1)); } __for_first_338 = false; is_less_than(&i, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &i);
             let mut chain: Value = get_value(&chains, &i);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
@@ -10676,7 +10854,7 @@ impl BitgetCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_spot_get_v2_spot_public_coins".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_spot_get_v2_spot_public_coins(&[params.clone()]).await;
         //
         //     {
         //         "code": "00000",
@@ -10735,7 +10913,8 @@ impl BitgetCore {
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_margin_post_v2_margin_crossed_account_borrow".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_117 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_borrow(&[__ws_arg_117]).await;
         //
         //     {
         //         "code": "00000",
@@ -10783,7 +10962,8 @@ impl BitgetCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_margin_post_v2_margin_isolated_account_borrow".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_118 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_borrow(&[__ws_arg_118]).await;
         //
         //     {
         //         "code": "00000",
@@ -10832,7 +11012,8 @@ impl BitgetCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_margin_post_v2_margin_isolated_account_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_119 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_repay(&[__ws_arg_119]).await;
         //
         //     {
         //         "code": "00000",
@@ -10879,7 +11060,8 @@ impl BitgetCore {
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_margin_post_v2_margin_crossed_account_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_120 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_repay(&[__ws_arg_120]).await;
         //
         //     {
         //         "code": "00000",
@@ -11022,9 +11204,11 @@ impl BitgetCore {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_liquidation_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_121]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_liquidation_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_liquidation_history(&[__ws_arg_122]).await;
         }
         //
         // isolated
@@ -11163,7 +11347,8 @@ impl BitgetCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_interest_rate_and_limit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_get_v2_margin_isolated_interest_rate_and_limit(&[__ws_arg_123]).await;
         //
         //     {
         //         "code": "00000",
@@ -11303,7 +11488,8 @@ impl BitgetCore {
         let mut result: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchCrossBorrowRate".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            response = self.call_method(Value::Str("public_uta_get_v3_market_margin_loans".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_124 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_124]).await;
             //
             //     {
             //         "code": "00000",
@@ -11321,7 +11507,8 @@ impl BitgetCore {
     m
 })]);
         }  else {
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_interest_rate_and_limit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_125 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_125]).await;
             //
             //     {
             //         "code": "00000",
@@ -11466,9 +11653,11 @@ impl BitgetCore {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchBorrowInterest() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_interest_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_126 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_126]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_interest_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_127 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_interest_history(&[__ws_arg_127]).await;
         }
         //
         // isolated
@@ -11617,13 +11806,15 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("posSide".to_string()), side.clone());
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_post_v3_trade_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_128 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_128]).await;
         }  else {
             if !is_equal(&side, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("holdSide".to_string()), side.clone());
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_post_v2_mix_order_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_129 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_129]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -11663,10 +11854,12 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("closeAllPositions".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_post_v3_trade_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_130 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_130]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_mix_post_v2_mix_order_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_131 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_131]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -11703,7 +11896,8 @@ impl BitgetCore {
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_mix_get_v2_mix_account_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_132 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_132]).await;
         //
         //     {
         //         "code": "00000",
@@ -11806,9 +12000,11 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionsHistory".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            response = self.call_method(Value::Str("private_uta_get_v3_position_history_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_history_position(&[__ws_arg_133]).await;
         }  else {
-            response = self.call_method(Value::Str("private_mix_get_v2_mix_position_history_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_134 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_134]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11846,7 +12042,8 @@ impl BitgetCore {
                 m.insert("fromCoinSize".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_convert_get_v2_convert_quoted_price".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_get_v2_convert_quoted_price(&[__ws_arg_135]).await;
         //
         //     {
         //         "code": "00000",
@@ -11916,7 +12113,8 @@ impl BitgetCore {
                 m.insert("cnvtPrice".to_string(), price.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_convert_post_v2_convert_trade".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_136 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_post_v2_convert_trade(&[__ws_arg_136]).await;
         //
         //     {
         //         "code": "00000",
@@ -11982,7 +12180,8 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_convert_get_v2_convert_convert_record".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_137 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_get_v2_convert_convert_record(&[__ws_arg_137]).await;
         //
         //     {
         //         "code": "00000",
@@ -12090,7 +12289,7 @@ impl BitgetCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_convert_get_v2_convert_currencies".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_convert_get_v2_convert_currencies(&[params.clone()]).await;
         //
         //     {
         //         "code": "00000",
@@ -12113,8 +12312,8 @@ impl BitgetCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_347: bool = true;
-            while { if !__for_first_347 { i = add(&i, &Value::Int(1)); } __for_first_347 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_339: bool = true;
+            while { if !__for_first_339 { i = add(&i, &Value::Int(1)); } __for_first_339 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -12193,10 +12392,12 @@ impl BitgetCore {
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingInterval".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            response = self.call_method(Value::Str("public_uta_get_v3_market_current_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_138 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_138]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_funding_time".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_139 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_139]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -12242,9 +12443,11 @@ impl BitgetCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))) {
-            response = self.call_method(Value::Str("public_mix_get_v2_mix_market_account_long_short".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_account_long_short(&[__ws_arg_140]).await;
         }  else {
-            response = self.call_method(Value::Str("public_margin_get_v2_margin_market_long_short_ratio".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_margin_get_v2_margin_market_long_short_ratio(&[__ws_arg_141]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_long_short_ratio_history(data.clone(), &[market.clone()]);

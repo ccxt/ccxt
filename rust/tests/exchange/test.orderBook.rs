@@ -35,8 +35,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut bidsLength: Value = get_array_length(&bids);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1179: bool = true;
-        while { if !__for_first_1179 { i = add(&i, &Value::Int(1)); } __for_first_1179 = false; is_less_than(&i, &bidsLength) } {
+        let mut __for_first_1136: bool = true;
+        while { if !__for_first_1136 { i = add(&i, &Value::Int(1)); } __for_first_1136 = false; is_less_than(&i, &bidsLength) } {
         let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = add(&i, &Value::Int(1));
@@ -56,8 +56,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut asksLength: Value = get_array_length(&asks);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1180: bool = true;
-        while { if !__for_first_1180 { i = add(&i, &Value::Int(1)); } __for_first_1180 = false; is_less_than(&i, &asksLength) } {
+        let mut __for_first_1137: bool = true;
+        while { if !__for_first_1137 { i = add(&i, &Value::Int(1)); } __for_first_1137 = false; is_less_than(&i, &asksLength) } {
         let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = add(&i, &Value::Int(1));

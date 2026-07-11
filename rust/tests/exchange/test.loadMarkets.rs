@@ -23,8 +23,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1215: bool = true;
-        while { if !__for_first_1215 { i = add(&i, &Value::Int(1)); } __for_first_1215 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        let mut __for_first_1175: bool = true;
+        while { if !__for_first_1175 { i = add(&i, &Value::Int(1)); } __for_first_1175 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }

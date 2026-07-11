@@ -175,31 +175,45 @@ impl BitbnsCore {
 impl crate::exchange::DerivedExchange for BitbnsCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::parse_balance(me, response)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitbnsCore as *mut BitbnsCore) };
+        BitbnsCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -436,7 +450,7 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v1_get_platform_status".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_get_platform_status(&[params.clone()]).await;
         //
         //     {
         //         "data":{
@@ -479,7 +493,7 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("www_get_order_fetch_markets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.www_get_order_fetch_markets(&[params.clone()]).await;
         //
         //     [
         //         {
@@ -506,8 +520,8 @@ impl BitbnsCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { i = add(&i, &Value::Int(1)); } __for_first_299 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_291: bool = true;
+            while { if !__for_first_291 { i = add(&i, &Value::Int(1)); } __for_first_291 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -634,7 +648,8 @@ impl BitbnsCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        let mut response: Value = self.call_method(Value::Str("www_get_order_fetch_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await;
         //
         //     {
         //         "bids":[
@@ -737,7 +752,7 @@ impl BitbnsCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("www_get_order_fetch_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.www_get_order_fetch_tickers(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -759,8 +774,8 @@ impl BitbnsCore {
         let mut keys: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_292: bool = true;
+            while { if !__for_first_292 { i = add(&i, &Value::Int(1)); } __for_first_292 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("availableorder".to_string()));
@@ -797,7 +812,7 @@ impl BitbnsCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v1_post_current_coin_balance_everything".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v1_post_current_coin_balance_everything(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -817,7 +832,7 @@ impl BitbnsCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -956,7 +971,8 @@ impl BitbnsCore {
         if !is_equal(&trailRate, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("trail_rate".to_string()), self.price_to_precision(symbol.clone(), trailRate.clone()));
         }
-        let mut response: Value = self.call_method(method.clone(), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_1]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -998,7 +1014,8 @@ impl BitbnsCore {
         let mut quoteSide: Value = ternary(is_true(&(is_equal(&get_value(&market, &Value::Str("quoteId".to_string())), &Value::Str("USDT".to_string())))), Value::Str("usdtcancel".to_string()), Value::Str("cancel".to_string()));
         quoteSide = add(&quoteSide, &tail);
         add_element_to_object(&mut request, &Value::Str("side".to_string()), quoteSide.clone());
-        response = self.call_method(Value::Str("v2_post_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        response = self.v2_post_cancel(&[__ws_arg_2]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1035,7 +1052,8 @@ impl BitbnsCore {
         if is_true(&trigger) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrder cannot fetch stop orders".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("v1_post_order_status_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_order_status_symbol(&[__ws_arg_3]).await;
         //
         //     {
         //         "data":[
@@ -1104,7 +1122,8 @@ impl BitbnsCore {
                 m.insert("side".to_string(), ternary(is_true(&isTrigger), (add(&quoteSide, &Value::Str("StopOrders".to_string()))), (add(&quoteSide, &Value::Str("Orders".to_string())))));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_post_getordersnew".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_post_getordersnew(&[__ws_arg_4]).await;
         //
         //     {
         //         "data":[
@@ -1131,7 +1150,7 @@ impl BitbnsCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchMyTrades
@@ -1251,7 +1270,8 @@ impl BitbnsCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("since".to_string()), self.iso8601(since.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("v1_post_list_executed_orders_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_list_executed_orders_symbol(&[__ws_arg_5]).await;
         //
         //     {
         //         "data": [
@@ -1327,7 +1347,8 @@ impl BitbnsCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("quoteId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("www_get_exchange_data_tradedetails".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.www_get_exchange_data_tradedetails(&[__ws_arg_6]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1362,7 +1383,8 @@ impl BitbnsCore {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_post_deposit_history_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_deposit_history_symbol(&[__ws_arg_7]).await;
         //
         //     {
         //         "data":[
@@ -1421,7 +1443,8 @@ impl BitbnsCore {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_post_withdraw_history_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_withdraw_history_symbol(&[__ws_arg_8]).await;
         //
         //     ...
         //
@@ -1561,7 +1584,8 @@ impl BitbnsCore {
                 m.insert("symbol".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v1_post_get_coin_address_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_get_coin_address_symbol(&[__ws_arg_9]).await;
         //
         //     {
         //         "data":{

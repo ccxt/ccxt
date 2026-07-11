@@ -166,13 +166,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_greater_than_or_equal(&get_array_length(&possibleMethodNames), &Value::Int(1)) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_58: bool = true;
-                    while { if !__for_first_58 { i = add(&i, &Value::Int(1)); } __for_first_58 = false; is_less_than(&i, &get_array_length(&testFileNames)) } {
+                    let mut __for_first_1: bool = true;
+                    while { if !__for_first_1 { i = add(&i, &Value::Int(1)); } __for_first_1 = false; is_less_than(&i, &get_array_length(&testFileNames)) } {
                     let mut testFileName: Value = get_value(&testFileNames, &i);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_57: bool = true;
-                        while { if !__for_first_57 { j = add(&j, &Value::Int(1)); } __for_first_57 = false; is_less_than(&j, &get_array_length(&possibleMethodNames)) } {
+                        let mut __for_first_0: bool = true;
+                        while { if !__for_first_0 { j = add(&j, &Value::Int(1)); } __for_first_0 = false; is_less_than(&j, &get_array_length(&possibleMethodNames)) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
                         methodName = replace_str(&methodName, &Value::Str("()".to_string()), &Value::Str("".to_string()));
                         if is_equal(&testFileName, &methodName) {
@@ -189,6 +189,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn import_files(&mut self, mut exchange: Value) -> Value {
         let mut properties: Value = object_keys(&get_value(&exchange, &Value::Str("has".to_string())));
         append_to_array(&mut properties, Value::Str("loadMarkets".to_string()));
+        append_to_array(&mut properties, Value::Str("afterConstruct".to_string()));
         if is_true(&isSync()) {
             self.testFiles = getTestFilesSync(properties, self.wsTests.clone());
         }  else {
@@ -205,8 +206,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_59: bool = true;
-            while { if !__for_first_59 { i = add(&i, &Value::Int(1)); } __for_first_59 = false; is_less_than(&i, &get_array_length(&objkeys)) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i = add(&i, &Value::Int(1)); } __for_first_2 = false; is_less_than(&i, &get_array_length(&objkeys)) } {
             let mut credential: Value = get_value(&objkeys, &i);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if is_true(&isRequired) && is_equal(&getExchangeProp(exchange.clone(), credential.clone(), &[]), &Value::Null) {
@@ -251,8 +252,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut settingKeys: Value = object_keys(&exchangeSettings);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_60: bool = true;
-                while { if !__for_first_60 { i = add(&i, &Value::Int(1)); } __for_first_60 = false; is_less_than(&i, &get_array_length(&settingKeys)) } {
+                let mut __for_first_3: bool = true;
+                while { if !__for_first_3 { i = add(&i, &Value::Int(1)); } __for_first_3 = false; is_less_than(&i, &get_array_length(&settingKeys)) } {
                 let mut key: Value = get_value(&settingKeys, &i);
                 if is_true(&get_value(&exchangeSettings, &key)) {
                     let mut finalValue: Value = Value::Null;
@@ -311,8 +312,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_greater_than(&missingSpace, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_61: bool = true;
-                while { if !__for_first_61 { i = add(&i, &Value::Int(1)); } __for_first_61 = false; is_less_than(&i, &missingSpace) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i = add(&i, &Value::Int(1)); } __for_first_4 = false; is_less_than(&i, &missingSpace) } {
                 res = add(&res, &Value::Str(" ".to_string()));
             }
             }
@@ -335,6 +336,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isLoadMarkets: Value = Value::Bool(is_equal(&methodName, &Value::Str("loadMarkets".to_string())));
         let mut isFetchCurrencies: Value = Value::Bool(is_equal(&methodName, &Value::Str("fetchCurrencies".to_string())));
         let mut isProxyTest: Value = Value::Bool(is_equal(&methodName, &self.proxyTestFileName));
+        let mut isConstructorTest: Value = Value::Bool(is_equal(&methodName, &Value::Str("afterConstruct".to_string())));
         let mut isFeatureTest: Value = Value::Bool(is_equal(&methodName, &Value::Str("features".to_string())));
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if !is_true(&isPublic) && is_true(&(Value::Bool(in_op(&self.checkedPublicTests, &methodName)))) && !is_true(&isFetchCurrencies) {
@@ -344,7 +346,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut supportedByExchange: Value = Value::Bool(is_true(&(Value::Bool(in_op(&get_value(&exchange, &Value::Str("has".to_string())), &methodName)))) && is_true(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &methodName)));
         if !is_true(&isLoadMarkets) && is_true(&(is_greater_than(&get_array_length(&self.onlySpecificTests), &Value::Int(0)) && !is_true(&exchange.in_array(methodName.clone(), self.onlySpecificTests.clone())))) {
             skipMessage = Value::Str("[INFO] IGNORED_TEST".to_string());
-        }  else if !is_true(&isLoadMarkets) && !is_true(&supportedByExchange) && !is_true(&isProxyTest) && !is_true(&isFeatureTest) {
+        }  else if !is_true(&isLoadMarkets) && !is_true(&supportedByExchange) && !is_true(&isProxyTest) && !is_true(&isFeatureTest) && !is_true(&isConstructorTest) {
             skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".to_string()); // keep it aligned with the longest message
         }  else if is_string(&skippedPropertiesForMethod) {
             skipMessage = Value::Str("[INFO] SKIPPED_TEST".to_string());
@@ -392,8 +394,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodNames: Value = Value::List(vec![methodName.clone(), add(&add(&methodName, &Value::Str(".".to_string())), &self.ext)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_62: bool = true;
-            while { if !__for_first_62 { i = add(&i, &Value::Int(1)); } __for_first_62 = false; is_less_than(&i, &get_array_length(&methodNames)) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &get_array_length(&methodNames)) } {
             let mut mName: Value = get_value(&methodNames, &i);
             if is_true(&Value::Bool(in_op(&self.skippedMethods, &mName))) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -420,8 +422,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut objectNames: Value = object_keys(&objectSkips);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_63: bool = true;
-            while { if !__for_first_63 { i = add(&i, &Value::Int(1)); } __for_first_63 = false; is_less_than(&i, &get_array_length(&objectNames)) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i = add(&i, &Value::Int(1)); } __for_first_6 = false; is_less_than(&i, &get_array_length(&objectNames)) } {
             let mut objectName: Value = get_value(&objectNames, &i);
             let mut objectMethods: Value = get_value(&objectSkips, &objectName);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
@@ -466,13 +468,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut argsStringified: Value = exchange.json(args.clone()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_64: bool = true;
-            while { if !__for_first_64 { i = add(&i, &Value::Int(1)); } __for_first_64 = false; is_less_than(&i, &maxRetries) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &maxRetries) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let ex: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let ex: Value = panic_to_value(_try_err); 
                 let mut e: Value = getRootException(ex);
                 let mut isLoadMarkets: Value = Value::Bool(is_equal(&methodName, &Value::Str("loadMarkets".to_string())));
                 let mut isAuthError: Value = Value::Bool(is_instance(&e, &Value::Str("AuthenticationError".to_string())));
@@ -555,6 +557,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut tests: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("features".to_string(), Value::List(vec![]));
+                m.insert("afterConstruct".to_string(), Value::List(vec![]));
                 m.insert("fetchCurrencies".to_string(), Value::List(vec![]));
                 m.insert("fetchTicker".to_string(), Value::List(vec![primarySymbol.clone()]));
                 m.insert("fetchTickers".to_string(), Value::List(vec![primarySymbol.clone()]));
@@ -609,8 +612,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_65: bool = true;
-            while { if !__for_first_65 { i = add(&i, &Value::Int(1)); } __for_first_65 = false; is_less_than(&i, &get_array_length(&testNames)) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &get_array_length(&testNames)) } {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testArgs: Value = get_value(&tests, &testName);
             append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
@@ -623,8 +626,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut failedMethods: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_66: bool = true;
-            while { if !__for_first_66 { i = add(&i, &Value::Int(1)); } __for_first_66 = false; is_less_than(&i, &get_array_length(&testNames)) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i = add(&i, &Value::Int(1)); } __for_first_9 = false; is_less_than(&i, &get_array_length(&testNames)) } {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testReturnedValue: Value = get_value(&results, &i);
             if !is_true(&testReturnedValue) {
@@ -668,8 +671,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_67: bool = true;
-            while { if !__for_first_67 { i = add(&i, &Value::Int(1)); } __for_first_67 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i = add(&i, &Value::Int(1)); } __for_first_10 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut s: Value = get_value(&symbols, &i);
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".to_string())), s.clone(), &[]);
             if !is_equal(&market, &Value::Null) {
@@ -694,8 +697,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut code: Value = get_value(&codes, &Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_68: bool = true;
-            while { if !__for_first_68 { i = add(&i, &Value::Int(1)); } __for_first_68 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i = add(&i, &Value::Int(1)); } __for_first_11 = false; is_less_than(&i, &get_array_length(&codes)) } {
             if is_true(&Value::Bool(in_op(&get_value(&exchange, &Value::Str("currencies".to_string())), &get_value(&codes, &i)))) {
                 return get_value(&codes, &i);
             }
@@ -716,8 +719,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_69: bool = true;
-            while { if !__for_first_69 { i = add(&i, &Value::Int(1)); } __for_first_69 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i = add(&i, &Value::Int(1)); } __for_first_12 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&markets, &key);
             if is_true(&spot) && is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -744,8 +747,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_equal(&symbol, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_70: bool = true;
-                while { if !__for_first_70 { i = add(&i, &Value::Int(1)); } __for_first_70 = false; is_less_than(&i, &get_array_length(&codes)) } {
+                let mut __for_first_13: bool = true;
+                while { if !__for_first_13 { i = add(&i, &Value::Int(1)); } __for_first_13 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut currentCode: Value = get_value(&codes, &i);
                 let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".to_string()), currentCode.clone(), &[]);
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".to_string()));
@@ -764,8 +767,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut activeSymbols: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_71: bool = true;
-                while { if !__for_first_71 { i = add(&i, &Value::Int(1)); } __for_first_71 = false; is_less_than(&i, &get_array_length(&activeMarkets)) } {
+                let mut __for_first_14: bool = true;
+                while { if !__for_first_14 { i = add(&i, &Value::Int(1)); } __for_first_14 = false; is_less_than(&i, &get_array_length(&activeMarkets)) } {
                 append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".to_string())));
             }
             }
@@ -949,13 +952,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut exception: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_72: bool = true;
-            while { if !__for_first_72 { j = add(&j, &Value::Int(1)); } __for_first_72 = false; is_less_than(&j, &maxRetries) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { j = add(&j, &Value::Int(1)); } __for_first_15 = false; is_less_than(&j, &maxRetries) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::List(vec![]), Value::Bool(true)).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
                 exception = e.clone();
                 exchange.sleep(multiply(&j, &Value::Int(1000))).await;
              } }
@@ -1030,7 +1033,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 close(exchange.clone()).await;
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             if !is_true(&isSync()) {
                 close(exchange.clone()).await;
             }
@@ -1104,8 +1107,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut files: Value = ioDirRead(folder.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_73: bool = true;
-            while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&files)) } {
+            let mut __for_first_16: bool = true;
+            while { if !__for_first_16 { i = add(&i, &Value::Int(1)); } __for_first_16 = false; is_less_than(&i, &get_array_length(&files)) } {
             let mut file: Value = get_value(&files, &i);
             let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".to_string()), &Value::Str("".to_string()));
             let mut content: Value = ioFileRead(add(&folder, &file), &[]);
@@ -1125,8 +1128,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut res: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_74: bool = true;
-            while { if !__for_first_74 { i = add(&i, &Value::Int(1)); } __for_first_74 = false; is_less_than(&i, &get_array_length(&urlParts)) } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i = add(&i, &Value::Int(1)); } __for_first_17 = false; is_less_than(&i, &get_array_length(&urlParts)) } {
             if is_greater_than(&i, &Value::Int(2)) {
                 let mut current: Value = get_value(&urlParts, &i);
                 if is_greater_than(&get_index_of(&current, &Value::Str("?".to_string())), &negate(&Value::Int(1))) {
@@ -1154,8 +1157,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut parts: Value = split(&url, &Value::Str("&".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_75: bool = true;
-            while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&parts)) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i = add(&i, &Value::Int(1)); } __for_first_18 = false; is_less_than(&i, &get_array_length(&parts)) } {
             let mut part: Value = get_value(&parts, &i);
             let mut keyValue: Value = split(&part, &Value::Str("=".to_string()));
             let mut keysLength: Value = get_array_length(&keyValue);
@@ -1198,8 +1201,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.assert_static_error(Value::Bool(is_equal(&storedKeysLength, &newKeysLength)), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_76: bool = true;
-                while { if !__for_first_76 { i = add(&i, &Value::Int(1)); } __for_first_76 = false; is_less_than(&i, &get_array_length(&storedOutputKeys)) } {
+                let mut __for_first_19: bool = true;
+                while { if !__for_first_19 { i = add(&i, &Value::Int(1)); } __for_first_19 = false; is_less_than(&i, &get_array_length(&storedOutputKeys)) } {
                 let mut key: Value = get_value(&storedOutputKeys, &i);
                 if is_true(&exchange.in_array(key.clone(), skipKeys.clone())) {
                     continue;
@@ -1225,8 +1228,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.assert_static_error(Value::Bool(is_equal(&storedArrayLength, &newArrayLength)), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_77: bool = true;
-                while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&storedOutput)) } {
+                let mut __for_first_20: bool = true;
+                while { if !__for_first_20 { i = add(&i, &Value::Int(1)); } __for_first_20 = false; is_less_than(&i, &get_array_length(&storedOutput)) } {
                 let mut storedItem: Value = get_value(&storedOutput, &i);
                 let mut newItem: Value = get_value(&newOutput, &i);
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newItem.clone(), storedItem.clone(), &[strictTypeCheck.clone()]);
@@ -1330,7 +1333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn assert_static_request_output(&self, mut exchange: Value, mut type_var: Value, mut skipKeys: Value, mut storedUrl: Value, mut requestUrl: Value, mut storedOutput: Value, mut newOutput: Value) -> Value {
+    pub fn assert_static_request_output(&mut self, mut exchange: Value, mut type_var: Value, mut skipKeys: Value, mut storedUrl: Value, mut requestUrl: Value, mut storedOutput: Value, mut newOutput: Value) -> Value {
         if !is_equal(&storedUrl, &requestUrl) {
             // remove the host part from the url
             let mut firstPath: Value = self.remove_hostnamefrom_url(storedUrl.clone());
@@ -1391,8 +1394,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut newInput: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_78: bool = true;
-            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i = add(&i, &Value::Int(1)); } __for_first_21 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut current: Value = get_value(&input, &i);
             if is_true(&isNullValue(current.clone())) {
                 append_to_array(&mut newInput, Value::Null);
@@ -1475,11 +1478,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         let mut basePath: Value = add(&getRootDir(), &Value::Str("ts/src/test/static/binaries/".to_string()));
         if is_equal(&exchangeName, &Value::Str("lighter".to_string())) {
             if is_equal(&self.lang, &Value::Str("JS".to_string())) {
-                wasmExecPath = add(&getRootDir(), &Value::Str("/src/test/static/binaries/wasm_exec.js".to_string()));
+                wasmExecPath = add(&basePath, &Value::Str("wasm_exec.js".to_string()));
                 libraryPath = add(&basePath, &Value::Str("lighter.wasm".to_string()));
             }  else {
                 if is_true(&isWindows()) {
@@ -1548,7 +1550,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut options, &Value::Str("secret".to_string()), Value::Str("".to_string()));
         }
         let mut exchange: Value = initExchange(exchangeName.clone(), &[options.clone()]);
-        ccxt::set_value(&mut exchange, &Value::Str("currencies".to_string()), currencies);
+        ccxt::set_value(&mut exchange, &Value::Str("currencies".to_string()), currencies.clone());
         return exchange;
 
     Value::Null
@@ -1585,7 +1587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut accounts: Value = exchange.safe_list(exchangeData.clone(), Value::Str("accounts".to_string()), &[]);
         if is_true(&accounts) {
-            ccxt::set_value(&mut exchange, &Value::Str("accounts".to_string()), accounts);
+            ccxt::set_value(&mut exchange, &Value::Str("accounts".to_string()), accounts.clone());
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extend_exchange_options(globalOptions.clone());
@@ -1596,14 +1598,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_80: bool = true;
-            while { if !__for_first_80 { i = add(&i, &Value::Int(1)); } __for_first_80 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_23: bool = true;
+            while { if !__for_first_23 { i = add(&i, &Value::Int(1)); } __for_first_23 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_79: bool = true;
-                while { if !__for_first_79 { j = add(&j, &Value::Int(1)); } __for_first_79 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_22: bool = true;
+                while { if !__for_first_22 { j = add(&j, &Value::Int(1)); } __for_first_22 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
@@ -1706,14 +1708,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_82: bool = true;
-            while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_25: bool = true;
+            while { if !__for_first_25 { i = add(&i, &Value::Int(1)); } __for_first_25 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_81: bool = true;
-                while { if !__for_first_81 { j = add(&j, &Value::Int(1)); } __for_first_81 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_24: bool = true;
+                while { if !__for_first_24 { j = add(&j, &Value::Int(1)); } __for_first_24 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
@@ -1790,8 +1792,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_83: bool = true;
-            while { if !__for_first_83 { i = add(&i, &Value::Int(1)); } __for_first_83 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i = add(&i, &Value::Int(1)); } __for_first_26 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
@@ -1875,8 +1877,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_84: bool = true;
-            while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
+            let mut __for_first_27: bool = true;
+            while { if !__for_first_27 { i = add(&i, &Value::Int(1)); } __for_first_27 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
             let mut exchangeName: Value = get_value(&exchanges, &i);
             let mut exchangeData: Value = get_value(&staticData, &exchangeName);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
@@ -1932,7 +1934,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        let mut promises: Value = Value::List(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_bitmart().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_oxfun().await, self.test_xt().await, self.test_paradex().await, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await]);
+        let mut promises: Value = Value::List(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_bitmart().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, self.test_paradex().await, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await]);
         promise_all(&promises).await;
         let mut successMessage: Value = add(&add(&Value::Str("[".to_string()), &self.lang), &Value::Str("][TEST_SUCCESS] brokerId tests passed.".to_string()));
         dump(&[add(&Value::Str("[INFO]".to_string()), &successMessage)]);
@@ -2022,8 +2024,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut batchOrders: Value = get_value(&createOrdersRequest, &Value::Str("batchOrders".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_85: bool = true;
-            while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i = add(&i, &Value::Int(1)); } __for_first_28 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
             assert(Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &[add(&add(&add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), &Value::Str(" does not start with swapId".to_string())), &swapIdString)]);
@@ -2507,27 +2509,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
-        return Value::Bool(true);
-
-    Value::Null
-}
-
-    pub async fn test_oxfun(&mut self) -> Value {
-        let mut exchange: Value = self.init_offline_exchange(Value::Str("oxfun".to_string()));
-        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
-        let mut id: Value = Value::Int(1000);
-        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
-        let mut request: Value = Value::Null;
-        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:OX".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
-         #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
-        }
-        let mut orders: Value = get_value(&request, &Value::Str("orders".to_string()));
-        let mut first: Value = get_value(&orders, &Value::Int(0));
-        let mut brokerId: Value = get_value(&first, &Value::Str("source".to_string()));
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&add(&add(&Value::Str("oxfun - id: ".to_string()), &to_string_val(&id)), &Value::Str(" different from  broker_id: ".to_string())), &to_string_val(&brokerId))]);
         return Value::Bool(true);
 
     Value::Null

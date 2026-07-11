@@ -51,6 +51,8 @@ pub use test_ticker::testTicker;
 pub use test_trade::testTrade;
 #[path = "test.tradingFee.rs"] pub mod test_tradingFee;
 pub use test_tradingFee::testTradingFee;
+#[path = "test.afterConstruct.rs"] pub mod test_afterConstruct;
+pub use test_afterConstruct::testAfterConstruct;
 #[path = "test.features.rs"] pub mod test_features;
 pub use test_features::testFeatures;
 #[path = "test.fetchAccounts.rs"] pub mod test_fetchAccounts;
@@ -131,6 +133,7 @@ pub use test_signIn::testSignIn;
 /// Marker map of available method tests (Go `FunctionsMap`).
 pub fn available_tests() -> Value {
     let mut m = indexmap::IndexMap::new();
+    m.insert("afterConstruct".to_string(), Value::Bool(true));
     m.insert("features".to_string(), Value::Bool(true));
     m.insert("fetchAccounts".to_string(), Value::Bool(true));
     m.insert("fetchBalance".to_string(), Value::Bool(true));
@@ -175,6 +178,7 @@ pub fn available_tests() -> Value {
 /// Dispatch a unified-method test by name (Go `CallMethod`).
 pub async fn call_test(name: &str, exchange: Value, skipped: Value, args: Value) {
     match name {
+        "afterConstruct" => { testAfterConstruct(exchange, skipped); }
         "features" => { testFeatures(exchange, skipped); }
         "fetchAccounts" => { testFetchAccounts(exchange, skipped).await; }
         "fetchBalance" => { testFetchBalance(exchange, skipped).await; }

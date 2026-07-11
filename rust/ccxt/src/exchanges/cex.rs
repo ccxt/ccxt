@@ -195,59 +195,87 @@ impl CexCore {
 impl crate::exchange::DerivedExchange for CexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_balance(me, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_currency(self, currency)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_currency(me, currency)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_account(self, account)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_account(me, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CexCore.
-        CexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CexCore as *mut CexCore) };
+        CexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -619,7 +647,7 @@ impl CexCore {
     m
 }));
         let mut promises: Value = Value::List(vec![]);
-        append_to_array(&mut promises, self.call_method(Value::Str("public_post_get_currencies_info".to_string()), &[params.clone()]).await);
+        append_to_array(&mut promises, self.public_post_get_currencies_info(&[params.clone()]).await);
         //
         //    {
         //        "ok": "ok",
@@ -634,7 +662,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        append_to_array(&mut promises, self.call_method(Value::Str("public_post_get_processing_info".to_string()), &[params.clone()]).await);
+        append_to_array(&mut promises, self.public_post_get_processing_info(&[params.clone()]).await);
         //
         //    {
         //        "ok": "ok",
@@ -685,8 +713,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&rawNetworks);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { j = add(&j, &Value::Int(1)); } __for_first_489 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { j = add(&j, &Value::Int(1)); } __for_first_473 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &networkId);
@@ -772,7 +800,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_post_get_pairs_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_post_get_pairs_info(&[params.clone()]).await;
         //
         //    {
         //        "ok": "ok",
@@ -888,7 +916,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_post_get_server_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_post_get_server_time(&[params.clone()]).await;
         //
         //    {
         //        "ok": "ok",
@@ -952,7 +980,8 @@ impl CexCore {
         if !is_equal(&symbols, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pairs".to_string()), self.market_ids(&[symbols.clone()]));
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_ticker(&[__ws_arg_0]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1056,7 +1085,8 @@ impl CexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), crate::runtime::Math::min(&limit, &Value::Int(10000))); // has a bug, still returns more trades
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_get_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_1]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1082,7 +1112,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -1142,7 +1172,8 @@ impl CexCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_get_order_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_order_book(&[__ws_arg_2]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1225,7 +1256,8 @@ impl CexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_get_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_get_candles(&[__ws_arg_3]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1270,7 +1302,7 @@ impl CexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_get_my_current_fee".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_get_my_current_fee(&[params.clone()]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1303,8 +1335,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i = add(&i, &Value::Int(1)); } __for_first_490 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = Value::Null;
@@ -1317,8 +1349,8 @@ impl CexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
                 let mut market: Value = self.market(symbol.clone());
@@ -1353,7 +1385,7 @@ impl CexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_get_my_account_status_v3".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_get_my_account_status_v3(&[params.clone()]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1422,7 +1454,7 @@ impl CexCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("method".to_string()), &[Value::Str("privatePostGetMyWalletBalance".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut accountBalance: Value = Value::Null;
         if is_equal(&method, &Value::Str("privatePostGetMyAccountStatusV3".to_string())) {
-            let mut response: Value = self.call_method(Value::Str("private_post_get_my_account_status_v3".to_string()), &[params.clone()]).await;
+            let mut response: Value = self.private_post_get_my_account_status_v3(&[params.clone()]).await;
             //
             //    {
             //        "ok": "ok",
@@ -1449,7 +1481,7 @@ impl CexCore {
     m
 })]);
         }  else {
-            let mut response: Value = self.call_method(Value::Str("private_post_get_my_wallet_balance".to_string()), &[params.clone()]).await;
+            let mut response: Value = self.private_post_get_my_wallet_balance(&[params.clone()]).await;
             //
             //    {
             //        "ok": "ok",
@@ -1481,8 +1513,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { i = add(&i, &Value::Int(1)); } __for_first_492 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut balance: Value = self.safe_dict(response.clone(), key.clone(), &[Value::Map({
@@ -1553,7 +1585,8 @@ impl CexCore {
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("serverCreateTimestampTo".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_my_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_my_orders(&[__ws_arg_4]).await;
         //
         // if called without `pair`
         //
@@ -1670,7 +1703,8 @@ impl CexCore {
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let mut result: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut result: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_5]).await;
         return get_value(&result, &Value::Int(0));
 
     Value::Null
@@ -1698,7 +1732,8 @@ impl CexCore {
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let mut result: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut result: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_6]).await;
         return get_value(&result, &Value::Int(0));
 
     Value::Null
@@ -1722,7 +1757,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //                "orderId": "1313003",
@@ -1863,7 +1898,8 @@ impl CexCore {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("Stop Limit".to_string()));
             add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), triggerPrice.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_do_my_new_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_do_my_new_order(&[__ws_arg_7]).await;
         //
         // on success
         //
@@ -1942,7 +1978,8 @@ impl CexCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_do_cancel_my_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_do_cancel_my_order(&[__ws_arg_8]).await;
         //
         //      {"ok":"ok","data":{}}
         //
@@ -1971,7 +2008,7 @@ impl CexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_do_cancel_all_orders".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_do_cancel_all_orders(&[params.clone()]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1990,8 +2027,8 @@ impl CexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             append_to_array(&mut orders, Value::Map({
@@ -2047,7 +2084,8 @@ impl CexCore {
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("dateTo".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_my_transaction_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_my_transaction_history(&[__ws_arg_9]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2160,7 +2198,8 @@ impl CexCore {
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("dateTo".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_get_my_funding_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_my_funding_history(&[__ws_arg_10]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2292,9 +2331,11 @@ impl CexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&fromMain) {
-            response = self.call_method(Value::Str("private_post_do_deposit_funds_from_wallet".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_do_deposit_funds_from_wallet(&[__ws_arg_11]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_do_withdrawal_funds_to_wallet".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_do_withdrawal_funds_to_wallet(&[__ws_arg_12]).await;
         }
         // both endpoints return the same structure, the only difference is that
         // the "accountId" is filled with the "subAccount"
@@ -2333,7 +2374,8 @@ impl CexCore {
                 m.insert("toAccountId".to_string(), toAccount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_do_my_internal_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_do_my_internal_transfer(&[__ws_arg_13]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2425,7 +2467,8 @@ impl CexCore {
                 m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_get_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_deposit_address(&[__ws_arg_14]).await;
         //
         //    {
         //        "ok": "ok",

@@ -154,6 +154,7 @@ impl CryptomusCore {
             "fetch_trading_fees" => self.fetch_trading_fees(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_fee_tiers" => self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -171,31 +172,51 @@ impl CryptomusCore {
 impl crate::exchange::DerivedExchange for CryptomusCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::parse_market(me, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::parse_balance(me, response)
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on CryptomusCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::parse_currency(me, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CryptomusCore as *mut CryptomusCore) };
+        CryptomusCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -275,7 +296,7 @@ impl CryptomusCore {
         m.insert("fetchConvertTradeHistory".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
-        m.insert("fetchCurrencies".to_string(), Value::Bool(false));
+        m.insert("fetchCurrencies".to_string(), Value::Bool(true));
         m.insert("fetchDepositAddress".to_string(), Value::Bool(false));
         m.insert("fetchDeposits".to_string(), Value::Bool(false));
         m.insert("fetchDepositsWithdrawals".to_string(), Value::Bool(false));
@@ -525,7 +546,7 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_v2_user_api_exchange_markets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v2_user_api_exchange_markets(&[params.clone()]).await;
         //
         //     {
         //         "result": [
@@ -659,7 +680,7 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_exchange_market_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v1_exchange_market_assets(&[params.clone()]).await;
         //
         //     {
         //         'state': '0',
@@ -680,32 +701,34 @@ impl CryptomusCore {
         //
         let mut coins: Value = self.safe_list_k(response.clone(), "result", &[]);
         let mut groupedById: Value = self.group_by(coins.clone(), Value::Str("currency_code".to_string()), &[]);
-        let mut keys: Value = object_keys(&groupedById);
-        let mut result: Value = Value::Map({
+        let mut groupedArray: Value = object_values(&groupedById);
+        return self.parse_currencies(groupedArray.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        // currency here is array of networks
+        let mut id: Value = Value::Null; // all entried have same id, as they were grouped by
+        let mut code: Value = Value::Null;
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i = add(&i, &Value::Int(1)); } __for_first_603 = false; is_less_than(&i, &get_array_length(&keys)) } {
-            let mut id: Value = get_value(&keys, &i);
-            let mut id: Value = get_value(&keys, &i);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut networkEntries: Value = get_value(&groupedById, &id);
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_602: bool = true;
-                while { if !__for_first_602 { j = add(&j, &Value::Int(1)); } __for_first_602 = false; is_less_than(&j, &get_array_length(&networkEntries)) } {
-                let mut networkEntry: Value = get_value(&networkEntries, &j);
-                let mut networkEntry: Value = get_value(&networkEntries, &j);
-                let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network_code", &[]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+            let mut __for_first_581: bool = true;
+            while { if !__for_first_581 { i = add(&i, &Value::Int(1)); } __for_first_581 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut networkEntry: Value = get_value(&rawCurrency, &i);
+            let mut networkEntry: Value = get_value(&rawCurrency, &i);
+            // set ID on first loop
+            if is_equal(&id, &Value::Null) {
+                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]);
+                code = self.safe_currency_code(id.clone(), &[]);
+            }
+            let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network_code", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -726,26 +749,23 @@ impl CryptomusCore {
     m
 }));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool_k(networkEntry.clone(), "can_withdraw", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(networkEntry.clone(), "can_deposit", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(networkEntry.clone(), "can_deposit", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(networkEntry.clone(), "can_withdraw", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("info".to_string(), networkEntry.clone());
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("networks".to_string(), networks.clone());
-        m.insert("info".to_string(), networkEntries.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -767,7 +787,7 @@ impl CryptomusCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_exchange_market_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v1_exchange_market_tickers(&[params.clone()]).await;
         //
         //     {
         //         "data": [
@@ -855,7 +875,8 @@ impl CryptomusCore {
         let mut level: Value = Value::Int(0);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("level".to_string()), &[level.clone()]); level = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         add_element_to_object(&mut request, &Value::Str("level".to_string()), level.clone());
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_exchange_market_order_book_currency_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_0]).await;
         //
         //     {
         //         "data": {
@@ -910,7 +931,8 @@ impl CryptomusCore {
                 m.insert("currencyPair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_exchange_market_trades_currency_pair".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_exchange_market_trades_currency_pair(&[__ws_arg_1]).await;
         //
         //     {
         //         "data": [
@@ -931,7 +953,7 @@ impl CryptomusCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -988,7 +1010,8 @@ impl CryptomusCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v2_user_api_exchange_account_balance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v2_user_api_exchange_account_balance(&[__ws_arg_2]).await;
         //
         //     {
         //         "result": [
@@ -1021,8 +1044,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i = add(&i, &Value::Int(1)); } __for_first_604 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i = add(&i, &Value::Int(1)); } __for_first_582 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut balanceEntry: Value = get_value(&balance, &i);
             let mut balanceEntry: Value = get_value(&balance, &i);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "ticker", &[]);
@@ -1097,14 +1120,16 @@ impl CryptomusCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("quantity".to_string()), amountToString.clone());
             }
-            response = self.call_method(Value::Str("private_post_v2_user_api_exchange_orders_market".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await;
         }  else if is_equal(&type_var, &Value::Str("limit".to_string())) {
             if is_equal(&price, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a price parameter for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), amountToString.clone());
             add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
-            response = self.call_method(Value::Str("private_post_v2_user_api_exchange_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await;
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a type parameter (limit or market)".to_string()))));
         }
@@ -1135,7 +1160,8 @@ impl CryptomusCore {
             m
         });
         add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
-        let mut response: Value = self.call_method(Value::Str("private_delete_v2_user_api_exchange_orders_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1182,7 +1208,8 @@ impl CryptomusCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v2_user_api_exchange_orders_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v2_user_api_exchange_orders_history(&[__ws_arg_6]).await;
         //
         //     {
         //         "result": [
@@ -1226,8 +1253,8 @@ impl CryptomusCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { i = add(&i, &Value::Int(1)); } __for_first_605 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_583: bool = true;
+            while { if !__for_first_583 { i = add(&i, &Value::Int(1)); } __for_first_583 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut order: Value = get_value(&result, &i);
             let mut order: Value = get_value(&result, &i);
             append_to_array(&mut orders, self.parse_order(order.clone(), &[market.clone()]));
@@ -1274,7 +1301,8 @@ impl CryptomusCore {
         if !is_equal(&market, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("market".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v2_user_api_exchange_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v2_user_api_exchange_orders(&[__ws_arg_7]).await;
         //
         //     {
         //         "result": [
@@ -1300,7 +1328,7 @@ impl CryptomusCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -1450,7 +1478,7 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("private_get_v2_user_api_exchange_account_tariffs".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_v2_user_api_exchange_account_tariffs(&[params.clone()]).await;
         //
         //     {
         //         result: {
@@ -1519,8 +1547,8 @@ impl CryptomusCore {
         let mut tiers: Value = self.parse_fee_tiers(feeTiers.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { i = add(&i, &Value::Int(1)); } __for_first_606 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1546,8 +1574,8 @@ impl CryptomusCore {
         let mut makerFees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i = add(&i, &Value::Int(1)); } __for_first_607 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
+            let mut __for_first_585: bool = true;
+            while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);

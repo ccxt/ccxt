@@ -192,6 +192,7 @@ impl WeexCore {
             "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -227,71 +228,111 @@ impl WeexCore {
 impl crate::exchange::DerivedExchange for WeexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WeexCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_currency(me, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_open_interest(self, interest, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_open_interest(me, interest, &[market.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_funding_rate_history(self, entry, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_funding_rate_history(me, entry, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_margin_mode(me, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on WeexCore.
-        WeexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WeexCore as *mut WeexCore) };
+        WeexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1052,7 +1093,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_api_v3_ping".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_api_v3_ping(&[params.clone()]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".to_string()));
@@ -1085,9 +1126,9 @@ impl WeexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTime".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if !is_equal(&type_var, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("contract_get_capi_v3_market_time".to_string()), &[params.clone()]).await;
+            response = self.contract_get_capi_v3_market_time(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("public_get_api_v3_time".to_string()), &[params.clone()]).await;
+            response = self.public_get_api_v3_time(&[params.clone()]).await;
         }
         return self.safe_integer_k(response.clone(), "serverTime", &[]);
 
@@ -1107,142 +1148,29 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_api_v3_coins".to_string()), &[params.clone()]).await;
-        //
-        //     [
-        //         {
-        //             "coin": "BTC",
-        //             "depositAllEnable": true,
-        //             "withdrawAllEnable": true,
-        //             "name": "BTC",
-        //             "networkList": [
-        //                 {
-        //                     "network": "BTC",
-        //                     "coin": "BTC",
-        //                     "withdrawIntegerMultiple": 1E-8,
-        //                     "isDefault": true,
-        //                     "depositEnable": true,
-        //                     "withdrawEnable": true,
-        //                     "depositDesc": null,
-        //                     "withdrawDesc": null,
-        //                     "name": "BTC",
-        //                     "withdrawFee": "0.00016",
-        //                     "withdrawMin": "0.002",
-        //                     "depositDust": "0.00001",
-        //                     "minConfirm": 3,
-        //                     "withdrawTag": false,
-        //                     "contractAddressUrl": "https://www.blockchain.com/explorer/mempool/",
-        //                     "contractAddress": "btc"
-        //                 },
-        //                 {
-        //                     "network": "BEP20(BSC)",
-        //                     "coin": "BTC",
-        //                     "withdrawIntegerMultiple": 1E-8,
-        //                     "isDefault": false,
-        //                     "depositEnable": true,
-        //                     "withdrawEnable": false,
-        //                     "depositDesc": null,
-        //                     "withdrawDesc": null,
-        //                     "name": "BEP20(BSC)",
-        //                     "withdrawFee": "0.00001",
-        //                     "withdrawMin": "0.00006",
-        //                     "depositDust": "0.00003",
-        //                     "minConfirm": 61,
-        //                     "withdrawTag": false,
-        //                     "contractAddressUrl": "",
-        //                     "contractAddress": ""
-        //                 }
-        //             ]
-        //         },
-        //         {
-        //             "coin": "USDT",
-        //             "depositAllEnable": true,
-        //             "withdrawAllEnable": true,
-        //             "name": "USDT",
-        //             "networkList": [
-        //                 {
-        //                     "network": "TRC20",
-        //                     "coin": "USDT",
-        //                     "withdrawIntegerMultiple": 1E-8,
-        //                     "isDefault": true,
-        //                     "depositEnable": true,
-        //                     "withdrawEnable": true,
-        //                     "depositDesc": null,
-        //                     "withdrawDesc": null,
-        //                     "name": "TRC20",
-        //                     "withdrawFee": "1.5",
-        //                     "withdrawMin": "10",
-        //                     "depositDust": "0.1",
-        //                     "minConfirm": 20,
-        //                     "withdrawTag": false,
-        //                     "contractAddressUrl": "https://tronscan.org/#/token20/",
-        //                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-        //                 },
-        //                 {
-        //                     "network": "ERC20",
-        //                     "coin": "USDT",
-        //                     "withdrawIntegerMultiple": 1E-8,
-        //                     "isDefault": false,
-        //                     "depositEnable": true,
-        //                     "withdrawEnable": true,
-        //                     "depositDesc": null,
-        //                     "withdrawDesc": null,
-        //                     "name": "ERC20",
-        //                     "withdrawFee": "1",
-        //                     "withdrawMin": "20",
-        //                     "depositDust": "0.1",
-        //                     "minConfirm": 12,
-        //                     "withdrawTag": false,
-        //                     "contractAddressUrl": "https://etherscan.io/token/",
-        //                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
-        //                 },
-        //                 {
-        //                     "network": "AVALANCHE_C(AVAX_C)",
-        //                     "coin": "USDT",
-        //                     "withdrawIntegerMultiple": 1E-8,
-        //                     "isDefault": false,
-        //                     "depositEnable": true,
-        //                     "withdrawEnable": true,
-        //                     "depositDesc": null,
-        //                     "withdrawDesc": null,
-        //                     "name": "AVALANCHE_C(AVAX_C)",
-        //                     "withdrawFee": "0.5",
-        //                     "withdrawMin": "10",
-        //                     "depositDust": "0.1",
-        //                     "minConfirm": 35,
-        //                     "withdrawTag": false,
-        //                     "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
-        //                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        //
-        let mut result: Value = Value::Map({
+        let mut response: Value = self.public_get_api_v3_coins(&[params.clone()]).await;
+        return self.parse_currencies(response.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "coin", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1102: bool = true;
-            while { if !__for_first_1102 { i = add(&i, &Value::Int(1)); } __for_first_1102 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut currency: Value = self.safe_dict(response.clone(), i.clone(), &[]);
-            let mut currencyId: Value = self.safe_string_k(currency.clone(), "coin", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut chains: Value = self.safe_list_k(currency.clone(), "networkList", &[Value::List(vec![])]);
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_1101: bool = true;
-                while { if !__for_first_1101 { j = add(&j, &Value::Int(1)); } __for_first_1101 = false; is_less_than(&j, &get_array_length(&chains)) } {
-                let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
-                let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { j = add(&j, &Value::Int(1)); } __for_first_1051 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -1271,15 +1199,15 @@ impl WeexCore {
 }));
     m
 }));
-            }
-            }
-            let mut networkKeys: Value = object_keys(&networks);
-            let mut networksLength: Value = get_array_length(&networkKeys);
-            let mut emptyChains: Value = Value::Bool(is_equal(&networksLength, &Value::Int(0))); // non-functional coins
-            let mut valueForEmpty: Value = ternary(is_true(&emptyChains), Value::Bool(false), Value::Null);
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        let mut networkKeys: Value = object_keys(&networks);
+        let mut networksLength: Value = get_array_length(&networkKeys);
+        let mut emptyChains: Value = Value::Bool(is_equal(&networksLength, &Value::Int(0))); // non-functional coins
+        let mut valueForEmpty: Value = ternary(is_true(&emptyChains), Value::Bool(false), Value::Null);
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("id".to_string(), currencyId.clone());
         m.insert("type".to_string(), Value::Str("crypto".to_string()));
@@ -1313,10 +1241,7 @@ impl WeexCore {
 }));
         m.insert("networks".to_string(), networks.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1338,7 +1263,7 @@ impl WeexCore {
         if is_true(&get_value(&self.options, &Value::Str("adjustForTimeDifference".to_string()))) {
             self.load_time_difference(&[]).await;
         }
-        let mut promises: Value = Value::List(vec![self.call_method(Value::Str("public_get_api_v3_exchange_info".to_string()), &[params.clone()]).await, self.call_method(Value::Str("contract_get_capi_v3_market_exchange_info".to_string()), &[params.clone()]).await]);
+        let mut promises: Value = Value::List(vec![self.public_get_api_v3_exchange_info(&[params.clone()]).await, self.contract_get_capi_v3_market_exchange_info(&[params.clone()]).await]);
         let mut spotResponsecontractResponseVariable = promise_all(&promises).await;
         let mut spotResponse: Value = get_value(&spotResponsecontractResponseVariable, &Value::Int(0));
         let mut contractResponse: Value = get_value(&spotResponsecontractResponseVariable, &Value::Int(1));
@@ -1576,7 +1501,8 @@ impl WeexCore {
             //         }
             //     ]
             //
-            response = self.call_method(Value::Str("public_get_api_v3_market_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_api_v3_market_ticker24hr(&[__ws_arg_0]).await;
         }  else {
             //
             //     [
@@ -1597,7 +1523,8 @@ impl WeexCore {
             //         }
             //     ]
             //
-            response = self.call_method(Value::Str("contract_get_capi_v3_market_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_get_capi_v3_market_ticker24hr(&[__ws_arg_1]).await;
         }
         if !is_true(&Value::Bool(is_array(&response))) {
             response = Value::List(vec![response.clone()]);
@@ -1630,9 +1557,9 @@ impl WeexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("public_get_api_v3_market_ticker_book_ticker".to_string()), &[params.clone()]).await;
+            response = self.public_get_api_v3_market_ticker_book_ticker(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_get_capi_v3_market_ticker_book_ticker".to_string()), &[params.clone()]).await;
+            response = self.contract_get_capi_v3_market_ticker_book_ticker(&[params.clone()]).await;
         }
         if !is_true(&Value::Bool(is_array(&response))) {
             response = Value::List(vec![response.clone()]);
@@ -1749,9 +1676,11 @@ impl WeexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("public_get_api_v3_market_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_api_v3_market_depth(&[__ws_arg_2]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_get_capi_v3_market_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_get_capi_v3_market_depth(&[__ws_arg_3]).await;
         }
         //
         //     {
@@ -1842,7 +1771,8 @@ impl WeexCore {
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_api_v3_market_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_api_v3_market_klines(&[__ws_arg_4]).await;
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1933,17 +1863,21 @@ impl WeexCore {
             }
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), startTime.clone());
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), endTime.clone());
-            response = self.call_method(Value::Str("contract_get_capi_v3_market_history_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_get_capi_v3_market_history_klines(&[__ws_arg_5]).await;
         }  else {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             if is_equal(&priceType, &Value::Str("MARK".to_string())) {
-                response = self.call_method(Value::Str("contract_get_capi_v3_market_mark_price_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_get_capi_v3_market_mark_price_klines(&[__ws_arg_6]).await;
             }  else if is_equal(&priceType, &Value::Str("INDEX".to_string())) {
-                response = self.call_method(Value::Str("contract_get_capi_v3_market_index_price_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_get_capi_v3_market_index_price_klines(&[__ws_arg_7]).await;
             }  else {
-                response = self.call_method(Value::Str("contract_get_capi_v3_market_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_get_capi_v3_market_klines(&[__ws_arg_8]).await;
             }
         }
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -1989,16 +1923,18 @@ impl WeexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("public_get_api_v3_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_api_v3_market_trades(&[__ws_arg_9]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_get_capi_v3_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_get_capi_v3_market_trades(&[__ws_arg_10]).await;
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -2125,7 +2061,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_get_capi_v3_market_open_interest".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_get_capi_v3_market_open_interest(&[__ws_arg_11]).await;
         return self.parse_open_interest(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2187,7 +2124,8 @@ impl WeexCore {
             let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("contract_get_capi_v3_market_premium_index".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_12]).await;
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2268,7 +2206,8 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("contract_get_capi_v3_market_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_13]).await;
         return self.parse_funding_rate_histories(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2345,7 +2284,7 @@ impl WeexCore {
             //         "uid": 8886281669
             //     }
             //
-            response = self.call_method(Value::Str("private_get_api_v3_account".to_string()), &[params.clone()]).await;
+            response = self.private_get_api_v3_account(&[params.clone()]).await;
         }  else {
             //
             //     [
@@ -2358,7 +2297,7 @@ impl WeexCore {
             //         }
             //     ]
             //
-            response = self.call_method(Value::Str("contract_private_get_capi_v3_account_balance".to_string()), &[params.clone()]).await;
+            response = self.contract_private_get_capi_v3_account_balance(&[params.clone()]).await;
         }
         return self.parse_balance(response.clone());
 
@@ -2374,8 +2313,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1103: bool = true;
-            while { if !__for_first_1103 { i = add(&i, &Value::Int(1)); } __for_first_1103 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i = add(&i, &Value::Int(1)); } __for_first_1052 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -2433,7 +2372,8 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("before".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_api_v3_account_transfer_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_api_v3_account_transfer_records(&[__ws_arg_14]).await;
         return self.parse_transfers(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2531,7 +2471,7 @@ impl WeexCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_post_api_v3_order".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_api_v3_order(&[request.clone()]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2606,9 +2546,9 @@ impl WeexCore {
         let mut triggerPrice: Value = self.safe_string_k(request.clone(), "triggerPrice", &[]);
         let mut response: Value = Value::Null;
         if !is_equal(&triggerPrice, &Value::Null) {
-            response = self.call_method(Value::Str("contract_private_post_capi_v3_algo_order".to_string()), &[request.clone()]).await;
+            response = self.contract_private_post_capi_v3_algo_order(&[request.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_private_post_capi_v3_order".to_string()), &[request.clone()]).await;
+            response = self.contract_private_post_capi_v3_order(&[request.clone()]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -2806,11 +2746,14 @@ impl WeexCore {
             //         "status": "CANCELED"
             //     }
             //
-            response = self.call_method(Value::Str("private_delete_api_v3_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v3_order(&[__ws_arg_15]).await;
         }  else if is_true(&trigger) {
-            response = self.call_method(Value::Str("contract_private_delete_capi_v3_algo_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_delete_capi_v3_algo_order(&[__ws_arg_16]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_private_delete_capi_v3_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_delete_capi_v3_order(&[__ws_arg_17]).await;
         }
         let mut order: Value = self.parse_order(response.clone(), &[market.clone()]);
         add_element_to_object(&mut order, &Value::Str("status".to_string()), Value::Str("canceled".to_string()));
@@ -2857,11 +2800,14 @@ impl WeexCore {
             if is_equal(&symbol, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument for spot markets".to_string()))));
             }
-            response = self.call_method(Value::Str("private_delete_api_v3_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v3_open_orders(&[__ws_arg_18]).await;
         }  else if is_true(&trigger) {
-            response = self.call_method(Value::Str("contract_private_delete_capi_v3_algo_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_delete_capi_v3_algo_open_orders(&[__ws_arg_19]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_private_delete_capi_v3_all_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_delete_capi_v3_all_open_orders(&[__ws_arg_20]).await;
         }
         let mut extendedParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2923,9 +2869,11 @@ impl WeexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&isSpot) {
-            response = self.call_method(Value::Str("private_delete_api_v3_order_batch".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v3_order_batch(&[__ws_arg_21]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_private_delete_capi_v3_batch_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_delete_capi_v3_batch_orders(&[__ws_arg_22]).await;
         }
         let mut ordersResponse: Value = self.safe_list_k(response.clone(), "orderList", &[Value::List(vec![])]);
         let mut extendedParams: Value = Value::Map({
@@ -3001,9 +2949,11 @@ impl WeexCore {
             //         "isWorking": true
             //     }
             //
-            response = self.call_method(Value::Str("private_get_api_v3_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v3_order(&[__ws_arg_23]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_private_get_capi_v3_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_get_capi_v3_order(&[__ws_arg_24]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -3079,7 +3029,8 @@ impl WeexCore {
             //         }
             //     ]
             //
-            response = self.call_method(Value::Str("private_get_api_v3_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v3_open_orders(&[__ws_arg_25]).await;
         }  else {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -3122,7 +3073,8 @@ impl WeexCore {
                 //         }
                 //     ]
                 //
-                response = self.call_method(Value::Str("contract_private_get_capi_v3_open_algo_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_private_get_capi_v3_open_algo_orders(&[__ws_arg_26]).await;
             }  else {
                 //
                 //     [
@@ -3148,7 +3100,8 @@ impl WeexCore {
                 //         }
                 //     ]
                 //
-                response = self.call_method(Value::Str("contract_private_get_capi_v3_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_private_get_capi_v3_open_orders(&[__ws_arg_27]).await;
             }
         }
         let mut extendedParams: Value = Value::Map({
@@ -3294,7 +3247,8 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &maxLimit));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_api_v3_all_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_api_v3_all_orders(&[__ws_arg_28]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3352,13 +3306,14 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_order_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_capi_v3_order_history(&[__ws_arg_29]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder (spot)
@@ -3595,7 +3550,8 @@ impl WeexCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
 
     Value::Null
 }
@@ -3670,7 +3626,8 @@ impl WeexCore {
             //         }
             //     ]
             //
-            response = self.call_method(Value::Str("private_get_api_v3_my_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v3_my_trades(&[__ws_arg_31]).await;
         }  else {
             //
             //     [
@@ -3692,7 +3649,8 @@ impl WeexCore {
             //         }
             //     ]
             //
-            response = self.call_method(Value::Str("contract_private_get_capi_v3_user_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_32]).await;
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3757,7 +3715,8 @@ impl WeexCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-            let mut contractResponse: Value = self.call_method(Value::Str("contract_private_post_capi_v3_account_income".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+            let mut contractResponse: Value = self.contract_private_post_capi_v3_account_income(&[__ws_arg_33]).await;
             items = self.safe_list_k(contractResponse.clone(), "items", &[Value::List(vec![])]);
         }  else if is_equal(&accountType, &Value::Str("funding".to_string())) {
             if !is_equal(&since, &Value::Null) {
@@ -3767,7 +3726,8 @@ impl WeexCore {
                 add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
             }
             { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-            let mut fundingResponse: Value = self.call_method(Value::Str("private_post_api_v3_account_funding_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+            let mut fundingResponse: Value = self.private_post_api_v3_account_funding_bills(&[__ws_arg_34]).await;
             items = self.safe_list_k(fundingResponse.clone(), "items", &[Value::List(vec![])]);
         }  else {
             if !is_equal(&since, &Value::Null) {
@@ -3777,7 +3737,8 @@ impl WeexCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             { let __destr_tmp = self.handle_until_option(Value::Str("before".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-            items = self.call_method(Value::Str("private_post_api_v3_account_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+            items = self.private_post_api_v3_account_bills(&[__ws_arg_35]).await;
         }
         return self.parse_ledger(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -3913,7 +3874,7 @@ impl WeexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_position_all_position".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_private_get_capi_v3_account_position_all_position(&[params.clone()]).await;
         return self.parse_positions(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3961,7 +3922,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_position_single_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_capi_v3_account_position_single_position(&[__ws_arg_36]).await;
         return self.parse_positions(response.clone(), &[Value::List(vec![get_value(&market, &Value::Str("symbol".to_string()))])]);
 
     Value::Null
@@ -4105,7 +4067,7 @@ impl WeexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("contract_private_post_capi_v3_close_positions".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_private_post_capi_v3_close_positions(&[params.clone()]).await;
         return self.parse_positions(response.clone(), &[]);
 
     Value::Null
@@ -4134,7 +4096,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_post_capi_v3_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_capi_v3_close_positions(&[__ws_arg_37]).await;
         let mut orders: Value = self.parse_orders(response.clone(), &[market.clone()]);
         return self.safe_dict(orders.clone(), Value::Int(0), &[]);
 
@@ -4165,7 +4128,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_commission_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_capi_v3_account_commission_rate(&[__ws_arg_38]).await;
         return self.parse_trading_fee(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -4217,7 +4181,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_39]).await;
         //
         //     [
         //         {
@@ -4256,7 +4221,7 @@ impl WeexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[params.clone()]).await;
         return self.parse_margin_modes(response.clone(), &[symbols.clone(), Value::Str("symbol".to_string()), Value::Str("swap".to_string())]);
 
     Value::Null
@@ -4316,7 +4281,8 @@ impl WeexCore {
                 m.insert("marginType".to_string(), self.encode_margin_mode(marginMode.clone()));
             m
         });
-        return self.call_method(Value::Str("contract_private_post_capi_v3_account_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+        return self.contract_private_post_capi_v3_account_margin_type(&[__ws_arg_40]).await;
 
     Value::Null
 }
@@ -4358,7 +4324,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_41]).await;
         let mut marginMode: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4385,7 +4352,7 @@ impl WeexCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[params.clone()]).await;
         return self.parse_leverages(response.clone(), &[symbols.clone(), Value::Str("symbol".to_string()), Value::Str("swap".to_string())]);
 
     Value::Null
@@ -4467,7 +4434,8 @@ impl WeexCore {
                 add_element_to_object(&mut request, &Value::Str("crossLeverage".to_string()), leverage.clone());
             }
         }
-        return self.call_method(Value::Str("contract_private_post_capi_v3_account_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+        return self.contract_private_post_capi_v3_account_leverage(&[__ws_arg_42]).await;
 
     Value::Null
 }
@@ -4494,7 +4462,8 @@ impl WeexCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_43]).await;
         let mut entry: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4545,7 +4514,8 @@ impl WeexCore {
                 m.insert("separatedType".to_string(), separatedType.clone());
             m
         });
-        return self.call_method(Value::Str("contract_private_post_capi_v3_account_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+        return self.contract_private_post_capi_v3_account_margin_type(&[__ws_arg_44]).await;
 
     Value::Null
 }
@@ -4570,10 +4540,13 @@ impl WeexCore {
             m
         });
         let mut parsedType: Value = ternary(is_true(&(is_equal(&type_var, &Value::Int(1)))), Value::Str("add".to_string()), Value::Str("reduce".to_string()));
-        let mut response: Value = self.call_method(Value::Str("contract_private_post_capi_v3_account_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        return self.extend(self.parse_margin_modification(response.clone(), &[market.clone()]), &[Value::Map({
+        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_capi_v3_account_position_margin(&[__ws_arg_45]).await;
+        let __ws_arg_46 = self.parse_margin_modification(response.clone(), &[market.clone()]);
+        let __ws_arg_47 = self.parse_number(amount.clone(), &[]);
+        return self.extend(__ws_arg_46, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), __ws_arg_47);
         m.insert("type".to_string(), parsedType.clone());
     m
 })]);

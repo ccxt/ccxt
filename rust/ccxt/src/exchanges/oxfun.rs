@@ -737,7 +737,7 @@ impl OxfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut responseFromMarketsresponseFromTickersVariable = promise_all(&Value::List(vec![self.call_method(Value::Str("public_get_v3_markets".to_string()), &[params.clone()]).await, self.call_method(Value::Str("public_get_v3_tickers".to_string()), &[params.clone()]).await])).await;
+        let mut responseFromMarketsresponseFromTickersVariable = promise_all(&Value::List(vec![self.public_get_v3_markets(&[params.clone()]).await, self.public_get_v3_tickers(&[params.clone()]).await])).await;
         let mut responseFromMarkets: Value = get_value(&responseFromMarketsresponseFromTickersVariable, &Value::Int(0));
         let mut responseFromTickers: Value = get_value(&responseFromMarketsresponseFromTickersVariable, &Value::Int(1));
         let mut marketsFromMarkets: Value = self.safe_list_k(responseFromMarkets.clone(), "data", &[Value::List(vec![])]);
@@ -830,8 +830,8 @@ impl OxfunCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1012: bool = true;
-            while { if !__for_first_1012 { i = add(&i, &Value::Int(1)); } __for_first_1012 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_980: bool = true;
+            while { if !__for_first_980 { i = add(&i, &Value::Int(1)); } __for_first_980 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "marketCode", &[]);
@@ -949,7 +949,7 @@ impl OxfunCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v3_assets(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -1029,8 +1029,8 @@ impl OxfunCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1014: bool = true;
-            while { if !__for_first_1014 { i = add(&i, &Value::Int(1)); } __for_first_1014 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_982: bool = true;
+            while { if !__for_first_982 { i = add(&i, &Value::Int(1)); } __for_first_982 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut currency: Value = get_value(&data, &i);
             let mut currency: Value = get_value(&data, &i);
             let mut fullId: Value = self.safe_string_k(currency.clone(), "asset", &[Value::Str("".to_string())]);
@@ -1076,8 +1076,8 @@ impl OxfunCore {
             let mut chains: Value = self.safe_list_k(currency.clone(), "networkList", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1013: bool = true;
-                while { if !__for_first_1013 { j = add(&j, &Value::Int(1)); } __for_first_1013 = false; is_less_than(&j, &get_array_length(&chains)) } {
+                let mut __for_first_981: bool = true;
+                while { if !__for_first_981 { j = add(&j, &Value::Int(1)); } __for_first_981 = false; is_less_than(&j, &get_array_length(&chains)) } {
                 let mut chain: Value = get_value(&chains, &j);
                 let mut chain: Value = get_value(&chains, &j);
                 let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
@@ -1122,8 +1122,8 @@ impl OxfunCore {
         let mut allKeys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1015: bool = true;
-            while { if !__for_first_1015 { i = add(&i, &Value::Int(1)); } __for_first_1015 = false; is_less_than(&i, &get_array_length(&allKeys)) } {
+            let mut __for_first_983: bool = true;
+            while { if !__for_first_983 { i = add(&i, &Value::Int(1)); } __for_first_983 = false; is_less_than(&i, &get_array_length(&allKeys)) } {
             let mut code: Value = get_value(&allKeys, &i);
             let mut code: Value = get_value(&allKeys, &i);
             { let __be_tmp = self.safe_currency_structure(get_value(&result, &code)); add_element_to_object(&mut result, &code, __be_tmp); }; // this is needed after adding network entry
@@ -1151,7 +1151,7 @@ impl OxfunCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v3_tickers(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -1226,7 +1226,7 @@ impl OxfunCore {
                 m.insert("marketCode".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.public_get_v3_tickers(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -1351,7 +1351,7 @@ impl OxfunCore {
         }  else if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), multiply(&multiply(&multiply(&multiply(&Value::Int(7), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000))])); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.public_get_v3_candles(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -1418,7 +1418,7 @@ impl OxfunCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("level".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.public_get_v3_depth(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -1470,7 +1470,7 @@ impl OxfunCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_funding_estimates".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v3_funding_estimates(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -1515,7 +1515,7 @@ impl OxfunCore {
                 m.insert("marketCode".to_string(), self.market_id(symbol.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_funding_estimates".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.public_get_v3_funding_estimates(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -1603,7 +1603,7 @@ impl OxfunCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_funding_rates".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.public_get_v3_funding_rates(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         success: true,
@@ -1701,7 +1701,7 @@ impl OxfunCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_funding".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_funding(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         success: true,
@@ -1786,7 +1786,7 @@ impl OxfunCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_leverage_tiers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v3_leverage_tiers(&[params.clone()]).await;
         //
         //     {
         //         success: true,
@@ -1858,8 +1858,8 @@ impl OxfunCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1016: bool = true;
-            while { if !__for_first_1016 { j = add(&j, &Value::Int(1)); } __for_first_1016 = false; is_less_than(&j, &get_array_length(&listOfTiers)) } {
+            let mut __for_first_984: bool = true;
+            while { if !__for_first_984 { j = add(&j, &Value::Int(1)); } __for_first_984 = false; is_less_than(&j, &get_array_length(&listOfTiers)) } {
             let mut tier: Value = get_value(&listOfTiers, &j);
             let mut tier: Value = get_value(&listOfTiers, &j);
             append_to_array(&mut tiers, Value::Map({
@@ -1920,7 +1920,7 @@ impl OxfunCore {
         }  else if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), multiply(&multiply(&multiply(&multiply(&Value::Int(7), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000))])); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v3_exchange_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.public_get_v3_exchange_trades(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -1986,7 +1986,7 @@ impl OxfunCore {
         }  else if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), multiply(&multiply(&multiply(&multiply(&Value::Int(7), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000))])); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_trades(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -2095,7 +2095,7 @@ impl OxfunCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_balances".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_v3_balances(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -2131,8 +2131,8 @@ impl OxfunCore {
         if !is_equal(&subAcc, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1017: bool = true;
-                while { if !__for_first_1017 { i = add(&i, &Value::Int(1)); } __for_first_1017 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_985: bool = true;
+                while { if !__for_first_985 { i = add(&i, &Value::Int(1)); } __for_first_985 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut b: Value = get_value(&data, &i);
                 let mut b: Value = get_value(&data, &i);
                 let mut name: Value = self.safe_string_k(b.clone(), "name", &[]);
@@ -2180,8 +2180,8 @@ impl OxfunCore {
         let mut balances: Value = self.safe_list_k(balance.clone(), "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1018: bool = true;
-            while { if !__for_first_1018 { i = add(&i, &Value::Int(1)); } __for_first_1018 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_986: bool = true;
+            while { if !__for_first_986 { i = add(&i, &Value::Int(1)); } __for_first_986 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balanceEntry: Value = get_value(&balances, &i);
             let mut balanceEntry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "asset", &[]);
@@ -2213,7 +2213,7 @@ impl OxfunCore {
 }));
         self.load_markets(&[]).await;
         // this endpoint can only be called using API keys paired with the parent account! Returns all active subaccounts.
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_account_names".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_v3_account_names(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -2273,7 +2273,7 @@ impl OxfunCore {
                 m.insert("toAccount".to_string(), toAccount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v3_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_post_v3_transfer(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         timestamp: 1715430036267,
@@ -2344,7 +2344,7 @@ impl OxfunCore {
         }  else if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), multiply(&multiply(&multiply(&multiply(&Value::Int(7), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000))])); // for the exchange not to throw an exception if since is younger than 7 days
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_transfer(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -2442,7 +2442,7 @@ impl OxfunCore {
             m
         });
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_deposit_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_deposit_addresses(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {"success":true,"data":{"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}}
         //
@@ -2516,7 +2516,7 @@ impl OxfunCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_deposit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_deposit(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -2537,8 +2537,8 @@ impl OxfunCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1019: bool = true;
-            while { if !__for_first_1019 { i = add(&i, &Value::Int(1)); } __for_first_1019 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_987: bool = true;
+            while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&data)) } {
             add_element_to_object(get_value_mut(&mut data, &i), &Value::Str("type".to_string()), Value::Str("deposit".to_string()));
         }
         }
@@ -2588,7 +2588,7 @@ impl OxfunCore {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_withdrawal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_withdrawal(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         success: true,
@@ -2611,8 +2611,8 @@ impl OxfunCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1020: bool = true;
-            while { if !__for_first_1020 { i = add(&i, &Value::Int(1)); } __for_first_1020 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_988: bool = true;
+            while { if !__for_first_988 { i = add(&i, &Value::Int(1)); } __for_first_988 = false; is_less_than(&i, &get_array_length(&data)) } {
             add_element_to_object(get_value_mut(&mut data, &i), &Value::Str("type".to_string()), Value::Str("withdrawal".to_string()));
         }
         }
@@ -2632,8 +2632,8 @@ impl OxfunCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1021: bool = true;
-            while { if !__for_first_1021 { i = add(&i, &Value::Int(1)); } __for_first_1021 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut __for_first_989: bool = true;
+            while { if !__for_first_989 { i = add(&i, &Value::Int(1)); } __for_first_989 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             { let __be_tmp = self.extend(get_value(&transactions, &i), &[params.clone()]); add_element_to_object(&mut transactions, &i, __be_tmp); };
             let mut transaction: Value = self.parse_transaction(get_value(&transactions, &i), &[currency.clone()]);
             append_to_array(&mut result, transaction.clone());
@@ -2818,7 +2818,7 @@ impl OxfunCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(networkCode.clone(), &[]));
         }
         add_element_to_object(&mut request, &Value::Str("externalFee".to_string()), Value::Bool(false));
-        let mut response: Value = self.call_method(Value::Str("private_post_v3_withdrawal".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_post_v3_withdrawal(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -2866,7 +2866,7 @@ impl OxfunCore {
         // This feature does not work when using API key pairs linked to a sub-account
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_positions".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_v3_positions(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -2914,8 +2914,8 @@ impl OxfunCore {
         let mut allPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1022: bool = true;
-            while { if !__for_first_1022 { i = add(&i, &Value::Int(1)); } __for_first_1022 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_990: bool = true;
+            while { if !__for_first_990 { i = add(&i, &Value::Int(1)); } __for_first_990 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
@@ -3011,10 +3011,12 @@ impl OxfunCore {
     m
 }));
         self.load_markets(&[]).await;
+        let mut responseType: Value = self.safe_string_k(params.clone(), "responseType", &[Value::Str("FULL".to_string())]);
+        let mut timestamp: Value = self.safe_integer_k(params.clone(), "timestamp", &[self.milliseconds()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("responseType".to_string(), self.safe_string_k(params.clone(), "responseType", &[Value::Str("FULL".to_string())]));
-                m.insert("timestamp".to_string(), self.safe_integer_k(params.clone(), "timestamp", &[self.milliseconds()]));
+                m.insert("responseType".to_string(), responseType.clone());
+                m.insert("timestamp".to_string(), timestamp.clone());
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("responseType".to_string()), Value::Str("timestamp".to_string())]), &[]);
@@ -3025,7 +3027,7 @@ impl OxfunCore {
         }
         let mut orderRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         add_element_to_object(&mut request, &Value::Str("orders".to_string()), Value::List(vec![orderRequest.clone()]));
-        let mut response: Value = self.call_method(Value::Str("private_post_v3_orders_place".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_v3_orders_place(&[request.clone()]).await;
         //
         // accepted market order responseType FULL
         //     {
@@ -3173,8 +3175,8 @@ impl OxfunCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1023: bool = true;
-            while { if !__for_first_1023 { i = add(&i, &Value::Int(1)); } __for_first_1023 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_991: bool = true;
+            while { if !__for_first_991 { i = add(&i, &Value::Int(1)); } __for_first_991 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3197,7 +3199,7 @@ impl OxfunCore {
                 m.insert("orders".to_string(), ordersRequests.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v3_orders_place".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_post_v3_orders_place(&[self.extend(request.clone(), &[params.clone()])]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
@@ -3328,7 +3330,7 @@ impl OxfunCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_orders_status".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_orders_status(&[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //     {
         //         "success": true,
@@ -3391,7 +3393,7 @@ impl OxfunCore {
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v3_orders_working".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_get_v3_orders_working(&[self.extend(request.clone(), &[params.clone()])]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3440,7 +3442,7 @@ impl OxfunCore {
             add_element_to_object(&mut orderRequest, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
         }
         add_element_to_object(&mut request, &Value::Str("orders".to_string()), Value::List(vec![orderRequest.clone()]));
-        let mut response: Value = self.call_method(Value::Str("private_delete_v3_orders_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_delete_v3_orders_cancel(&[self.extend(request.clone(), &[params.clone()])]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3485,7 +3487,7 @@ impl OxfunCore {
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        let mut response: Value = self.call_method(Value::Str("private_delete_v3_orders_cancel_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_delete_v3_orders_cancel_all(&[self.extend(request.clone(), &[params.clone()])]).await;
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -3529,8 +3531,8 @@ impl OxfunCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1024: bool = true;
-            while { if !__for_first_1024 { i = add(&i, &Value::Int(1)); } __for_first_1024 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_992: bool = true;
+            while { if !__for_first_992 { i = add(&i, &Value::Int(1)); } __for_first_992 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut order: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketCode".to_string(), marketId.clone());
@@ -3541,7 +3543,7 @@ impl OxfunCore {
         }
         }
         add_element_to_object(&mut request, &Value::Str("orders".to_string()), orders.clone());
-        let mut response: Value = self.call_method(Value::Str("private_delete_v3_orders_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let mut response: Value = self.private_delete_v3_orders_cancel(&[self.extend(request.clone(), &[params.clone()])]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
@@ -3819,7 +3821,7 @@ impl OxfunCore {
             return Value::Null;
         }
         if !is_equal(&code, &Value::Int(200)) {
-            let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[Value::Null]);
+            let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[]);
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), body.clone(), feedback.clone());
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), responseCode.clone(), feedback.clone());

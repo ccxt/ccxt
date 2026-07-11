@@ -186,43 +186,63 @@ impl NovadaxCore {
 impl crate::exchange::DerivedExchange for NovadaxCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_balance(me, response)
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on NovadaxCore.
-        NovadaxCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const NovadaxCore as *mut NovadaxCore) };
+        NovadaxCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -620,7 +640,7 @@ impl NovadaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_common_timestamp".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_common_timestamp(&[params.clone()]).await;
         return self.safe_integer_k(response.clone(), "data", &[]);
 
     Value::Null
@@ -639,7 +659,7 @@ impl NovadaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_common_symbols".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_common_symbols(&[params.clone()]).await;
         //
         //     {
         //         "code":"A10000",
@@ -813,7 +833,8 @@ impl NovadaxCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_market_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_ticker(&[__ws_arg_0]).await;
         //
         //     {
         //         "code":"A10000",
@@ -858,7 +879,7 @@ impl NovadaxCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_market_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_market_tickers(&[params.clone()]).await;
         //
         //     {
         //         "code":"A10000",
@@ -886,8 +907,8 @@ impl NovadaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_970: bool = true;
-            while { if !__for_first_970 { i = add(&i, &Value::Int(1)); } __for_first_970 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_931: bool = true;
+            while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -924,7 +945,8 @@ impl NovadaxCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 10, max 20
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_depth(&[__ws_arg_1]).await;
         //
         //     {
         //         "code":"A10000",
@@ -954,7 +976,7 @@ impl NovadaxCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -1068,7 +1090,8 @@ impl NovadaxCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_trades(&[__ws_arg_2]).await;
         //
         //     {
         //         "code":"A10000",
@@ -1127,7 +1150,8 @@ impl NovadaxCore {
             add_element_to_object(&mut request, &Value::Str("from".to_string()), startFrom.clone());
             add_element_to_object(&mut request, &Value::Str("to".to_string()), self.sum(&[startFrom.clone(), multiply(&limit, &duration)]));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_kline_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_kline_history(&[__ws_arg_3]).await;
         //
         //     {
         //         "code": "A10000",
@@ -1189,8 +1213,8 @@ impl NovadaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_971: bool = true;
-            while { if !__for_first_971 { i = add(&i, &Value::Int(1)); } __for_first_971 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1221,7 +1245,7 @@ impl NovadaxCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_account_get_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account_get_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -1303,7 +1327,8 @@ impl NovadaxCore {
             }
         }
         add_element_to_object(&mut request, &Value::Str("type".to_string()), uppercaseType.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_orders_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_orders_create(&[__ws_arg_4]).await;
         //
         //     {
         //         "code": "A10000",
@@ -1358,7 +1383,8 @@ impl NovadaxCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_orders_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_orders_cancel(&[__ws_arg_5]).await;
         //
         //     {
         //         "code": "A10000",
@@ -1399,7 +1425,8 @@ impl NovadaxCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_get".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_get(&[__ws_arg_6]).await;
         //
         //     {
         //         "code": "A10000",
@@ -1465,7 +1492,8 @@ impl NovadaxCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("fromTimestamp".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_list".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_list(&[__ws_arg_7]).await;
         //
         //     {
         //         "code": "A10000",
@@ -1519,7 +1547,8 @@ impl NovadaxCore {
                 m.insert("status".to_string(), Value::Str("SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING".to_string()));
             m
         });
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_8]).await;
 
     Value::Null
 }
@@ -1548,7 +1577,8 @@ impl NovadaxCore {
                 m.insert("status".to_string(), Value::Str("FILLED,CANCELED,REJECTED".to_string()));
             m
         });
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_9]).await;
 
     Value::Null
 }
@@ -1579,7 +1609,8 @@ impl NovadaxCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_fill".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_fill(&[__ws_arg_10]).await;
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -1607,7 +1638,7 @@ impl NovadaxCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, fetchOrders, fetchOrder
@@ -1720,7 +1751,8 @@ impl NovadaxCore {
                 m.insert("transferType".to_string(), type_var.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_account_subs_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_account_subs_transfer(&[__ws_arg_11]).await;
         //
         //    {
         //        "code":"A10000",
@@ -1815,7 +1847,8 @@ impl NovadaxCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("tag".to_string()), tag.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_account_withdraw_coin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_account_withdraw_coin(&[__ws_arg_12]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -1834,7 +1867,7 @@ impl NovadaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("private_get_account_subs".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account_subs(&[params.clone()]).await;
         //
         //     {
         //         "code": "A10000",
@@ -1853,8 +1886,8 @@ impl NovadaxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_972: bool = true;
-            while { if !__for_first_972 { i = add(&i, &Value::Int(1)); } __for_first_972 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_933: bool = true;
+            while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "subId", &[]);
@@ -1898,7 +1931,8 @@ impl NovadaxCore {
                 m.insert("type".to_string(), Value::Str("coin_in".to_string()));
             m
         });
-        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_13]).await;
 
     Value::Null
 }
@@ -1927,7 +1961,8 @@ impl NovadaxCore {
                 m.insert("type".to_string(), Value::Str("coin_out".to_string()));
             m
         });
-        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_14]).await;
 
     Value::Null
 }
@@ -1964,7 +1999,8 @@ impl NovadaxCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_wallet_query_deposit_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_wallet_query_deposit_withdraw(&[__ws_arg_15]).await;
         //
         //     {
         //         "code": "A10000",
@@ -2125,7 +2161,8 @@ impl NovadaxCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("fromTimestamp".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_fills(&[__ws_arg_16]).await;
         //
         //      {
         //          "code": "A10000",

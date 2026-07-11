@@ -165,6 +165,7 @@ impl LunoCore {
             "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ledger_comment" => self.parse_ledger_comment(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -184,39 +185,63 @@ impl LunoCore {
 impl crate::exchange::DerivedExchange for LunoCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_balance(me, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_ledger_entry(me, entry, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on LunoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::parse_currency(me, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LunoCore.
-        LunoCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LunoCore as *mut LunoCore) };
+        LunoCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -594,7 +619,7 @@ impl LunoCore {
     m
 });
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_send_networks".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_send_networks(&[params.clone()]).await;
         //
         //     {
         //         "networks": [
@@ -608,60 +633,29 @@ impl LunoCore {
         //     }
         //
         let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut grouped: Value = self.group_by(currenciesData.clone(), Value::Str("native_currency".to_string()), &[]);
+        let mut values: Value = object_values(&grouped);
+        return self.parse_currencies(values.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string(get_value(&rawCurrency, &Value::Int(0)), Value::Str("native_currency".to_string()), &[]); // first item is guaranteed
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { i = add(&i, &Value::Int(1)); } __for_first_934 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
-            let mut networkEntry: Value = get_value(&currenciesData, &i);
-            let mut networkEntry: Value = get_value(&currenciesData, &i);
-            let mut id: Value = self.safe_string_k(networkEntry.clone(), "native_currency", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            if !is_true(&(Value::Bool(in_op(&result, &code)))) {
-                add_element_to_object(&mut result, &code, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
-        m.insert("code".to_string(), code.clone());
-        m.insert("precision".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Null);
-        m.insert("name".to_string(), Value::Null);
-        m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Null);
-        m.insert("withdraw".to_string(), Value::Null);
-        m.insert("fee".to_string(), Value::Null);
-        m.insert("limits".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("withdraw".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), Value::Null);
-    m
-}));
-        m.insert("deposit".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), Value::Null);
-    m
-}));
-    m
-}));
-        m.insert("networks".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-    m
-}));
-            }
+            let mut __for_first_898: bool = true;
+            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut networkEntry: Value = get_value(&rawCurrency, &i);
+            let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-            add_element_to_object(get_value_mut(get_value_mut(&mut result, &code), &Value::Str("networks".to_string())), &networkCode, Value::Map({
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -689,24 +683,39 @@ impl LunoCore {
         m.insert("info".to_string(), networkEntry.clone());
     m
 }));
-            // add entry in info
-            let mut info: Value = self.safe_list_k(get_value(&result, &code), "info", &[Value::List(vec![])]);
-            append_to_array(&mut info, networkEntry.clone());
-            add_element_to_object(get_value_mut(&mut result, &code), &Value::Str("info".to_string()), info.clone());
         }
         }
-        // only after all entries are formed in currencies, restructure each entry
-        let mut allKeys: Value = object_keys(&result);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_935: bool = true;
-            while { if !__for_first_935 { i = add(&i, &Value::Int(1)); } __for_first_935 = false; is_less_than(&i, &get_array_length(&allKeys)) } {
-            let mut code: Value = get_value(&allKeys, &i);
-            let mut code: Value = get_value(&allKeys, &i);
-            { let __be_tmp = self.safe_currency_structure(get_value(&result, &code)); add_element_to_object(&mut result, &code, __be_tmp); }; // this is needed after adding network entry
-        }
-        }
-        return result;
+        return self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), id.clone());
+        m.insert("code".to_string(), code.clone());
+        m.insert("precision".to_string(), Value::Null);
+        m.insert("type".to_string(), Value::Null);
+        m.insert("name".to_string(), Value::Null);
+        m.insert("active".to_string(), Value::Null);
+        m.insert("deposit".to_string(), Value::Null);
+        m.insert("withdraw".to_string(), Value::Null);
+        m.insert("fee".to_string(), Value::Null);
+        m.insert("limits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+        m.insert("deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+    m
+}));
+        m.insert("networks".to_string(), networks.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
+    m
+}));
 
     Value::Null
 }
@@ -724,7 +733,7 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("exchange_get_markets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.exchange_get_markets(&[params.clone()]).await;
         //
         //     {
         //         "markets":[
@@ -748,8 +757,8 @@ impl LunoCore {
         let mut markets: Value = self.safe_value_k(response.clone(), "markets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_936: bool = true;
-            while { if !__for_first_936 { i = add(&i, &Value::Int(1)); } __for_first_936 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_899: bool = true;
+            while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -841,13 +850,13 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("private_get_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_balance(&[params.clone()]).await;
         let mut wallets: Value = self.safe_value_k(response.clone(), "balance", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_937: bool = true;
-            while { if !__for_first_937 { i = add(&i, &Value::Int(1)); } __for_first_937 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_900: bool = true;
+            while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut account: Value = get_value(&wallets, &i);
             let mut account: Value = get_value(&wallets, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
@@ -879,8 +888,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_901: bool = true;
+            while { if !__for_first_901 { i = add(&i, &Value::Int(1)); } __for_first_901 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut wallet: Value = get_value(&wallets, &i);
             let mut wallet: Value = get_value(&wallets, &i);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
@@ -920,7 +929,7 @@ impl LunoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -952,9 +961,11 @@ impl LunoCore {
         });
         let mut response: Value = Value::Null;
         if !is_equal(&limit, &Value::Null) && is_less_than_or_equal(&limit, &Value::Int(100)) {
-            response = self.call_method(Value::Str("public_get_orderbook_top".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_orderbook_top(&[__ws_arg_0]).await;
         }  else {
-            response = self.call_method(Value::Str("public_get_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_orderbook(&[__ws_arg_1]).await;
         }
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
         return self.parse_order_book(response.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("volume".to_string())]);
@@ -973,7 +984,7 @@ impl LunoCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1078,7 +1089,8 @@ impl LunoCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_id(&[__ws_arg_2]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -1105,7 +1117,8 @@ impl LunoCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_listorders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_listorders(&[__ws_arg_3]).await;
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1244,7 +1257,7 @@ impl LunoCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
         let mut tickers: Value = self.index_by(get_value(&response, &Value::Str("tickers".to_string())), Value::Str("pair".to_string()));
         let mut ids: Value = object_keys(&tickers);
         let mut result: Value = Value::Map({
@@ -1253,8 +1266,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_939: bool = true;
-            while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_902: bool = true;
+            while { if !__for_first_902 { i = add(&i, &Value::Int(1)); } __for_first_902 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -1289,13 +1302,14 @@ impl LunoCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_ticker(&[__ws_arg_4]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1420,7 +1434,8 @@ impl LunoCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("since".to_string()), since.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades(&[__ws_arg_5]).await;
         //
         //      {
         //          "trades":[
@@ -1474,7 +1489,8 @@ impl LunoCore {
             let mut duration: Value = multiply(&multiply(&Value::Int(1000), &Value::Int(1000)), &self.parse_timeframe(timeframe.clone()));
             add_element_to_object(&mut request, &Value::Str("since".to_string()), subtract(&self.milliseconds(), &duration));
         }
-        let mut response: Value = self.call_method(Value::Str("exchange_private_get_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.exchange_private_get_candles(&[__ws_arg_6]).await;
         //
         //     {
         //          "candles": [
@@ -1539,7 +1555,8 @@ impl LunoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_listtrades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_listtrades(&[__ws_arg_7]).await;
         //
         //      {
         //          "trades":[
@@ -1588,7 +1605,8 @@ impl LunoCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_fee_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_fee_info(&[__ws_arg_8]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1639,12 +1657,14 @@ impl LunoCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("base_volume".to_string()), self.amount_to_precision(get_value(&market, &Value::Str("symbol".to_string())), amount.clone()));
             }
-            response = self.call_method(Value::Str("private_post_marketorder".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_marketorder(&[__ws_arg_9]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.amount_to_precision(get_value(&market, &Value::Str("symbol".to_string())), amount.clone()));
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(get_value(&market, &Value::Str("symbol".to_string())), price.clone()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Str("BID".to_string()), Value::Str("ASK".to_string())));
-            response = self.call_method(Value::Str("private_post_postorder".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_postorder(&[__ws_arg_10]).await;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1678,7 +1698,8 @@ impl LunoCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_stoporder".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_stoporder(&[__ws_arg_11]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1710,7 +1731,8 @@ impl LunoCore {
                 m.insert("max_row".to_string(), self.sum(&[entry.clone(), limit.clone()]));
             m
         });
-        return self.fetch_ledger(&[code.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_ledger(&[code.clone(), since.clone(), limit.clone(), __ws_arg_12]).await;
 
     Value::Null
 }
@@ -1775,7 +1797,8 @@ impl LunoCore {
                 m.insert("max_row".to_string(), max_row.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_accounts_id_transactions".to_string()), &[self.extend(params.clone(), &[request.clone()])]).await;
+        let __ws_arg_13 = self.extend(params.clone(), &[request.clone()]);
+        let mut response: Value = self.private_get_accounts_id_transactions(&[__ws_arg_13]).await;
         let mut entries: Value = self.safe_value_k(response.clone(), "transactions", &[Value::List(vec![])]);
         return self.parse_ledger(entries.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -1803,7 +1826,7 @@ impl LunoCore {
         let mut firstWord: Value = self.safe_string(words.clone(), Value::Int(0), &[]);
         let mut thirdWord: Value = self.safe_string(words.clone(), Value::Int(2), &[]);
         let mut fourthWord: Value = self.safe_string(words.clone(), Value::Int(3), &[]);
-        let mut type_var: Value = self.safe_string(types.clone(), firstWord.clone(), &[Value::Null]);
+        let mut type_var: Value = self.safe_string(types.clone(), firstWord.clone(), &[]);
         if is_true(&(is_equal(&type_var, &Value::Null))) && is_true(&(is_equal(&thirdWord, &Value::Str("fee".to_string())))) {
             type_var = Value::Str("fee".to_string());
         }
@@ -1902,7 +1925,8 @@ impl LunoCore {
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_funding_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_funding_address(&[__ws_arg_14]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -1930,7 +1954,8 @@ impl LunoCore {
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_funding_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_funding_address(&[__ws_arg_15]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
     Value::Null

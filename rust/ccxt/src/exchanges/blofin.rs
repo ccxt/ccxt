@@ -210,67 +210,99 @@ impl BlofinCore {
 impl crate::exchange::DerivedExchange for BlofinCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_adl_rank(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_adl_rank(me, info, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_margin_mode(me, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BlofinCore.
-        BlofinCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BlofinCore as *mut BlofinCore) };
+        BlofinCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -889,7 +921,7 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_market_instruments".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_market_instruments(&[params.clone()]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_markets(data.clone());
 
@@ -927,6 +959,7 @@ impl BlofinCore {
         let mut maxLeverage: Value = self.safe_string_k(market.clone(), "maxLeverage", &[Value::Str("100".to_string())]);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".to_string()));
         let mut isActive: Value = Value::Bool(is_equal(&self.safe_string_k(market.clone(), "state", &[]), &Value::Str("live".to_string())));
+        let mut isMargin: Value = Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -940,7 +973,7 @@ impl BlofinCore {
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), spot.clone());
         m.insert("option".to_string(), option.clone());
-        m.insert("margin".to_string(), Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string()))))));
+        m.insert("margin".to_string(), isMargin.clone());
         m.insert("swap".to_string(), swap.clone());
         m.insert("future".to_string(), future.clone());
         m.insert("active".to_string(), isActive.clone());
@@ -1023,7 +1056,8 @@ impl BlofinCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // max 100
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_books".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_books(&[__ws_arg_0]).await;
         //
         //     {
         //         "code": "0",
@@ -1139,7 +1173,8 @@ impl BlofinCore {
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_market_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_tickers(&[__ws_arg_1]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1172,7 +1207,8 @@ impl BlofinCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_market_mark_price".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_mark_price(&[__ws_arg_2]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1200,14 +1236,14 @@ impl BlofinCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_market_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_market_tickers(&[params.clone()]).await;
         let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetch trades (response similar for REST & WS)
@@ -1366,7 +1402,8 @@ impl BlofinCore {
         let mut method: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("method".to_string()), &[Value::Str("publicGetMarketTrades".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&method, &Value::Str("publicGetMarketTrades".to_string())) {
-            response = self.call_method(Value::Str("public_get_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_market_trades(&[__ws_arg_3]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1426,7 +1463,8 @@ impl BlofinCore {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let mut response: Value = Value::Null;
-        response = self.call_method(Value::Str("public_get_market_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        response = self.public_get_market_candles(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -1480,13 +1518,14 @@ impl BlofinCore {
             add_element_to_object(&mut request, &Value::Str("after".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_funding_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_funding_rate_history(&[__ws_arg_5]).await;
         let mut rates: Value = Value::List(vec![]);
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_436: bool = true;
-            while { if !__for_first_436 { i = add(&i, &Value::Int(1)); } __for_first_436 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_421: bool = true;
+            while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rate: Value = get_value(&data, &i);
             let mut rate: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "fundingTime", &[]);
@@ -1569,7 +1608,8 @@ impl BlofinCore {
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_market_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_funding_rate(&[__ws_arg_6]).await;
         //
         //    {
         //        "code": "0",
@@ -1648,8 +1688,8 @@ impl BlofinCore {
         let mut details: Value = self.safe_list_k(data.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_437: bool = true;
-            while { if !__for_first_437 { i = add(&i, &Value::Int(1)); } __for_first_437 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_422: bool = true;
+            while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut balance: Value = get_value(&details, &i);
             let mut balance: Value = get_value(&details, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1699,8 +1739,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_438: bool = true;
-            while { if !__for_first_438 { i = add(&i, &Value::Int(1)); } __for_first_438 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_423: bool = true;
+            while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1764,9 +1804,11 @@ impl BlofinCore {
 })]);
             let mut parsedAccountType: Value = self.safe_string(options.clone(), accountType.clone(), &[accountType.clone()]);
             add_element_to_object(&mut request, &Value::Str("accountType".to_string()), parsedAccountType.clone());
-            response = self.call_method(Value::Str("private_get_asset_balances".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_asset_balances(&[__ws_arg_7]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_account_balance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_account_balance(&[__ws_arg_8]).await;
         }
         return self.parse_balance_by_type(response.clone());
 
@@ -1864,7 +1906,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // response similar for REST & WS
@@ -2022,6 +2064,7 @@ impl BlofinCore {
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
  * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+ * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -2035,7 +2078,9 @@ impl BlofinCore {
         let mut isStopLossPriceDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "stopLossPrice", &[]), &Value::Null));
         let mut isTakeProfitPriceDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "takeProfitPrice", &[]), &Value::Null));
         let mut isTriggerOrder: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "triggerPrice", &[]), &Value::Null));
-        let mut isCombinedSlTp: Value = Value::Bool(is_true(&isStopLossPriceDefined) && is_true(&isTakeProfitPriceDefined));
+        let mut isTpslEndpoint: Value = Value::Bool(false);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("tpsl".to_string()), &[Value::Bool(false)]); isTpslEndpoint = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut isCombinedSlTp: Value = Value::Bool(is_true(&(is_true(&isStopLossPriceDefined) && is_true(&isTakeProfitPriceDefined))) || is_true(&isTpslEndpoint));
         let mut isSlOrTp: Value = Value::Bool(is_true(&isStopLossPriceDefined) || is_true(&isTakeProfitPriceDefined));
         let mut response: Value = Value::Null;
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
@@ -2044,13 +2089,13 @@ impl BlofinCore {
         }
         if is_true(&isCombinedSlTp) {
             let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);
-            response = self.call_method(Value::Str("private_post_trade_order_tpsl".to_string()), &[tpslRequest.clone()]).await;
+            response = self.private_post_trade_order_tpsl(&[tpslRequest.clone()]).await;
         }  else if is_true(&isTriggerOrder) || is_true(&isSlOrTp) {
             let mut triggerRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-            response = self.call_method(Value::Str("private_post_trade_order_algo".to_string()), &[triggerRequest.clone()]).await;
+            response = self.private_post_trade_order_algo(&[triggerRequest.clone()]).await;
         }  else {
             let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-            response = self.call_method(Value::Str("private_post_trade_order".to_string()), &[request.clone()]).await;
+            response = self.private_post_trade_order(&[request.clone()]).await;
         }
         if is_true(&isCombinedSlTp) || is_true(&isSlOrTp) || is_true(&isTriggerOrder) {
             let mut dataDict: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -2102,11 +2147,29 @@ impl BlofinCore {
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         if !is_equal(&stopLossPrice, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("slTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
-            add_element_to_object(&mut request, &Value::Str("slOrderPrice".to_string()), ternary(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), price.clone())));
+            if is_equal(&type_var, &Value::Str("market".to_string())) {
+                add_element_to_object(&mut request, &Value::Str("slOrderPrice".to_string()), Value::Str("-1".to_string()));
+            }  else {
+                let mut slLimitPrice: Value = self.safe_string_k(params.clone(), "stopLossLimitPrice", &[]);
+                if is_equal(&slLimitPrice, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market".to_string()))));
+                }
+                add_element_to_object(&mut request, &Value::Str("slOrderPrice".to_string()), self.price_to_precision(symbol.clone(), slLimitPrice.clone()));
+                params = self.omit(params.clone(), Value::Str("stopLossLimitPrice".to_string()), &[]);
+            }
         }
         if !is_equal(&takeProfitPrice, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("tpTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
-            add_element_to_object(&mut request, &Value::Str("tpOrderPrice".to_string()), ternary(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), price.clone())));
+            if is_equal(&type_var, &Value::Str("market".to_string())) {
+                add_element_to_object(&mut request, &Value::Str("tpOrderPrice".to_string()), Value::Str("-1".to_string()));
+            }  else {
+                let mut tpLimitPrice: Value = self.safe_string_k(params.clone(), "takeProfitLimitPrice", &[]);
+                if is_equal(&tpLimitPrice, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market".to_string()))));
+                }
+                add_element_to_object(&mut request, &Value::Str("tpOrderPrice".to_string()), self.price_to_precision(symbol.clone(), tpLimitPrice.clone()));
+                params = self.omit(params.clone(), Value::Str("takeProfitLimitPrice".to_string()), &[]);
+            }
         }
         add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), marginMode.clone());
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("hedged".to_string())]), &[]);
@@ -2164,11 +2227,13 @@ impl BlofinCore {
             let mut first: Value = self.safe_dict(tpslResponse.clone(), Value::Int(0), &[]);
             return first;
         }  else if is_true(&isTrigger) {
-            let mut triggerResponse: Value = self.call_method(Value::Str("private_post_trade_cancel_algo".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[query.clone()]);
+            let mut triggerResponse: Value = self.private_post_trade_cancel_algo(&[__ws_arg_9]).await;
             let mut triggerData: Value = self.safe_dict_k(triggerResponse.clone(), "data", &[]);
             return self.parse_order(triggerData.clone(), &[market.clone()]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_cancel_order".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[query.clone()]);
+        let mut response: Value = self.private_post_trade_cancel_order(&[__ws_arg_10]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
@@ -2194,8 +2259,8 @@ impl BlofinCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_439: bool = true;
-            while { if !__for_first_439 { i = add(&i, &Value::Int(1)); } __for_first_439 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2212,7 +2277,7 @@ impl BlofinCore {
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_batch_orders".to_string()), &[ordersRequests.clone()]).await;
+        let mut response: Value = self.private_post_trade_batch_orders(&[ordersRequests.clone()]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
@@ -2267,12 +2332,15 @@ impl BlofinCore {
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_true(&isTpSl) || is_true(&(is_equal(&method, &Value::Str("privateGetTradeOrdersTpslPending".to_string())))) {
-            response = self.call_method(Value::Str("private_get_trade_orders_tpsl_pending".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_11]).await;
         }  else if is_true(&isTrigger) || is_true(&(is_equal(&method, &Value::Str("privateGetTradeOrdersAlgoPending".to_string())))) {
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("trigger".to_string()));
-            response = self.call_method(Value::Str("private_get_trade_orders_algo_pending".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_get_trade_orders_algo_pending(&[__ws_arg_12]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_trade_orders_pending".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_get_trade_orders_pending(&[__ws_arg_13]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -2348,9 +2416,11 @@ impl BlofinCore {
             //         ]
             //     }
             //
-            response = self.call_method(Value::Str("private_get_spot_trade_fills_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_spot_trade_fills_history(&[__ws_arg_14]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_trade_fills_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_trade_fills_history(&[__ws_arg_15]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -2401,7 +2471,8 @@ impl BlofinCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("after".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_asset_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_16]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -2451,7 +2522,8 @@ impl BlofinCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("after".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_asset_withdrawal_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_17]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -2500,7 +2572,8 @@ impl BlofinCore {
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
-        response = self.call_method(Value::Str("private_get_asset_bills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        response = self.private_get_asset_bills(&[__ws_arg_18]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -2695,6 +2768,8 @@ impl BlofinCore {
         }  else {
             return ids;
         }
+
+    Value::Null
 }
 
 /*
@@ -2738,8 +2813,8 @@ impl BlofinCore {
             if !is_equal(&tpslIds, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_440: bool = true;
-                    while { if !__for_first_440 { i = add(&i, &Value::Int(1)); } __for_first_440 = false; is_less_than(&i, &get_array_length(&tpslIds)) } {
+                    let mut __for_first_425: bool = true;
+                    while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &get_array_length(&tpslIds)) } {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), get_value(&tpslIds, &i));
@@ -2751,8 +2826,8 @@ impl BlofinCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_441: bool = true;
-                while { if !__for_first_441 { i = add(&i, &Value::Int(1)); } __for_first_441 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_426: bool = true;
+                while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 if is_true(&trigger) {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -2773,8 +2848,8 @@ impl BlofinCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_442: bool = true;
-                while { if !__for_first_442 { i = add(&i, &Value::Int(1)); } __for_first_442 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+                let mut __for_first_427: bool = true;
+                while { if !__for_first_427 { i = add(&i, &Value::Int(1)); } __for_first_427 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
                 append_to_array(&mut request, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -2786,9 +2861,9 @@ impl BlofinCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&method, &Value::Str("privatePostTradeCancelTpsl".to_string())) {
-            response = self.call_method(Value::Str("private_post_trade_cancel_tpsl".to_string()), &[request.clone()]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.private_post_trade_cancel_tpsl(&[request.clone()]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
-            response = self.call_method(Value::Str("private_post_trade_cancel_batch_orders".to_string()), &[request.clone()]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.private_post_trade_cancel_batch_orders(&[request.clone()]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(ordersData.clone(), &[market.clone(), Value::Null, Value::Null, params.clone()]);
@@ -2829,7 +2904,8 @@ impl BlofinCore {
                 m.insert("toAccount".to_string(), toId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_asset_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_asset_transfer(&[__ws_arg_19]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2881,7 +2957,8 @@ impl BlofinCore {
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_account_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_positions(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut position: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if is_equal(&position, &Value::Null) {
@@ -2910,7 +2987,7 @@ impl BlofinCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_get_account_positions".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account_positions(&[params.clone()]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = self.parse_positions(data.clone(), &[]);
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
@@ -2960,7 +3037,8 @@ impl BlofinCore {
             add_element_to_object(&mut request, &Value::Str("begin".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("private_get_account_positions_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_positions_history(&[__ws_arg_21]).await;
         //
         //    {
         //        "code": "0",
@@ -3171,8 +3249,8 @@ impl BlofinCore {
         let mut instIds: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_443: bool = true;
-            while { if !__for_first_443 { i = add(&i, &Value::Int(1)); } __for_first_443 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut entry: Value = get_value(&symbols, &i);
             let mut entry: Value = get_value(&symbols, &i);
             let mut entryMarket: Value = self.market(entry.clone());
@@ -3189,7 +3267,8 @@ impl BlofinCore {
                 m.insert("marginMode".to_string(), marginMode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_account_batch_leverage_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_batch_leverage_info(&[__ws_arg_22]).await;
         //
         //     {
         //         "code": "0",
@@ -3240,7 +3319,8 @@ impl BlofinCore {
                 m.insert("marginMode".to_string(), marginMode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_account_leverage_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_leverage_info(&[__ws_arg_23]).await;
         //
         //     {
         //         "code": "0",
@@ -3318,7 +3398,8 @@ impl BlofinCore {
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_account_set_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_24]).await;
         return response;
 
     Value::Null
@@ -3361,7 +3442,8 @@ impl BlofinCore {
         if !is_equal(&clientOrderId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_trade_close_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_25]).await;
         return self.safe_dict_k(response.clone(), "data", &[]);
 
     Value::Null
@@ -3416,9 +3498,11 @@ impl BlofinCore {
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_true(&(isTrigger)) || is_true(&(is_equal(&method, &Value::Str("privateGetTradeOrdersTpslHistory".to_string())))) {
-            response = self.call_method(Value::Str("private_get_trade_orders_tpsl_history".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_26 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_get_trade_orders_tpsl_history(&[__ws_arg_26]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_trade_orders_history".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_27 = self.extend(request.clone(), &[query.clone()]);
+            response = self.private_get_trade_orders_history(&[__ws_arg_27]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -3442,7 +3526,7 @@ impl BlofinCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut response: Value = self.call_method(Value::Str("private_get_account_margin_mode".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account_margin_mode(&[params.clone()]).await;
         //
         //     {
         //         "code": "0",
@@ -3501,7 +3585,8 @@ impl BlofinCore {
                 m.insert("marginMode".to_string(), marginMode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_account_set_margin_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_account_set_margin_mode(&[__ws_arg_28]).await;
         //
         //     {
         //         "code": "0",
@@ -3535,7 +3620,7 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("private_get_account_position_mode".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account_position_mode(&[params.clone()]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3572,7 +3657,8 @@ impl BlofinCore {
                 m.insert("positionMode".to_string(), ternary(is_true(&hedged), Value::Str("long_short_mode".to_string()), Value::Str("net_mode".to_string())));
             m
         });
-        return self.call_method(Value::Str("private_post_account_set_position_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_set_position_mode(&[__ws_arg_29]).await;
 
     Value::Null
 }
@@ -3594,7 +3680,7 @@ impl BlofinCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut response: Value = self.call_method(Value::Str("private_get_account_positions".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account_positions(&[params.clone()]).await;
         //
         //     {
         //         "code": "0",

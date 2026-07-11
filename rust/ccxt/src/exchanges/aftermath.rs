@@ -188,51 +188,75 @@ impl AftermathCore {
 impl crate::exchange::DerivedExchange for AftermathCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_market(me, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_currency(self, currency)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_currency(me, currency)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_account(self, account)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_account(me, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on AftermathCore.
-        AftermathCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const AftermathCore as *mut AftermathCore) };
+        AftermathCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -457,7 +481,7 @@ impl AftermathCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_currencies".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_currencies(&[params.clone()]).await;
         let mut currencies: Value = self.parse_currencies(response.clone());
         return currencies;
 
@@ -495,7 +519,7 @@ impl AftermathCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_markets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_markets(&[params.clone()]).await;
         return self.parse_markets(response.clone());
 
     Value::Null
@@ -680,7 +704,8 @@ impl AftermathCore {
                 m.insert("chId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_ticker(&[__ws_arg_0]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -743,7 +768,8 @@ impl AftermathCore {
                 m.insert("chId".to_string(), chId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_orderbook(&[__ws_arg_1]).await;
         //
         // {
         //     "asks":[
@@ -795,7 +821,8 @@ impl AftermathCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(50)));
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_trades(&[__ws_arg_2]).await;
         //
         //     {
         //         "trades": [
@@ -817,13 +844,14 @@ impl AftermathCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut rawTrade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut rawTrade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut trade: Value = self.safe_trade(self.extend(Value::Map({
+        let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawTrade.clone());
     m
-}), &[rawTrade.clone()]), &[]);
+}), &[rawTrade.clone()]);
+        let mut trade: Value = self.safe_trade(__ws_arg_3, &[]);
         add_element_to_object(&mut trade, &Value::Str("id".to_string()), Value::Str("".to_string()));
         add_element_to_object(&mut trade, &Value::Str("order".to_string()), Value::Null);
         add_element_to_object(&mut trade, &Value::Str("takerOrMaker".to_string()), Value::Null);
@@ -868,7 +896,8 @@ impl AftermathCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_post_ohlcv".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_post_ohlcv(&[__ws_arg_4]).await;
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -898,7 +927,8 @@ impl AftermathCore {
         if is_equal(&account, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchBalance() requires account".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_balance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_balance(&[__ws_arg_5]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -953,7 +983,8 @@ impl AftermathCore {
                 m.insert("address".to_string(), self.walletAddress.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_accounts(&[__ws_arg_6]).await;
         return self.parse_accounts(response.clone(), &[]);
 
     Value::Null
@@ -1005,7 +1036,8 @@ impl AftermathCore {
                 m.insert("accountNumber".to_string(), accountNumber.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_my_pending_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_my_pending_orders(&[__ws_arg_7]).await;
         return self.parse_orders(response.clone(), &[]);
 
     Value::Null
@@ -1062,7 +1094,8 @@ impl AftermathCore {
                 m.insert("accountNumber".to_string(), accountNumber.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_positions(&[__ws_arg_8]).await;
         return self.parse_positions(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1127,11 +1160,12 @@ impl AftermathCore {
         let mut account: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("account".to_string()), &[]); account = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut order: Value = self.parse_create_edit_order_args(Value::Null, symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut orders: Value = self.create_orders(Value::List(vec![order.clone()]), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("account".to_string(), account.clone());
-    m
-})]).await;
+        let mut accountObj: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("account".to_string(), account.clone());
+            m
+        });
+        let mut orders: Value = self.create_orders(Value::List(vec![order.clone()]), &[accountObj.clone()]).await;
         return get_value(&orders, &Value::Int(0));
 
     Value::Null
@@ -1196,9 +1230,10 @@ impl AftermathCore {
                 m.insert("deallocateFreeCollateral".to_string(), Value::Bool(false));
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_create_orders".to_string()), &[self.extend(txRequest.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(txRequest.clone(), &[params.clone()]);
+        let mut tx: Value = self.private_post_build_create_orders(&[__ws_arg_9]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_create_orders".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_submit_create_orders(&[request.clone()]).await;
         return self.parse_orders(response.clone(), &[]);
 
     Value::Null
@@ -1261,9 +1296,9 @@ impl AftermathCore {
                 m.insert("orderIds".to_string(), ids.clone());
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_cancel_orders".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_cancel_orders(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_cancel_orders".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_submit_cancel_orders(&[request.clone()]).await;
         return self.parse_orders(response.clone(), &[]);
 
     Value::Null
@@ -1287,9 +1322,9 @@ impl AftermathCore {
                 m.insert("settleId".to_string(), settleId.clone());
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_create_account".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_create_account(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_create_account".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_submit_create_account(&[request.clone()]).await;
         return response;
 
     Value::Null
@@ -1328,9 +1363,9 @@ impl AftermathCore {
 }));
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_allocate".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_allocate(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_allocate".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_submit_allocate(&[request.clone()]).await;
         return response;
 
     Value::Null
@@ -1369,9 +1404,9 @@ impl AftermathCore {
 }));
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_deallocate".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_deallocate(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_deallocate".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_submit_deallocate(&[request.clone()]).await;
         return response;
 
     Value::Null
@@ -1408,10 +1443,11 @@ impl AftermathCore {
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_deposit".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_deposit(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_deposit".to_string()), &[request.clone()]).await;
-        return self.extend(self.parse_transfer(response.clone(), &[currency.clone()]), &[Value::Map({
+        let mut response: Value = self.private_post_submit_deposit(&[request.clone()]).await;
+        let __ws_arg_10 = self.parse_transfer(response.clone(), &[currency.clone()]);
+        return self.extend(__ws_arg_10, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fromAccount".to_string(), self.walletAddress.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
@@ -1480,15 +1516,22 @@ impl AftermathCore {
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_withdraw".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_withdraw(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_withdraw".to_string()), &[request.clone()]).await;
-        return self.extend(self.parse_transaction(response.clone(), &[currency.clone()]), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("addressFrom".to_string(), account.clone());
-        m.insert("amount".to_string(), amount.clone());
-    m
-})]);
+        let mut response: Value = self.private_post_submit_withdraw(&[request.clone()]).await;
+        //
+        // {
+        //     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
+        //     "type": "subaccount",
+        //     "code": "USDC",
+        //     "accountNumber": 101,
+        //     "collateral": 39.0
+        // }
+        //
+        let mut parsedTx: Value = self.parse_transaction(response.clone(), &[currency.clone()]);
+        add_element_to_object(&mut parsedTx, &Value::Str("addressFrom ".to_string()), account.clone());
+        add_element_to_object(&mut parsedTx, &Value::Str("amount".to_string()), amount.clone());
+        return parsedTx;
 
     Value::Null
 }
@@ -1560,9 +1603,9 @@ impl AftermathCore {
 }));
             m
         });
-        let mut tx: Value = self.call_method(Value::Str("private_post_build_set_leverage".to_string()), &[txRequest.clone()]).await;
+        let mut tx: Value = self.private_post_build_set_leverage(&[txRequest.clone()]).await;
         let mut request: Value = self.sign_tx_ed25519(tx.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_submit_set_leverage".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_submit_set_leverage(&[request.clone()]).await;
         return response;
 
     Value::Null
@@ -1602,7 +1645,7 @@ impl AftermathCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.safe_order(order.clone(), &[market.clone()]);
 

@@ -293,6 +293,7 @@ pub fn testSafeMethods() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&exchange.safe_number_omit_zero(inputDict.clone(), Value::Str("floatString".to_string()), &[]), &Value::Null)))));
     // tbd assert!(ccxt::runtime::is_true(&(exchange.safeNumberOmitZero (inputDict, 'bool') === undefined)));
     // tbd assert!(ccxt::runtime::is_true(&(exchange.safeNumberOmitZero (inputDict, 'str') === undefined)));
+    // init array cache tests
     // Test cache types - ArrayCache
     let mut arrayCache = ArrayCache::new(Value::Int(100));
     arrayCache.append(Value::Map({

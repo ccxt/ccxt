@@ -495,15 +495,15 @@ impl Exchange {
 
     #[inline]
     pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        // Mirror CCXT `safeBool`: the value is returned ONLY when it is an
+        // actual boolean (`typeof value === 'boolean'`). A string like
+        // "true" or an integer is NOT a boolean, so it yields the default
+        // — coercing them (as a previous version did) diverges from every
+        // other language and broke e.g. zebpay `fetchCurrencies`, where
+        // `isDepositEnabled: "true"` (a string) must read as the default.
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Bool(_) => v,
-            Value::Int(n)  => Value::Bool(n != 0),
-            Value::Str(s)  => match s.to_lowercase().as_str() {
-                "true" | "1" | "yes" => Value::Bool(true),
-                "false"| "0" | "no"  => Value::Bool(false),
-                _                    => arg_default(optional_args),
-            },
             _ => arg_default(optional_args),
         }
     }
@@ -681,6 +681,59 @@ impl Exchange {
         let me = unsafe { coerce_to_mut_unsafe(self) };
         me.load_markets(&[reload, params]).await
     }
+
+    // ── WS (pro) stubs ─────────────────────────────────────────────────────
+    // The transpiled pro/<id>.rs files reference `self.watch()`, `self.client()`,
+    // `self.spawn()` etc. from the WS Client infrastructure that hasn't been
+    // ported yet. These stubs make the WS-extends-REST inheritance compile —
+    // calls at runtime panic with a clear "WS not yet ported" error so we
+    // surface the gap loudly instead of silently no-op'ing.
+    //
+    // Once `ts/src/base/ws/Client.ts` is ported, these stubs go away in
+    // favour of the real impls.
+    pub async fn watch(&mut self, _url: Value, _msg_hash: Value, _args: &[Value]) -> Value {
+        panic!("[NotSupported] WS .watch() not yet ported")
+    }
+    pub async fn watch_multiple(&mut self, _url: Value, _msg_hashes: Value, _args: &[Value]) -> Value {
+        panic!("[NotSupported] WS .watch_multiple() not yet ported")
+    }
+    pub fn client(&mut self, _args: &[Value]) -> Value {
+        Value::Null
+    }
+    pub fn spawn(&self, _args: &[Value]) -> Value {
+        Value::Null
+    }
+    pub async fn delay(&mut self, _ms: Value, _args: &[Value]) -> Value {
+        Value::Null
+    }
+    pub fn order_book(&self, _args: &[Value]) -> Value {
+        crate::pro::OrderBook::new(Value::Null, Value::Null)
+    }
+    pub fn indexed_order_book(&self, _args: &[Value]) -> Value {
+        crate::pro::IndexedOrderBook::new(Value::Null, Value::Null)
+    }
+    pub fn counted_order_book(&self, _args: &[Value]) -> Value {
+        crate::pro::CountedOrderBook::new(Value::Null, Value::Null)
+    }
+    pub fn safe_order_tracker(&self, _args: &[Value]) -> Value { Value::Null }
+    pub async fn un_watch(&mut self, _topic: Value, _args: &[Value]) -> Value { Value::Null }
+    pub fn send(&self, _payload: Value) -> Value { Value::Null }
+    pub fn lock_id(&self, _args: &[Value]) -> Value { Value::Null }
+    pub fn unlock_id(&self, _args: &[Value]) -> Value { Value::Null }
+    pub fn extend_exchange_options(&self, _args: &[Value]) -> Value { Value::Null }
+    pub fn on_error(&self, _args: &[Value]) -> Value { Value::Null }
+    pub fn on_close(&self, _args: &[Value]) -> Value { Value::Null }
+    pub fn on_pong(&self, _args: &[Value]) -> Value { Value::Null }
+    /// CRC-32 checksum — used by a few WS order-book reconcilers
+    /// (bitget, bitfinex, independentreserve). Stub returns 0; will be
+    /// replaced with the real algorithm when those order books need it.
+    pub fn crc32(&self, _args: &[Value]) -> Value { Value::Int(0) }
+    /// `decode_proto_msg(message)` — exchange-specific protobuf
+    /// decoder (mexc). Stub returns the input unchanged.
+    pub fn decode_proto_msg(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `loadOrderBook` — WS helper used by some bookkeeping methods.
+    /// Stubbed identically to the unwatch flow.
+    pub async fn load_order_book(&mut self, _args: &[Value]) -> Value { Value::Null }
 
     // ── hand-written base helpers ──────────────────────────────────────────
     // These live above the `METHODS BELOW THIS LINE ARE TRANSPILED` marker in

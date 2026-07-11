@@ -237,8 +237,47 @@ impl Value {
     // `Value::Null` and are placeholders for richer dispatch.
 
     pub fn describe(&self) -> Value { Value::Null }
-    pub fn reject<T, U>(&self, _err: T, _msg_hash: U) -> Value { Value::Null }
-    pub fn resolve<T, U>(&self, _v: T, _msg_hash: U) -> Value { Value::Null }
+    pub fn reject(&self, _args: &[Value]) -> Value { Value::Null }
+    pub fn resolve(&self, _args: &[Value]) -> Value { Value::Null }
+    /// WS stub — transpiled `client.future(messageHash)` returns a
+    /// promise. Until the Client/Future infra is ported, we just hand
+    /// back `Value::Null` so the call sites type-check.
+    pub fn future(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `client.reusable_future(messageHash)` — TS Client method that
+    /// returns a shared Future per message-hash. Stubbed identically
+    /// to `future` until the WS Client port lands.
+    pub fn reusable_future(&self, _msg_hash: Value) -> Value { Value::Null }
+    /// Field accessor: `cache.hashmap` — same as the WS Cache marker's
+    /// hashmap sub-dict. Some transpiled WS code reads this directly
+    /// via the JS field-access syntax rather than going through
+    /// `get_value`.
+    pub fn hashmap(&self) -> Value {
+        if let Value::Dict(d) = self {
+            if let Some(v) = d.get("hashmap") { return v.clone(); }
+        }
+        Value::Null
+    }
+    /// `client.send(payload)` — WS stub, no-op until Client port lands.
+    pub fn send(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `client.decode_proto_msg(...)` — exchange-specific protobuf
+    /// decode helper; stubbed to `Value::Null`.
+    pub fn decode_proto_msg(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `client.on_pong(...)` — WS heartbeat hook; stubbed.
+    pub fn on_pong(&self, _args: &[Value]) -> Value { Value::Null }
+    /// WS stub — transpiled `fn(...args)` over a Value-typed callable.
+    pub fn call(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `exchange.isDictionary(value)` — transpiled tests treat `exchange`
+    /// as `Value` instead of the typed `Exchange`, so we mirror the
+    /// dict-typecheck method here.
+    pub fn is_dictionary(&self, value: Value) -> Value {
+        Value::Bool(matches!(value, Value::Dict(_)))
+    }
+    /// `exchange.networkCodeToId(code, currency)` — stub that just
+    /// echoes the code back. Real impl lives on `Exchange`; the test
+    /// transpiles call sites with `exchange: Value`.
+    pub fn network_code_to_id(&self, code: Value, _args: &[Value]) -> Value { code }
+    /// `exchange.networkIdToCode(args)` — stub passthrough.
+    pub fn network_id_to_code(&self, _args: &[Value]) -> Value { Value::Null }
     /// `side.storeArray(delta)` — insert/update/delete by price (or
     /// by id for the indexed variant). Defined here (rather than next
     /// to `store`) so that derived exchange code which calls
@@ -332,6 +371,16 @@ impl From<String>  for Value { fn from(s: String) -> Self { Value::Str(s) } }
 impl From<i64>     for Value { fn from(n: i64)    -> Self { Value::Int(n) } }
 impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
+/// `From<ExchangeError>` makes `error.clone()` flow into `&[Value]`
+/// slices without an explicit conversion — surfaces the typed error
+/// as a `[Kind] message`-shaped string Value, matching how
+/// `runtime::panic_msg_to_error` round-trips it back into a typed
+/// `ExchangeError` for the caller.
+impl From<crate::ExchangeError> for Value {
+    fn from(e: crate::ExchangeError) -> Self {
+        Value::Str(format!("[{}] {}", e.kind, e.message))
+    }
+}
 impl From<HashMap<String, Value>> for Value {
     fn from(m: HashMap<String, Value>) -> Self { Value::Map(m) }
 }
@@ -1214,20 +1263,35 @@ pub(crate) fn book_store_side(book: &mut Value, side_key: &str, price: f64, size
 // ─── Value method API exposed to the transpiled tests ─────────────────────
 
 impl Value {
-    /// `book.limit()` — trim both sides to `_depth`.
-    pub fn limit(&mut self) {
+    /// `book.limit()` — trim both sides to `_depth`. Returns a clone
+    /// of `self` so transpiled `return book.limit();` lines still
+    /// match the `-> Value` signature.
+    pub fn limit(&mut self) -> Value {
         book_limit(self);
+        self.clone()
     }
 
     /// `book.reset(snapshot)` — wipe + reseed bids/asks + metadata.
-    pub fn reset(&mut self, snapshot: Value) {
+    /// Returns self for the same reason as `limit()`. A bare
+    /// `book.reset()` is also valid (matches the TS `OrderBook` shape);
+    /// when called without a snapshot, we just rebind the existing one
+    /// (effectively a no-op metadata refresh).
+    pub fn reset(&mut self, snapshot: Value) -> Value {
         book_reset(self, snapshot);
+        self.clone()
+    }
+    /// Zero-arg `reset()` form used by per-exchange WS code that just
+    /// wants to clear the rolling buffers.
+    pub fn reset0(&mut self) -> Value {
+        book_reset(self, Value::Null);
+        self.clone()
     }
 
     /// `book.update(snapshot)` — same as reset but only when the
     /// supplied nonce moves forward.
-    pub fn update(&mut self, snapshot: Value) {
+    pub fn update(&mut self, snapshot: Value) -> Value {
         book_update(self, snapshot);
+        self.clone()
     }
 
     /// `side.store(price, size)` — convenience that builds a 2-element

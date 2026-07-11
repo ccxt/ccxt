@@ -205,6 +205,7 @@ impl MexcCore {
             "parse_account_id" => self.parse_account_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance_helper" => self.parse_balance_helper(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_bid_ask" => self.parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -242,63 +243,99 @@ impl MexcCore {
 impl crate::exchange::DerivedExchange for MexcCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on MexcCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_currency(me, currency)
     }
     fn parse_bid_ask(&self, bidask: crate::Value, price_key: crate::Value, amount_key: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_bid_ask(self, bidask, &[price_key.clone(), amount_key.clone(), market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_bid_ask(me, bidask, &[price_key.clone(), amount_key.clone(), market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_market_leverage_tiers(me, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MexcCore.
-        MexcCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MexcCore as *mut MexcCore) };
+        MexcCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -654,6 +691,7 @@ impl MexcCore {
         m.insert("position/funding_records".to_string(), Value::Int(2));
         m.insert("position/position_mode".to_string(), Value::Int(2));
         m.insert("order/list/open_orders/{symbol}".to_string(), Value::Int(2));
+        m.insert("order/list/open_orders".to_string(), Value::Int(2));
         m.insert("order/list/history_orders".to_string(), Value::Int(2));
         m.insert("order/list/order_deals/v3".to_string(), Value::Int(2));
         m.insert("order/external/{symbol}/{external_oid}".to_string(), Value::Int(2));
@@ -1321,7 +1359,7 @@ impl MexcCore {
         let mut status: Value = Value::Null;
         let mut updated: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("spot_public_get_ping".to_string()), &[query.clone()]).await;
+            response = self.spot_public_get_ping(&[query.clone()]).await;
             //
             //     {}
             //
@@ -1329,7 +1367,7 @@ impl MexcCore {
             let mut length: Value = get_array_length(&keys);
             status = ternary(is_true(&length), self.json(response.clone()), Value::Str("ok".to_string()));
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            response = self.call_method(Value::Str("contract_public_get_ping".to_string()), &[query.clone()]).await;
+            response = self.contract_public_get_ping(&[query.clone()]).await;
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
@@ -1368,10 +1406,10 @@ impl MexcCore {
         let mut query: Value = get_value(&marketTypequeryVariable, &Value::Int(1));
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("spot_public_get_time".to_string()), &[query.clone()]).await;
+            response = self.spot_public_get_time(&[query.clone()]).await;
             return self.safe_integer_k(response.clone(), "serverTime", &[]);
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            response = self.call_method(Value::Str("contract_public_get_ping".to_string()), &[query.clone()]).await;
+            response = self.contract_public_get_ping(&[query.clone()]).await;
             return self.safe_integer_k(response.clone(), "data", &[]);
         }
         return Value::Null;
@@ -1402,71 +1440,29 @@ impl MexcCore {
     m
 });
         }
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_config_getall".to_string()), &[params.clone()]).await;
-        //
-        // {
-        //     "coin": "QANX",
-        //     "name": "QANplatform",
-        //     "networkList": [
-        //       {
-        //         "coin": "QANX",
-        //         "depositDesc": null,
-        //         "depositEnable": true,
-        //         "minConfirm": "0",
-        //         "name": "QANplatform",
-        //         "network": "BEP20(BSC)",
-        //         "withdrawEnable": false,
-        //         "withdrawFee": "42.000000000000000000",
-        //         "withdrawIntegerMultiple": null,
-        //         "withdrawMax": "24000000.000000000000000000",
-        //         "withdrawMin": "20.000000000000000000",
-        //         "sameAddress": false,
-        //         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
-        //       },
-        //       {
-        //         "coin": "QANX",
-        //         "depositDesc": null,
-        //         "depositEnable": true,
-        //         "minConfirm": "0",
-        //         "name": "QANplatform",
-        //         "network": "ERC20",
-        //         "withdrawEnable": true,
-        //         "withdrawFee": "2732.000000000000000000",
-        //         "withdrawIntegerMultiple": null,
-        //         "withdrawMax": "24000000.000000000000000000",
-        //         "withdrawMin": "240.000000000000000000",
-        //         "sameAddress": false,
-        //         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
-        //       }
-        //     ]
-        //   }
-        //
-        let mut result: Value = Value::Map({
+        let mut response: Value = self.spot_private_get_capital_config_getall(&[params.clone()]).await;
+        return self.parse_currencies(response.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "coin", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut chains: Value = self.safe_value_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_945: bool = true;
-            while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut currency: Value = get_value(&response, &i);
-            let mut currency: Value = get_value(&response, &i);
-            let mut id: Value = self.safe_string_k(currency.clone(), "coin", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut chains: Value = self.safe_value_k(currency.clone(), "networkList", &[Value::List(vec![])]);
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_944: bool = true;
-                while { if !__for_first_944 { j = add(&j, &Value::Int(1)); } __for_first_944 = false; is_less_than(&j, &get_array_length(&chains)) } {
-                let mut chain: Value = get_value(&chains, &j);
-                let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string2(chain.clone(), Value::Str("netWork".to_string()), Value::Str("network".to_string()), &[]);
-                let mut network: Value = self.network_id_to_code(&[networkId.clone()]);
-                add_element_to_object(&mut networks, &network, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_907: bool = true;
+            while { if !__for_first_907 { j = add(&j, &Value::Int(1)); } __for_first_907 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut networkId: Value = self.safe_string2(chain.clone(), Value::Str("netWork".to_string()), Value::Str("network".to_string()), &[]);
+            let mut network: Value = self.network_id_to_code(&[networkId.clone()]);
+            add_element_to_object(&mut networks, &network, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
@@ -1489,14 +1485,14 @@ impl MexcCore {
         m.insert("contract".to_string(), self.safe_string_k(chain.clone(), "contract", &[]));
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "name", &[]));
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -1515,10 +1511,7 @@ impl MexcCore {
         m.insert("type".to_string(), Value::Str("crypto".to_string()));
         m.insert("networks".to_string(), networks.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1564,7 +1557,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("spot_public_get_exchange_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_public_get_exchange_info(&[params.clone()]).await;
         //
         //     {
         //         "timezone": "CST",
@@ -1611,8 +1604,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_946: bool = true;
-            while { if !__for_first_946 { i = add(&i, &Value::Int(1)); } __for_first_946 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_908: bool = true;
+            while { if !__for_first_908 { i = add(&i, &Value::Int(1)); } __for_first_908 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1718,7 +1711,7 @@ impl MexcCore {
 }));
         let mut currentRl: Value = self.rateLimit.clone();
         self.set_property(Value::Str("rateLimit".to_string()), &[Value::Int(10)]); // see comment: https://github.com/ccxt/ccxt/pull/23698
-        let mut response: Value = self.call_method(Value::Str("contract_public_get_detail".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_public_get_detail(&[params.clone()]).await;
         self.set_property(Value::Str("rateLimit".to_string()), &[currentRl.clone()]);
         //
         //     {
@@ -1768,8 +1761,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i = add(&i, &Value::Int(1)); } __for_first_947 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_909: bool = true;
+            while { if !__for_first_909 { i = add(&i, &Value::Int(1)); } __for_first_909 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1882,7 +1875,8 @@ impl MexcCore {
         }
         let mut orderbook: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            let mut response: Value = self.call_method(Value::Str("spot_public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.spot_public_get_depth(&[__ws_arg_0]).await;
             //
             //     {
             //         "lastUpdateId": "744267132",
@@ -1900,7 +1894,8 @@ impl MexcCore {
             orderbook = self.parse_order_book(response.clone(), symbol.clone(), &[spotTimestamp.clone()]);
             add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            let mut response: Value = self.call_method(Value::Str("contract_public_get_depth_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_public_get_depth_symbol(&[__ws_arg_1]).await;
             //
             //     {
             //         "success":true,
@@ -1995,16 +1990,20 @@ impl MexcCore {
             method = self.safe_string_k(params.clone(), "method", &[method.clone()]); // AggTrades, HistoricalTrades, Trades
             params = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string())]), &[]);
             if is_equal(&method, &Value::Str("spotPublicGetAggTrades".to_string())) {
-                trades = self.call_method(Value::Str("spot_public_get_agg_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+                trades = self.spot_public_get_agg_trades(&[__ws_arg_2]).await;
             }  else if is_equal(&method, &Value::Str("spotPublicGetHistoricalTrades".to_string())) {
-                trades = self.call_method(Value::Str("spot_public_get_historical_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+                trades = self.spot_public_get_historical_trades(&[__ws_arg_3]).await;
             }  else if is_equal(&method, &Value::Str("spotPublicGetTrades".to_string())) {
-                trades = self.call_method(Value::Str("spot_public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+                trades = self.spot_public_get_trades(&[__ws_arg_4]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() not support this method".to_string()))));
             }
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            let mut response: Value = self.call_method(Value::Str("contract_public_get_deals_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_public_get_deals_symbol(&[__ws_arg_5]).await;
             //
             //     {
             //         "success": true,
@@ -2028,7 +2027,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut id: Value = Value::Null;
         let mut timestamp: Value = Value::Null;
@@ -2254,7 +2253,8 @@ impl MexcCore {
             if !is_equal(&until, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), add(&until, &Value::Int(1))); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
-            let mut response: Value = self.call_method(Value::Str("spot_public_get_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.spot_public_get_klines(&[__ws_arg_6]).await;
             //
             //     [
             //       [
@@ -2284,11 +2284,14 @@ impl MexcCore {
             params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
             let mut response: Value = Value::Null;
             if is_equal(&priceType, &Value::Str("default".to_string())) {
-                response = self.call_method(Value::Str("contract_public_get_kline_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_public_get_kline_symbol(&[__ws_arg_7]).await;
             }  else if is_equal(&priceType, &Value::Str("index".to_string())) {
-                response = self.call_method(Value::Str("contract_public_get_kline_index_price_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_public_get_kline_index_price_symbol(&[__ws_arg_8]).await;
             }  else if is_equal(&priceType, &Value::Str("mark".to_string())) {
-                response = self.call_method(Value::Str("contract_public_get_kline_fair_price_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+                response = self.contract_public_get_kline_fair_price_symbol(&[__ws_arg_9]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOHLCV() not support this price type, [default, index, mark]".to_string()))));
             }
@@ -2359,9 +2362,11 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            tickers = self.call_method(Value::Str("spot_public_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[query.clone()]);
+            tickers = self.spot_public_get_ticker24hr(&[__ws_arg_10]).await;
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            let mut response: Value = self.call_method(Value::Str("contract_public_get_ticker".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.contract_public_get_ticker(&[__ws_arg_11]).await;
             //
             //     {
             //         "success":true,
@@ -2427,9 +2432,11 @@ impl MexcCore {
             m
         });
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            ticker = self.call_method(Value::Str("spot_public_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
+            ticker = self.spot_public_get_ticker24hr(&[__ws_arg_12]).await;
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            let mut response: Value = self.call_method(Value::Str("contract_public_get_ticker".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.contract_public_get_ticker(&[__ws_arg_13]).await;
             //
             //     {
             //         "success":true,
@@ -2615,7 +2622,7 @@ impl MexcCore {
         let mut query: Value = get_value(&marketTypequeryVariable, &Value::Int(1));
         let mut tickers: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            tickers = self.call_method(Value::Str("spot_public_get_ticker_book_ticker".to_string()), &[query.clone()]).await;
+            tickers = self.spot_public_get_ticker_book_ticker(&[query.clone()]).await;
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBidsAsks() is not available for ".to_string())), &marketType), &Value::Str(" markets".to_string()))));
         }
@@ -2653,7 +2660,8 @@ impl MexcCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(0), &[Value::Null, self.extend(req.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(req.clone(), &[params.clone()]);
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(0), &[Value::Null, __ws_arg_14]).await;
 
     Value::Null
 }
@@ -2683,7 +2691,8 @@ impl MexcCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), Value::Int(0), &[Value::Null, self.extend(req.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(req.clone(), &[params.clone()]);
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), Value::Int(0), &[Value::Null, __ws_arg_15]).await;
 
     Value::Null
 }
@@ -2833,9 +2842,9 @@ impl MexcCore {
         let mut request: Value = self.create_spot_order_request(market.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), marginMode.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if is_true(&test) {
-            response = self.call_method(Value::Str("spot_private_post_order_test".to_string()), &[request.clone()]).await;
+            response = self.spot_private_post_order_test(&[request.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("spot_private_post_order".to_string()), &[request.clone()]).await;
+            response = self.spot_private_post_order(&[request.clone()]).await;
         }
         //
         // spot
@@ -2981,9 +2990,11 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("executeCycle".to_string()), self.safe_integer_k(params.clone(), "executeCycle", &[Value::Int(1)]));
             add_element_to_object(&mut request, &Value::Str("trend".to_string()), self.safe_integer_k(params.clone(), "trend", &[Value::Int(1)]));
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), self.safe_integer_k(params.clone(), "orderType", &[Value::Int(1)]));
-            response = self.call_method(Value::Str("contract_private_post_planorder_place".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await;
         }  else {
-            response = self.call_method(Value::Str("contract_private_post_order_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_post_order_create(&[__ws_arg_17]).await;
         }
         //
         // Swap
@@ -2992,10 +3003,13 @@ impl MexcCore {
         // Trigger
         //     {"success":true,"code":0,"data":259208506303929856}
         //
-        let mut data: Value = self.safe_string_k(response.clone(), "data", &[]);
+        // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), data.clone());
+        m.insert("id".to_string(), self.safe_string_k(data.clone(), "orderId", &[]));
+        m.insert("timestamp".to_string(), self.safe_integer_k(data.clone(), "ts", &[]));
     m
 }), &[market.clone()]);
 
@@ -3021,8 +3035,8 @@ impl MexcCore {
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_948: bool = true;
-            while { if !__for_first_948 { i = add(&i, &Value::Int(1)); } __for_first_948 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_910: bool = true;
+            while { if !__for_first_910 { i = add(&i, &Value::Int(1)); } __for_first_910 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3056,7 +3070,7 @@ impl MexcCore {
                 m.insert("batchOrders".to_string(), self.json(ordersRequests.clone()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("spot_private_post_batch_orders".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.spot_private_post_batch_orders(&[request.clone()]).await;
         return self.parse_orders(response.clone(), &[]);
 
     Value::Null
@@ -3106,13 +3120,16 @@ impl MexcCore {
                 if !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" fetchOrder() does not support marginMode ".to_string())), &marginMode), &Value::Str(" for spot-margin trading".to_string()))));
                 }
-                data = self.call_method(Value::Str("spot_private_get_margin_order".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_18 = self.extend(request.clone(), &[query.clone()]);
+                data = self.spot_private_get_margin_order(&[__ws_arg_18]).await;
             }  else {
-                data = self.call_method(Value::Str("spot_private_get_order".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_19 = self.extend(request.clone(), &[query.clone()]);
+                data = self.spot_private_get_order(&[__ws_arg_19]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-            let mut response: Value = self.call_method(Value::Str("contract_private_get_order_get_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_private_get_order_get_order_id(&[__ws_arg_20]).await;
             //
             //     {
             //         "success": true,
@@ -3211,9 +3228,11 @@ impl MexcCore {
                 if !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" fetchOrders() does not support marginMode ".to_string())), &marginMode), &Value::Str(" for spot-margin trading".to_string()))));
                 }
-                response = self.call_method(Value::Str("spot_private_get_margin_all_orders".to_string()), &[self.extend(request.clone(), &[queryInner.clone()])]).await;
+                let __ws_arg_21 = self.extend(request.clone(), &[queryInner.clone()]);
+                response = self.spot_private_get_margin_all_orders(&[__ws_arg_21]).await;
             }  else {
-                response = self.call_method(Value::Str("spot_private_get_all_orders".to_string()), &[self.extend(request.clone(), &[queryInner.clone()])]).await;
+                let __ws_arg_22 = self.extend(request.clone(), &[queryInner.clone()]);
+                response = self.spot_private_get_all_orders(&[__ws_arg_22]).await;
             }
             return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else {
@@ -3241,7 +3260,8 @@ impl MexcCore {
             let mut ordersOfRegular: Value = Value::List(vec![]);
             let mut ordersOfTrigger: Value = Value::List(vec![]);
             if is_equal(&method, &Value::Str("contractPrivateGetOrderListHistoryOrders".to_string())) {
-                let mut response: Value = self.call_method(Value::Str("contract_private_get_order_list_history_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_23 = self.extend(request.clone(), &[query.clone()]);
+                let mut response: Value = self.contract_private_get_order_list_history_orders(&[__ws_arg_23]).await;
                 //
                 //     {
                 //         "success": true,
@@ -3279,7 +3299,8 @@ impl MexcCore {
                 ordersOfRegular = self.safe_value_k(response.clone(), "data", &[]);
             }  else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
-                let mut response: Value = self.call_method(Value::Str("contract_private_get_planorder_list_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_24 = self.extend(request.clone(), &[query.clone()]);
+                let mut response: Value = self.contract_private_get_planorder_list_orders(&[__ws_arg_24]).await;
                 //
                 //     {
                 //         "success": true,
@@ -3338,7 +3359,8 @@ impl MexcCore {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchOrdersByIds() is not supported for ".to_string())), &marketType)));
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_ids".to_string()), join(&ids, &Value::Str(",".to_string())));
-            let mut response: Value = self.call_method(Value::Str("contract_private_get_order_batch_query".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.contract_private_get_order_batch_query(&[__ws_arg_25]).await;
             //
             //     {
             //         "success": true,
@@ -3425,13 +3447,21 @@ impl MexcCore {
                 if !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" fetchOpenOrders() does not support marginMode ".to_string())), &marginMode), &Value::Str(" for spot-margin trading".to_string()))));
                 }
-                response = self.call_method(Value::Str("spot_private_get_margin_open_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_26 = self.extend(request.clone(), &[query.clone()]);
+                response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await;
             }  else {
-                response = self.call_method(Value::Str("spot_private_get_open_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_27 = self.extend(request.clone(), &[query.clone()]);
+                response = self.spot_private_get_open_orders(&[__ws_arg_27]).await;
             }
             return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else {
-            return self.fetch_orders_by_state(Value::Int(2), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+            if is_equal(&limit, &Value::Null) {
+                add_element_to_object(&mut request, &Value::Str("page_size".to_string()), Value::Int(100)); // max
+            }
+            let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+            let mut swapResponse: Value = self.contract_private_get_order_list_open_orders(&[__ws_arg_28]).await;
+            let mut data: Value = self.safe_list_k(swapResponse.clone(), "data", &[Value::List(vec![])]);
+            return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
         }
 
     Value::Null
@@ -3512,7 +3542,8 @@ impl MexcCore {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOrdersByState() is not supported for ".to_string())), &marketType)));
         }  else {
             add_element_to_object(&mut request, &Value::Str("states".to_string()), state.clone());
-            return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_29]).await;
         }
 
     Value::Null
@@ -3573,9 +3604,11 @@ impl MexcCore {
                 if !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" cancelOrder() does not support marginMode ".to_string())), &marginMode), &Value::Str(" for spot-margin trading".to_string()))));
                 }
-                data = self.call_method(Value::Str("spot_private_delete_margin_order".to_string()), &[self.extend(requestInner.clone(), &[query.clone()])]).await;
+                let __ws_arg_30 = self.extend(requestInner.clone(), &[query.clone()]);
+                data = self.spot_private_delete_margin_order(&[__ws_arg_30]).await;
             }  else {
-                data = self.call_method(Value::Str("spot_private_delete_order".to_string()), &[self.extend(requestInner.clone(), &[query.clone()])]).await;
+                let __ws_arg_31 = self.extend(requestInner.clone(), &[query.clone()]);
+                data = self.spot_private_delete_order(&[__ws_arg_31]).await;
             }
         }  else {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -3583,9 +3616,9 @@ impl MexcCore {
             method = self.safe_string_k(query.clone(), "method", &[method.clone()]);
             let mut response: Value = Value::Null;
             if is_equal(&method, &Value::Str("contractPrivatePostOrderCancel".to_string())) {
-                response = self.call_method(Value::Str("contract_private_post_order_cancel".to_string()), &[Value::List(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_order_cancel(&[Value::List(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else if is_equal(&method, &Value::Str("contractPrivatePostPlanorderCancel".to_string())) {
-                response = self.call_method(Value::Str("contract_private_post_planorder_cancel".to_string()), &[Value::List(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_planorder_cancel(&[Value::List(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() not support this method".to_string()))));
             }
@@ -3637,7 +3670,7 @@ impl MexcCore {
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" cancelOrders() is not supported for ".to_string())), &marketType)));
         }  else {
-            let mut response: Value = self.call_method(Value::Str("contract_private_post_order_cancel".to_string()), &[ids.clone()]).await; // the request cannot be changed or extended. The only way to send.
+            let mut response: Value = self.contract_private_post_order_cancel(&[ids.clone()]).await; // the request cannot be changed or extended. The only way to send.
             //
             //     {
             //         "success": true,
@@ -3697,9 +3730,11 @@ impl MexcCore {
                 if !is_equal(&marginMode, &Value::Str("isolated".to_string())) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" cancelAllOrders() does not support marginMode ".to_string())), &marginMode), &Value::Str(" for spot-margin trading".to_string()))));
                 }
-                response = self.call_method(Value::Str("spot_private_delete_margin_open_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_32 = self.extend(request.clone(), &[query.clone()]);
+                response = self.spot_private_delete_margin_open_orders(&[__ws_arg_32]).await;
             }  else {
-                response = self.call_method(Value::Str("spot_private_delete_open_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_33 = self.extend(request.clone(), &[query.clone()]);
+                response = self.spot_private_delete_open_orders(&[__ws_arg_33]).await;
             }
             return self.parse_orders(response.clone(), &[market.clone()]);
         }  else {
@@ -3712,9 +3747,11 @@ impl MexcCore {
             method = self.safe_string_k(query.clone(), "method", &[method.clone()]);
             let mut response: Value = Value::Null;
             if is_equal(&method, &Value::Str("contractPrivatePostOrderCancelAll".to_string())) {
-                response = self.call_method(Value::Str("contract_private_post_order_cancel_all".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_34 = self.extend(request.clone(), &[query.clone()]);
+                response = self.contract_private_post_order_cancel_all(&[__ws_arg_34]).await;
             }  else if is_equal(&method, &Value::Str("contractPrivatePostPlanorderCancelAll".to_string())) {
-                response = self.call_method(Value::Str("contract_private_post_planorder_cancel_all".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+                let __ws_arg_35 = self.extend(request.clone(), &[query.clone()]);
+                response = self.contract_private_post_planorder_cancel_all(&[__ws_arg_35]).await;
             }
             //
             //     {
@@ -3729,7 +3766,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -4045,9 +4082,9 @@ impl MexcCore {
 
     pub async fn fetch_account_helper(&mut self, mut type_var: Value, mut params: Value) -> Value {
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
-            return self.call_method(Value::Str("spot_private_get_account".to_string()), &[params.clone()]).await;
+            return self.spot_private_get_account(&[params.clone()]).await;
         }  else if is_equal(&type_var, &Value::Str("swap".to_string())) {
-            let mut response: Value = self.call_method(Value::Str("contract_private_get_account_assets".to_string()), &[params.clone()]).await;
+            let mut response: Value = self.contract_private_get_account_assets(&[params.clone()]).await;
             return self.safe_value_k(response.clone(), "data", &[]);
         }
         return Value::Null;
@@ -4079,8 +4116,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { i = add(&i, &Value::Int(1)); } __for_first_949 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_911: bool = true;
+            while { if !__for_first_911 { i = add(&i, &Value::Int(1)); } __for_first_911 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string2(account.clone(), Value::Str("asset".to_string()), Value::Str("currency".to_string()), &[]);
@@ -4124,7 +4161,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_trade_fee".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_trade_fee(&[__ws_arg_36]).await;
         //
         //  {
         //      "data":{
@@ -4231,12 +4269,12 @@ impl MexcCore {
         if is_equal(&marketType, &Value::Str("margin".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_950: bool = true;
-                while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_912: bool = true;
+                while { if !__for_first_912 { i = add(&i, &Value::Int(1)); } __for_first_912 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
-                let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null]);
+                let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
                 let mut base: Value = self.safe_value_k(entry.clone(), "baseAsset", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -4260,8 +4298,8 @@ impl MexcCore {
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_951: bool = true;
-                while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_913: bool = true;
+                while { if !__for_first_913 { i = add(&i, &Value::Int(1)); } __for_first_913 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -4276,8 +4314,8 @@ impl MexcCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_952: bool = true;
-                while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_914: bool = true;
+                while { if !__for_first_914 { i = add(&i, &Value::Int(1)); } __for_first_914 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -4350,11 +4388,14 @@ impl MexcCore {
             marketType = Value::Str("margin".to_string());
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), parsedSymbols.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("symbol".to_string()), Value::Str("symbols".to_string())]), &[]);
-            response = self.call_method(Value::Str("spot_private_get_margin_isolated_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await;
         }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("spot_private_get_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            response = self.spot_private_get_account(&[__ws_arg_38]).await;
         }  else if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            response = self.call_method(Value::Str("contract_private_get_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+            response = self.contract_private_get_account_assets(&[__ws_arg_39]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() not support this method".to_string()))));
         }
@@ -4409,7 +4450,8 @@ impl MexcCore {
                 params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             }
-            trades = self.call_method(Value::Str("spot_private_get_my_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+            trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await;
         }  else {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
@@ -4421,7 +4463,8 @@ impl MexcCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
             }
-            let mut response: Value = self.call_method(Value::Str("contract_private_get_order_list_order_deals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_private_get_order_list_order_deals(&[__ws_arg_41]).await;
             //
             //     {
             //         "success": true,
@@ -4492,10 +4535,12 @@ impl MexcCore {
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
-            trades = self.call_method(Value::Str("spot_private_get_my_trades".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_42 = self.extend(request.clone(), &[query.clone()]);
+            trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-            let mut response: Value = self.call_method(Value::Str("contract_private_get_order_deal_details_order_id".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_43 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_43]).await;
             //
             //     {
             //         "success": true,
@@ -4543,7 +4588,8 @@ impl MexcCore {
                 m.insert("type".to_string(), addOrReduce.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_post_position_change_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_position_change_margin(&[__ws_arg_44]).await;
         return response;
 
     Value::Null
@@ -4626,7 +4672,8 @@ impl MexcCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("positionId".to_string()), positionId.clone());
         }
-        return self.call_method(Value::Str("contract_private_post_position_change_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+        return self.contract_private_post_position_change_leverage(&[__ws_arg_45]).await;
 
     Value::Null
 }
@@ -4663,7 +4710,8 @@ impl MexcCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_position_funding_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_funding_records(&[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -4704,8 +4752,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_953: bool = true;
-            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_915: bool = true;
+            while { if !__for_first_915 { i = add(&i, &Value::Int(1)); } __for_first_915 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "settleTime", &[]);
@@ -4824,7 +4872,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_public_get_funding_rate_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_public_get_funding_rate_symbol(&[__ws_arg_47]).await;
         //
         //     {
         //         "success": true,
@@ -4881,7 +4930,8 @@ impl MexcCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("contract_public_get_funding_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_public_get_funding_rate_history(&[__ws_arg_48]).await;
         //
         //    {
         //        "success": true,
@@ -4911,8 +4961,8 @@ impl MexcCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_954: bool = true;
-            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_916: bool = true;
+            while { if !__for_first_916 { i = add(&i, &Value::Int(1)); } __for_first_916 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -4952,7 +5002,7 @@ impl MexcCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Str("swap".to_string()), Value::Bool(true), Value::Bool(true)]);
-        let mut response: Value = self.call_method(Value::Str("contract_public_get_detail".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_public_get_detail(&[params.clone()]).await;
         //
         //     {
         //         "success":true,
@@ -5070,15 +5120,18 @@ impl MexcCore {
         }
         while is_true(&crate::precise::Precise::stringLt(&floor, &maxVol)) {
             let mut cap: Value = crate::precise::Precise::stringAdd(&floor, &riskIncrVol);
+            let mut minNotional: Value = self.parse_number(floor.clone(), &[]);
+            let mut mainMarginRate: Value = self.parse_number(maintenanceMarginRate.clone(), &[]);
+            let mut maxLev: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &initialMarginRate), &[]);
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap, &riskIncrVol), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
                     m.insert("currency".to_string(), self.safe_currency_code(quoteId.clone(), &[]));
-                    m.insert("minNotional".to_string(), self.parse_number(floor.clone(), &[]));
+                    m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), self.parse_number(cap.clone(), &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.parse_number(maintenanceMarginRate.clone(), &[]));
-                    m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &initialMarginRate), &[]));
+                    m.insert("maintenanceMarginRate".to_string(), mainMarginRate.clone());
+                    m.insert("maxLeverage".to_string(), maxLev.clone());
                     m.insert("info".to_string(), info.clone());
                 m
             }));
@@ -5165,7 +5218,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), networkId.clone());
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_capital_deposit_address(&[__ws_arg_49]).await;
         //
         //    [
         //        {
@@ -5233,7 +5287,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), networkId.clone());
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("spot_private_post_capital_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -5323,7 +5378,8 @@ impl MexcCore {
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_deposit_hisrec".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5367,7 +5423,8 @@ impl MexcCore {
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_withdraw_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_get_capital_withdraw_history(&[__ws_arg_52]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5550,7 +5607,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.fetch_positions(&[Value::Null, self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.fetch_positions(&[Value::Null, __ws_arg_53]).await;
         return self.safe_value(response.clone(), Value::Int(0), &[]);
 
     Value::Null
@@ -5572,7 +5630,7 @@ impl MexcCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_position_open_positions".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_private_get_position_open_positions(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -5744,7 +5802,8 @@ impl MexcCore {
                     m.insert("transact_id".to_string(), id.clone());
                 m
             });
-            let mut response: Value = self.call_method(Value::Str("spot_private_get_asset_internal_transfer_record".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+            let __ws_arg_54 = self.extend(request.clone(), &[query.clone()]);
+            let mut response: Value = self.spot_private_get_asset_internal_transfer_record(&[__ws_arg_54]).await;
             //
             //     {
             //         "code": "200",
@@ -5777,8 +5836,8 @@ impl MexcCore {
  * @description fetch a history of internal transfers made on an account
  * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
  * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
- * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
- * @param code
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+ * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5839,7 +5898,8 @@ impl MexcCore {
                 }
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
             }
-            let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.spot_private_get_capital_transfer(&[__ws_arg_55]).await;
             //
             //
             // {
@@ -5863,7 +5923,8 @@ impl MexcCore {
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
             }
-            let mut response: Value = self.call_method(Value::Str("contract_private_get_account_transfer_record".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.contract_private_get_account_transfer_record(&[__ws_arg_56]).await;
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
             resultList = self.safe_value_k(data.clone(), "resultList", &[]);
         }
@@ -5926,7 +5987,8 @@ impl MexcCore {
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("spot_private_post_capital_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await;
         //
         //     {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -6089,7 +6151,8 @@ impl MexcCore {
             if is_equal(&toAccountType, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE".to_string()))));
             }
-            let mut responseForInternal: Value = self.call_method(Value::Str("spot_private_post_capital_transfer_internal".to_string()), &[self.extend(requestForInternal.clone(), &[params.clone()])]).await;
+            let __ws_arg_58 = self.extend(requestForInternal.clone(), &[params.clone()]);
+            let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await;
             return self.parse_transaction(responseForInternal.clone(), &[currency.clone()]);
         }
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
@@ -6114,7 +6177,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("netWork".to_string()), network.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string()), Value::Str("netWork".to_string())]), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("spot_private_post_capital_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -6141,7 +6205,8 @@ impl MexcCore {
                 m.insert("positionMode".to_string(), ternary(is_true(&hedged), Value::Int(1), Value::Int(2)));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_post_position_change_position_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_position_change_position_mode(&[__ws_arg_60]).await;
         return response;
 
     Value::Null
@@ -6162,7 +6227,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_position_position_mode".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.contract_private_get_position_position_mode(&[params.clone()]).await;
         //
         //     {
         //         "success":true,
@@ -6197,7 +6262,7 @@ impl MexcCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_config_getall".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_private_get_capital_config_getall(&[params.clone()]).await;
         return self.parse_transaction_fees(response.clone(), &[codes.clone()]);
 
     Value::Null
@@ -6211,8 +6276,8 @@ impl MexcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_955: bool = true;
-            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_917: bool = true;
+            while { if !__for_first_917 { i = add(&i, &Value::Int(1)); } __for_first_917 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -6272,8 +6337,8 @@ impl MexcCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_956: bool = true;
-            while { if !__for_first_956 { j = add(&j, &Value::Int(1)); } __for_first_956 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_918: bool = true;
+            while { if !__for_first_918 { j = add(&j, &Value::Int(1)); } __for_first_918 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -6303,7 +6368,7 @@ impl MexcCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("spot_private_get_capital_config_getall".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.spot_private_get_capital_config_getall(&[params.clone()]).await;
         return self.parse_deposit_withdraw_fees(response.clone(), &[codes.clone(), Value::Str("coin".to_string())]);
 
     Value::Null
@@ -6341,8 +6406,8 @@ impl MexcCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_957: bool = true;
-            while { if !__for_first_957 { j = add(&j, &Value::Int(1)); } __for_first_957 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_919: bool = true;
+            while { if !__for_first_919 { j = add(&j, &Value::Int(1)); } __for_first_919 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -6391,7 +6456,8 @@ impl MexcCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_position_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_leverage(&[__ws_arg_61]).await;
         //
         //     {
         //         "success": true,
@@ -6435,8 +6501,8 @@ impl MexcCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_958: bool = true;
-            while { if !__for_first_958 { i = add(&i, &Value::Int(1)); } __for_first_958 = false; is_less_than(&i, &get_array_length(&leverage)) } {
+            let mut __for_first_920: bool = true;
+            while { if !__for_first_920 { i = add(&i, &Value::Int(1)); } __for_first_920 = false; is_less_than(&i, &get_array_length(&leverage)) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
             let mut openType: Value = self.safe_integer_k(entry.clone(), "openType", &[]);
@@ -6526,7 +6592,8 @@ impl MexcCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("contract_private_get_position_list_history_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_get_position_list_history_positions(&[__ws_arg_62]).await;
         //
         //    {
         //        success: true,
@@ -6597,8 +6664,8 @@ impl MexcCore {
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" setMarginMode() supports contract markets only".to_string()))));
         }
-        marginMode = to_lower(&marginMode);
-        if !is_equal(&marginMode, &Value::Str("isolated".to_string())) && !is_equal(&marginMode, &Value::Str("cross".to_string())) {
+        let mut marginModeLower: Value = to_lower(&marginMode);
+        if !is_equal(&marginModeLower, &Value::Str("isolated".to_string())) && !is_equal(&marginModeLower, &Value::Str("cross".to_string())) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setMarginMode() marginMode argument should be isolated or cross".to_string()))));
         }
         let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
@@ -6609,7 +6676,7 @@ impl MexcCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("leverage".to_string(), leverage.clone());
-                m.insert("openType".to_string(), ternary(is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))), Value::Int(1), Value::Int(2)));
+                m.insert("openType".to_string(), ternary(is_true(&(is_equal(&marginModeLower, &Value::Str("isolated".to_string())))), Value::Int(1), Value::Int(2)));
             m
         });
         if !is_equal(&symbol, &Value::Null) {
@@ -6619,7 +6686,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("positionType".to_string()), ternary(is_true(&(is_equal(&direction, &Value::Str("short".to_string())))), Value::Int(2), Value::Int(1)));
         }
         params = self.omit(params.clone(), Value::Str("direction".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("contract_private_post_position_change_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.contract_private_post_position_change_leverage(&[__ws_arg_63]).await;
         return self.parse_leverage(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -6748,7 +6816,7 @@ impl MexcCore {
         if is_equal(&success, &Value::Bool(true)) {
             return Value::Null;
         }
-        let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[Value::Null]);
+        let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[]);
         if is_true(&(!is_equal(&responseCode, &Value::Null))) && is_true(&(!is_equal(&responseCode, &Value::Str("200".to_string())))) && is_true(&(!is_equal(&responseCode, &Value::Str("0".to_string())))) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), body.clone(), feedback.clone());

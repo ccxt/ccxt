@@ -143,18 +143,21 @@ impl BitvavoCore {
         match method {
             "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
             "cancel_all_orders" => self.cancel_all_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+            "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_order_request" => self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
             "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "edit_order_request" => self.edit_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
+            "fetch_accounts" => self.fetch_accounts(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_balance" => self.fetch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_currencies" => self.fetch_currencies(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposit_withdraw_fees" => self.fetch_deposit_withdraw_fees(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposits" => self.fetch_deposits(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposits_request" => self.fetch_deposits_request(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
+            "fetch_ledger" => self.fetch_ledger(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_markets" => self.fetch_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_my_trades" => self.fetch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_my_trades_request" => self.fetch_my_trades_request(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
@@ -169,23 +172,33 @@ impl BitvavoCore {
             "fetch_tickers" => self.fetch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_time" => self.fetch_time(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_trading_fees" => self.fetch_trading_fees(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+            "fetch_transfer" => self.fetch_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "fetch_transfers" => self.fetch_transfers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_withdrawals" => self.fetch_withdrawals(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_withdrawals_request" => self.fetch_withdrawals_request(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+            "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_currencies_custom" => self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_markets" => self.parse_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_trading_fees" => self.parse_trading_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_transfer_status" => self.parse_transfer_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "withdraw_request" => self.withdraw_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]),
             // Fall through to the base Exchange impl so inherited
@@ -198,39 +211,81 @@ impl BitvavoCore {
 impl crate::exchange::DerivedExchange for BitvavoCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_balance(me, response)
+    }
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitvavoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_ledger_entry(me, entry, &[currency.clone()])
+    }
+    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitvavoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitvavoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_currency(me, currency)
+    }
+    fn parse_account(&self, account: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitvavoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_account(me, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitvavoCore.
-        BitvavoCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitvavoCore as *mut BitvavoCore) };
+        BitvavoCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -267,18 +322,23 @@ impl BitvavoCore {
         m.insert("borrowIsolatedMargin".to_string(), Value::Bool(false));
         m.insert("borrowMargin".to_string(), Value::Bool(false));
         m.insert("cancelAllOrders".to_string(), Value::Bool(true));
+        m.insert("cancelAllOrdersAfter".to_string(), Value::Bool(true));
         m.insert("cancelOrder".to_string(), Value::Bool(true));
         m.insert("closeAllPositions".to_string(), Value::Bool(false));
         m.insert("closePosition".to_string(), Value::Bool(false));
+        m.insert("createLimitOrder".to_string(), Value::Bool(true));
+        m.insert("createMarketOrder".to_string(), Value::Bool(true));
+        m.insert("createMarketOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Bool(true));
         m.insert("createOrderWithTakeProfitAndStopLoss".to_string(), Value::Bool(false));
         m.insert("createOrderWithTakeProfitAndStopLossWs".to_string(), Value::Bool(false));
-        m.insert("createPostOnlyOrder".to_string(), Value::Bool(false));
+        m.insert("createPostOnlyOrder".to_string(), Value::Bool(true));
         m.insert("createReduceOnlyOrder".to_string(), Value::Bool(false));
         m.insert("createStopLimitOrder".to_string(), Value::Bool(true));
         m.insert("createStopMarketOrder".to_string(), Value::Bool(true));
         m.insert("createStopOrder".to_string(), Value::Bool(true));
         m.insert("editOrder".to_string(), Value::Bool(true));
+        m.insert("fetchAccounts".to_string(), Value::Bool(true));
         m.insert("fetchBalance".to_string(), Value::Bool(true));
         m.insert("fetchBorrowInterest".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRate".to_string(), Value::Bool(false));
@@ -306,6 +366,8 @@ impl BitvavoCore {
         m.insert("fetchIsolatedBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedPositions".to_string(), Value::Bool(false));
+        m.insert("fetchLedger".to_string(), Value::Bool(true));
+        m.insert("fetchLedgerEntry".to_string(), Value::Bool(false));
         m.insert("fetchLeverage".to_string(), Value::Bool(false));
         m.insert("fetchLeverages".to_string(), Value::Bool(false));
         m.insert("fetchLeverageTiers".to_string(), Value::Bool(false));
@@ -345,10 +407,11 @@ impl BitvavoCore {
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
-        m.insert("fetchTradingFee".to_string(), Value::Bool(false));
+        m.insert("fetchTradingFee".to_string(), Value::Bool(true));
         m.insert("fetchTradingFees".to_string(), Value::Bool(true));
-        m.insert("fetchTransfer".to_string(), Value::Bool(false));
-        m.insert("fetchTransfers".to_string(), Value::Bool(false));
+        m.insert("fetchTransactions".to_string(), Value::Bool(false));
+        m.insert("fetchTransfer".to_string(), Value::Bool(true));
+        m.insert("fetchTransfers".to_string(), Value::Bool(true));
         m.insert("fetchVolatilityHistory".to_string(), Value::Bool(false));
         m.insert("fetchWithdrawals".to_string(), Value::Bool(true));
         m.insert("reduceMargin".to_string(), Value::Bool(false));
@@ -359,7 +422,7 @@ impl BitvavoCore {
         m.insert("setMargin".to_string(), Value::Bool(false));
         m.insert("setMarginMode".to_string(), Value::Bool(false));
         m.insert("setPositionMode".to_string(), Value::Bool(false));
-        m.insert("transfer".to_string(), Value::Bool(false));
+        m.insert("transfer".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(true));
     m
 }));
@@ -399,20 +462,22 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("time".to_string(), Value::Int(1));
-        m.insert("markets".to_string(), Value::Int(1));
-        m.insert("assets".to_string(), Value::Int(1));
         m.insert("{market}/book".to_string(), Value::Int(1));
+        m.insert("report/{market}/book".to_string(), Value::Int(1));
         m.insert("{market}/trades".to_string(), Value::Int(5));
-        m.insert("{market}/candles".to_string(), Value::Int(1));
+        m.insert("report/{market}/trades".to_string(), Value::Int(5));
         m.insert("ticker/price".to_string(), Value::Int(1));
         m.insert("ticker/book".to_string(), Value::Int(1));
+        m.insert("{market}/candles".to_string(), Value::Int(1));
         m.insert("ticker/24h".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noMarket".to_string(), Value::Int(25));
     m
 }));
+        m.insert("time".to_string(), Value::Int(1));
+        m.insert("markets".to_string(), Value::Int(1));
+        m.insert("assets".to_string(), Value::Int(1));
     m
 }));
     m
@@ -421,9 +486,7 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("account".to_string(), Value::Int(1));
         m.insert("order".to_string(), Value::Int(1));
-        m.insert("orders".to_string(), Value::Int(5));
         m.insert("ordersOpen".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
@@ -431,10 +494,15 @@ impl BitvavoCore {
     m
 }));
         m.insert("trades".to_string(), Value::Int(5));
-        m.insert("balance".to_string(), Value::Int(5));
+        m.insert("orders".to_string(), Value::Int(5));
         m.insert("deposit".to_string(), Value::Int(1));
         m.insert("depositHistory".to_string(), Value::Int(5));
         m.insert("withdrawalHistory".to_string(), Value::Int(5));
+        m.insert("account".to_string(), Value::Int(1));
+        m.insert("balance".to_string(), Value::Int(5));
+        m.insert("stakingBalance".to_string(), Value::Int(1));
+        m.insert("account/fees".to_string(), Value::Int(1));
+        m.insert("account/history".to_string(), Value::Int(1));
         m.insert("subaccounts".to_string(), Value::Int(5));
         m.insert("subaccounts/transfers".to_string(), Value::Int(5));
         m.insert("subaccounts/transfers/{transferId}".to_string(), Value::Int(5));
@@ -442,8 +510,8 @@ impl BitvavoCore {
         m.insert("institutional/subaccounts/history".to_string(), Value::Int(5));
         m.insert("institutional/subaccounts/orders/open".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
-        m.insert("noMarket".to_string(), Value::Int(25));
+        m.insert("cost".to_string(), Value::Int(5));
+        m.insert("noMarket".to_string(), Value::Int(100));
     m
 }));
     m
@@ -451,7 +519,9 @@ impl BitvavoCore {
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Int(1));
+        m.insert("cancelOrdersAfter".to_string(), Value::Int(5));
         m.insert("withdrawal".to_string(), Value::Int(1));
+        m.insert("crypto/withdrawal".to_string(), Value::Int(25));
         m.insert("subaccounts".to_string(), Value::Int(5));
         m.insert("subaccounts/transfers".to_string(), Value::Int(5));
     m
@@ -470,6 +540,7 @@ impl BitvavoCore {
         m.insert("noMarket".to_string(), Value::Int(100));
     m
 }));
+        m.insert("atomic/orders".to_string(), Value::Int(100));
         m.insert("institutional/subaccounts/order".to_string(), Value::Int(1));
         m.insert("institutional/subaccounts/orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -713,6 +784,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchTime
+ * @see https://docs.bitvavo.com/docs/rest-api/get-server-time/
  * @description fetches the current integer timestamp in milliseconds from the exchange server
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -722,7 +794,7 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_time(&[params.clone()]).await;
         return self.safe_integer_k(response.clone(), "time", &[]);
 
     Value::Null
@@ -731,7 +803,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchMarkets
- * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-markets/
  * @description retrieves data on all markets for bitvavo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -741,7 +813,7 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_markets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_markets(&[params.clone()]).await;
         return self.parse_markets(response.clone());
 
     Value::Null
@@ -752,8 +824,8 @@ impl BitvavoCore {
         let mut fees: Value = self.fees.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_414: bool = true;
+            while { if !__for_first_414 { i = add(&i, &Value::Int(1)); } __for_first_414 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
@@ -838,7 +910,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchCurrencies
- * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
  * @description fetches all available currencies on an exchange
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
@@ -848,13 +920,13 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_assets".to_string()), &[params.clone()]).await;
-        return self.parse_currencies_custom(response.clone());
+        let mut response: Value = self.public_get_assets(&[params.clone()]).await;
+        return self.parse_currencies(response.clone());
 
     Value::Null
 }
 
-    pub fn parse_currencies_custom(&self, mut currencies: Value) -> Value {
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         //
         //     [
         //         {
@@ -889,40 +961,30 @@ impl BitvavoCore {
         //     ]
         //
         let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::List(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut isFiat: Value = self.in_array(code.clone(), fiatCurrencies.clone());
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut networksArray: Value = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::List(vec![])]);
+        let mut deposit: Value = Value::Bool(is_equal(&self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]), &Value::Str("OK".to_string())));
+        let mut withdrawal: Value = Value::Bool(is_equal(&self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]), &Value::Str("OK".to_string())));
+        let mut active: Value = Value::Bool(is_true(&deposit) && is_true(&withdrawal));
+        let mut withdrawFee: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalFee", &[]);
+        let mut precision: Value = self.safe_string_k(rawCurrency.clone(), "decimals", &[Value::Str("8".to_string())]);
+        let mut minWithdraw: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_430: bool = true;
-            while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&currencies)) } {
-            let mut currency: Value = get_value(&currencies, &i);
-            let mut currency: Value = get_value(&currencies, &i);
-            let mut id: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut isFiat: Value = self.in_array(code.clone(), fiatCurrencies.clone());
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            let mut networksArray: Value = self.safe_list_k(currency.clone(), "networks", &[Value::List(vec![])]);
-            let mut deposit: Value = Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "depositStatus", &[]), &Value::Str("OK".to_string())));
-            let mut withdrawal: Value = Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "withdrawalStatus", &[]), &Value::Str("OK".to_string())));
-            let mut active: Value = Value::Bool(is_true(&deposit) && is_true(&withdrawal));
-            let mut withdrawFee: Value = self.safe_number_k(currency.clone(), "withdrawalFee", &[]);
-            let mut precision: Value = self.safe_string_k(currency.clone(), "decimals", &[Value::Str("8".to_string())]);
-            let mut minWithdraw: Value = self.safe_number_k(currency.clone(), "withdrawalMinAmount", &[]);
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_429: bool = true;
-                while { if !__for_first_429 { j = add(&j, &Value::Int(1)); } __for_first_429 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
-                let mut networkId: Value = get_value(&networksArray, &j);
-                let mut networkId: Value = get_value(&networksArray, &j);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { j = add(&j, &Value::Int(1)); } __for_first_415 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
+            let mut networkId: Value = get_value(&networksArray, &j);
+            let mut networkId: Value = get_value(&networksArray, &j);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), active.clone());
@@ -942,14 +1004,14 @@ impl BitvavoCore {
 }));
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), currency.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "name", &[]));
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("active".to_string(), active.clone());
         m.insert("deposit".to_string(), deposit.clone());
         m.insert("withdraw".to_string(), withdrawal.clone());
@@ -980,10 +1042,7 @@ impl BitvavoCore {
     m
 }));
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -991,7 +1050,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchTicker
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1009,7 +1068,8 @@ impl BitvavoCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker24h".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_ticker24h(&[__ws_arg_0]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1073,6 +1133,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchTickers
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1085,7 +1146,7 @@ impl BitvavoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker24h".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_ticker24h(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1094,7 +1155,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchTrades
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-trades/
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1130,13 +1191,14 @@ impl BitvavoCore {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_trades(&[__ws_arg_1]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1243,7 +1305,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchTradingFees
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-account-fees/
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
@@ -1254,7 +1316,7 @@ impl BitvavoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_account".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_account(&[params.clone()]).await;
         return self.parse_trading_fees(response.clone(), &[]);
 
     Value::Null
@@ -1280,8 +1342,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_431: bool = true;
-            while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1302,8 +1364,52 @@ impl BitvavoCore {
 
 /*
  * @method
+ * @name bitvavo#fetchTradingFee
+ * @see https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+ * @description fetch the trading fees for a market
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+    pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut market: Value = self.market(symbol.clone());
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
+            m
+        });
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_fees(&[__ws_arg_2]).await;
+        return self.parse_trading_fee(response.clone(), &[market.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_trading_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), fee.clone());
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
+        m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "maker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker", &[]));
+        m.insert("percentage".to_string(), Value::Bool(true));
+        m.insert("tierBased".to_string(), Value::Bool(true));
+    m
+});
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name bitvavo#fetchOrderBook
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-order-book/
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -1326,7 +1432,8 @@ impl BitvavoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_market_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_market_book(&[__ws_arg_3]).await;
         //
         //     {
         //         "market":"BTC-EUR",
@@ -1395,7 +1502,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchOHLCV
- * @see https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1422,7 +1529,7 @@ impl BitvavoCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".to_string()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(1440)]).await;
         }
         let mut request: Value = self.fetch_ohlcv_request(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_market_candles".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_get_market_candles(&[request.clone()]).await;
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1438,8 +1545,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_417: bool = true;
+            while { if !__for_first_417 { i = add(&i, &Value::Int(1)); } __for_first_417 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -1458,7 +1565,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchBalance
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-account-balance/
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1469,7 +1576,7 @@ impl BitvavoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -1477,7 +1584,265 @@ impl BitvavoCore {
 
 /*
  * @method
+ * @name bitvavo#fetchAccounts
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+ * @description fetch all the accounts associated with a profile
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ */
+    pub async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut response: Value = self.private_get_subaccounts(&[params.clone()]).await;
+        //
+        //     {
+        //         "items": [
+        //             {
+        //                 "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "type": "spot",
+        //                 "status": "open",
+        //                 "label": "string"
+        //             }
+        //         ],
+        //         "currentPage": 0,
+        //         "totalPages": 0,
+        //         "maxItems": 0
+        //     }
+        //
+        let mut accounts: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
+        return self.parse_accounts(accounts.clone(), &[]);
+
+    Value::Null
+}
+
+    pub fn parse_account(&self, mut account: Value) -> Value {
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(account.clone(), "id", &[]));
+        m.insert("type".to_string(), self.safe_string_k(account.clone(), "type", &[]));
+        m.insert("code".to_string(), Value::Null);
+        m.insert("info".to_string(), account.clone());
+    m
+});
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#transfer
+ * @see https://docs.bitvavo.com/docs/institutional-api/create-transfer/
+ * @description transfer currency internally between the master account and a subaccount
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
+ * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {string} [params.subaccountId] the unique identifier for the subaccount
+ * @param {string} [params.clientRequestId] client defined unique id
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ */
+    pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut currency: Value = self.currency(code.clone());
+        let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
+        params = self.omit(params.clone(), Value::Str("subaccountId".to_string()), &[]);
+        let mut direction: Value = Value::Null;
+        if is_true(&(is_equal(&fromAccount, &Value::Str("master".to_string())))) && is_true(&(is_equal(&toAccount, &Value::Str("master".to_string())))) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".to_string()))));
+        }  else if is_equal(&fromAccount, &Value::Str("master".to_string())) {
+            direction = Value::Str("masterToSub".to_string());
+            if is_equal(&subaccountId, &Value::Null) {
+                subaccountId = toAccount.clone();
+            }
+        }  else if is_equal(&toAccount, &Value::Str("master".to_string())) {
+            direction = Value::Str("subToMaster".to_string());
+            if is_equal(&subaccountId, &Value::Null) {
+                subaccountId = fromAccount.clone();
+            }
+        }  else {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" transfer() requires either fromAccount or toAccount to be master".to_string()))));
+        }
+        if is_equal(&subaccountId, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)".to_string()))));
+        }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("subaccountId".to_string(), subaccountId.clone());
+                m.insert("direction".to_string(), direction.clone());
+                m.insert("symbol".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
+            m
+        });
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_subaccounts_transfers(&[__ws_arg_4]).await;
+        return self.parse_transfer(response.clone(), &[currency.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#fetchTransfers
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+ * @description fetch a history of internal transfers made on an account
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfers structures to retrieve
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {string} [params.subaccountId] the unique identifier for the subaccount
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ */
+    pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
+        let mut code = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut currency: Value = Value::Null;
+        if !is_equal(&code, &Value::Null) {
+            currency = self.currency(code.clone());
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&currency, &Value::Str("id".to_string())));
+        }
+        let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
+        if is_equal(&subaccountId, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTransfers() requires a subaccountId parameter".to_string()))));
+        }
+        if !is_equal(&since, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("start".to_string()), since.clone());
+        }
+        if !is_equal(&limit, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+        }
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_subaccounts_transfers(&[__ws_arg_5]).await;
+        //
+        //     {
+        //         "items": [
+        //             {
+        //                 "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "direction": "masterToSub",
+        //                 "symbol": "BTC",
+        //                 "amount": "0.1",
+        //                 "status": "completed",
+        //                 "createdAt": "1700000000000"
+        //             }
+        //         ],
+        //         "start": 0,
+        //         "end": 0,
+        //         "limit": 25
+        //     }
+        //
+        let mut items: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
+        return self.parse_transfers(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#fetchTransfer
+ * @see https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+ * @description fetches a transfer
+ * @param {string} id transfer id
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ */
+    pub async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut code = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut currency: Value = Value::Null;
+        if !is_equal(&code, &Value::Null) {
+            currency = self.currency(code.clone());
+        }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("transferId".to_string(), id.clone());
+            m
+        });
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_subaccounts_transfers_transfer_id(&[__ws_arg_6]).await;
+        return self.parse_transfer(response.clone(), &[currency.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_transfer_status(&self, mut status: Value) -> Value {
+        let mut statuses: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("completed".to_string(), Value::Str("ok".to_string()));
+                m.insert("pending".to_string(), Value::Str("pending".to_string()));
+                m.insert("failed".to_string(), Value::Str("failed".to_string()));
+            m
+        });
+        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
+        let mut currency = get_arg(optional_args, 0, Value::Null);
+        let mut currencyId: Value = self.safe_string_k(transfer.clone(), "symbol", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+        let mut subaccountId: Value = self.safe_string_k(transfer.clone(), "subaccountId", &[]);
+        let mut direction: Value = self.safe_string_k(transfer.clone(), "direction", &[]);
+        let mut fromAccount: Value = Value::Null;
+        let mut toAccount: Value = Value::Null;
+        if is_equal(&direction, &Value::Str("masterToSub".to_string())) {
+            fromAccount = Value::Str("master".to_string());
+            toAccount = subaccountId.clone();
+        }  else if is_equal(&direction, &Value::Str("subToMaster".to_string())) {
+            fromAccount = subaccountId.clone();
+            toAccount = Value::Str("master".to_string());
+        }
+        let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "createdAt", &[]);
+        if is_equal(&timestamp, &Value::Null) {
+            timestamp = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[]));
+        }
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), transfer.clone());
+        m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transferId", &[]));
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
+        m.insert("fromAccount".to_string(), fromAccount.clone());
+        m.insert("toAccount".to_string(), toAccount.clone());
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer.clone(), "status", &[])));
+    m
+});
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name bitvavo#fetchDepositAddress
+ * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-data/
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1495,7 +1860,8 @@ impl BitvavoCore {
                 m.insert("symbol".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_deposit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposit(&[__ws_arg_7]).await;
         //
         //     {
         //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
@@ -1610,7 +1976,7 @@ impl BitvavoCore {
  * @method
  * @name bitvavo#createOrder
  * @description create a trade order
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
+ * @see https://docs.bitvavo.com/docs/rest-api/create-order/
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1639,7 +2005,7 @@ impl BitvavoCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_post_order".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_order(&[request.clone()]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1697,7 +2063,7 @@ impl BitvavoCore {
  * @method
  * @name bitvavo#editOrder
  * @description edit a trade order
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+ * @see https://docs.bitvavo.com/docs/rest-api/update-order/
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1717,7 +2083,7 @@ impl BitvavoCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.edit_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_put_order".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_put_order(&[request.clone()]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1757,9 +2123,8 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#cancelOrder
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
  * @description cancels an open order
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-order/
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1774,7 +2139,7 @@ impl BitvavoCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.cancel_order_request(id.clone(), &[symbol.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_delete_order".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_delete_order(&[request.clone()]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1783,7 +2148,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#cancelAllOrders
- * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
  * @description cancel all open orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1812,8 +2177,46 @@ impl BitvavoCore {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("private_delete_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_orders(&[__ws_arg_8]).await;
         return self.parse_orders(response.clone(), &[market.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#cancelAllOrdersAfter
+ * @description dead man's switch, cancel all orders after the given timeout
+ * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+ * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
+ * @returns {object} the api result
+ */
+    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_greater_than(&timeout, &Value::Int(300000)) {
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds".to_string()))));
+        }
+        if is_true(&(is_greater_than(&timeout, &Value::Int(0)))) && is_true(&(is_less_than(&timeout, &Value::Int(10000)))) {
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds".to_string()))));
+        }
+        self.load_markets(&[]).await;
+        let mut codGroupId: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelAllOrdersAfter".to_string()), Value::Str("codGroupId".to_string()), &[Value::Int(1)]); codGroupId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("codGroupId".to_string(), codGroupId.clone());
+                m.insert("expiryAfterSeconds".to_string(), ternary(is_true(&(is_greater_than(&timeout, &Value::Int(0)))), self.parse_to_int(divide(&timeout, &Value::Int(1000))), Value::Int(0)));
+            m
+        });
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_cancel_orders_after(&[__ws_arg_9]).await;
+        return response;
 
     Value::Null
 }
@@ -1822,7 +2225,7 @@ impl BitvavoCore {
  * @method
  * @name bitvavo#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-order/
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1848,7 +2251,8 @@ impl BitvavoCore {
         if is_equal(&clientOrderId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order(&[__ws_arg_10]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1883,7 +2287,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchOrders
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-orders/
  * @description fetches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1912,7 +2316,7 @@ impl BitvavoCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.fetch_orders_request(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_get_orders".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_get_orders(&[request.clone()]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1921,7 +2325,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchOpenOrders
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-open-orders/
  * @description fetch all unfilled currently open orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1947,7 +2351,8 @@ impl BitvavoCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("market".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_orders_open".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_open(&[__ws_arg_11]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1976,7 +2381,7 @@ impl BitvavoCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // cancelOrder, cancelAllOrders
@@ -2114,7 +2519,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchMyTrades
- * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-trade-history/
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2143,8 +2548,143 @@ impl BitvavoCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.fetch_my_trades_request(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_get_trades".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_get_trades(&[request.clone()]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#fetchLedger
+ * @see https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @param {string} [code] unified currency code
+ * @param {int} [since] timestamp in ms of the earliest ledger entry
+ * @param {int} [limit] max number of ledger entries to return
+ * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {int} [params.page] the page number for the transaction history
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+ */
+    pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
+        let mut code = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut currency: Value = Value::Null;
+        if !is_equal(&code, &Value::Null) {
+            currency = self.currency(code.clone());
+        }
+        if !is_equal(&since, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("fromDate".to_string()), since.clone());
+        }
+        if !is_equal(&limit, &Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("maxItems".to_string()), crate::runtime::Math::min(&limit, &Value::Int(100)));
+        }
+        { let __destr_tmp = self.handle_until_option(Value::Str("toDate".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_history(&[__ws_arg_12]).await;
+        //
+        //     {
+        //         "items": [
+        //             {
+        //                 "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+        //                 "executedAt": "2021-01-01T00:00:00.000Z",
+        //                 "type": "sell",
+        //                 "priceCurrency": "EUR",
+        //                 "priceAmount": "1000.00",
+        //                 "sentCurrency": "EUR",
+        //                 "sentAmount": "0.1",
+        //                 "receivedCurrency": "BTC",
+        //                 "receivedAmount": "0.0001",
+        //                 "feesCurrency": "EUR",
+        //                 "feesAmount": "0.01",
+        //                 "address": "string"
+        //             }
+        //         ],
+        //         "currentPage": 1,
+        //         "totalPages": 1,
+        //         "maxItems": 100
+        //     }
+        //
+        let mut items: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
+        return self.parse_ledger(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
+        let mut types: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("buy".to_string(), Value::Str("trade".to_string()));
+                m.insert("sell".to_string(), Value::Str("trade".to_string()));
+                m.insert("deposit".to_string(), Value::Str("transaction".to_string()));
+                m.insert("withdrawal".to_string(), Value::Str("transaction".to_string()));
+                m.insert("withdrawal_cancelled".to_string(), Value::Str("transaction".to_string()));
+                m.insert("internal_transfer".to_string(), Value::Str("transaction".to_string()));
+                m.insert("external_transferred_funds".to_string(), Value::Str("transaction".to_string()));
+            m
+        });
+        return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
+}
+
+    pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
+        let mut currency = get_arg(optional_args, 0, Value::Null);
+        let mut rawType: Value = self.safe_string_k(item.clone(), "type", &[]);
+        let mut type_var: Value = self.parse_ledger_entry_type(rawType.clone());
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "receivedCurrency", &[]);
+        let mut amount: Value = self.safe_string_k(item.clone(), "receivedAmount", &[]);
+        let mut direction: Value = Value::Str("in".to_string());
+        if is_equal(&amount, &Value::Null) {
+            currencyId = self.safe_string_k(item.clone(), "sentCurrency", &[]);
+            amount = self.safe_string_k(item.clone(), "sentAmount", &[]);
+            direction = Value::Str("out".to_string());
+        }
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
+        let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[]));
+        let mut fee: Value = Value::Null;
+        let mut feeCost: Value = self.safe_string_k(item.clone(), "feesAmount", &[]);
+        if !is_equal(&feeCost, &Value::Null) {
+            let mut feeCurrencyId: Value = self.safe_string_k(item.clone(), "feesCurrency", &[]);
+            let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
+            fee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("cost".to_string(), feeCost.clone());
+                    m.insert("currency".to_string(), feeCurrencyCode.clone());
+                m
+            });
+        }
+        return self.safe_ledger_entry(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), item.clone());
+        m.insert("id".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
+        m.insert("direction".to_string(), direction.clone());
+        m.insert("account".to_string(), Value::Null);
+        m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
+        m.insert("referenceAccount".to_string(), self.safe_string_k(item.clone(), "address", &[]));
+        m.insert("type".to_string(), type_var.clone());
+        m.insert("currency".to_string(), code.clone());
+        m.insert("amount".to_string(), amount.clone());
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("before".to_string(), Value::Null);
+        m.insert("after".to_string(), Value::Null);
+        m.insert("status".to_string(), Value::Str("ok".to_string()));
+        m.insert("fee".to_string(), fee.clone());
+    m
+}), &[currency.clone()]);
 
     Value::Null
 }
@@ -2174,6 +2714,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#withdraw
+ * @see https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
  * @description make a withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
@@ -2193,7 +2734,7 @@ impl BitvavoCore {
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = self.withdraw_request(code.clone(), amount.clone(), address.clone(), &[tag.clone(), params.clone()]);
-        let mut response: Value = self.call_method(Value::Str("private_post_withdrawal".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_withdrawal(&[request.clone()]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -2230,7 +2771,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchWithdrawals
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/
  * @description fetch all withdrawals made from an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -2252,7 +2793,7 @@ impl BitvavoCore {
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_withdrawal_history".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_get_withdrawal_history(&[request.clone()]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".to_string()));
@@ -2293,7 +2834,7 @@ impl BitvavoCore {
 /*
  * @method
  * @name bitvavo#fetchDeposits
- * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-deposit-history/
  * @description fetch all deposits made to an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -2315,7 +2856,7 @@ impl BitvavoCore {
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deposit_history".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_get_deposit_history(&[request.clone()]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".to_string()));
@@ -2494,7 +3035,7 @@ impl BitvavoCore {
  * @method
  * @name bitvavo#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+ * @see https://docs.bitvavo.com/docs/rest-api/get-asset-data/
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -2506,7 +3047,7 @@ impl BitvavoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_assets(&[params.clone()]).await;
         return self.parse_deposit_withdraw_fees(response.clone(), &[codes.clone(), Value::Str("symbol".to_string())]);
 
     Value::Null

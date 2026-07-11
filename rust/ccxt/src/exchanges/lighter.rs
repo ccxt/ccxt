@@ -181,6 +181,7 @@ impl LighterCore {
             "load_account" => self.load_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "modify_leverage_and_margin_mode" => self.modify_leverage_and_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
             "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -217,51 +218,81 @@ impl LighterCore {
 impl crate::exchange::DerivedExchange for LighterCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on LighterCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_currency(me, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_account(self, account)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_account(me, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on LighterCore.
-        LighterCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const LighterCore as *mut LighterCore) };
+        LighterCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -725,13 +756,13 @@ impl LighterCore {
 }));
         }
         if !is_true(&(Value::Bool(in_op(&get_value(&self.options, &Value::Str("auths".to_string())), &strAccountIndex)))) {
-            add_element_to_object(get_value_mut(&mut self.options.clone(), &Value::Str("auths".to_string())), &strAccountIndex, Value::Map({
+            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".to_string())), &strAccountIndex, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         }
         if !is_true(&(Value::Bool(in_op(&get_value(&get_value(&self.options, &Value::Str("auths".to_string())), &strAccountIndex), &strApiKeyIndex)))) {
-            add_element_to_object(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("auths".to_string())), &strAccountIndex), &strApiKeyIndex, Value::Map({
+            add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".to_string())), &strAccountIndex), &strApiKeyIndex, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signer".to_string(), Value::Null);
         m.insert("lighterPrivateKey".to_string(), Value::Null);
@@ -764,7 +795,7 @@ impl LighterCore {
  * @method
  * @name lighter#preLoadLighterLibrary
  * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
- * @param params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {boolean} true if the signer was loaded, false otherwise
  */
     pub async fn pre_load_lighter_library(&mut self, optional_args: &[Value]) -> Value {
@@ -822,7 +853,7 @@ impl LighterCore {
             if is_equal(&walletAddress, &Value::Null) || is_equal(&walletAddress, &Value::Str("".to_string())) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName1), &Value::Str("() requires an ".to_string())), &optionName1), &Value::Str("/".to_string())), &optionName2), &Value::Str(" parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.".to_string()))));
             }
-            let mut res: Value = self.call_method(Value::Str("public_get_accounts_by_l1_address".to_string()), &[Value::Map({
+            let mut res: Value = self.public_get_accounts_by_l1_address(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("l1_address".to_string(), walletAddress.clone());
                 m
@@ -885,7 +916,8 @@ impl LighterCore {
         let mut strAccountIndex: Value = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
         let mut signer: Value = self.load_account(get_value(&self.options, &Value::Str("chainId".to_string())), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex.clone(), strAccountIndex.clone(), &[params.clone()]).await;
-        let mut txTypetxInfoVariable = self.lighter_sign_create_sub_account(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_0 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_create_sub_account(signer.clone(), __ws_arg_0);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -894,7 +926,7 @@ impl LighterCore {
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        return self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        return self.public_post_send_tx(&[request.clone()]).await;
 
     Value::Null
 }
@@ -940,8 +972,8 @@ impl LighterCore {
             m
         });
         let mut token: Value = self.lighter_create_auth_token(get_value(&get_value(&get_value(&get_value(&self.options, &Value::Str("auths".to_string())), &accountIndex), &apiKeyIndex), &Value::Str("signer".to_string())), request.clone());
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("auths".to_string())), &accountIndex), &apiKeyIndex), &Value::Str("deadline".to_string()), deadline.clone());
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("auths".to_string())), &accountIndex), &apiKeyIndex), &Value::Str("token".to_string()), token.clone());
+        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".to_string())), &accountIndex), &apiKeyIndex), &Value::Str("deadline".to_string()), deadline.clone());
+        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".to_string())), &accountIndex), &apiKeyIndex), &Value::Str("token".to_string()), token.clone());
         return token;
 
     Value::Null
@@ -961,8 +993,8 @@ impl LighterCore {
         }
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_925: bool = true;
-            while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &c) } {
+            let mut __for_first_890: bool = true;
+            while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &c) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -1035,11 +1067,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut strAccountIndex: Value = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
         let mut signer: Value = Box::pin(self.load_account(get_value(&self.options, &Value::Str("chainId".to_string())), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex.clone(), strAccountIndex.clone(), &[params.clone()])).await;
-        let mut nonce: Value = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[self.extend(params.clone(), &[Value::Map({
+        let __ws_arg_1 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("skipNonce".to_string(), Value::Bool(false));
     m
-})])]).await;
+})]);
+        let mut nonce: Value = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[__ws_arg_1]).await;
         let mut expiry: Value = add(&self.milliseconds(), &multiply(&Value::Int(365), &Value::Int(864000)));
         let mut signRaw: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1052,7 +1085,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfomessageToSignVariable = self.lighter_sign_approve_integrator(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_2 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfomessageToSignVariable = self.lighter_sign_approve_integrator(signer.clone(), __ws_arg_2);
         let mut txType: Value = get_value(&txTypetxInfomessageToSignVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfomessageToSignVariable, &Value::Int(1));
         let mut messageToSign: Value = get_value(&txTypetxInfomessageToSignVariable, &Value::Int(2));
@@ -1063,7 +1097,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), newTxInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return response;
 
     Value::Null
@@ -1084,11 +1118,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut privateKeypublicKeyVariable = self.lighter_generate_api_key(signerNotLoad.clone());
         let mut privateKey: Value = get_value(&privateKeypublicKeyVariable, &Value::Int(0));
         let mut publicKey: Value = get_value(&privateKeypublicKeyVariable, &Value::Int(1));
-        let mut nonce: Value = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[self.extend(params.clone(), &[Value::Map({
+        let __ws_arg_3 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("skipNonce".to_string(), Value::Bool(false));
     m
-})])]).await;
+})]);
+        let mut nonce: Value = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[__ws_arg_3]).await;
         let mut signRaw: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pubkey".to_string(), self.encode(publicKey.clone()));
@@ -1099,7 +1134,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         // create lighter client
         let mut signer: Value = self.lighter_create_client(signerNotLoad.clone(), get_value(&self.options, &Value::Str("chainId".to_string())), privateKey.clone(), apiKeyIndex.clone(), accountIndex.clone());
-        let mut txTypetxInfomessageToSignVariable = self.lighter_sign_change_pubkey(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_4 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfomessageToSignVariable = self.lighter_sign_change_pubkey(signer.clone(), __ws_arg_4);
         let mut txType: Value = get_value(&txTypetxInfomessageToSignVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfomessageToSignVariable, &Value::Int(1));
         let mut messageToSign: Value = get_value(&txTypetxInfomessageToSignVariable, &Value::Int(2));
@@ -1110,7 +1146,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), newTxInfo.clone());
             m
         });
-        self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        self.public_post_send_tx(&[request.clone()]).await;
         add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".to_string())), &strAccountIndex), &strApiKeyIndex), &Value::Str("lighterPrivateKey".to_string()), privateKey.clone());
         add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".to_string())), &strAccountIndex), &strApiKeyIndex), &Value::Str("signer".to_string()), signer.clone()); // reassign signer in go
         Box::pin(self.handle_builder_fee_approval(accountIndex.clone(), apiKeyIndex.clone())).await;
@@ -1272,22 +1308,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut takeProfitOrderLimitPrice: Value = self.safe_number_n(takeProfit.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string())]), &[takeProfitOrderTriggerPrice.clone()]);
             // amount should be 0 for child orders
             if !is_equal(&stopLoss, &Value::Null) {
-                let mut orderObj: Value = get_value(&self.create_order_request(symbol.clone(), stopLossOrderType.clone(), triggerOrderSide.clone(), Value::Int(0), &[stopLossOrderLimitPrice.clone(), self.extend(params.clone(), &[Value::Map({
+                let __ws_arg_5 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), stopLossOrderTriggerPrice.clone());
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
-})])]), &Value::Int(0));
+})]);
+                let mut orderObj: Value = get_value(&self.create_order_request(symbol.clone(), stopLossOrderType.clone(), triggerOrderSide.clone(), Value::Int(0), &[stopLossOrderLimitPrice.clone(), __ws_arg_5]), &Value::Int(0));
                 add_element_to_object(&mut orderObj, &Value::Str("client_order_index".to_string()), Value::Int(0));
                 append_to_array(&mut orders, orderObj.clone());
             }
             if !is_equal(&takeProfit, &Value::Null) {
-                let mut orderObj: Value = get_value(&self.create_order_request(symbol.clone(), takeProfitOrderType.clone(), triggerOrderSide.clone(), Value::Int(0), &[takeProfitOrderLimitPrice.clone(), self.extend(params.clone(), &[Value::Map({
+                let __ws_arg_6 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("takeProfitPrice".to_string(), takeProfitOrderTriggerPrice.clone());
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
-})])]), &Value::Int(0));
+})]);
+                let mut orderObj: Value = get_value(&self.create_order_request(symbol.clone(), takeProfitOrderType.clone(), triggerOrderSide.clone(), Value::Int(0), &[takeProfitOrderLimitPrice.clone(), __ws_arg_6]), &Value::Int(0));
                 add_element_to_object(&mut orderObj, &Value::Str("client_order_index".to_string()), Value::Int(0));
                 append_to_array(&mut orders, orderObj.clone());
             }
@@ -1318,7 +1356,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&skipNonce) {
             return self.milliseconds();
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_next_nonce".to_string()), &[Value::Map({
+        let mut response: Value = self.public_get_next_nonce(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account_index".to_string(), accountIndex.clone());
                 m.insert("api_key_index".to_string(), apiKeyIndex.clone());
@@ -1405,7 +1443,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_order(self.deep_extend(response.clone(), &[order.clone()]), &[market.clone()]);
 
     Value::Null
@@ -1472,7 +1510,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("integrator_maker_fee".to_string(), get_value(&self.options, &Value::Str("integratorMakerFee".to_string())));
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_modify_order(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_7 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_modify_order(signer.clone(), __ws_arg_7);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -1481,7 +1520,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1500,7 +1539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("root_get".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.root_get(&[params.clone()]).await;
         //
         //     {
         //         "status": "1",
@@ -1535,7 +1574,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("root_get".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.root_get(&[params.clone()]).await;
         return self.safe_timestamp(response.clone(), Value::Str("timestamp".to_string()), &[]);
 
     Value::Null
@@ -1554,7 +1593,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book_details".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_order_book_details(&[params.clone()]).await;
         //
         //    {
         //        "code": "200",
@@ -1641,8 +1680,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_926: bool = true;
-            while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_891: bool = true;
+            while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -1751,7 +1790,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_asset_details".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_asset_details(&[params.clone()]).await;
         if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
             self.pre_load_lighter_library(&[]).await;
         }
@@ -1774,27 +1813,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "asset_details", &[Value::List(vec![])]);
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_927: bool = true;
-            while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string_k(entry.clone(), "asset_id", &[]);
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(entry.clone(), "symbol", &[]), &[]);
-            let mut decimals: Value = self.safe_string_k(entry.clone(), "decimals", &[]);
-            let mut isUSDC: Value = Value::Bool(is_equal(&code, &Value::Str("USDC".to_string())));
-            let mut depositMin: Value = Value::Null;
-            let mut withdrawMin: Value = Value::Null;
-            if is_true(&isUSDC) {
-                depositMin = self.safe_number_k(entry.clone(), "min_transfer_amount", &[]);
-                withdrawMin = self.safe_number_k(entry.clone(), "min_withdrawal_amount", &[]);
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        return self.parse_currencies(data.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "asset_id", &[]);
+        let mut code: Value = self.safe_currency_code(self.safe_string_k(rawCurrency.clone(), "symbol", &[]), &[]);
+        let mut decimals: Value = self.safe_string_k(rawCurrency.clone(), "decimals", &[]);
+        let mut isUSDC: Value = Value::Bool(is_equal(&code, &Value::Str("USDC".to_string())));
+        let mut depositMin: Value = Value::Null;
+        let mut withdrawMin: Value = Value::Null;
+        if is_true(&isUSDC) {
+            depositMin = self.safe_number_k(rawCurrency.clone(), "min_transfer_amount", &[]);
+            withdrawMin = self.safe_number_k(rawCurrency.clone(), "min_withdrawal_amount", &[]);
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), code.clone());
@@ -1825,12 +1860,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
     m
 }));
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1865,7 +1897,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_order_book_orders(&[__ws_arg_8]).await;
         //
         //     {
         //         "code": 200,
@@ -2028,7 +2061,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("market_id".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book_details".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_order_book_details(&[__ws_arg_9]).await;
         //
         //     {
         //         "code": 200,
@@ -2102,7 +2136,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book_details".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_order_book_details(&[params.clone()]).await;
         let mut spotTickers: Value = self.safe_list_k(response.clone(), "spot_order_book_details", &[Value::List(vec![])]);
         let mut swapTickers: Value = self.safe_list_k(response.clone(), "order_book_details", &[Value::List(vec![])]);
         let mut tickers: Value = self.array_concat(spotTickers.clone(), swapTickers.clone());
@@ -2177,7 +2211,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("end_timestamp".to_string(), endTs.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_candles(&[__ws_arg_10]).await;
         //
         // {
         //     "code": 200,
@@ -2259,7 +2294,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_funding_rates".to_string()), &[self.extend(params.clone(), &[])]).await;
+        let __ws_arg_11 = self.extend(params.clone(), &[]);
+        let mut response: Value = self.public_get_funding_rates(&[__ws_arg_11]).await;
         //
         //     {
         //         "code": 200,
@@ -2277,8 +2313,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_892: bool = true;
+            while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut exchange: Value = self.safe_string_k(get_value(&data, &i), "exchange", &[]);
             if is_equal(&exchange, &Value::Str("lighter".to_string())) {
                 append_to_array(&mut result, get_value(&data, &i));
@@ -2317,7 +2353,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("value".to_string(), accountIndex.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_account(&[__ws_arg_12]).await;
         //
         //     {
         //         "code": "200",
@@ -2370,16 +2407,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_930: bool = true;
-            while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_894: bool = true;
+            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             if is_equal(&type_var, &Value::Str("spot".to_string())) {
                 let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_929: bool = true;
-                    while { if !__for_first_929 { j = add(&j, &Value::Int(1)); } __for_first_929 = false; is_less_than(&j, &get_array_length(&assets)) } {
+                    let mut __for_first_893: bool = true;
+                    while { if !__for_first_893 { j = add(&j, &Value::Int(1)); } __for_first_893 = false; is_less_than(&j, &get_array_length(&assets)) } {
                     let mut asset: Value = get_value(&assets, &j);
                     let mut asset: Value = get_value(&assets, &j);
                     let mut codeId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
@@ -2456,7 +2493,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("value".to_string(), accountIndex.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_account(&[__ws_arg_13]).await;
         //
         //     {
         //         "code": 200,
@@ -2510,15 +2548,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_932: bool = true;
-            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_896: bool = true;
+            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_931: bool = true;
-                while { if !__for_first_931 { j = add(&j, &Value::Int(1)); } __for_first_931 = false; is_less_than(&j, &get_array_length(&positions)) } {
+                let mut __for_first_895: bool = true;
+                while { if !__for_first_895 { j = add(&j, &Value::Int(1)); } __for_first_895 = false; is_less_than(&j, &get_array_length(&positions)) } {
                 append_to_array(&mut allPositions, get_value(&positions, &j));
             }
             }
@@ -2625,7 +2663,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("value".to_string(), accountIndex.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_account".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_account(&[__ws_arg_14]).await;
         //
         //     {
         //         "code": "200",
@@ -2740,7 +2779,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_account_active_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_active_orders(&[__ws_arg_15]).await;
         //
         //     {
         //         "code": 200,
@@ -2831,7 +2871,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_account_inactive_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_account_inactive_orders(&[__ws_arg_16]).await;
         //
         //     {
         //         "code": 200,
@@ -2880,7 +2921,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -3149,7 +3190,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_transfer(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_17 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_transfer(signer.clone(), __ws_arg_17);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -3158,7 +3200,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_transfer(response.clone(), &[]);
 
     Value::Null
@@ -3207,7 +3249,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_transfer_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_transfer_history(&[__ws_arg_18]).await;
         //
         //     {
         //         "code": 200,
@@ -3340,7 +3383,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposit_history(&[__ws_arg_19]).await;
         //
         //     {
         //         "code": 200,
@@ -3412,7 +3456,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_withdraw_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_withdraw_history(&[__ws_arg_20]).await;
         //
         //     {
         //         "code": "200",
@@ -3563,7 +3608,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_withdraw(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_21 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_withdraw(signer.clone(), __ws_arg_21);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -3572,7 +3618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_transaction(response.clone(), &[]);
 
     Value::Null
@@ -3633,7 +3679,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("market_id".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_trades(&[__ws_arg_22]).await;
         //
         //     {
         //         "code": 200,
@@ -3668,8 +3715,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_897: bool = true;
+            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&data)) } {
             add_element_to_object(get_value_mut(&mut data, &i), &Value::Str("account_index".to_string()), accountIndex.clone());
         }
         }
@@ -3683,7 +3730,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -3849,7 +3896,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_update_leverage(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_23 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_update_leverage(signer.clone(), __ws_arg_23);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -3858,7 +3906,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        return self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        return self.public_post_send_tx(&[request.clone()]).await;
 
     Value::Null
 }
@@ -3910,7 +3958,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder requires order id or client order id".to_string()))));
         }
-        let mut txTypetxInfoVariable = self.lighter_sign_cancel_order(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_24 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_cancel_order(signer.clone(), __ws_arg_24);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -3919,7 +3968,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -3959,7 +4008,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_cancel_all_orders(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_25 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_cancel_all_orders(signer.clone(), __ws_arg_25);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -3968,7 +4018,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_orders(Value::List(vec![response.clone()]), &[]);
 
     Value::Null
@@ -4008,7 +4058,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_cancel_all_orders(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_26 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_cancel_all_orders(signer.clone(), __ws_arg_26);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -4017,7 +4068,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return response;
 
     Value::Null
@@ -4042,7 +4093,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("direction".to_string(), Value::Int(1));
             m
         });
-        return self.set_margin(symbol.clone(), amount.clone(), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        return self.set_margin(symbol.clone(), amount.clone(), &[__ws_arg_27]).await;
 
     Value::Null
 }
@@ -4066,7 +4118,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("direction".to_string(), Value::Int(0));
             m
         });
-        return self.set_margin(symbol.clone(), amount.clone(), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        return self.set_margin(symbol.clone(), amount.clone(), &[__ws_arg_28]).await;
 
     Value::Null
 }
@@ -4117,7 +4170,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        let mut txTypetxInfoVariable = self.lighter_sign_update_margin(signer.clone(), self.extend(signRaw.clone(), &[params.clone()]));
+        let __ws_arg_29 = self.extend(signRaw.clone(), &[params.clone()]);
+        let mut txTypetxInfoVariable = self.lighter_sign_update_margin(signer.clone(), __ws_arg_29);
         let mut txType: Value = get_value(&txTypetxInfoVariable, &Value::Int(0));
         let mut txInfo: Value = get_value(&txTypetxInfoVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
@@ -4126,7 +4180,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("tx_info".to_string(), txInfo.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_post_send_tx".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.public_post_send_tx(&[request.clone()]).await;
         return self.parse_margin_modification(response.clone(), &[market.clone()]);
 
     Value::Null

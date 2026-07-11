@@ -178,6 +178,7 @@ impl ExmoCore {
             "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_fixed_float_value" => self.parse_fixed_float_value(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -202,43 +203,69 @@ impl ExmoCore {
 impl crate::exchange::DerivedExchange for ExmoCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_balance(me, response)
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on ExmoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_currency(me, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ExmoCore.
-        ExmoCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ExmoCore as *mut ExmoCore) };
+        ExmoCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -563,9 +590,11 @@ impl ExmoCore {
         });
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("add".to_string())) {
-            response = self.call_method(Value::Str("private_post_margin_user_position_margin_add".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_margin_user_position_margin_add(&[__ws_arg_0]).await;
         }  else if is_equal(&type_var, &Value::Str("reduce".to_string())) {
-            response = self.call_method(Value::Str("private_post_margin_user_position_margin_remove".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_margin_user_position_margin_remove(&[__ws_arg_1]).await;
         }
         //
         //      {}
@@ -668,9 +697,8 @@ impl ExmoCore {
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         if is_equal(&method, &Value::Str("fetchPrivateTradingFees".to_string())) {
             return self.fetch_private_trading_fees(&[params.clone()]).await;
-        }  else {
-            return self.fetch_public_trading_fees(&[params.clone()]).await;
         }
+        return self.fetch_public_trading_fees(&[params.clone()]).await;
 
     Value::Null
 }
@@ -681,7 +709,7 @@ impl ExmoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_margin_pair_list".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_margin_pair_list(&[params.clone()]).await;
         //
         //     {
         //         "pairs": [{
@@ -718,8 +746,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_630: bool = true;
+            while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut pair: Value = get_value(&pairs, &i);
             let mut pair: Value = get_value(&pairs, &i);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
@@ -751,7 +779,7 @@ impl ExmoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_pair_settings".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_pair_settings(&[params.clone()]).await;
         //
         //     {
         //         "BTC_USD": {
@@ -773,8 +801,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { i = add(&i, &Value::Int(1)); } __for_first_657 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_value(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[Value::Map({
@@ -838,7 +866,7 @@ impl ExmoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut cryptoList: Value = self.call_method(Value::Str("public_get_payments_providers_crypto_list".to_string()), &[params.clone()]).await;
+        let mut cryptoList: Value = self.public_get_payments_providers_crypto_list(&[params.clone()]).await;
         //
         //     {
         //         "BTC":[
@@ -880,8 +908,8 @@ impl ExmoCore {
         let mut cryptoListKeys: Value = object_keys(&cryptoList);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
+            let mut __for_first_633: bool = true;
+            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
             let mut code: Value = get_value(&cryptoListKeys, &i);
             let mut code: Value = get_value(&cryptoListKeys, &i);
             if !is_equal(&codes, &Value::Null) && !is_true(&self.in_array(code.clone(), codes.clone())) {
@@ -898,8 +926,8 @@ impl ExmoCore {
             let mut providers: Value = self.safe_value(cryptoList.clone(), currencyId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_658: bool = true;
-                while { if !__for_first_658 { j = add(&j, &Value::Int(1)); } __for_first_658 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_632: bool = true;
+                while { if !__for_first_632 { j = add(&j, &Value::Int(1)); } __for_first_632 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut typeInner: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -934,7 +962,7 @@ impl ExmoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_payments_providers_crypto_list".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_payments_providers_crypto_list(&[params.clone()]).await;
         //
         //    {
         //        "USDT": [
@@ -983,8 +1011,8 @@ impl ExmoCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i = add(&i, &Value::Int(1)); } __for_first_660 = false; is_less_than(&i, &get_array_length(&fee)) } {
+            let mut __for_first_634: bool = true;
+            while { if !__for_first_634 { i = add(&i, &Value::Int(1)); } __for_first_634 = false; is_less_than(&i, &get_array_length(&fee)) } {
             let mut provider: Value = get_value(&fee, &i);
             let mut provider: Value = get_value(&fee, &i);
             let mut type_var: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -1046,7 +1074,7 @@ impl ExmoCore {
 }));
         let mut promises: Value = Value::List(vec![]);
         //
-        append_to_array(&mut promises, self.call_method(Value::Str("public_get_currency_list_extended".to_string()), &[params.clone()]).await);
+        append_to_array(&mut promises, self.public_get_currency_list_extended(&[params.clone()]).await);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -1055,7 +1083,7 @@ impl ExmoCore {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        append_to_array(&mut promises, self.call_method(Value::Str("public_get_payments_providers_crypto_list".to_string()), &[params.clone()]).await);
+        append_to_array(&mut promises, self.public_get_payments_providers_crypto_list(&[params.clone()]).await);
         //
         //     {
         //         "BTC":[
@@ -1083,42 +1111,59 @@ impl ExmoCore {
         let mut responses: Value = promise_all(&promises).await;
         let mut currencyList: Value = get_value(&responses, &Value::Int(0));
         let mut cryptoList: Value = get_value(&responses, &Value::Int(1));
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
+        let mut newArray: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
+            let mut __for_first_635: bool = true;
+            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currencyId: Value = self.safe_string_k(currency.clone(), "name", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut type_var: Value = Value::Str("crypto".to_string());
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
             let mut providers: Value = self.safe_list(cryptoList.clone(), currencyId.clone(), &[]);
-            if is_equal(&providers, &Value::Null) {
-                type_var = Value::Str("fiat".to_string());
-            }  else {
-                {
-                                        let mut j: Value = Value::Int(0);
-                    let mut __for_first_661: bool = true;
-                    while { if !__for_first_661 { j = add(&j, &Value::Int(1)); } __for_first_661 = false; is_less_than(&j, &get_array_length(&providers)) } {
-                    let mut provider: Value = get_value(&providers, &j);
-                    let mut provider: Value = get_value(&providers, &j);
-                    let mut name: Value = self.safe_string_k(provider.clone(), "name", &[]);
-                    // get network-id by removing extra things
-                    let mut networkId: Value = replace_str(&name, &add(&currencyId, &Value::Str(" ".to_string())), &Value::Str("".to_string()));
-                    networkId = replace_str(&networkId, &Value::Str("(".to_string()), &Value::Str("".to_string()));
-                    let mut replaceChar: Value = Value::Str(")".to_string()); // transpiler trick
-                    networkId = replace_str(&networkId, &replaceChar, &Value::Str("".to_string()));
-                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-                    if !is_true(&(Value::Bool(in_op(&networks, &networkCode)))) {
-                        add_element_to_object(&mut networks, &networkCode, Value::Map({
+            append_to_array(&mut newArray, Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), currency.clone());
+                    m.insert("providers".to_string(), providers.clone());
+                m
+            }));
+        }
+        }
+        return self.parse_currencies(newArray.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut currency: Value = self.safe_dict_k(rawCurrency.clone(), "currency", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut providers: Value = self.safe_list_k(rawCurrency.clone(), "providers", &[Value::List(vec![])]);
+        let mut currencyId: Value = self.safe_string_k(currency.clone(), "name", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        let mut type_var: Value = Value::Str("crypto".to_string());
+        let mut networks: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if is_equal(&providers, &Value::Null) {
+            type_var = Value::Str("fiat".to_string());
+        }  else {
+            {
+                                let mut j: Value = Value::Int(0);
+                let mut __for_first_636: bool = true;
+                while { if !__for_first_636 { j = add(&j, &Value::Int(1)); } __for_first_636 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut provider: Value = get_value(&providers, &j);
+                let mut provider: Value = get_value(&providers, &j);
+                let mut name: Value = self.safe_string_k(provider.clone(), "name", &[]);
+                // get network-id by removing extra things
+                let mut networkId: Value = replace_str(&name, &add(&currencyId, &Value::Str(" ".to_string())), &Value::Str("".to_string()));
+                networkId = replace_str(&networkId, &Value::Str("(".to_string()), &Value::Str("".to_string()));
+                let mut replaceChar: Value = Value::Str(")".to_string()); // transpiler trick
+                networkId = replace_str(&networkId, &replaceChar, &Value::Str("".to_string()));
+                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+                if !is_true(&(Value::Bool(in_op(&networks, &networkCode)))) {
+                    add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -1145,29 +1190,29 @@ impl ExmoCore {
         m.insert("info".to_string(), Value::List(vec![]));
     m
 }));
-                    }
-                    let mut typeInner: Value = self.safe_string_k(provider.clone(), "type", &[]);
-                    let mut minValue: Value = self.safe_string_k(provider.clone(), "min", &[]);
-                    let mut maxValue: Value = self.safe_string_k(provider.clone(), "max", &[]);
-                    let mut activeProvider: Value = self.safe_bool_k(provider.clone(), "enabled", &[]);
-                    let mut networkEntry: Value = get_value(&networks, &networkCode);
-                    if is_equal(&typeInner, &Value::Str("deposit".to_string())) {
-                        add_element_to_object(&mut networkEntry, &Value::Str("deposit".to_string()), activeProvider.clone());
-                        add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("deposit".to_string())), &Value::Str("min".to_string()), minValue.clone());
-                        add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("deposit".to_string())), &Value::Str("max".to_string()), maxValue.clone());
-                    }  else if is_equal(&typeInner, &Value::Str("withdraw".to_string())) {
-                        add_element_to_object(&mut networkEntry, &Value::Str("withdraw".to_string()), activeProvider.clone());
-                        add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("min".to_string()), minValue.clone());
-                        add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("max".to_string()), maxValue.clone());
-                    }
-                    let mut info: Value = self.safe_list_k(networkEntry.clone(), "info", &[]);
-                    append_to_array(&mut info, provider.clone());
-                    add_element_to_object(&mut networkEntry, &Value::Str("info".to_string()), info.clone());
-                    add_element_to_object(&mut networks, &networkCode, networkEntry.clone());
                 }
+                let mut typeInner: Value = self.safe_string_k(provider.clone(), "type", &[]);
+                let mut minValue: Value = self.safe_string_k(provider.clone(), "min", &[]);
+                let mut maxValue: Value = self.safe_string_k(provider.clone(), "max", &[]);
+                let mut activeProvider: Value = self.safe_bool_k(provider.clone(), "enabled", &[]);
+                let mut networkEntry: Value = get_value(&networks, &networkCode);
+                if is_equal(&typeInner, &Value::Str("deposit".to_string())) {
+                    add_element_to_object(&mut networkEntry, &Value::Str("deposit".to_string()), activeProvider.clone());
+                    add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("deposit".to_string())), &Value::Str("min".to_string()), minValue.clone());
+                    add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("deposit".to_string())), &Value::Str("max".to_string()), maxValue.clone());
+                }  else if is_equal(&typeInner, &Value::Str("withdraw".to_string())) {
+                    add_element_to_object(&mut networkEntry, &Value::Str("withdraw".to_string()), activeProvider.clone());
+                    add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("min".to_string()), minValue.clone());
+                    add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("max".to_string()), maxValue.clone());
                 }
+                let mut info: Value = self.safe_list_k(networkEntry.clone(), "info", &[]);
+                append_to_array(&mut info, provider.clone());
+                add_element_to_object(&mut networkEntry, &Value::Str("info".to_string()), info.clone());
+                add_element_to_object(&mut networks, &networkCode, networkEntry.clone());
             }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+            }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("code".to_string(), code.clone());
@@ -1202,10 +1247,7 @@ impl ExmoCore {
 }));
         m.insert("networks".to_string(), networks.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1224,7 +1266,7 @@ impl ExmoCore {
     m
 }));
         let mut promises: Value = Value::List(vec![]);
-        append_to_array(&mut promises, self.call_method(Value::Str("public_get_pair_settings".to_string()), &[params.clone()]).await);
+        append_to_array(&mut promises, self.public_get_pair_settings(&[params.clone()]).await);
         //
         //     {
         //         "BTC_USD":{
@@ -1246,7 +1288,7 @@ impl ExmoCore {
         });
         let mut fetchMargin: Value = self.check_required_credentials(&[Value::Bool(false)]);
         if is_true(&fetchMargin) {
-            append_to_array(&mut promises, self.call_method(Value::Str("private_post_margin_pair_list".to_string()), &[params.clone()]).await);
+            append_to_array(&mut promises, self.private_post_margin_pair_list(&[params.clone()]).await);
         }
         let mut responses: Value = promise_all(&promises).await;
         let mut spotResponse: Value = get_value(&responses, &Value::Int(0));
@@ -1259,8 +1301,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i = add(&i, &Value::Int(1)); } __for_first_663 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_637: bool = true;
+            while { if !__for_first_637 { i = add(&i, &Value::Int(1)); } __for_first_637 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&spotResponse, &id);
@@ -1405,7 +1447,8 @@ impl ExmoCore {
             }
         }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("public_get_candles_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_candles_history(&[__ws_arg_2]).await;
         //
         //     {
         //         "candles":[
@@ -1439,8 +1482,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&wallets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_664: bool = true;
-                while { if !__for_first_664 { i = add(&i, &Value::Int(1)); } __for_first_664 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_638: bool = true;
+                while { if !__for_first_638 { i = add(&i, &Value::Int(1)); } __for_first_638 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut item: Value = get_value(&wallets, &currencyId);
@@ -1464,8 +1507,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_665: bool = true;
-                while { if !__for_first_665 { i = add(&i, &Value::Int(1)); } __for_first_665 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_639: bool = true;
+                while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1508,9 +1551,9 @@ impl ExmoCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-            response = self.call_method(Value::Str("private_post_margin_user_wallet_list".to_string()), &[params.clone()]).await;
+            response = self.private_post_margin_user_wallet_list(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_user_info".to_string()), &[params.clone()]).await;
+            response = self.private_post_user_info(&[params.clone()]).await;
         }
         return self.parse_balance(response.clone());
 
@@ -1543,7 +1586,8 @@ impl ExmoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_order_book(&[__ws_arg_3]).await;
         let mut result: Value = self.safe_dict(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
         return self.parse_order_book(result.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[Value::Null, Value::Str("bid".to_string()), Value::Str("ask".to_string())]);
 
@@ -1570,7 +1614,8 @@ impl ExmoCore {
         self.load_markets(&[]).await;
         let mut ids: Value = Value::Null;
         if is_equal(&symbols, &Value::Null) {
-            ids = join(&self.ids, &Value::Str(",".to_string()));
+            let mut allIds: Value = self.ids.clone();
+            ids = join(&allIds, &Value::Str(",".to_string()));
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if is_greater_than(&get_array_length(&ids), &Value::Int(2048)) {
                 let mut numIds: Value = get_array_length(&self.ids);
@@ -1588,7 +1633,8 @@ impl ExmoCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_order_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_order_book(&[__ws_arg_4]).await;
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1596,8 +1642,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i = add(&i, &Value::Int(1)); } __for_first_666 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_640: bool = true;
+            while { if !__for_first_640 { i = add(&i, &Value::Int(1)); } __for_first_640 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1672,7 +1718,7 @@ impl ExmoCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
         //
         //     {
         //         "ADA_BTC":{
@@ -1695,8 +1741,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i = add(&i, &Value::Int(1)); } __for_first_667 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_641: bool = true;
+            while { if !__for_first_641 { i = add(&i, &Value::Int(1)); } __for_first_641 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -1725,14 +1771,14 @@ impl ExmoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_ticker".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
         let mut market: Value = self.market(symbol.clone());
         return self.parse_ticker(get_value(&response, &get_value(&market, &Value::Str("id".to_string()))), &[market.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1855,7 +1901,8 @@ impl ExmoCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades(&[__ws_arg_5]).await;
         //
         //     {
         //         "ETH_BTC":[
@@ -1938,9 +1985,11 @@ impl ExmoCore {
         add_element_to_object(&mut request, &Value::Str("offset".to_string()), offset.clone());
         let mut response: Value = Value::Null;
         if is_true(&isSpot) {
-            response = self.call_method(Value::Str("private_post_user_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_user_trades(&[__ws_arg_6]).await;
         }  else {
-            let mut responseFromExchange: Value = self.call_method(Value::Str("private_post_margin_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            let mut responseFromExchange: Value = self.private_post_margin_trades(&[__ws_arg_7]).await;
             //
             //    {
             //        "trades": {
@@ -1965,8 +2014,8 @@ impl ExmoCore {
         let mut marketIdsInner: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_668: bool = true;
-            while { if !__for_first_668 { i = add(&i, &Value::Int(1)); } __for_first_668 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
+            let mut __for_first_642: bool = true;
+            while { if !__for_first_642 { i = add(&i, &Value::Int(1)); } __for_first_642 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut resultMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -2131,7 +2180,8 @@ impl ExmoCore {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), side.clone());
                     add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
                 }
-                response = self.call_method(Value::Str("private_post_stop_market_order_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_stop_market_order_create(&[__ws_arg_8]).await;
             }  else {
                 let mut execType: Value = self.safe_string_k(params.clone(), "exec_type", &[]);
                 let mut isPostOnly: Value = Value::Null;
@@ -2149,7 +2199,8 @@ impl ExmoCore {
                 }  else if !is_equal(&timeInForce, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("exec_type".to_string()), timeInForce.clone());
                 }
-                response = self.call_method(Value::Str("private_post_order_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_order_create(&[__ws_arg_9]).await;
             }
         }  else {
             if !is_equal(&triggerPrice, &Value::Null) {
@@ -2168,7 +2219,8 @@ impl ExmoCore {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), type_var.clone());
                 }
             }
-            response = self.call_method(Value::Str("private_post_margin_user_order_create".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_margin_user_order_create(&[__ws_arg_10]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -2210,14 +2262,17 @@ impl ExmoCore {
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))) {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-            response = self.call_method(Value::Str("private_post_margin_user_order_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_margin_user_order_cancel(&[__ws_arg_11]).await;
         }  else {
             if is_true(&trigger) {
                 add_element_to_object(&mut request, &Value::Str("parent_order_id".to_string()), id.clone());
-                response = self.call_method(Value::Str("private_post_stop_market_order_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_stop_market_order_cancel(&[__ws_arg_12]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-                response = self.call_method(Value::Str("private_post_order_cancel".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_order_cancel(&[__ws_arg_13]).await;
             }
         }
         return self.parse_order(response.clone(), &[]);
@@ -2247,7 +2302,8 @@ impl ExmoCore {
                 m.insert("order_id".to_string(), to_string_val(&id));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_order_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_trades(&[__ws_arg_14]).await;
         //
         //     {
         //         "type": "buy",
@@ -2314,9 +2370,11 @@ impl ExmoCore {
         });
         let mut response: Value = Value::Null;
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-            response = self.call_method(Value::Str("private_post_margin_user_order_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_margin_user_order_trades(&[__ws_arg_15]).await;
         }  else {
-            response = self.call_method(Value::Str("private_post_order_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_order_trades(&[__ws_arg_16]).await;
         }
         let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -2357,7 +2415,7 @@ impl ExmoCore {
         let mut response: Value = Value::Null;
         let mut orders: Value = Value::List(vec![]);
         if is_true(&isMargin) {
-            response = self.call_method(Value::Str("private_post_margin_user_order_list".to_string()), &[params.clone()]).await;
+            response = self.private_post_margin_user_order_list(&[params.clone()]).await;
             //
             //    {
             //        "orders": [
@@ -2393,7 +2451,7 @@ impl ExmoCore {
             let mut responseOrders: Value = self.safe_value_k(response.clone(), "orders", &[]);
             orders = self.parse_orders(responseOrders.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
         }  else {
-            response = self.call_method(Value::Str("private_post_user_open_orders".to_string()), &[params.clone()]).await;
+            response = self.private_post_user_open_orders(&[params.clone()]).await;
             //
             //    {
             //        "USDT_USD": [
@@ -2414,8 +2472,8 @@ impl ExmoCore {
             let mut marketIds: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_669: bool = true;
-                while { if !__for_first_669 { i = add(&i, &Value::Int(1)); } __for_first_669 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_643: bool = true;
+                while { if !__for_first_643 { i = add(&i, &Value::Int(1)); } __for_first_643 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
@@ -2475,7 +2533,7 @@ impl ExmoCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
@@ -2667,7 +2725,8 @@ impl ExmoCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&isSpot) {
-            response = self.call_method(Value::Str("private_post_user_cancelled_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_user_cancelled_orders(&[__ws_arg_17]).await;
             //
             //    [
             //        {
@@ -2688,48 +2747,24 @@ impl ExmoCore {
                 m
             })]);
             return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
-        }  else {
-            let mut responseSwap: Value = self.call_method(Value::Str("private_post_margin_user_order_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            //
-            //    {
-            //        "items": [
-            //            {
-            //                "event_id": "692862104574106858",
-            //                "event_time": "1694116400173489405",
-            //                "event_type": "OrderCancelStarted",
-            //                "order_id": "692862104561289319",
-            //                "order_type": "stop_limit_sell",
-            //                "order_status": "cancel_started",
-            //                "trade_id": "0",
-            //                "trade_type":"",
-            //                "trade_quantity": "0",
-            //                "trade_price": "0",
-            //                "pair": "ADA_USDT",
-            //                "quantity": "12",
-            //                "price": "0.23",
-            //                "stop_price": "0.22",
-            //                "distance": "0"
-            //            }
-            //            ...
-            //        ]
-            //    }
-            //
-            let mut items: Value = self.safe_value_k(responseSwap.clone(), "items", &[]);
-            let mut orders: Value = self.parse_orders(items.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
-            let mut result: Value = Value::List(vec![]);
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_670: bool = true;
-                while { if !__for_first_670 { i = add(&i, &Value::Int(1)); } __for_first_670 = false; is_less_than(&i, &get_array_length(&orders)) } {
-                let mut order: Value = get_value(&orders, &i);
-                let mut order: Value = get_value(&orders, &i);
-                if is_equal(&get_value(&order, &Value::Str("status".to_string())), &Value::Str("canceled".to_string())) {
-                    append_to_array(&mut result, order.clone());
-                }
-            }
-            }
-            return result;
         }
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut responseSwap: Value = self.private_post_margin_user_order_history(&[__ws_arg_18]).await;
+        let mut items: Value = self.safe_value_k(responseSwap.clone(), "items", &[]);
+        let mut orders: Value = self.parse_orders(items.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
+        let mut result: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_644: bool = true;
+            while { if !__for_first_644 { i = add(&i, &Value::Int(1)); } __for_first_644 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut order: Value = get_value(&orders, &i);
+            let mut order: Value = get_value(&orders, &i);
+            if is_equal(&get_value(&order, &Value::Str("status".to_string())), &Value::Str("canceled".to_string())) {
+                append_to_array(&mut result, order.clone());
+            }
+        }
+        }
+        return result;
 
     Value::Null
 }
@@ -2785,7 +2820,8 @@ impl ExmoCore {
         if !is_equal(&triggerPrice, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), self.price_to_precision(get_value(&market, &Value::Str("symbol".to_string())), triggerPrice.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_margin_user_order_update".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_margin_user_order_update(&[__ws_arg_19]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -2806,7 +2842,7 @@ impl ExmoCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_post_deposit_address".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_post_deposit_address(&[params.clone()]).await;
         //
         //     {
         //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
@@ -2891,7 +2927,8 @@ impl ExmoCore {
             add_element_to_object(&mut request, &Value::Str("transport".to_string()), network.clone());
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_withdraw_crypt".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_withdraw_crypt(&[__ws_arg_20]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -3095,7 +3132,8 @@ impl ExmoCore {
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_wallet_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_wallet_history(&[__ws_arg_21]).await;
         return self.parse_transactions(get_value(&response, &Value::Str("history".to_string())), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3134,7 +3172,8 @@ impl ExmoCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_wallet_operations".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_wallet_operations(&[__ws_arg_22]).await;
         //
         //     {
         //         "items": [
@@ -3195,7 +3234,8 @@ impl ExmoCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_wallet_operations".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_wallet_operations(&[__ws_arg_23]).await;
         //
         //     {
         //         "items": [
@@ -3260,7 +3300,8 @@ impl ExmoCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_wallet_operations".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_wallet_operations(&[__ws_arg_24]).await;
         //
         //     {
         //         "items": [
@@ -3330,7 +3371,8 @@ impl ExmoCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_wallet_operations".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_wallet_operations(&[__ws_arg_25]).await;
         //
         //     {
         //         "items": [
@@ -3384,11 +3426,12 @@ impl ExmoCore {
         }  else if is_equal(&api, &Value::Str("private".to_string())) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
-            body = self.urlencode(self.extend(Value::Map({
+            let __ws_arg_26 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), nonce.clone());
                 m
-            }), &[params.clone()]), &[]);
+            }), &[params.clone()]);
+            body = self.urlencode(__ws_arg_26, &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));

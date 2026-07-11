@@ -211,63 +211,93 @@ impl BydfiCore {
 impl crate::exchange::DerivedExchange for BydfiCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_funding_rate_history(self, entry, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_funding_rate_history(me, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_margin_mode(me, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BydfiCore.
-        BydfiCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BydfiCore as *mut BydfiCore) };
+        BydfiCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -745,7 +775,7 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_exchange_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v1_fapi_market_exchange_info(&[params.clone()]).await;
         //
         //     {
         //         "code": "200",
@@ -943,7 +973,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), self.get_closest_limit(limit.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_fapi_market_depth(&[__ws_arg_0]).await;
         //
         //     {
         //         "code": 200,
@@ -987,8 +1018,8 @@ impl BydfiCore {
         let mut result: Value = Value::Int(1000);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&limits)) } {
+            let mut __for_first_469: bool = true;
+            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &get_array_length(&limits)) } {
             if is_less_than_or_equal(&limit, &get_value(&limits, &i)) {
                 result = get_value(&limits, &i);
                 break;
@@ -1029,7 +1060,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_fapi_market_trades(&[__ws_arg_1]).await;
         //
         //     {
         //         "code": 200,
@@ -1105,7 +1137,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_history_trade".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_history_trade(&[__ws_arg_2]).await;
         //
         //     {
         //         "code": 200,
@@ -1138,7 +1171,7 @@ impl BydfiCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -1283,7 +1316,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_fapi_market_klines(&[__ws_arg_3]).await;
         //
         //     {
         //         "code": 200,
@@ -1332,7 +1366,7 @@ impl BydfiCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_ticker24hr".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_v1_fapi_market_ticker24hr(&[params.clone()]).await;
         //
         //     {
         //         "code": 200,
@@ -1378,7 +1412,8 @@ impl BydfiCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_fapi_market_ticker24hr(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1458,7 +1493,8 @@ impl BydfiCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_fapi_market_funding_rate(&[__ws_arg_5]).await;
         //
         //     {
         //         "code": 200,
@@ -1559,7 +1595,8 @@ impl BydfiCore {
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_v1_fapi_market_funding_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_v1_fapi_market_funding_rate_history(&[__ws_arg_6]).await;
         //
         //     {
         //         "code": 200,
@@ -1647,7 +1684,7 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         })]);
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_fapi_trade_place_order".to_string()), &[orderRequest.clone()]).await;
+        let mut response: Value = self.private_post_v1_fapi_trade_place_order(&[orderRequest.clone()]).await;
         //
         //     {
         //         "code": 200,
@@ -1821,8 +1858,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_470: bool = true;
+            while { if !__for_first_470 { i = add(&i, &Value::Int(1)); } __for_first_470 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -1846,7 +1883,8 @@ impl BydfiCore {
                 m.insert("orders".to_string(), ordersRequests.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_fapi_trade_batch_place_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_v1_fapi_trade_batch_place_order(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
@@ -1881,7 +1919,7 @@ impl BydfiCore {
         let mut wallet: Value = Value::Str("W001".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrder".to_string()), Value::Str("wallet".to_string()), &[wallet.clone()]); wallet = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         add_element_to_object(&mut request, &Value::Str("wallet".to_string()), wallet.clone());
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_fapi_trade_edit_order".to_string()), &[request.clone()]).await;
+        let mut response: Value = self.private_post_v1_fapi_trade_edit_order(&[request.clone()]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1914,8 +1952,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_471: bool = true;
+            while { if !__for_first_471 { i = add(&i, &Value::Int(1)); } __for_first_471 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -1939,7 +1977,8 @@ impl BydfiCore {
                 m.insert("editOrders".to_string(), ordersRequests.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_fapi_trade_batch_edit_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_v1_fapi_trade_batch_edit_order(&[__ws_arg_8]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
@@ -2008,7 +2047,8 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_fapi_trade_cancel_all_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_v1_fapi_trade_cancel_all_order(&[__ws_arg_9]).await;
         //
         //     {
         //         "code": 200,
@@ -2118,9 +2158,11 @@ impl BydfiCore {
             //         "success": true
             //     }
             //
-            response = self.call_method(Value::Str("private_get_v1_fapi_trade_open_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_fapi_trade_open_order(&[__ws_arg_10]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_v1_fapi_trade_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_fapi_trade_plan_order(&[__ws_arg_11]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -2171,9 +2213,11 @@ impl BydfiCore {
         let mut trigger: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrder".to_string()), Value::Str("trigger".to_string()), &[trigger.clone()]); trigger = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_true(&trigger) {
-            response = self.call_method(Value::Str("private_get_v1_fapi_trade_open_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_fapi_trade_open_order(&[__ws_arg_12]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_v1_fapi_trade_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_fapi_trade_plan_order(&[__ws_arg_13]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -2237,7 +2281,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_history_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_history_order(&[__ws_arg_14]).await;
         //
         //     {
         //         "code": 200,
@@ -2329,7 +2374,7 @@ impl BydfiCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, fetchOpenOrders, fetchOpenOrder
@@ -2532,7 +2577,8 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_fapi_trade_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_v1_fapi_trade_leverage(&[__ws_arg_15]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2570,7 +2616,8 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_leverage(&[__ws_arg_16]).await;
         //
         //     {
         //         "code": 200,
@@ -2633,7 +2680,8 @@ impl BydfiCore {
                 m.insert("contractType".to_string(), contractType.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_positions(&[__ws_arg_17]).await;
         //
         //     {
         //         "code": 200,
@@ -2688,7 +2736,8 @@ impl BydfiCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_positions(&[__ws_arg_18]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_positions(data.clone(), &[Value::List(vec![get_value(&market, &Value::Str("symbol".to_string()))])]);
 
@@ -2852,7 +2901,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_position_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_position_history(&[__ws_arg_19]).await;
         //
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -2896,7 +2946,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_trade_position_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_trade_position_history(&[__ws_arg_20]).await;
         //
         //     {
         //         "code": 200,
@@ -2975,7 +3026,8 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_user_data_assets_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_user_data_assets_margin(&[__ws_arg_21]).await;
         //
         //     {
         //         "code": 200,
@@ -3050,7 +3102,8 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         });
-        return self.call_method(Value::Str("private_post_v1_fapi_user_data_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_v1_fapi_user_data_margin_type(&[__ws_arg_22]).await;
 
     Value::Null
 }
@@ -3093,7 +3146,8 @@ impl BydfiCore {
                 m.insert("settleCoin".to_string(), settleCoin.clone());
             m
         });
-        return self.call_method(Value::Str("private_post_v1_fapi_user_data_position_side_dual".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_v1_fapi_user_data_position_side_dual(&[__ws_arg_23]).await;
 
     Value::Null
 }
@@ -3135,7 +3189,8 @@ impl BydfiCore {
                 m.insert("wallet".to_string(), wallet.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_fapi_user_data_position_side_dual".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_fapi_user_data_position_side_dual(&[__ws_arg_24]).await;
         //
         //     {
         //         "code": 200,
@@ -3218,7 +3273,8 @@ impl BydfiCore {
             //         "success": true
             //     }
             //
-            response = self.call_method(Value::Str("private_get_v1_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_account_assets(&[__ws_arg_25]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("wallet".to_string()), wallet.clone());
             //
@@ -3249,7 +3305,8 @@ impl BydfiCore {
             //         ],
             //         "success": true
             //     }
-            response = self.call_method(Value::Str("private_get_v1_fapi_account_balance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_fapi_account_balance(&[__ws_arg_26]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_balance(data.clone());
@@ -3268,8 +3325,8 @@ impl BydfiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_472: bool = true;
+            while { if !__for_first_472 { i = add(&i, &Value::Int(1)); } __for_first_472 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -3318,7 +3375,8 @@ impl BydfiCore {
                 m.insert("toType".to_string(), toId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_v1_account_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_v1_account_transfer(&[__ws_arg_27]).await;
         //
         //     {
         //         "code": 200,
@@ -3401,7 +3459,8 @@ impl BydfiCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("rows".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_v1_account_transfer_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_v1_account_transfer_records(&[__ws_arg_28]).await;
         //
         //     {
         //         "code": 200,
@@ -3613,12 +3672,14 @@ impl BydfiCore {
             //         "success": true
             //     }
             //
-            response = self.call_method(Value::Str("private_get_v1_spot_deposit_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_spot_deposit_records(&[__ws_arg_29]).await;
         }  else {
             //
             // todo check after withdrawal
             //
-            response = self.call_method(Value::Str("private_get_v1_spot_withdraw_records".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_v1_spot_withdraw_records(&[__ws_arg_30]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut transactionParams: Value = Value::Map({

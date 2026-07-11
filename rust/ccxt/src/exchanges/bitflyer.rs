@@ -182,35 +182,51 @@ impl BitflyerCore {
 impl crate::exchange::DerivedExchange for BitflyerCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::parse_balance(me, response)
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitflyerCore.
-        BitflyerCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitflyerCore as *mut BitflyerCore) };
+        BitflyerCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -491,7 +507,7 @@ impl BitflyerCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut jp_markets: Value = self.call_method(Value::Str("public_get_getmarkets".to_string()), &[params.clone()]).await;
+        let mut jp_markets: Value = self.public_get_getmarkets(&[params.clone()]).await;
         //
         //     [
         //         // spot
@@ -508,14 +524,14 @@ impl BitflyerCore {
         //         },
         //     ];
         //
-        let mut us_markets: Value = self.call_method(Value::Str("public_get_getmarkets_usa".to_string()), &[params.clone()]).await;
+        let mut us_markets: Value = self.public_get_getmarkets_usa(&[params.clone()]).await;
         //
         //     [
         //         { "product_code": "BTC_USD", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let mut eu_markets: Value = self.call_method(Value::Str("public_get_getmarkets_eu".to_string()), &[params.clone()]).await;
+        let mut eu_markets: Value = self.public_get_getmarkets_eu(&[params.clone()]).await;
         //
         //     [
         //         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -527,8 +543,8 @@ impl BitflyerCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_323: bool = true;
-            while { if !__for_first_323 { i = add(&i, &Value::Int(1)); } __for_first_323 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_316: bool = true;
+            while { if !__for_first_316 { i = add(&i, &Value::Int(1)); } __for_first_316 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "product_code", &[]);
@@ -666,8 +682,8 @@ impl BitflyerCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_324: bool = true;
-            while { if !__for_first_324 { i = add(&i, &Value::Int(1)); } __for_first_324 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_317: bool = true;
+            while { if !__for_first_317 { i = add(&i, &Value::Int(1)); } __for_first_317 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
@@ -697,7 +713,7 @@ impl BitflyerCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_getbalance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_getbalance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -726,7 +742,8 @@ impl BitflyerCore {
                 m.insert("product_code".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut orderbook: Value = self.call_method(Value::Str("public_get_getboard".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut orderbook: Value = self.public_get_getboard(&[__ws_arg_0]).await;
         return self.parse_order_book(orderbook.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("size".to_string())]);
 
     Value::Null
@@ -786,13 +803,14 @@ impl BitflyerCore {
                 m.insert("product_code".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_getticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_getticker(&[__ws_arg_1]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public) v1
@@ -890,7 +908,8 @@ impl BitflyerCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_getexecutions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_getexecutions(&[__ws_arg_2]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -917,7 +936,8 @@ impl BitflyerCore {
                 m.insert("product_code".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_gettradingcommission".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_gettradingcommission(&[__ws_arg_3]).await;
         //
         //   {
         //       commission_rate: '0.0020'
@@ -967,7 +987,8 @@ impl BitflyerCore {
                 m.insert("size".to_string(), amount.clone());
             m
         });
-        let mut result: Value = self.call_method(Value::Str("private_post_sendchildorder".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut result: Value = self.private_post_sendchildorder(&[__ws_arg_4]).await;
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         let mut id: Value = self.safe_string_k(result.clone(), "child_order_acceptance_id", &[]);
         return self.safe_order(Value::Map({
@@ -1006,7 +1027,8 @@ impl BitflyerCore {
                 m.insert("child_order_acceptance_id".to_string(), id.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_cancelchildorder".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_cancelchildorder(&[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1031,7 +1053,7 @@ impl BitflyerCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "child_order_date", &[]));
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
@@ -1114,7 +1136,8 @@ impl BitflyerCore {
                 m.insert("count".to_string(), limit.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_getchildorders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_getchildorders(&[__ws_arg_6]).await;
         let mut orders: Value = self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
         if !is_equal(&symbol, &Value::Null) {
             orders = self.filter_by(orders.clone(), Value::Str("symbol".to_string()), symbol.clone(), &[]);
@@ -1148,7 +1171,8 @@ impl BitflyerCore {
                 m.insert("child_order_state".to_string(), Value::Str("ACTIVE".to_string()));
             m
         });
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_7]).await;
 
     Value::Null
 }
@@ -1177,7 +1201,8 @@ impl BitflyerCore {
                 m.insert("child_order_state".to_string(), Value::Str("COMPLETED".to_string()));
             m
         });
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_8]).await;
 
     Value::Null
 }
@@ -1243,7 +1268,8 @@ impl BitflyerCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_getexecutions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_getexecutions(&[__ws_arg_9]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1273,7 +1299,8 @@ impl BitflyerCore {
                 m.insert("product_code".to_string(), self.market_ids(&[symbols.clone()]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_getpositions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_getpositions(&[__ws_arg_10]).await;
         return response;
 
     Value::Null
@@ -1309,7 +1336,8 @@ impl BitflyerCore {
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_withdraw(&[__ws_arg_11]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -1346,7 +1374,8 @@ impl BitflyerCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone()); // default 100
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_getcoinins".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_getcoinins(&[__ws_arg_12]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1383,7 +1412,8 @@ impl BitflyerCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone()); // default 100
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_getcoinouts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_getcoinouts(&[__ws_arg_13]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1525,7 +1555,8 @@ impl BitflyerCore {
                 m.insert("product_code".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_getfundingrate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_getfundingrate(&[__ws_arg_14]).await;
         return self.parse_funding_rate(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1591,7 +1622,8 @@ impl BitflyerCore {
         if is_equal(&api, &Value::Str("private".to_string())) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
-            let mut auth: Value = join(&Value::List(vec![nonce.clone(), method.clone(), request.clone()]), &Value::Str("".to_string()));
+            let mut content: Value = Value::List(vec![nonce.clone(), method.clone(), request.clone()]);
+            let mut auth: Value = join(&content, &Value::Str("".to_string()));
             if is_true(&get_array_length(&object_keys(&params))) {
                 if !is_equal(&method, &Value::Str("GET".to_string())) {
                     body = self.json(params.clone());

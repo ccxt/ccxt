@@ -10646,7 +10646,7 @@ impl Exchange {
             }
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subHash))) {
                 let mut error = crate::exchange_errors::unsubscribe_error(add(&add(&self.id, &Value::Str(" ".to_string())), &subHash));
-                client.reject(error, subHash);
+                client.reject(&[Value::from(error.clone()), subHash.clone()]);
             }
         }  else {
             let mut clientSubscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
@@ -10668,12 +10668,12 @@ impl Exchange {
                 let mut future: Value = get_value(&clientFutures, &i);
                 if is_true(&Value::Bool(starts_with(&future, &subHash))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(add(&add(&self.id, &Value::Str(" ".to_string())), &future));
-                    client.reject(error, future);
+                    client.reject(&[Value::from(error.clone()), future.clone()]);
                 }
             }
             }
         }
-        client.resolve(Value::Bool(true), unsubHash);
+        client.resolve(&[Value::Bool(true), unsubHash.clone()]);
 }
 
     pub fn clean_cache(&mut self, mut subscription: Value) {

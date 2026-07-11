@@ -270,6 +270,11 @@ pub struct Exchange {
     pub trades:            Value,
     pub myTrades:          Value,
     pub positions:         Value,
+    // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
+    // Per-exchange WS code reads `self.newUpdates` to decide whether to call
+    // `cache.getLimit(...)` (return only what's new since the last call) or
+    // emit the whole rolling buffer.
+    pub newUpdates:        Value,
     pub tickers:           Value,
     pub bidsasks:          Value,
     pub ohlcvs:            Value,
@@ -277,6 +282,8 @@ pub struct Exchange {
     pub balance:           Value,
     pub liquidations:      Value,
     pub myLiquidations:    Value,
+    pub fundingRates:      Value,
+    pub triggerOrders:     Value,
     pub transactions:      Value,
     pub reloadingMarkets:  Value,
     pub marketsLoading:    Value,
@@ -549,6 +556,7 @@ impl Exchange {
             trades:        Value::Map(HashMap::new()),
             myTrades:      Value::Null,
             positions:     Value::Null,
+            newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
             bidsasks:      Value::Map(HashMap::new()),
             ohlcvs:        Value::Map(HashMap::new()),
@@ -556,6 +564,8 @@ impl Exchange {
             balance:       Value::Map(HashMap::new()),
             liquidations:  Value::Null,
             myLiquidations: Value::Null,
+            fundingRates:  Value::Null,
+            triggerOrders: Value::Null,
             transactions:  Value::Map(HashMap::new()),
             reloadingMarkets: Value::Null,
             marketsLoading:   Value::Null,

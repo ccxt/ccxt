@@ -21,8 +21,11 @@ pub async fn testSleep() -> Value {
     // Allow a small margin of error due to execution time
     let mut marginOfError: Value = Value::Int(20);
     let mut maxElapsed: Value = add(&sleepAmount, &marginOfError);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&elapsed, &sleepAmount)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&elapsed, &maxElapsed)))));
+    let mut elapsedBiggerThanSleep: Value = Value::Bool(is_greater_than_or_equal(&elapsed, &sleepAmount));
+    let mut elapsedLessThanMax: Value = Value::Bool(is_less_than_or_equal(&elapsed, &maxElapsed));
+    assert!(ccxt::runtime::is_true(&(elapsedBiggerThanSleep.clone())));
+    assert!(ccxt::runtime::is_true(&(elapsedLessThanMax.clone())));
+    return Value::Bool(true);
 
     Value::Null
 }

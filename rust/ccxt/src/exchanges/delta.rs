@@ -182,6 +182,7 @@ impl DeltaCore {
             "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -214,75 +215,117 @@ impl DeltaCore {
 impl crate::exchange::DerivedExchange for DeltaCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_ledger_entry(me, entry, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on DeltaCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_currency(me, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_open_interest(self, interest, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_open_interest(me, interest, &[market.clone()])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_adl_rank(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_adl_rank(me, info, &[market.clone()])
     }
     fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_greeks(self, greeks, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_greeks(me, greeks, &[market.clone()])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_margin_mode(me, margin_mode, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::create_expired_option_market(self, symbol)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::create_expired_option_market(me, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeltaCore.
-        DeltaCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const DeltaCore as *mut DeltaCore) };
+        DeltaCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -642,6 +685,7 @@ impl DeltaCore {
         let mut strike: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[]);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
+        let mut optionTypeUnified: Value = ternary(is_true(&(is_equal(&optionType, &Value::Str("C".to_string())))), Value::Str("call".to_string()), Value::Str("put".to_string()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), add(&add(&add(&add(&add(&add(&optionType, &Value::Str("-".to_string())), &base), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &expiry));
@@ -665,7 +709,7 @@ impl DeltaCore {
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
         m.insert("expiry".to_string(), timestamp.clone());
         m.insert("expiryDatetime".to_string(), datetime.clone());
-        m.insert("optionType".to_string(), ternary(is_true(&(is_equal(&optionType, &Value::Str("C".to_string())))), Value::Str("call".to_string()), Value::Str("put".to_string())));
+        m.insert("optionType".to_string(), optionTypeUnified.clone());
         m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -728,7 +772,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_settings".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_settings(&[params.clone()]).await;
         // full response sample under `fetchStatus`
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -751,7 +795,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_settings".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_settings(&[params.clone()]).await;
         //
         //     {
         //         "result": {
@@ -838,7 +882,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_assets".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_assets(&[params.clone()]).await;
         //
         //    {
         //        "result": [
@@ -888,33 +932,29 @@ impl DeltaCore {
         //     }
         //
         let mut currencies: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
-        let mut result: Value = Value::Map({
+        return self.parse_currencies(currencies.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
+        let mut numericId: Value = self.safe_integer_k(rawCurrency.clone(), "id", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::List(vec![])]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&currencies)) } {
-            let mut currency: Value = get_value(&currencies, &i);
-            let mut currency: Value = get_value(&currencies, &i);
-            let mut id: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
-            let mut numericId: Value = self.safe_integer_k(currency.clone(), "id", &[]);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut chains: Value = self.safe_list_k(currency.clone(), "networks", &[Value::List(vec![])]);
-            let mut networks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_614: bool = true;
-                while { if !__for_first_614 { j = add(&j, &Value::Int(1)); } __for_first_614 = false; is_less_than(&j, &get_array_length(&chains)) } {
-                let mut chain: Value = get_value(&chains, &j);
-                let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_592: bool = true;
+            while { if !__for_first_592 { j = add(&j, &Value::Int(1)); } __for_first_592 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -942,20 +982,20 @@ impl DeltaCore {
 }));
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("numericId".to_string(), numericId.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "name", &[]));
-        m.insert("info".to_string(), currency.clone());
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "deposit_status", &[]), &Value::Str("enabled".to_string()))));
-        m.insert("withdraw".to_string(), Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "withdrawal_status", &[]), &Value::Str("enabled".to_string()))));
-        m.insert("fee".to_string(), self.safe_number_k(currency.clone(), "base_withdrawal_fee", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "precision", &[])]), &[]));
+        m.insert("deposit".to_string(), Value::Bool(is_equal(&self.safe_string_k(rawCurrency.clone(), "deposit_status", &[]), &Value::Str("enabled".to_string()))));
+        m.insert("withdraw".to_string(), Value::Bool(is_equal(&self.safe_string_k(rawCurrency.clone(), "withdrawal_status", &[]), &Value::Str("enabled".to_string()))));
+        m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "base_withdrawal_fee", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -966,7 +1006,7 @@ impl DeltaCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(currency.clone(), "min_withdrawal_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "min_withdrawal_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -975,10 +1015,7 @@ impl DeltaCore {
         m.insert("networks".to_string(), networks.clone());
         m.insert("type".to_string(), Value::Str("crypto".to_string()));
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1014,8 +1051,8 @@ impl DeltaCore {
         let mut keys: Value = object_keys(&input);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { i = add(&i, &Value::Int(1)); } __for_first_593 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
@@ -1044,7 +1081,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("public_get_products".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_products(&[params.clone()]).await;
         //
         //     {
         //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -1227,8 +1264,8 @@ impl DeltaCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut type_var: Value = self.safe_string_k(market.clone(), "contract_type", &[]);
@@ -1551,7 +1588,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_0]).await;
         //
         // spot
         //
@@ -1702,7 +1740,7 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
         //
         // spot
         //
@@ -1840,8 +1878,8 @@ impl DeltaCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_595: bool = true;
+            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -1878,7 +1916,8 @@ impl DeltaCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_l2orderbook_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_l2orderbook_symbol(&[__ws_arg_1]).await;
         //
         //     {
         //         "result":{
@@ -1906,7 +1945,7 @@ impl DeltaCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
@@ -2047,7 +2086,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_trades_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades_symbol(&[__ws_arg_2]).await;
         //
         //     {
         //         "result":[
@@ -2129,7 +2169,8 @@ impl DeltaCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("until".to_string())]), &[]);
-        let mut response: Value = self.call_method(Value::Str("public_get_history_candles".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_history_candles(&[__ws_arg_3]).await;
         //
         //     {
         //         "success":true,
@@ -2159,8 +2200,8 @@ impl DeltaCore {
 })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset_id", &[]);
@@ -2191,7 +2232,7 @@ impl DeltaCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_wallet_balances".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_wallet_balances(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
     Value::Null
@@ -2218,7 +2259,8 @@ impl DeltaCore {
                 m.insert("product_id".to_string(), get_value(&market, &Value::Str("numericId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_positions(&[__ws_arg_4]).await;
         //
         //     {
         //         "result":{
@@ -2254,7 +2296,7 @@ impl DeltaCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("private_get_positions_margined".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_positions_margined(&[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -2371,7 +2413,7 @@ impl DeltaCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
@@ -2547,7 +2589,8 @@ impl DeltaCore {
             add_element_to_object(&mut request, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
             params = self.omit(params.clone(), Value::Str("reduceOnly".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_orders(&[__ws_arg_5]).await;
         //
         //     {
         //         "result":{
@@ -2628,7 +2671,8 @@ impl DeltaCore {
         if !is_equal(&price, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        let mut response: Value = self.call_method(Value::Str("private_put_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;
         //
         //     {
         //         "success": true,
@@ -2679,7 +2723,8 @@ impl DeltaCore {
                 m.insert("product_id".to_string(), get_value(&market, &Value::Str("numericId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_delete_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_orders(&[__ws_arg_7]).await;
         //
         //     {
         //         "result":{
@@ -2747,7 +2792,8 @@ impl DeltaCore {
                 m.insert("product_id".to_string(), get_value(&market, &Value::Str("numericId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_delete_orders_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_orders_all(&[__ws_arg_8]).await;
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -2789,10 +2835,12 @@ impl DeltaCore {
         let mut response: Value = Value::Null;
         if !is_equal(&clientOrderId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("client_oid".to_string()), clientOrderId.clone());
-            response = self.call_method(Value::Str("private_get_orders_client_order_id_client_oid".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_orders_client_order_id_client_oid(&[__ws_arg_9]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-            response = self.call_method(Value::Str("private_get_orders_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_orders_order_id(&[__ws_arg_10]).await;
         }
         //
         //     {
@@ -2901,9 +2949,11 @@ impl DeltaCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&method, &Value::Str("privateGetOrders".to_string())) {
-            response = self.call_method(Value::Str("private_get_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_orders(&[__ws_arg_11]).await;
         }  else if is_equal(&method, &Value::Str("privateGetOrdersHistory".to_string())) {
-            response = self.call_method(Value::Str("private_get_orders_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_orders_history(&[__ws_arg_12]).await;
         }
         //
         //     {
@@ -2969,7 +3019,8 @@ impl DeltaCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_fills(&[__ws_arg_13]).await;
         //
         //     {
         //         "meta":{
@@ -3053,7 +3104,8 @@ impl DeltaCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_wallet_transactions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_wallet_transactions(&[__ws_arg_14]).await;
         //
         //     {
         //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -3189,7 +3241,8 @@ impl DeltaCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_deposits_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposits_address(&[__ws_arg_15]).await;
         //
         //    {
         //        "success": true,
@@ -3273,7 +3326,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_16]).await;
         //
         //     {
         //         "result": {
@@ -3350,7 +3404,8 @@ impl DeltaCore {
                 m.insert("contract_types".to_string(), Value::Str("perpetual_futures".to_string()));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers(&[__ws_arg_17]).await;
         //
         //     {
         //         "result": [
@@ -3535,7 +3590,8 @@ impl DeltaCore {
                 m.insert("delta_margin".to_string(), amount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_positions_change_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_positions_change_margin(&[__ws_arg_18]).await;
         //
         //     {
         //         "result": {
@@ -3634,7 +3690,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_19]).await;
         //
         //     {
         //         "result": {
@@ -3786,7 +3843,8 @@ impl DeltaCore {
                 m.insert("product_id".to_string(), get_value(&market, &Value::Str("numericId".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_products_product_id_orders_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_products_product_id_orders_leverage(&[__ws_arg_20]).await;
         //
         //     {
         //         "result": {
@@ -3853,7 +3911,8 @@ impl DeltaCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        return self.call_method(Value::Str("private_post_products_product_id_orders_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_products_product_id_orders_leverage(&[__ws_arg_21]).await;
 
     Value::Null
 }
@@ -3890,7 +3949,8 @@ impl DeltaCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("public_get_products".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_products(&[__ws_arg_22]).await;
         //
         //     {
         //         "result": [
@@ -4030,8 +4090,8 @@ impl DeltaCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_597: bool = true;
+            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), market.clone()));
         }
         }
@@ -4061,7 +4121,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_23]).await;
         //
         //     {
         //         "result": {
@@ -4233,7 +4294,8 @@ impl DeltaCore {
                 m.insert("close_all_isolated".to_string(), Value::Bool(true));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_positions_close_all".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_positions_close_all(&[__ws_arg_24]).await;
         //
         // {"result":{},"success":true}
         //
@@ -4265,7 +4327,7 @@ impl DeltaCore {
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_profile".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_profile(&[params.clone()]).await;
         //
         //     {
         //         "result": {
@@ -4376,7 +4438,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("public_get_tickers_symbol".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_25]).await;
         //
         //     {
         //         "result": {
@@ -4539,7 +4602,7 @@ impl DeltaCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut response: Value = self.call_method(Value::Str("private_get_positions_margined".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.private_get_positions_margined(&[params.clone()]).await;
         //
         //     {
         //         "result":

@@ -153,7 +153,7 @@ impl ToobitCore {
             "fetch_currencies" => self.fetch_currencies(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposits" => self.fetch_deposits(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-            "fetch_deposits_or_withdrawals_helper" => self.fetch_deposits_or_withdrawals_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)).await,
+            "fetch_deposits_or_withdrawals_helper" => self.fetch_deposits_or_withdrawals_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_funding_rates" => self.fetch_funding_rates(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_last_prices" => self.fetch_last_prices(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -212,75 +212,111 @@ impl ToobitCore {
 impl crate::exchange::DerivedExchange for ToobitCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_market(self, market)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_market(me, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_balance(self, response)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_balance(me, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_last_price(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_last_price(self, entry, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_last_price(me, entry, &[market.clone()])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_ledger_entry(self, entry, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_transfer(me, transfer, &[currency.clone()])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_currency(self, currency)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_currency(me, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_funding_rate_history(self, entry, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_funding_rate_history(me, entry, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on ToobitCore.
-        ToobitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ToobitCore as *mut ToobitCore) };
+        ToobitCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -778,7 +814,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("common_get_api_v1_ping".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.common_get_api_v1_ping(&[params.clone()]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".to_string()));
@@ -805,7 +841,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("common_get_api_v1_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.common_get_api_v1_time(&[params.clone()]).await;
         return self.safe_integer_k(response.clone(), "serverTime", &[]);
 
     Value::Null
@@ -823,7 +859,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("common_get_api_v1_exchange_info".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.common_get_api_v1_exchange_info(&[params.clone()]).await;
         add_element_to_object(&mut self.options, &Value::Str("exchangeInfo".to_string()), response.clone()); // we store it in options for later use in fetchMarkets
         //
         //    {
@@ -960,8 +996,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1072: bool = true;
-            while { if !__for_first_1072 { i = add(&i, &Value::Int(1)); } __for_first_1072 = false; is_less_than(&i, &get_array_length(&coins)) } {
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { i = add(&i, &Value::Int(1)); } __for_first_1022 = false; is_less_than(&i, &get_array_length(&coins)) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut parsed: Value = self.parse_currency(coin.clone());
@@ -984,8 +1020,8 @@ impl ToobitCore {
         let mut rawNetworks: Value = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1073: bool = true;
-            while { if !__for_first_1073 { j = add(&j, &Value::Int(1)); } __for_first_1073 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+            let mut __for_first_1023: bool = true;
+            while { if !__for_first_1023 { j = add(&j, &Value::Int(1)); } __for_first_1023 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chainType", &[]);
@@ -1074,7 +1110,7 @@ impl ToobitCore {
         if !is_equal(&response, &Value::Null) {
             add_element_to_object(&mut self.options, &Value::Str("exchangeInfo".to_string()), Value::Null); // reset it to avoid using old cached data
         }  else {
-            response = self.call_method(Value::Str("common_get_api_v1_exchange_info".to_string()), &[params.clone()]).await;
+            response = self.common_get_api_v1_exchange_info(&[params.clone()]).await;
         }
         //
         //    {
@@ -1210,8 +1246,8 @@ impl ToobitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { i = add(&i, &Value::Int(1)); } __for_first_1074 = false; is_less_than(&i, &get_array_length(&all)) } {
+            let mut __for_first_1024: bool = true;
+            while { if !__for_first_1024 { i = add(&i, &Value::Int(1)); } __for_first_1024 = false; is_less_than(&i, &get_array_length(&all)) } {
             let mut market: Value = get_value(&all, &i);
             let mut market: Value = get_value(&all, &i);
             let mut parsed: Value = self.parse_market(market.clone());
@@ -1349,7 +1385,8 @@ impl ToobitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("common_get_quote_v1_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.common_get_quote_v1_depth(&[__ws_arg_0]).await;
         //
         //    {
         //        "t": "1755593995237",
@@ -1412,13 +1449,14 @@ impl ToobitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("common_get_quote_v1_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.common_get_quote_v1_trades(&[__ws_arg_1]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -1569,11 +1607,14 @@ impl ToobitCore {
         let mut endpoint: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("price".to_string()), &[]); endpoint = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&endpoint, &Value::Str("index".to_string())) {
-            response = self.call_method(Value::Str("common_get_quote_v1_index_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.common_get_quote_v1_index_klines(&[__ws_arg_2]).await;
         }  else if is_equal(&endpoint, &Value::Str("mark".to_string())) {
-            response = self.call_method(Value::Str("common_get_quote_v1_mark_price_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.common_get_quote_v1_mark_price_klines(&[__ws_arg_3]).await;
         }  else {
-            response = self.call_method(Value::Str("common_get_quote_v1_klines".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            response = self.common_get_quote_v1_klines(&[__ws_arg_4]).await;
         }
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -1622,9 +1663,11 @@ impl ToobitCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("common_get_quote_v1_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await;
         }  else {
-            response = self.call_method(Value::Str("common_get_quote_v1_contract_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.common_get_quote_v1_contract_ticker24hr(&[__ws_arg_6]).await;
         }
         return self.parse_tickers(response.clone(), &[symbols.clone(), params.clone()]);
 
@@ -1694,7 +1737,8 @@ impl ToobitCore {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
         }
-        let mut response: Value = self.call_method(Value::Str("common_get_quote_v1_ticker_price".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.common_get_quote_v1_ticker_price(&[__ws_arg_7]).await;
         return self.parse_last_prices(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1747,7 +1791,8 @@ impl ToobitCore {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
         }
-        let mut response: Value = self.call_method(Value::Str("common_get_quote_v1_ticker_book_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.common_get_quote_v1_ticker_book_ticker(&[__ws_arg_8]).await;
         return self.parse_bids_asks_custom(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1762,8 +1807,8 @@ impl ToobitCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1075: bool = true;
-            while { if !__for_first_1075 { i = add(&i, &Value::Int(1)); } __for_first_1075 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1025: bool = true;
+            while { if !__for_first_1025 { i = add(&i, &Value::Int(1)); } __for_first_1025 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut parsedTicker: Value = self.parse_bid_ask_custom(get_value(&tickers, &i));
             let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
             append_to_array(&mut results, ticker.clone());
@@ -1819,7 +1864,8 @@ impl ToobitCore {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
         }
-        let mut response: Value = self.call_method(Value::Str("common_get_api_v1_futures_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.common_get_api_v1_futures_funding_rate(&[__ws_arg_9]).await;
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1893,7 +1939,8 @@ impl ToobitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("common_get_api_v1_futures_history_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await;
         return self.parse_funding_rate_histories(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1935,9 +1982,9 @@ impl ToobitCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&self.in_array(marketType.clone(), Value::List(vec![Value::Str("swap".to_string()), Value::Str("future".to_string())]))) {
-            response = self.call_method(Value::Str("private_get_api_v1_futures_balance".to_string()), &[]).await;
+            response = self.private_get_api_v1_futures_balance(&[]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_api_v1_account".to_string()), &[]).await;
+            response = self.private_get_api_v1_account(&[]).await;
         }
         return self.parse_balance(response.clone());
 
@@ -1955,8 +2002,8 @@ impl ToobitCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1076: bool = true;
-            while { if !__for_first_1076 { i = add(&i, &Value::Int(1)); } __for_first_1076 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1026: bool = true;
+            while { if !__for_first_1026 { i = add(&i, &Value::Int(1)); } __for_first_1026 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -2001,10 +2048,12 @@ impl ToobitCore {
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             { let __destr_tmp = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-            response = self.call_method(Value::Str("private_post_api_v1_spot_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_api_v1_spot_order(&[__ws_arg_11]).await;
         }  else {
             { let __destr_tmp = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-            response = self.call_method(Value::Str("private_post_api_v1_futures_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_api_v1_futures_order(&[__ws_arg_12]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -2137,7 +2186,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder, cancelOrder
@@ -2306,9 +2355,11 @@ impl ToobitCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_delete_api_v1_spot_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v1_spot_order(&[__ws_arg_13]).await;
         }  else {
-            response = self.call_method(Value::Str("private_delete_api_v1_futures_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v1_futures_order(&[__ws_arg_14]).await;
         }
         // response same as in `createOrder`
         let mut status: Value = self.parse_order_status(self.safe_string_k(response.clone(), "status", &[]));
@@ -2353,9 +2404,11 @@ impl ToobitCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_delete_api_v1_spot_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v1_spot_open_orders(&[__ws_arg_15]).await;
         }  else {
-            response = self.call_method(Value::Str("private_delete_api_v1_futures_batch_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v1_futures_batch_orders(&[__ws_arg_16]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2401,9 +2454,11 @@ impl ToobitCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_delete_api_v1_spot_cancel_order_by_ids".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v1_spot_cancel_order_by_ids(&[__ws_arg_17]).await;
         }  else {
-            response = self.call_method(Value::Str("private_delete_api_v1_futures_cancel_order_by_ids".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_api_v1_futures_cancel_order_by_ids(&[__ws_arg_18]).await;
         }
         let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
         return self.parse_orders(result.clone(), &[market.clone()]);
@@ -2440,9 +2495,11 @@ impl ToobitCore {
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("private_get_api_v1_spot_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_spot_order(&[__ws_arg_19]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_api_v1_futures_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_futures_order(&[__ws_arg_20]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -2486,9 +2543,11 @@ impl ToobitCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_get_api_v1_spot_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_spot_open_orders(&[__ws_arg_21]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_api_v1_futures_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_futures_open_orders(&[__ws_arg_22]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2535,7 +2594,7 @@ impl ToobitCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_get_api_v1_spot_trade_orders".to_string()), &[request.clone()]).await;
+            response = self.private_get_api_v1_spot_trade_orders(&[request.clone()]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrders() is not supported for ".to_string())), &marketType), &Value::Str(" markets".to_string()))));
         }
@@ -2584,13 +2643,13 @@ impl ToobitCore {
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrders() is not supported for ".to_string())), &marketType), &Value::Str(" markets".to_string()))));
         }  else {
-            response = self.call_method(Value::Str("private_get_api_v1_futures_history_orders".to_string()), &[request.clone()]).await;
+            response = self.private_get_api_v1_futures_history_orders(&[request.clone()]).await;
         }
         let mut ordersList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { i = add(&i, &Value::Int(1)); } __for_first_1077 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1027: bool = true;
+            while { if !__for_first_1027 { i = add(&i, &Value::Int(1)); } __for_first_1027 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -2645,9 +2704,10 @@ impl ToobitCore {
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_get_api_v1_account_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_api_v1_futures_user_trades".to_string()), &[request.clone()]).await;
+            response = self.private_get_api_v1_futures_user_trades(&[request.clone()]).await;
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2687,7 +2747,8 @@ impl ToobitCore {
                 m.insert("toAccountType".to_string(), toId.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_api_v1_sub_account_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_api_v1_sub_account_transfer(&[__ws_arg_24]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -2754,9 +2815,11 @@ impl ToobitCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            response = self.call_method(Value::Str("private_get_api_v1_account_balance_flow".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await;
         }  else {
-            response = self.call_method(Value::Str("private_get_api_v1_futures_balance_flow".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await;
         }
         return self.parse_ledger(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -2842,7 +2905,8 @@ impl ToobitCore {
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m
             });
-            response = self.call_method(Value::Str("private_get_api_v1_futures_commission_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_futures_commission_rate(&[__ws_arg_27]).await;
         }
         //
         // {
@@ -2902,7 +2966,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_deposits_or_withdrawals_helper(Value::Str("deposits".to_string()), code.clone(), since.clone(), limit.clone(), params.clone()).await;
+        return self.fetch_deposits_or_withdrawals_helper(Value::Str("deposits".to_string()), code.clone(), since.clone(), limit.clone(), &[params.clone()]).await;
 
     Value::Null
 }
@@ -2926,12 +2990,16 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_deposits_or_withdrawals_helper(Value::Str("withdrawals".to_string()), code.clone(), since.clone(), limit.clone(), params.clone()).await;
+        return self.fetch_deposits_or_withdrawals_helper(Value::Str("withdrawals".to_string()), code.clone(), since.clone(), limit.clone(), &[params.clone()]).await;
 
     Value::Null
 }
 
-    pub async fn fetch_deposits_or_withdrawals_helper(&mut self, mut type_var: Value, mut code: Value, mut since: Value, mut limit: Value, mut params: Value) -> Value {
+    pub async fn fetch_deposits_or_withdrawals_helper(&mut self, mut type_var: Value, mut code: Value, mut since: Value, mut limit: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
         self.load_markets(&[]).await;
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
@@ -2951,9 +3019,11 @@ impl ToobitCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("deposits".to_string())) {
-            response = self.call_method(Value::Str("private_get_api_v1_account_deposit_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_account_deposit_orders(&[__ws_arg_28]).await;
         }  else if is_equal(&type_var, &Value::Str("withdrawals".to_string())) {
-            response = self.call_method(Value::Str("private_get_api_v1_account_withdraw_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_api_v1_account_withdraw_orders(&[__ws_arg_29]).await;
         }
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -3085,14 +3155,16 @@ impl ToobitCore {
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut networkCodeparamsOmittedVariable = self.handle_network_code_and_params(self.extend(request.clone(), &[params.clone()]));
+        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let mut networkCodeparamsOmittedVariable = self.handle_network_code_and_params(__ws_arg_30);
         let mut networkCode: Value = get_value(&networkCodeparamsOmittedVariable, &Value::Int(0));
         let mut paramsOmitted: Value = get_value(&networkCodeparamsOmittedVariable, &Value::Int(1));
         if is_equal(&networkCode, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDepositAddress() : param[\"network\"] is required".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("chainType".to_string()), self.network_code_to_id(networkCode.clone(), &[]));
-        let mut response: Value = self.call_method(Value::Str("private_get_api_v1_account_deposit_address".to_string()), &[self.extend(request.clone(), &[paramsOmitted.clone()])]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+        let mut response: Value = self.private_get_api_v1_account_deposit_address(&[__ws_arg_31]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -3153,7 +3225,8 @@ impl ToobitCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("addressExt".to_string()), tag.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("private_post_api_v1_account_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_32]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -3190,7 +3263,8 @@ impl ToobitCore {
                 m.insert("marginType".to_string(), marginMode.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_api_v1_futures_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_api_v1_futures_margin_type(&[__ws_arg_33]).await;
         return response;
 
     Value::Null
@@ -3223,7 +3297,8 @@ impl ToobitCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_post_api_v1_futures_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_api_v1_futures_leverage(&[__ws_arg_34]).await;
         return response;
 
     Value::Null
@@ -3250,7 +3325,8 @@ impl ToobitCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("private_get_api_v1_futures_account_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_api_v1_futures_account_leverage(&[__ws_arg_35]).await;
         //
         // [
         //     {
@@ -3320,7 +3396,8 @@ impl ToobitCore {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
         }
-        let mut response: Value = self.call_method(Value::Str("private_get_api_v1_futures_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_api_v1_futures_positions(&[__ws_arg_36]).await;
         return self.parse_positions(response.clone(), &[symbols.clone()]);
 
     Value::Null

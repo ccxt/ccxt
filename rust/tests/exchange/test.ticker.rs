@@ -49,10 +49,15 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     // check market
     let mut market: Value = Value::Null;
+    let mut isUnrecognizedSymbol: Value = Value::Bool(false);
     let mut isFetchTickerCalled: Value = Value::Bool(is_equal(&method, &Value::Str("fetchTicker".to_string())));
     let mut symbolForMarket: Value = ternary(is_true(&(!is_equal(&symbol, &Value::Null))), symbol.clone(), exchange.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]));
-    if !is_equal(&symbolForMarket, &Value::Null) && is_true(&(Value::Bool(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket)))) {
-        market = exchange.market(symbolForMarket.clone());
+    if !is_equal(&symbolForMarket, &Value::Null) {
+        if is_true(&Value::Bool(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket))) {
+            market = exchange.market(symbolForMarket.clone());
+        }  else {
+            isUnrecognizedSymbol = Value::Bool(true);
+        }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("checkInactiveMarkets".to_string()))))) {
@@ -167,7 +172,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     let mut percentage: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".to_string()), &[]);
     let mut change: Value = exchange.safe_string(entry.clone(), Value::Str("change".to_string()), &[]);
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("maxIncrease".to_string()))))) {
+    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("maxIncrease".to_string()))))) && !is_true(&isUnrecognizedSymbol) {
         //
         // percentage
         //

@@ -200,6 +200,7 @@ impl CoinexCore {
             "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "nonce" => self.nonce(),
             "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_interval" => self.parse_funding_interval(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -237,67 +238,105 @@ impl CoinexCore {
 impl crate::exchange::DerivedExchange for CoinexCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_ticker(self, ticker, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_ticker(me, ticker, &[market.clone()])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_trade(self, trade, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_trade(me, trade, &[market.clone()])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_order(self, order, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_order(me, order, &[market.clone()])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_ohlcv(self, ohlcv, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_ohlcv(me, ohlcv, &[market.clone()])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_position(self, position, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_position(me, position, &[market.clone()])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_funding_rate(self, rate, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_funding_rate(me, rate, &[market.clone()])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_deposit_address(me, depositAddress, &[currency.clone()])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_transfer(self, transfer, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on CoinexCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_currency(me, currency)
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_margin_modification(self, data, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_margin_modification(me, data, &[market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_transaction(self, transaction, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_transaction(me, transaction, &[currency.clone()])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_borrow_interest(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_borrow_interest(me, info, &[market.clone()])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_leverage(self, leverage, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_leverage(me, leverage, &[market.clone()])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_market_leverage_tiers(me, info, &[market.clone()])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::parse_deposit_withdraw_fee(me, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::sign(me, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinexCore.
-        CoinexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinexCore as *mut CoinexCore) };
+        CoinexCore::handle_errors(me, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
@@ -1100,7 +1139,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_assets_all_deposit_withdraw_config".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_assets_all_deposit_withdraw_config(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -1137,65 +1176,61 @@ impl CoinexCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::Map({
+        return self.parse_currencies(data.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut coin: Value) -> Value {
+        let mut asset: Value = self.safe_dict_k(coin.clone(), "asset", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut chains: Value = self.safe_list_k(coin.clone(), "chains", &[Value::List(vec![])]);
+        let mut currencyId: Value = self.safe_string_k(asset.clone(), "ccy", &[]);
+        if is_equal(&currencyId, &Value::Null) {
+            return Value::Null;
+        }
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        let mut canDeposit: Value = self.safe_bool_k(asset.clone(), "deposit_enabled", &[]);
+        let mut canWithdraw: Value = self.safe_bool_k(asset.clone(), "withdraw_enabled", &[]);
+        let mut firstChain: Value = self.safe_dict(chains.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut firstPrecisionString: Value = self.parse_precision(&[self.safe_string_k(firstChain.clone(), "withdrawal_precision", &[])]);
+        let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_530: bool = true;
-            while { if !__for_first_530 { i = add(&i, &Value::Int(1)); } __for_first_530 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut coin: Value = get_value(&data, &i);
-            let mut coin: Value = get_value(&data, &i);
-            let mut asset: Value = self.safe_dict_k(coin.clone(), "asset", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            let mut chains: Value = self.safe_list_k(coin.clone(), "chains", &[Value::List(vec![])]);
-            let mut currencyId: Value = self.safe_string_k(asset.clone(), "ccy", &[]);
-            if is_equal(&currencyId, &Value::Null) {
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_512: bool = true;
+            while { if !__for_first_512 { j = add(&j, &Value::Int(1)); } __for_first_512 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+            if is_equal(&networkId, &Value::Null) {
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut canDeposit: Value = self.safe_bool_k(asset.clone(), "deposit_enabled", &[]);
-            let mut canWithdraw: Value = self.safe_bool_k(asset.clone(), "withdraw_enabled", &[]);
-            let mut firstChain: Value = self.safe_dict(chains.clone(), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            let mut firstPrecisionString: Value = self.parse_precision(&[self.safe_string_k(firstChain.clone(), "withdrawal_precision", &[])]);
-            let mut networks: Value = Value::Map({
+            let mut precisionString: Value = self.parse_precision(&[self.safe_string_k(chain.clone(), "withdrawal_precision", &[])]);
+            let mut feeString: Value = self.safe_string_k(chain.clone(), "withdrawal_fee", &[]);
+            let mut minNetworkDepositString: Value = self.safe_string_k(chain.clone(), "min_deposit_amount", &[]);
+            let mut minNetworkWithdrawString: Value = self.safe_string_k(chain.clone(), "min_withdraw_amount", &[]);
+            let mut canDepositChain: Value = self.safe_bool_k(chain.clone(), "deposit_enabled", &[]);
+            let mut canWithdrawChain: Value = self.safe_bool_k(chain.clone(), "withdraw_enabled", &[]);
+            let mut network: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                m
-            });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_529: bool = true;
-                while { if !__for_first_529 { j = add(&j, &Value::Int(1)); } __for_first_529 = false; is_less_than(&j, &get_array_length(&chains)) } {
-                let mut chain: Value = get_value(&chains, &j);
-                let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                if is_equal(&networkId, &Value::Null) {
-                    continue;
-                }
-                let mut precisionString: Value = self.parse_precision(&[self.safe_string_k(chain.clone(), "withdrawal_precision", &[])]);
-                let mut feeString: Value = self.safe_string_k(chain.clone(), "withdrawal_fee", &[]);
-                let mut minNetworkDepositString: Value = self.safe_string_k(chain.clone(), "min_deposit_amount", &[]);
-                let mut minNetworkWithdrawString: Value = self.safe_string_k(chain.clone(), "min_withdraw_amount", &[]);
-                let mut canDepositChain: Value = self.safe_bool_k(chain.clone(), "deposit_enabled", &[]);
-                let mut canWithdrawChain: Value = self.safe_bool_k(chain.clone(), "withdraw_enabled", &[]);
-                let mut network: Value = Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("id".to_string(), networkId.clone());
-                        m.insert("network".to_string(), networkCode.clone());
-                        m.insert("name".to_string(), Value::Null);
-                        m.insert("active".to_string(), Value::Bool(is_true(&canDepositChain) && is_true(&canWithdrawChain)));
-                        m.insert("deposit".to_string(), canDepositChain.clone());
-                        m.insert("withdraw".to_string(), canWithdrawChain.clone());
-                        m.insert("fee".to_string(), self.parse_number(feeString.clone(), &[]));
-                        m.insert("precision".to_string(), self.parse_number(precisionString.clone(), &[]));
-                        m.insert("limits".to_string(), Value::Map({
+                    m.insert("id".to_string(), networkId.clone());
+                    m.insert("network".to_string(), networkCode.clone());
+                    m.insert("name".to_string(), Value::Null);
+                    m.insert("active".to_string(), Value::Bool(is_true(&canDepositChain) && is_true(&canWithdrawChain)));
+                    m.insert("deposit".to_string(), canDepositChain.clone());
+                    m.insert("withdraw".to_string(), canWithdrawChain.clone());
+                    m.insert("fee".to_string(), self.parse_number(feeString.clone(), &[]));
+                    m.insert("precision".to_string(), self.parse_number(precisionString.clone(), &[]));
+                    m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1217,13 +1252,13 @@ impl CoinexCore {
 }));
     m
 }));
-                        m.insert("info".to_string(), chain.clone());
-                    m
-                });
-                add_element_to_object(&mut networks, &networkCode, network.clone());
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+                    m.insert("info".to_string(), chain.clone());
+                m
+            });
+            add_element_to_object(&mut networks, &networkCode, network.clone());
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("code".to_string(), code.clone());
@@ -1259,10 +1294,7 @@ impl CoinexCore {
         m.insert("type".to_string(), Value::Str("crypto".to_string()));
         m.insert("info".to_string(), coin.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1291,7 +1323,7 @@ impl CoinexCore {
 }
 
     pub async fn fetch_spot_markets(&mut self, mut params: Value) -> Value {
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_spot_market".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_spot_market(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -1318,8 +1350,8 @@ impl CoinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_531: bool = true;
-            while { if !__for_first_531 { i = add(&i, &Value::Int(1)); } __for_first_531 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_513: bool = true;
+            while { if !__for_first_513 { i = add(&i, &Value::Int(1)); } __for_first_513 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
@@ -1401,7 +1433,7 @@ impl CoinexCore {
 }
 
     pub async fn fetch_contract_markets(&mut self, mut params: Value) -> Value {
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_market".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_futures_market(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -1427,8 +1459,8 @@ impl CoinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { i = add(&i, &Value::Int(1)); } __for_first_532 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_514: bool = true;
+            while { if !__for_first_514 { i = add(&i, &Value::Int(1)); } __for_first_514 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut entry: Value = get_value(&markets, &i);
             let mut entry: Value = get_value(&markets, &i);
             let mut fees: Value = self.fees.clone();
@@ -1611,9 +1643,11 @@ impl CoinexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            response = self.call_method(Value::Str("v2_public_get_futures_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_futures_ticker(&[__ws_arg_0]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_spot_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_spot_ticker(&[__ws_arg_1]).await;
         }
         //
         // Spot
@@ -1700,9 +1734,9 @@ impl CoinexCore {
         let mut query: Value = get_value(&marketTypequeryVariable, &Value::Int(1));
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("swap".to_string())) {
-            response = self.call_method(Value::Str("v2_public_get_futures_ticker".to_string()), &[query.clone()]).await;
+            response = self.v2_public_get_futures_ticker(&[query.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_spot_ticker".to_string()), &[query.clone()]).await;
+            response = self.v2_public_get_spot_ticker(&[query.clone()]).await;
         }
         //
         // Spot
@@ -1770,7 +1804,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_time".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_time(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -1820,9 +1854,11 @@ impl CoinexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            response = self.call_method(Value::Str("v2_public_get_futures_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_futures_depth(&[__ws_arg_2]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_spot_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_spot_depth(&[__ws_arg_3]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1838,7 +1874,7 @@ impl CoinexCore {
     Value::Null
 }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&mut self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // Spot and Swap fetchTrades (public)
@@ -1950,9 +1986,11 @@ impl CoinexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            response = self.call_method(Value::Str("v2_public_get_futures_deals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_futures_deals(&[__ws_arg_4]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_spot_deals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_spot_deals(&[__ws_arg_5]).await;
         }
         return self.parse_trades(get_value(&response, &Value::Str("data".to_string())), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1983,9 +2021,11 @@ impl CoinexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("v2_public_get_spot_market".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_spot_market(&[__ws_arg_6]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_futures_market".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_futures_market(&[__ws_arg_7]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -2016,9 +2056,9 @@ impl CoinexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("swap".to_string())) {
-            response = self.call_method(Value::Str("v2_public_get_futures_market".to_string()), &[params.clone()]).await;
+            response = self.v2_public_get_futures_market(&[params.clone()]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_spot_market".to_string()), &[params.clone()]).await;
+            response = self.v2_public_get_spot_market(&[params.clone()]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
@@ -2027,8 +2067,8 @@ impl CoinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { i = add(&i, &Value::Int(1)); } __for_first_533 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_515: bool = true;
+            while { if !__for_first_515 { i = add(&i, &Value::Int(1)); } __for_first_515 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[]);
@@ -2101,9 +2141,11 @@ impl CoinexCore {
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            response = self.call_method(Value::Str("v2_public_get_futures_kline".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_futures_kline(&[__ws_arg_8]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_public_get_spot_kline".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_public_get_spot_kline(&[__ws_arg_9]).await;
         }
         //
         // Spot and Swap
@@ -2137,7 +2179,7 @@ impl CoinexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_margin_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_private_get_assets_margin_balance(&[params.clone()]).await;
         //
         //     {
         //         "data": [
@@ -2177,8 +2219,8 @@ impl CoinexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_534: bool = true;
-            while { if !__for_first_534 { i = add(&i, &Value::Int(1)); } __for_first_534 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_516: bool = true;
+            while { if !__for_first_516 { i = add(&i, &Value::Int(1)); } __for_first_516 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut free: Value = self.safe_dict_k(entry.clone(), "available", &[Value::Map({
@@ -2219,7 +2261,7 @@ impl CoinexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_spot_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_private_get_assets_spot_balance(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -2241,8 +2283,8 @@ impl CoinexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_535: bool = true;
-            while { if !__for_first_535 { i = add(&i, &Value::Int(1)); } __for_first_535 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_517: bool = true;
+            while { if !__for_first_517 { i = add(&i, &Value::Int(1)); } __for_first_517 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
@@ -2264,7 +2306,7 @@ impl CoinexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_futures_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_private_get_assets_futures_balance(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -2289,8 +2331,8 @@ impl CoinexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_536: bool = true;
-            while { if !__for_first_536 { i = add(&i, &Value::Int(1)); } __for_first_536 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { i = add(&i, &Value::Int(1)); } __for_first_518 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
@@ -2312,7 +2354,7 @@ impl CoinexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_financial_balance".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_private_get_assets_financial_balance(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -2334,8 +2376,8 @@ impl CoinexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_537: bool = true;
-            while { if !__for_first_537 { i = add(&i, &Value::Int(1)); } __for_first_537 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i = add(&i, &Value::Int(1)); } __for_first_519 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
@@ -2402,7 +2444,7 @@ impl CoinexCore {
     Value::Null
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
@@ -2858,24 +2900,24 @@ impl CoinexCore {
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if is_true(&isTriggerOrder) {
-                response = self.call_method(Value::Str("v2_private_post_spot_stop_order".to_string()), &[request.clone()]).await;
+                response = self.v2_private_post_spot_stop_order(&[request.clone()]).await;
             }  else {
-                response = self.call_method(Value::Str("v2_private_post_spot_order".to_string()), &[request.clone()]).await;
+                response = self.v2_private_post_spot_order(&[request.clone()]).await;
             }
         }  else {
             if is_true(&isTriggerOrder) {
-                response = self.call_method(Value::Str("v2_private_post_futures_stop_order".to_string()), &[request.clone()]).await;
+                response = self.v2_private_post_futures_stop_order(&[request.clone()]).await;
             }  else if is_true(&isStopLossOrTakeProfitTrigger) {
                 if is_true(&isStopLossTriggerOrder) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_set_position_stop_loss".to_string()), &[request.clone()]).await;
+                    response = self.v2_private_post_futures_set_position_stop_loss(&[request.clone()]).await;
                 }  else if is_true(&isTakeProfitTriggerOrder) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_set_position_take_profit".to_string()), &[request.clone()]).await;
+                    response = self.v2_private_post_futures_set_position_take_profit(&[request.clone()]).await;
                 }
             }  else {
                 if is_true(&reduceOnly) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_close_position".to_string()), &[request.clone()]).await;
+                    response = self.v2_private_post_futures_close_position(&[request.clone()]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_post_futures_order".to_string()), &[request.clone()]).await;
+                    response = self.v2_private_post_futures_order(&[request.clone()]).await;
                 }
             }
         }
@@ -2913,8 +2955,8 @@ impl CoinexCore {
         let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_538: bool = true;
-            while { if !__for_first_538 { i = add(&i, &Value::Int(1)); } __for_first_538 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_520: bool = true;
+            while { if !__for_first_520 { i = add(&i, &Value::Int(1)); } __for_first_520 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2958,20 +3000,20 @@ impl CoinexCore {
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if is_true(&isTriggerOrder) {
-                response = self.call_method(Value::Str("v2_private_post_spot_batch_stop_order".to_string()), &[request.clone()]).await;
+                response = self.v2_private_post_spot_batch_stop_order(&[request.clone()]).await;
             }  else {
-                response = self.call_method(Value::Str("v2_private_post_spot_batch_order".to_string()), &[request.clone()]).await;
+                response = self.v2_private_post_spot_batch_order(&[request.clone()]).await;
             }
         }  else {
             if is_true(&isTriggerOrder) {
-                response = self.call_method(Value::Str("v2_private_post_futures_batch_stop_order".to_string()), &[request.clone()]).await;
+                response = self.v2_private_post_futures_batch_stop_order(&[request.clone()]).await;
             }  else if is_true(&isStopLossOrTakeProfitTrigger) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support stopLossPrice or takeProfitPrice orders".to_string()))));
             }  else {
                 if is_true(&reduceOnly) {
                     panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support reduceOnly orders".to_string()))));
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_post_futures_batch_order".to_string()), &[request.clone()]).await;
+                    response = self.v2_private_post_futures_batch_order(&[request.clone()]).await;
                 }
             }
         }
@@ -2979,8 +3021,8 @@ impl CoinexCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_539: bool = true;
-            while { if !__for_first_539 { i = add(&i, &Value::Int(1)); } __for_first_539 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i = add(&i, &Value::Int(1)); } __for_first_521 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut status: Value = Value::Null;
@@ -3048,8 +3090,8 @@ impl CoinexCore {
         let mut requestIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_540: bool = true;
-            while { if !__for_first_540 { i = add(&i, &Value::Int(1)); } __for_first_540 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_522: bool = true;
+            while { if !__for_first_522 { i = add(&i, &Value::Int(1)); } __for_first_522 = false; is_less_than(&i, &get_array_length(&ids)) } {
             append_to_array(&mut requestIds, crate::runtime::parse_int(&get_value(&ids, &i)));
         }
         }
@@ -3060,24 +3102,28 @@ impl CoinexCore {
         }
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if is_true(&trigger) {
-                response = self.call_method(Value::Str("v2_private_post_spot_cancel_batch_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_spot_cancel_batch_stop_order(&[__ws_arg_10]).await;
             }  else {
-                response = self.call_method(Value::Str("v2_private_post_spot_cancel_batch_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_spot_cancel_batch_order(&[__ws_arg_11]).await;
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
             if is_true(&trigger) {
-                response = self.call_method(Value::Str("v2_private_post_futures_cancel_batch_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_futures_cancel_batch_stop_order(&[__ws_arg_12]).await;
             }  else {
-                response = self.call_method(Value::Str("v2_private_post_futures_cancel_batch_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_futures_cancel_batch_order(&[__ws_arg_13]).await;
             }
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_541: bool = true;
-            while { if !__for_first_541 { i = add(&i, &Value::Int(1)); } __for_first_541 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_523: bool = true;
+            while { if !__for_first_523 { i = add(&i, &Value::Int(1)); } __for_first_523 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut item: Value = self.safe_dict_k(entry.clone(), "data", &[Value::Map({
@@ -3153,16 +3199,20 @@ impl CoinexCore {
                 add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("SPOT".to_string()));
             }
             if is_true(&isTriggerOrder) {
-                response = self.call_method(Value::Str("v2_private_post_spot_modify_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_spot_modify_stop_order(&[__ws_arg_14]).await;
             }  else {
-                response = self.call_method(Value::Str("v2_private_post_spot_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_spot_modify_order(&[__ws_arg_15]).await;
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
             if is_true(&isTriggerOrder) {
-                response = self.call_method(Value::Str("v2_private_post_futures_modify_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_futures_modify_stop_order(&[__ws_arg_16]).await;
             }  else {
-                response = self.call_method(Value::Str("v2_private_post_futures_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+                response = self.v2_private_post_futures_modify_order(&[__ws_arg_17]).await;
             }
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -3194,8 +3244,8 @@ impl CoinexCore {
         let mut orderSymbols: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_542: bool = true;
-            while { if !__for_first_542 { i = add(&i, &Value::Int(1)); } __for_first_542 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_524: bool = true;
+            while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3242,16 +3292,18 @@ impl CoinexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&firstMarket, &Value::Str("spot".to_string()))) {
-            response = self.call_method(Value::Str("v2_private_post_spot_batch_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_post_spot_batch_modify_order(&[__ws_arg_18]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_private_post_futures_batch_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_post_futures_batch_modify_order(&[__ws_arg_19]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_543: bool = true;
-            while { if !__for_first_543 { i = add(&i, &Value::Int(1)); } __for_first_543 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_525: bool = true;
+            while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut code: Value = self.safe_string_k(entry.clone(), "code", &[]);
@@ -3330,31 +3382,39 @@ impl CoinexCore {
             add_element_to_object(&mut request, &Value::Str("client_id".to_string()), clientOrderId.clone());
             if is_true(&isTriggerOrder) {
                 if is_true(&swap) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_cancel_stop_order_by_client_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_futures_cancel_stop_order_by_client_id(&[__ws_arg_20]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_post_spot_cancel_stop_order_by_client_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_spot_cancel_stop_order_by_client_id(&[__ws_arg_21]).await;
                 }
             }  else {
                 if is_true(&swap) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_cancel_order_by_client_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_futures_cancel_order_by_client_id(&[__ws_arg_22]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_post_spot_cancel_order_by_client_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_spot_cancel_order_by_client_id(&[__ws_arg_23]).await;
                 }
             }
         }  else {
             if is_true(&isTriggerOrder) {
                 add_element_to_object(&mut request, &Value::Str("stop_id".to_string()), self.parse_to_numeric(id.clone()));
                 if is_true(&swap) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_cancel_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_futures_cancel_stop_order(&[__ws_arg_24]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_post_spot_cancel_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_spot_cancel_stop_order(&[__ws_arg_25]).await;
                 }
             }  else {
                 add_element_to_object(&mut request, &Value::Str("order_id".to_string()), self.parse_to_numeric(id.clone()));
                 if is_true(&swap) {
-                    response = self.call_method(Value::Str("v2_private_post_futures_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_futures_cancel_order(&[__ws_arg_26]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_post_spot_cancel_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_post_spot_cancel_order(&[__ws_arg_27]).await;
                 }
             }
         }
@@ -3406,7 +3466,8 @@ impl CoinexCore {
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
-            response = self.call_method(Value::Str("v2_private_post_futures_cancel_all_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_post_futures_cancel_all_order(&[__ws_arg_28]).await;
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3415,7 +3476,8 @@ impl CoinexCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("SPOT".to_string()));
             }
-            response = self.call_method(Value::Str("v2_private_post_spot_cancel_all_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_post_spot_cancel_all_order(&[__ws_arg_29]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3456,9 +3518,11 @@ impl CoinexCore {
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            response = self.call_method(Value::Str("v2_private_get_futures_order_status".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_futures_order_status(&[__ws_arg_30]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_private_get_spot_order_status".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_spot_order_status(&[__ws_arg_31]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3518,15 +3582,19 @@ impl CoinexCore {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
             if is_true(&isClosed) {
                 if is_true(&trigger) {
-                    response = self.call_method(Value::Str("v2_private_get_futures_finished_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_futures_finished_stop_order(&[__ws_arg_32]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_get_futures_finished_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_futures_finished_order(&[__ws_arg_33]).await;
                 }
             }  else if is_true(&isOpen) {
                 if is_true(&trigger) {
-                    response = self.call_method(Value::Str("v2_private_get_futures_pending_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_futures_pending_stop_order(&[__ws_arg_34]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_get_futures_pending_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_futures_pending_order(&[__ws_arg_35]).await;
                 }
             }
         }  else {
@@ -3539,15 +3607,19 @@ impl CoinexCore {
             }
             if is_true(&isClosed) {
                 if is_true(&trigger) {
-                    response = self.call_method(Value::Str("v2_private_get_spot_finished_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_spot_finished_stop_order(&[__ws_arg_36]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_get_spot_finished_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_spot_finished_order(&[__ws_arg_37]).await;
                 }
             }  else if is_equal(&status, &Value::Str("pending".to_string())) {
                 if is_true(&trigger) {
-                    response = self.call_method(Value::Str("v2_private_get_spot_pending_stop_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_spot_pending_stop_order(&[__ws_arg_38]).await;
                 }  else {
-                    response = self.call_method(Value::Str("v2_private_get_spot_pending_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+                    let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.v2_private_get_spot_pending_order(&[__ws_arg_39]).await;
                 }
             }
         }
@@ -3584,8 +3656,8 @@ impl CoinexCore {
         let mut openOrders: Value = self.fetch_orders_by_status(Value::Str("pending".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_544: bool = true;
-            while { if !__for_first_544 { i = add(&i, &Value::Int(1)); } __for_first_544 = false; is_less_than(&i, &get_array_length(&openOrders)) } {
+            let mut __for_first_526: bool = true;
+            while { if !__for_first_526 { i = add(&i, &Value::Int(1)); } __for_first_526 = false; is_less_than(&i, &get_array_length(&openOrders)) } {
             add_element_to_object(get_value_mut(&mut openOrders, &i), &Value::Str("status".to_string()), Value::Str("open".to_string()));
         }
         }
@@ -3651,7 +3723,8 @@ impl CoinexCore {
                 m.insert("chain".to_string(), self.network_code_to_id(network.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_assets_renewal_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_assets_renewal_deposit_address(&[__ws_arg_40]).await;
         //
         //     {
         //         "code": 0,
@@ -3699,7 +3772,8 @@ impl CoinexCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDepositAddress() requires a \"network\" parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_id(networkCode.clone(), &[])); // required for on-chain, not required for inter-user transfer
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_deposit_address(&[__ws_arg_41]).await;
         //
         //     {
         //         "code": 0,
@@ -3793,7 +3867,8 @@ impl CoinexCore {
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
-            response = self.call_method(Value::Str("v2_private_get_futures_user_deals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_futures_user_deals(&[__ws_arg_42]).await;
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3802,7 +3877,8 @@ impl CoinexCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("SPOT".to_string()));
             }
-            response = self.call_method(Value::Str("v2_private_get_spot_user_deals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_spot_user_deals(&[__ws_arg_43]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -3853,9 +3929,11 @@ impl CoinexCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&defaultMethod, &Value::Str("v2PrivateGetFuturesPendingPosition".to_string())) {
-            response = self.call_method(Value::Str("v2_private_get_futures_pending_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_futures_pending_position(&[__ws_arg_44]).await;
         }  else {
-            response = self.call_method(Value::Str("v2_private_get_futures_finished_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+            let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_private_get_futures_finished_position(&[__ws_arg_45]).await;
         }
         //
         //     {
@@ -3904,8 +3982,8 @@ impl CoinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_545: bool = true;
-            while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&position)) } {
+            let mut __for_first_527: bool = true;
+            while { if !__for_first_527 { i = add(&i, &Value::Int(1)); } __for_first_527 = false; is_less_than(&i, &get_array_length(&position)) } {
             append_to_array(&mut result, self.parse_position(get_value(&position, &i), &[market.clone()]));
         }
         }
@@ -3936,7 +4014,8 @@ impl CoinexCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_futures_pending_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_futures_pending_position(&[__ws_arg_46]).await;
         //
         //     {
         //         "code": 0,
@@ -4106,7 +4185,8 @@ impl CoinexCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        return self.call_method(Value::Str("v2_private_post_futures_adjust_position_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+        return self.v2_private_post_futures_adjust_position_leverage(&[__ws_arg_47]).await;
 
     Value::Null
 }
@@ -4151,7 +4231,8 @@ impl CoinexCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        return self.call_method(Value::Str("v2_private_post_futures_adjust_position_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        return self.v2_private_post_futures_adjust_position_leverage(&[__ws_arg_48]).await;
 
     Value::Null
 }
@@ -4180,7 +4261,8 @@ impl CoinexCore {
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), join(&marketIds, &Value::Str(",".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_position_level".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_futures_position_level(&[__ws_arg_49]).await;
         //
         //     {
         //         "code": 0,
@@ -4219,19 +4301,21 @@ impl CoinexCore {
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { i = add(&i, &Value::Int(1)); } __for_first_546 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_528: bool = true;
+            while { if !__for_first_528 { i = add(&i, &Value::Int(1)); } __for_first_528 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "market", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".to_string())]);
             let mut maxNotional: Value = self.safe_number_k(tier.clone(), "amount", &[]);
+            let mut curr: Value = ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), get_value(&market, &Value::Str("base".to_string())), get_value(&market, &Value::Str("quote".to_string())));
+            let mut notional: Value = minNotional.clone();
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[i.clone(), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
-                    m.insert("currency".to_string(), ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), get_value(&market, &Value::Str("base".to_string())), get_value(&market, &Value::Str("quote".to_string()))));
-                    m.insert("minNotional".to_string(), minNotional.clone());
+                    m.insert("currency".to_string(), curr.clone());
+                    m.insert("minNotional".to_string(), notional.clone());
                     m.insert("maxNotional".to_string(), maxNotional.clone());
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintenance_margin_rate", &[]));
                     m.insert("maxLeverage".to_string(), self.safe_integer_k(tier.clone(), "leverage", &[]));
@@ -4265,7 +4349,8 @@ impl CoinexCore {
                 m.insert("amount".to_string(), requestAmount.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_futures_adjust_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_futures_adjust_position_margin(&[__ws_arg_50]).await;
         //
         //     {
         //         "code": 0,
@@ -4307,10 +4392,12 @@ impl CoinexCore {
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut status: Value = self.safe_string_lower(response.clone(), Value::Str("message".to_string()), &[]);
         let mut type_var: Value = ternary(is_true(&(is_equal(&addOrReduce, &Value::Str("reduce".to_string())))), Value::Str("reduce".to_string()), Value::Str("add".to_string()));
-        return self.extend(self.parse_margin_modification(data.clone(), &[market.clone()]), &[Value::Map({
+        let __ws_arg_51 = self.parse_margin_modification(data.clone(), &[market.clone()]);
+        let __ws_arg_52 = self.parse_number(amount.clone(), &[]);
+        return self.extend(__ws_arg_51, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), __ws_arg_52);
         m.insert("status".to_string(), status.clone());
     m
 })]);
@@ -4471,7 +4558,8 @@ impl CoinexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_futures_position_funding_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_futures_position_funding_history(&[__ws_arg_53]).await;
         //
         //     {
         //         "code": 0,
@@ -4497,8 +4585,8 @@ impl CoinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_547: bool = true;
-            while { if !__for_first_547 { i = add(&i, &Value::Int(1)); } __for_first_547 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { i = add(&i, &Value::Int(1)); } __for_first_529 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "created_at", &[]);
@@ -4546,7 +4634,8 @@ impl CoinexCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_futures_funding_rate(&[__ws_arg_54]).await;
         //
         //     {
         //         "code": 0,
@@ -4688,7 +4777,8 @@ impl CoinexCore {
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), join(&marketIds, &Value::Str(",".to_string())));
         }
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_futures_funding_rate(&[__ws_arg_55]).await;
         //
         //     {
         //         "code": 0,
@@ -4751,7 +4841,8 @@ impl CoinexCore {
         if !is_equal(&networkCode, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_id(networkCode.clone(), &[])); // required for on-chain, not required for inter-user transfer
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_assets_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_assets_withdraw(&[__ws_arg_56]).await;
         //
         //     {
         //         "code": 0,
@@ -4850,7 +4941,8 @@ impl CoinexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_futures_funding_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_futures_funding_rate_history(&[__ws_arg_57]).await;
         //
         //     {
         //         "code": 0,
@@ -4872,8 +4964,8 @@ impl CoinexCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_548: bool = true;
-            while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { i = add(&i, &Value::Int(1)); } __for_first_530 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[]);
@@ -5057,10 +5149,13 @@ impl CoinexCore {
         if is_true(&(!is_equal(&fromAccount, &Value::Str("spot".to_string())))) && is_true(&(!is_equal(&toAccount, &Value::Str("spot".to_string())))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot".to_string()))));
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_assets_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        return self.extend(self.parse_transfer(response.clone(), &[currency.clone()]), &[Value::Map({
+        let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_assets_transfer(&[__ws_arg_58]).await;
+        let __ws_arg_59 = self.parse_transfer(response.clone(), &[currency.clone()]);
+        let __ws_arg_60 = self.parse_number(amountToPrecision.clone(), &[]);
+        return self.extend(__ws_arg_59, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amountToPrecision.clone(), &[]));
+        m.insert("amount".to_string(), __ws_arg_60);
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
     m
@@ -5154,7 +5249,8 @@ impl CoinexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_transfer_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_transfer_history(&[__ws_arg_61]).await;
         //
         //     {
         //         "data": [
@@ -5213,7 +5309,8 @@ impl CoinexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_withdraw".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_withdraw(&[__ws_arg_62]).await;
         //
         //     {
         //         "data": [
@@ -5284,7 +5381,8 @@ impl CoinexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_deposit_history(&[__ws_arg_63]).await;
         //
         //     {
         //         "data": [
@@ -5389,7 +5487,8 @@ impl CoinexCore {
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_margin_interest_limit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_margin_interest_limit(&[__ws_arg_64]).await;
         //
         //     {
         //         "code": 0,
@@ -5447,7 +5546,8 @@ impl CoinexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_margin_borrow_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_margin_borrow_history(&[__ws_arg_65]).await;
         //
         //     {
         //         "data": [
@@ -5545,7 +5645,8 @@ impl CoinexCore {
                 m.insert("is_auto_renew".to_string(), isAutoRenew.clone());
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_assets_margin_borrow".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_assets_margin_borrow(&[__ws_arg_66]).await;
         //
         //     {
         //         "code": 0,
@@ -5604,7 +5705,8 @@ impl CoinexCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_assets_margin_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_assets_margin_repay(&[__ws_arg_67]).await;
         //
         //     {
         //         "code": 0,
@@ -5680,7 +5782,8 @@ impl CoinexCore {
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_assets_deposit_withdraw_config".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_68 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_public_get_assets_deposit_withdraw_config(&[__ws_arg_68]).await;
         //
         //     {
         //         "code": 0,
@@ -5728,7 +5831,7 @@ impl CoinexCore {
  * @name coinex#fetchDepositWithdrawFees
  * @description fetch the fees for deposits and withdrawals
  * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
- * @param codes
+ * @param {string[]} [codes] list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -5739,7 +5842,7 @@ impl CoinexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let mut response: Value = self.call_method(Value::Str("v2_public_get_assets_all_deposit_withdraw_config".to_string()), &[params.clone()]).await;
+        let mut response: Value = self.v2_public_get_assets_all_deposit_withdraw_config(&[params.clone()]).await;
         //
         //     {
         //         "code": 0,
@@ -5782,8 +5885,8 @@ impl CoinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_549: bool = true;
-            while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_531: bool = true;
+            while { if !__for_first_531 { i = add(&i, &Value::Int(1)); } __for_first_531 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut item: Value = get_value(&data, &i);
             let mut item: Value = get_value(&data, &i);
             let mut asset: Value = self.safe_dict_k(item.clone(), "asset", &[Value::Map({
@@ -5864,8 +5967,8 @@ impl CoinexCore {
 })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_550: bool = true;
-            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&chains)) } {
+            let mut __for_first_532: bool = true;
+            while { if !__for_first_532 { i = add(&i, &Value::Int(1)); } __for_first_532 = false; is_less_than(&i, &get_array_length(&chains)) } {
             let mut entry: Value = get_value(&chains, &i);
             let mut entry: Value = get_value(&chains, &i);
             let mut isWithdrawEnabled: Value = self.safe_bool_k(entry.clone(), "withdraw_enabled", &[]);
@@ -5929,7 +6032,8 @@ impl CoinexCore {
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_assets_margin_interest_limit".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_assets_margin_interest_limit(&[__ws_arg_69]).await;
         //
         //     {
         //         "code": 0,
@@ -6014,7 +6118,8 @@ impl CoinexCore {
             add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_futures_finished_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_70 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_futures_finished_position(&[__ws_arg_70]).await;
         //
         //     {
         //         "code": 0,
@@ -6100,7 +6205,8 @@ impl CoinexCore {
             add_element_to_object(&mut request, &Value::Str("client_id".to_string()), clientOrderId.clone());
         }
         params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
-        let mut response: Value = self.call_method(Value::Str("v2_private_post_futures_close_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_post_futures_close_position(&[__ws_arg_71]).await;
         //
         //     {
         //         "code": 0,
@@ -6368,7 +6474,8 @@ impl CoinexCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut response: Value = self.call_method(Value::Str("v2_private_get_futures_position_margin_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+        let __ws_arg_72 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_private_get_futures_position_margin_history(&[__ws_arg_72]).await;
         //
         //     {
         //         "code": 0,
