@@ -440,7 +440,8 @@ export default class bithumb extends bithumbRest {
             bids.store (bidPrice, bidSize);
             asks.store (askPrice, askSize);
         }
-        const timestamp = this.safeInteger (message, 'timestamp');
+        const gen2TimestampStr = this.safeString (message, 'timestamp') as string;
+        const timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         const messageHash = 'orderbook' + ':' + symbol;
@@ -496,7 +497,6 @@ export default class bithumb extends bithumbRest {
             'type': 'transaction',
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
-        let trades;
         if (isGenerationTwo) {
             request = [
                 { 'ticket': this.uuid () },
@@ -505,10 +505,10 @@ export default class bithumb extends bithumbRest {
                     'codes': [ market['id'] ],
                 }, params),
             ];
-            trades = await this.watch (url, messageHash, request, messageHash);
         } else {
-            trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+            request = this.extend (request, params);
         }
+        const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
