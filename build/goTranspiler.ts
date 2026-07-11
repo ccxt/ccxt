@@ -886,6 +886,25 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
+        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
+        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            if (wrappedType.trim().endsWith('[]')) {
+                isList = true; // e.g. `{ id: Str; ... }[]` → []map[string]any
+            }
+            return addTaskIfNeeded('map[string]any');
+        }
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
+        // without an explicit annotation (e.g. `Position | undefined`, `Dict | Leverage`).
+        // Normalize them here: drop undefined/null members and collapse remaining
+        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
+            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
+            wrappedType = members.length > 0 ? members[0] : 'any';
+        }
+
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
                 return isPromise ? `<- chan` : '<- chan';
@@ -898,6 +917,10 @@ class NewTranspiler {
         const goReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
+            // TS >= 5/6 (ast-transpiler 0.0.91) prints this alias by name instead of
+            // expanding it to `Dict | undefined` like TS 4.9 did
+            'NullableDict': 'map[string]any',
+            'Market': 'MarketInterface',
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -1135,6 +1158,9 @@ class NewTranspiler {
         if (unwrappedType === 'float64') {
             return `(res).(float64)`;
         }
+        if (unwrappedType === 'int64') {
+            return `(res).(int64)`;
+        }
         if (methodName.startsWith('watchOrderBook')) {
             return `NewOrderBookFromWs(res)`;
         }
@@ -1319,7 +1345,8 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const isExchange = exchangeName === 'Exchange';
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
