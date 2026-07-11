@@ -3527,25 +3527,38 @@ public class BaseExchange {
         String predictionFqcn = (isWs ? EXCHANGES_PKG_PREDICTION_PRO : EXCHANGES_PKG_PREDICTION) + name;
 
         try {
-            Class<?> clazz;
+            // resolution candidates in order of preference. For each package the typed
+            // wrapper class is tried first, then the untyped <Name>Core it extends — the
+            // transpiled tests run against the Cores and must not require the typed
+            // wrappers (generateJavaWrappers output) to exist.
+            java.util.List<String> candidates = new java.util.ArrayList<>();
             if (forcePrediction) {
                 // the --prediction flag prefers the prediction-markets package; prediction exchanges
                 // carry their watch* methods on the main prediction class (no .pro variant), so use the
                 // non-pro package even for ws
                 String predictionNonPro = EXCHANGES_PKG_PREDICTION + name;
-                try {
-                    clazz = Class.forName(predictionNonPro);
-                    fqcn = predictionNonPro;
-                } catch (ClassNotFoundException predictionMiss) {
-                    clazz = Class.forName(fqcn);
-                }
+                candidates.add(predictionNonPro);
+                candidates.add(predictionNonPro + "Core");
+                candidates.add(fqcn);
+                candidates.add(fqcn + "Core");
             } else {
+                candidates.add(fqcn);
+                candidates.add(fqcn + "Core");
+                candidates.add(predictionFqcn);
+                candidates.add(predictionFqcn + "Core");
+            }
+            Class<?> clazz = null;
+            for (String candidate : candidates) {
                 try {
-                    clazz = Class.forName(fqcn);
-                } catch (ClassNotFoundException primaryMiss) {
-                    clazz = Class.forName(predictionFqcn);
-                    fqcn = predictionFqcn;
+                    clazz = Class.forName(candidate);
+                    fqcn = candidate;
+                    break;
+                } catch (ClassNotFoundException miss) {
+                    // fall through to the next candidate
                 }
+            }
+            if (clazz == null) {
+                throw new ClassNotFoundException(String.join(", ", candidates));
             }
 
             if (!BaseExchange.class.isAssignableFrom(clazz)) return null;
@@ -3590,7 +3603,7 @@ public class BaseExchange {
             return null;
 
         } catch (ClassNotFoundException cnfe) {
-            System.err.println("[ccxt] dynamicallyCreateInstance: class not found: " + fqcn);
+            System.err.println("[ccxt] dynamicallyCreateInstance: class not found, tried: " + cnfe.getMessage());
             return null;
         } catch (Exception e) {
             System.err.println("[ccxt] dynamicallyCreateInstance: unexpected error for " + fqcn + ": " + e);
