@@ -14,6 +14,7 @@ const skipMethods = [
     "fetchDepositId",
     "fetchDepositIds",
     'watchTickers', // will be updated later
+    "cancelAllOrders", // unksip this later
 ]
 
 const skipExchanges = [
