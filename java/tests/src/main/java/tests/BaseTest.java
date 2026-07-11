@@ -425,8 +425,9 @@ public class BaseTest {
         return Functions.json(data);
     }
 
-    public static Exchange setFetchResponse(Object exchange2, Object response) {
-        var exchange = (Exchange) exchange2;
+    public static BaseExchange setFetchResponse(Object exchange2, Object response) {
+        // BaseExchange, not Exchange — prediction venues don't extend the crypto tier
+        var exchange = (BaseExchange) exchange2;
         exchange.setFetchResponse(response);
         return exchange;
     }
@@ -679,7 +680,10 @@ public class BaseTest {
             return new Exchange(exchangeArgs);
         }
 
-        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs);
+        // --prediction routes ids that exist in both packages (hyperliquid) to the
+        // prediction-markets namespace, mirroring the js/python test harnesses
+        boolean forcePrediction = getCliArgValue("--prediction");
+        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
     }
 
     public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs) {
