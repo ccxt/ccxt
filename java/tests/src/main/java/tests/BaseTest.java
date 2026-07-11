@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
@@ -662,7 +663,7 @@ public class BaseTest {
         }
     }
 
-    public static Exchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
+    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
         if (!(exchangeId instanceof String)) {
             return null;
         }
@@ -681,7 +682,7 @@ public class BaseTest {
         return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs);
     }
 
-    public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {
+    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs) {
         return initExchange(exchangeId, exchangeArgs, false);
     }
 
