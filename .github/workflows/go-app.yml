@@ -88,12 +88,6 @@ jobs:
         run: go build -C go ./v4/prediction
       - name: Build tests
         run: go -C go build ./tests/main.go
-      - name: Format go files
-        run: go fmt .
-        working-directory: go/v4
-      - name: Format go tests
-        run: go fmt .
-        working-directory: go/tests/base
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go

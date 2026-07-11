@@ -1097,7 +1097,10 @@ public class LighterCore extends LighterApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountIndex = null;
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "createOrder", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
@@ -1199,7 +1202,10 @@ public class LighterCore extends LighterApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object apiKeyIndex = null;
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "editOrder", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -1616,7 +1622,10 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderBook() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_id", Helpers.GetValue(market, "id") );
@@ -1781,7 +1790,10 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTicker() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_id", Helpers.GetValue(market, "id") );
@@ -1856,7 +1868,10 @@ public class LighterCore extends LighterApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object response = (this.publicGetOrderBookDetails(parameters)).join();
             Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1915,7 +1930,10 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -2036,7 +2054,10 @@ public class LighterCore extends LighterApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.publicGetFundingRates(this.extend(parameters))).join();
             //
             //     {
@@ -2083,7 +2104,10 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountIndex = null;
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchBalance", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
@@ -2219,7 +2243,10 @@ public class LighterCore extends LighterApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountIndex = null;
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchPositions", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
@@ -2389,7 +2416,10 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountIndex = null;
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchAccounts", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
@@ -2500,7 +2530,10 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountIndex = null;
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchOpenOrders", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
@@ -2592,7 +2625,10 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountIndex = null;
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchClosedOrders", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
@@ -2902,7 +2938,10 @@ public class LighterCore extends LighterApi
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object apiKeyIndex = null;
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "transfer", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -2985,7 +3024,10 @@ public class LighterCore extends LighterApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3111,7 +3153,10 @@ public class LighterCore extends LighterApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3214,7 +3259,10 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchWithdrawals", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             final Object finalAccountIndex = accountIndex;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account_index", finalAccountIndex );
@@ -3353,7 +3401,10 @@ public class LighterCore extends LighterApi
             Object amount = amount3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object apiKeyIndex = null;
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "withdraw", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -3426,7 +3477,10 @@ public class LighterCore extends LighterApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3674,7 +3728,10 @@ public class LighterCore extends LighterApi
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")) ;
@@ -3737,7 +3794,10 @@ public class LighterCore extends LighterApi
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object apiKeyIndex = null;
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -3805,7 +3865,10 @@ public class LighterCore extends LighterApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object apiKeyIndex = null;
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelAllOrders", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -3854,7 +3917,10 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(timeout, 300000))) || Helpers.isTrue((Helpers.isGreaterThan(timeout, 1296000000)))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " timeout should be between 5 minutes and 15 days.")) ;
@@ -3956,7 +4022,10 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object apiKeyIndex = null;
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "setMargin", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);

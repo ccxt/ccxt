@@ -17,38 +17,37 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "watchOrderBookForSymbols";
-        Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
-        Object returnedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        while (Helpers.isTrue(Helpers.isLessThan(now, ends)) || Helpers.isTrue(Helpers.isLessThan(Helpers.getArrayLength(returnedSymbols), Helpers.getArrayLength(symbols))))
+        Object currentTime = exchange.milliseconds();
+        Object deadline = Helpers.add(currentTime, 15000);
+        Object seenSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        // keep polling until the time window elapses and every requested symbol has been observed
+        while (Helpers.isTrue(Helpers.isLessThan(currentTime, deadline)) || Helpers.isTrue(Helpers.isLessThan(Helpers.getArrayLength(seenSymbols), Helpers.getArrayLength(symbols))))
         {
             Object response = null;
-            Object success = true;
+            Object succeeded = true;
             try
             {
                 response = (exchange.watchOrderBookForSymbols(symbols)).join();
             } catch(Exception e)
             {
-                // temporary fix for InvalidNonce for c#
+                // interim workaround for InvalidNonce raised by the c# runtime
                 if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
                     throw new RuntimeException(e);
                 }
-                now = exchange.milliseconds();
-                // continue;
-                success = false;
+                currentTime = exchange.milliseconds();
+                succeeded = false;
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(succeeded, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
                 Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
-                now = exchange.milliseconds();
+                currentTime = exchange.milliseconds();
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
                 Object symbol = Helpers.GetValue(response, "symbol");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue(exchange.inArray(symbol, returnedSymbols))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue(exchange.inArray(symbol, seenSymbols))))
                 {
-                    ((java.util.List<Object>)returnedSymbols).add(symbol);
+                    ((java.util.List<Object>)seenSymbols).add(symbol);
                 }
             }
         }
