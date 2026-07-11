@@ -283,7 +283,7 @@ public partial class Exchange
 
     public static string? SafeStringN(object obj, object keys, object defaultValue = null)
     {
-        var result = SafeValueN(obj, keys, defaultValue);
+        var result = SafeValueN(obj, keys);
         if (result == null)
             return defaultValue as string;
         string returnResult = null;
@@ -308,10 +308,19 @@ public partial class Exchange
         {
             returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
         }
-        else
+        else if (result is int || result is long || result is short || result is byte)
+        {
+            returnResult = Convert.ToString(result, CultureInfo.InvariantCulture);
+        }
+        else if (result is string || result.GetType().IsPrimitive)
         {
             returnResult = result.ToString();
         }
+        else
+        {
+            return defaultValue as string;
+        }
+
         if (returnResult != null)
         {
             var stringRest = (string)returnResult;
