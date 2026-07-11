@@ -124,7 +124,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             var request = ((java.util.List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((java.util.List<Object>) requestoperationTypeVariable).get(1);
@@ -225,7 +228,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object batchOperationType = "edit_order";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderId")));
@@ -298,7 +304,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object batchOperationType = "batch_orders";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, "cancelOrders() requires a \"symbol\" argument!")) ;
@@ -391,7 +400,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object operationType = "cancel_order";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
@@ -467,7 +479,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object operationType = "cancel_all_orders";
             Object request = this.cancelAllOrdersRequest(symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow")));
@@ -513,7 +528,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.setupApiKeyHeaders();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object aggLevel = null;
             var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
@@ -555,7 +573,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object aggLevel = null;
             var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
@@ -681,7 +702,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.setupApiKeyHeaders();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true);
             Object messageHash = "tickers";
             Object isTestnet = this.isSandboxModeEnabled;
@@ -719,7 +743,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true);
             Object subMessageHash = "tickers";
             Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
@@ -762,7 +789,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             var userAddressparametersVariable = this.handleOriginAndSingleAddress("watchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -808,7 +838,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
@@ -957,7 +990,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trade:", symbol);
@@ -997,7 +1033,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subMessageHash = Helpers.add("trade:", symbol);
@@ -1173,7 +1212,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object isTestnet = this.isSandboxModeEnabled;
@@ -1217,7 +1259,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object isTestnet = this.isSandboxModeEnabled;
@@ -1301,7 +1346,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handleOriginAndSingleAddress("watchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
@@ -1353,7 +1401,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
