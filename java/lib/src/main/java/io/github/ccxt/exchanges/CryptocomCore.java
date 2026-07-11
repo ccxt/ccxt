@@ -550,7 +550,7 @@ public class CryptocomCore extends CryptocomApi
             } catch(Exception e)
             {
                 Object erString = this.exceptionMessage(e);
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "SYS_ERROR"), 0)))
                 {
                     // sub-accounts can't access this endpoint
                     // {"code":"10001","msg":"SYS_ERROR"}
@@ -655,20 +655,6 @@ public class CryptocomCore extends CryptocomApi
             put( "type", "crypto" );
             put( "networks", networks );
         }});
-    }
-
-    public Object addKeyInArrayItems(Object obj, Object keyName)
-    {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-        {
-            Object key = Helpers.GetValue(keys, i);
-            Object item = Helpers.GetValue(obj, key);
-            Helpers.addElementToObject(item, keyName, key);
-            ((java.util.List<Object>)result).add(item);
-        }
-        return result;
     }
 
     /**
@@ -794,7 +780,7 @@ public class CryptocomCore extends CryptocomApi
                 Object strike = this.safeString(market, "strike");
                 Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
                 Object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
-                Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+                Object expiryString = this.omitZero(((String)this.safeString(market, "expiry_timestamp_ms")));
                 Object expiry = ((Helpers.isTrue((!Helpers.isEqual(expiryString, null))))) ? Helpers.parseInt(expiryString) : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object type = null;
@@ -899,7 +885,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -967,7 +956,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return this.safeValue(tickers, symbol);
@@ -997,7 +989,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1095,7 +1090,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1173,7 +1171,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1250,7 +1251,7 @@ public class CryptocomCore extends CryptocomApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1259,7 +1260,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -1331,7 +1335,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.v1PrivatePostPrivateUserBalance(parameters)).join();
             //
             //     {
@@ -1398,7 +1405,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1456,7 +1466,7 @@ public class CryptocomCore extends CryptocomApi
         final Object finalSide = side;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
-            put( "side", ((String)finalSide).toUpperCase() );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
             put( "quantity", CryptocomCore.this.amountToPrecision(symbol, amount) );
         }};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
@@ -1609,7 +1619,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.v1PrivatePostPrivateCreateOrder(request)).join();
@@ -1646,7 +1659,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -1657,7 +1673,7 @@ public class CryptocomCore extends CryptocomApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
+                Object orderRequest = this.createAdvancedOrderRequest(((String)marketId), ((String)type), side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object contigency = this.safeString(parameters, "contingency_type", "LIST");
@@ -1735,7 +1751,7 @@ public class CryptocomCore extends CryptocomApi
         final Object finalSide = side;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
-            put( "side", ((String)finalSide).toUpperCase() );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
         }};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
@@ -1901,7 +1917,10 @@ public class CryptocomCore extends CryptocomApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = this.editOrderRequest(id, symbol, amount, price, parameters);
             Object response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
@@ -1955,7 +1974,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1988,7 +2010,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2037,7 +2062,10 @@ public class CryptocomCore extends CryptocomApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object orderRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -2075,17 +2103,20 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object orderRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
                 Object id = this.safeString(order, "id");
                 Object symbol = this.safeString(order, "symbol");
-                Object market = this.market(symbol);
+                Object market = this.market(((String)symbol));
                 Object orderItem = new java.util.HashMap<String, Object>() {{
                     put( "instrument_name", Helpers.GetValue(market, "id") );
-                    put( "order_id", String.valueOf(id) );
+                    put( "order_id", String.valueOf(((String)id)) );
                 }};
                 ((java.util.List<Object>)orderRequests).add(orderItem);
             }
@@ -2120,7 +2151,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2195,7 +2229,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2272,7 +2309,7 @@ public class CryptocomCore extends CryptocomApi
             var addressrawTagVariable = Helpers.split(addressString, "?");
             address = ((java.util.List<Object>) addressrawTagVariable).get(0);
             rawTag = ((java.util.List<Object>) addressrawTagVariable).get(1);
-            Object splitted = Helpers.split(rawTag, "=");
+            Object splitted = Helpers.split(((String)rawTag), "=");
             tag = Helpers.GetValue(splitted, 1);
         } else
         {
@@ -2303,7 +2340,10 @@ public class CryptocomCore extends CryptocomApi
             var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -2318,7 +2358,7 @@ public class CryptocomCore extends CryptocomApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(((String)networkCode), code);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "network_id", networkId);
@@ -2361,7 +2401,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.safeCurrency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -2437,9 +2480,9 @@ public class CryptocomCore extends CryptocomApi
             Object network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
             Object depositAddresses = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            if (Helpers.isTrue(Helpers.inOp(depositAddresses, network)))
+            if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
             {
-                return Helpers.GetValue(depositAddresses, network);
+                return Helpers.GetValue(depositAddresses, ((String)network));
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
@@ -2468,7 +2511,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2542,7 +2588,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2751,7 +2800,7 @@ public class CryptocomCore extends CryptocomApi
             put( "REJECTED", "rejected" );
             put( "EXPIRED", "expired" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTimeInForce(Object timeInForce)
@@ -2761,7 +2810,7 @@ public class CryptocomCore extends CryptocomApi
             put( "IMMEDIATE_OR_CANCEL", "IOC" );
             put( "FILL_OR_KILL", "FOK" );
         }};
-        return this.safeString(timeInForces, timeInForce, timeInForce);
+        return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -3107,7 +3156,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
             Object data = this.safeValue(response, "result");
             Object currencyMap = this.safeList(data, "currency_map");
@@ -3137,7 +3189,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -3298,7 +3353,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.v1PrivatePostPrivateGetAccounts(parameters)).join();
             //
             //     {
@@ -3396,7 +3454,10 @@ public class CryptocomCore extends CryptocomApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3498,7 +3559,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -3599,7 +3663,10 @@ public class CryptocomCore extends CryptocomApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3685,7 +3752,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -3736,7 +3806,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
@@ -3873,9 +3946,9 @@ public class CryptocomCore extends CryptocomApi
             Object objectKeys = Helpers.objectKeys(obj);
             paramsKeys = this.sort(objectKeys);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(paramsKeys)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(paramsKeys))); i++)
         {
-            Object key = Helpers.GetValue(paramsKeys, i);
+            Object key = Helpers.GetValue((java.util.List<String>)(paramsKeys), i);
             returnString = Helpers.add(returnString, key);
             Object value = Helpers.GetValue(obj, key);
             if (Helpers.isTrue(Helpers.isEqual(value, "undefined")))
@@ -3916,7 +3989,10 @@ public class CryptocomCore extends CryptocomApi
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -3965,7 +4041,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -4006,7 +4085,10 @@ public class CryptocomCore extends CryptocomApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.v1PrivatePostPrivateGetFeeRate(parameters)).join();
             //
             //   {
@@ -4043,9 +4125,9 @@ public class CryptocomCore extends CryptocomApi
         //
         Object result = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(result, "info", response);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
         {
-            Object symbol = Helpers.GetValue(this.symbols, i);
+            Object symbol = Helpers.GetValue(((Object)this.symbols), i);
             Object market = this.market(symbol);
             Object isSwap = Helpers.GetValue(market, "swap");
             Object takerFeeKey = ((Helpers.isTrue(isSwap))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
@@ -4094,7 +4176,7 @@ public class CryptocomCore extends CryptocomApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object type = this.safeString(api, 0);
         Object access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), "/"), path);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {

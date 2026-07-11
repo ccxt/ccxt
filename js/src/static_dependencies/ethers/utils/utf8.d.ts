@@ -2,7 +2,7 @@ import type { BytesLike } from "./index.js";
 /**
  *  The stanard normalization forms.
  */
-export declare type UnicodeNormalizationForm = "NFC" | "NFD" | "NFKC" | "NFKD";
+export type UnicodeNormalizationForm = "NFC" | "NFD" | "NFKC" | "NFKD";
 /**
  *  When using the UTF-8 error API the following errors can be intercepted
  *  and processed as the %%reason%% passed to the [[Utf8ErrorFunc]].
@@ -35,7 +35,7 @@ export declare type UnicodeNormalizationForm = "NFC" | "NFD" | "NFKC" | "NFKD";
  *
  *  @returns string
  */
-export declare type Utf8ErrorReason = "UNEXPECTED_CONTINUE" | "BAD_PREFIX" | "OVERRUN" | "MISSING_CONTINUE" | "OUT_OF_RANGE" | "UTF16_SURROGATE" | "OVERLONG";
+export type Utf8ErrorReason = "UNEXPECTED_CONTINUE" | "BAD_PREFIX" | "OVERRUN" | "MISSING_CONTINUE" | "OUT_OF_RANGE" | "UTF16_SURROGATE" | "OVERLONG";
 /**
  *  A callback that can be used with [[toUtf8String]] to analysis or
  *  recovery from invalid UTF-8 data.
@@ -56,7 +56,7 @@ export declare type Utf8ErrorReason = "UNEXPECTED_CONTINUE" | "BAD_PREFIX" | "OV
  *  The function should return the number of bytes that should be skipped
  *  when control resumes to the FSM.
  */
-export declare type Utf8ErrorFunc = (reason: Utf8ErrorReason, offset: number, bytes: Uint8Array, output: Array<number>, badCodepoint?: number) => number;
+export type Utf8ErrorFunc = (reason: Utf8ErrorReason, offset: number, bytes: Uint8Array, output: Array<number>, badCodepoint?: number) => number;
 /**
  *  A handful of popular, built-in UTF-8 error handling strategies.
  *

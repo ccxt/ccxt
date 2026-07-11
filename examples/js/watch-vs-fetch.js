@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 // see this issue for details
 // https://github.com/ccxt/ccxt/issues/6659
 'use strict';

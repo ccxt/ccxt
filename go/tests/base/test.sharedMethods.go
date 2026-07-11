@@ -37,7 +37,7 @@ func AssertType(exchange ccxt.ICoreExchange, skippedProperties any, entry any, k
 	var same_numeric any = IsTrue((IsNumber(entryKeyVal))) && IsTrue((IsNumber(formatKeyVal)))
 	var same_boolean any = IsTrue((IsTrue((IsEqual(entryKeyVal, true))) || IsTrue((IsEqual(entryKeyVal, false))))) && IsTrue((IsTrue((IsEqual(formatKeyVal, true))) || IsTrue((IsEqual(formatKeyVal, false)))))
 	var same_array any = IsTrue(IsArray(entryKeyVal)) && IsTrue(IsArray(formatKeyVal))
-	var same_object any = IsTrue((IsObject(entryKeyVal))) && IsTrue((IsObject(formatKeyVal)))
+	var same_object any = IsTrue(exchange.IsDictionary(entryKeyVal)) && IsTrue(exchange.IsDictionary(formatKeyVal))
 	var result any = IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(entryKeyVal, nil))) || IsTrue(same_string)) || IsTrue(same_numeric)) || IsTrue(same_boolean)) || IsTrue(same_array)) || IsTrue(same_object)
 	return result
 }
@@ -76,7 +76,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 			Assert(typeAssertion, Add(Add(ToString(i), " index does not have an expected type "), logText))
 		}
 	} else {
-		Assert(IsObject(entry), Add("entry is not an object", logText))
+		Assert(exchange.IsDictionary(entry), Add("entry is not a dict", logText))
 		var keys any = ObjectKeys(format)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var key any = GetValue(keys, i)
@@ -102,7 +102,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 				var typeAssertion any = AssertType(exchange, skippedProperties, entry, key, format)
 				Assert(typeAssertion, Add(Add(Add("\"", StringValue(key)), "\" key is neither undefined, neither of expected type"), logText))
 				if IsTrue(deep) {
-					if IsTrue(IsObject(value)) {
+					if IsTrue(IsTrue(exchange.IsDictionary(value)) || IsTrue(IsArray(value))) {
 						AssertStructure(exchange, skippedProperties, method, value, GetValue(format, key), emptyAllowedFor, deep)
 					}
 				}
@@ -344,7 +344,7 @@ func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties any, meth
 		Assert(IsArray(entry), Add("fee container is expected to be an array", logText))
 		Assert(IsLessThan(key, GetArrayLength(entry)), Add(Add(Add("fee key ", keyString), " was expected to be present in entry"), logText))
 	} else {
-		Assert(IsObject(entry), Add("fee container is expected to be an object", logText))
+		Assert(exchange.IsDictionary(entry), Add("fee container is expected to be a dict", logText))
 		Assert(InOp(entry, key), Add(Add(Add("fee key \"", key), "\" was expected to be present in entry"), logText))
 	}
 	var feeObject any = exchange.SafeValue(entry, key)
@@ -680,4 +680,36 @@ func ExchangeProp(exchange ccxt.ICoreExchange, key any, optionalArgs ...any) any
 	// try UpperCase key also, for other langs
 	var keyUpper any = exchange.Capitalize(ToString(key))
 	return exchange.GetProperty(exchange, keyUpper, defaultValue)
+}
+func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, ticker any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		// only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+		var eMessage any = exchange.ExceptionMessage(ex, false)
+		if IsTrue(IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be above"), 0)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be below"), 0))) {
+			var symbol any = GetValue(ticker, "symbol")
+			if IsTrue(!IsEqual(symbol, nil)) {
+				// if it's not in markets, then maybe newly added symbol, so can can compromise there
+				if !IsTrue((InOp(exchange.GetMarkets(), symbol))) {
+
+					return nil
+				}
+				// if OHLCV supported
+				if IsTrue(!IsEqual(exchange.FeatureValue(symbol, "fetchOHLCV"), nil)) {
+
+					ohlcv := (<-exchange.FetchOHLCV(symbol, "1d", nil, 5))
+					PanicOnError(ohlcv)
+					if IsTrue(IsLessThanOrEqual(GetArrayLength(ohlcv), 1)) {
+
+						return nil
+					}
+				}
+			}
+		}
+		Assert(IsEqual(eMessage, ""), eMessage) // trigger error
+		return nil
+	}()
+	return ch
 }

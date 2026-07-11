@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Bool, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -501,16 +501,16 @@ class whitebit(Exchange, ImplicitAPI):
         isCollateral = self.safe_value(market, 'isCollateral')
         typeId = self.safe_string(market, 'type')
         type: MarketType
-        settle: Str = None
-        settleId: Str = None
+        settle = None
+        settleId = None
         symbol = base + '/' + quote
         swap = typeId == 'futures'
         margin = isCollateral and not swap
         contract = False
         amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
         contractSize = amountPrecision
-        linear: Bool = None
-        inverse: Bool = None
+        linear = None
+        inverse = None
         if swap:
             settleId = quoteId
             settle = self.safe_currency_code(settleId)
@@ -653,74 +653,73 @@ class whitebit(Exchange, ImplicitAPI):
         #   }
         # }
         #
-        ids = list(response.keys())
-        result: dict = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = response[id]
-            # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
-            code = self.safe_currency_code(id)
-            hasProvider = ('providers' in currency)
-            networks = {}
-            rawNetworks = self.safe_dict(currency, 'networks', {})
-            depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
-            withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
-            networkLimits = self.safe_dict(currency, 'limits', {})
-            depositLimits = self.safe_dict(networkLimits, 'deposit', {})
-            withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
-            allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
-            for j in range(0, len(allNetworks)):
-                networkId = allNetworks[j]
-                networkCode = self.network_id_to_code(networkId)
-                networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
-                networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.in_array(networkId, depositsNetworks),
-                    'withdraw': self.in_array(networkId, withdrawsNetworks),
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(networkDepositLimits, 'min'),
-                            'max': self.safe_number(networkDepositLimits, 'max'),
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(networkWithdrawLimits, 'min'),
-                            'max': self.safe_number(networkWithdrawLimits, 'max'),
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,  # the original payload
-                'name': None,  # see the comment above
+        enhancedArray = self.add_key_in_array_items(response, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
+        id = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(id)
+        hasProvider = ('providers' in rawCurrency)
+        networks = {}
+        rawNetworks = self.safe_dict(rawCurrency, 'networks', {})
+        depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
+        withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
+        networkLimits = self.safe_dict(rawCurrency, 'limits', {})
+        depositLimits = self.safe_dict(networkLimits, 'deposit', {})
+        withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
+        allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
+        for j in range(0, len(allNetworks)):
+            networkId = allNetworks[j]
+            networkCode = self.network_id_to_code(networkId, code)
+            networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
+            networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
-                'deposit': self.safe_bool(currency, 'can_deposit'),
-                'withdraw': self.safe_bool(currency, 'can_withdraw'),
+                'deposit': self.in_array(networkId, depositsNetworks),
+                'withdraw': self.in_array(networkId, withdrawsNetworks),
                 'fee': None,
-                'networks': networks,
-                'type': 'fiat' if hasProvider else 'crypto',
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
+                'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+                    'deposit': {
+                        'min': self.safe_number(networkDepositLimits, 'min'),
+                        'max': self.safe_number(networkDepositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'min_withdraw'),
-                        'max': self.safe_number(currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': self.safe_number(currency, 'min_deposit'),
-                        'max': self.safe_number(currency, 'max_deposit'),
+                        'min': self.safe_number(networkWithdrawLimits, 'min'),
+                        'max': self.safe_number(networkWithdrawLimits, 'max'),
                     },
                 },
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,  # the original payload
+            'name': None,  # see the comment above
+            'active': None,
+            'deposit': self.safe_bool(rawCurrency, 'can_deposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'can_withdraw'),
+            'fee': None,
+            'networks': networks,
+            'type': 'fiat' if hasProvider else 'crypto',
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'min_withdraw'),
+                    'max': self.safe_number(rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': self.safe_number(rawCurrency, 'min_deposit'),
+                    'max': self.safe_number(rawCurrency, 'max_deposit'),
+                },
+            },
+        })
 
     def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
@@ -733,7 +732,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v4PublicGetFee(params)
         #
         #      {
@@ -761,8 +761,8 @@ class whitebit(Exchange, ImplicitAPI):
         #      }
         #
         currenciesIds = list(response.keys())
-        withdrawFees: dict = {}
-        depositFees: dict = {}
+        withdrawFees = {}
+        depositFees = {}
         for i in range(0, len(currenciesIds)):
             currency = currenciesIds[i]
             data = response[currency]
@@ -787,7 +787,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v4PublicGetFee(params)
         #
         #    {
@@ -833,7 +834,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         #
         #    {
         #        "1INCH": {
@@ -876,7 +877,7 @@ class whitebit(Exchange, ImplicitAPI):
         #        ...
         #    }
         #
-        depositWithdrawFees: dict = {}
+        depositWithdrawFees = {}
         codes = self.market_codes(codes)
         currencyIds = list(response.keys())
         for i in range(0, len(currencyIds)):
@@ -895,18 +896,18 @@ class whitebit(Exchange, ImplicitAPI):
                 deposit = self.safe_value(feeInfo, 'deposit')
                 withdrawFee = self.safe_number(withdraw, 'fixed')
                 depositFee = self.safe_number(deposit, 'fixed')
-                withdrawResult: dict = {
+                withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,
                 }
-                depositResult: dict = {
+                depositResult = {
                     'fee': depositFee,
                     'percentage': False if (depositFee is not None) else None,
                 }
                 if networkId is not None:
                     networkLength = len(networkId)
                     networkId = networkId[1:networkLength - 1]
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
@@ -930,7 +931,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v4PublicGetAssets(params)
         #
         #      {
@@ -949,7 +951,7 @@ class whitebit(Exchange, ImplicitAPI):
         #            ...
         #      }
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -978,7 +980,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `trading limits structure <https://docs.ccxt.com/?id=trading-limits-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         #
         # Trading limits are derived from market information already loaded by loadMarkets()
         # Market structure includes:
@@ -1023,7 +1026,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "tierBased": False                   # Tier-based fees
         #     }
         #
-        result: dict = {}
+        result = {}
         # Process all markets from the loaded markets cache
         marketIds = list(self.markets.keys())
         for i in range(0, len(marketIds)):
@@ -1081,7 +1084,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding limits structure <https://docs.ccxt.com/?id=funding-limits-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # Fetch both currencies and fees data for comprehensive funding limits
         currenciesData, feesData = asyncio.gather(*[
             self.fetch_currencies(),
@@ -1143,7 +1147,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result: dict = {}
+        result = {}
         currencyKeys = list(currenciesData.keys())
         for i in range(0, len(currencyKeys)):
             code = currencyKeys[i]
@@ -1164,7 +1168,7 @@ class whitebit(Exchange, ImplicitAPI):
                     feeData = fee
                     break
             # Build comprehensive funding limits
-            limits: dict = {
+            limits = {
                 'deposit': {
                     'min': currency['limits']['deposit']['min'],
                     'max': currency['limits']['deposit']['max'],
@@ -1219,9 +1223,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v1PublicGetTicker(self.extend(request, params))
@@ -1374,11 +1379,12 @@ class whitebit(Exchange, ImplicitAPI):
         :param boolean [params.checkExecuted]: whether to check executed orders(default: True)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # Extract control parameters from params
         checkActive = self.safe_bool(params, 'checkActive', True)
         checkExecuted = self.safe_bool(params, 'checkExecuted', True)
-        request: dict = {
+        request = {
             'orderId': id,
         }
         market = None
@@ -1433,7 +1439,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.method]: either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         onlyContractSymbols = True
         if symbols is not None:
@@ -1455,7 +1462,7 @@ class whitebit(Exchange, ImplicitAPI):
                 method = 'v4PublicGetFutures'
             else:
                 method = 'v4PublicGetTicker'
-        response = None
+        response: dict
         if method == 'v4PublicGetTicker':
             #
             #      "BCH_RUB": {
@@ -1516,7 +1523,7 @@ class whitebit(Exchange, ImplicitAPI):
         if resultList is not None:
             return self.parse_tickers(resultList, symbols)
         marketIds = list(response.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
@@ -1534,11 +1541,12 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -1578,9 +1586,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v4PublicGetTradesMarket(self.extend(request, params))
@@ -1610,9 +1619,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
-        market: Market = None
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -1722,7 +1732,7 @@ class whitebit(Exchange, ImplicitAPI):
         side = self.safe_string_2(trade, 'type', 'side')
         symbol = market['symbol']
         role = self.safe_integer(trade, 'role')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if role is not None:
             takerOrMaker = 'maker' if (role == 1) else 'taker'
         fee = None
@@ -1761,9 +1771,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1901,9 +1912,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'side': side,
         }
@@ -1936,7 +1948,7 @@ class whitebit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() is only available for cross margin')
         params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
-        response = None
+        response: dict
         if isStopOrder:
             request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
@@ -1983,9 +1995,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         # Handle clientOrderId vs orderId(clientOrderId takes priority)
@@ -2038,9 +2051,10 @@ class whitebit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'orderId': int(id),
         }
@@ -2078,9 +2092,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param boolean [params.isMargin]: cancel all margin orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2118,7 +2133,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # Fetch both open and closed orders in parallel
         openOrders, closedOrders = asyncio.gather(*[
             self.fetch_open_orders(symbol, since, limit, params),
@@ -2144,14 +2160,15 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.symbol]: symbol unified symbol of the market the order was made in
         :returns dict: the api result
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbol = self.safe_string(params, 'symbol')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a symbol argument in params')
         market = self.market(symbol)
         params = self.omit(params, 'symbol')
         isBiggerThanZero = (timeout > 0)
-        request: dict = {
+        request = {
             'market': market['id'],
             # 'timeout': self.number_to_string(timeout / 1000) if (timeout > 0) else null,
         }
@@ -2172,12 +2189,12 @@ class whitebit(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balanceKeys = list(response.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(balanceKeys)):
             id = balanceKeys[i]
             code = self.safe_currency_code(id)
             balance = response[id]
-            if isinstance(balance, dict) and balance is not None:
+            if balance is not None and self.is_dictionary(balance):
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'available', 'main_balance')
                 account['used'] = self.safe_string(balance, 'freeze')
@@ -2199,10 +2216,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        response = None
+        response: dict
         if marketType == 'swap':
             response = self.v4PrivatePostCollateralAccountBalance(params)
         else:
@@ -2250,9 +2268,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
@@ -2293,8 +2312,9 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2334,7 +2354,7 @@ class whitebit(Exchange, ImplicitAPI):
         return results
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'limit': 'limit',
             'market': 'market',
             'stop market': 'market',
@@ -2439,7 +2459,7 @@ class whitebit(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'CANCELED': 'canceled',
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -2460,8 +2480,9 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'orderId': int(id),
         }
         market = None
@@ -2506,9 +2527,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.transactionMethod]: transaction method(1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['ticker'] = currency['id']
@@ -2554,9 +2576,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.transactionMethod]: transaction method(1=deposit, 2=withdrawal) - automatically set to '1' for deposits
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['ticker'] = currency['id']
@@ -2599,12 +2622,13 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'ticker': currency['id'],
         }
-        response = None
+        response: dict
         if self.is_fiat(code):
             provider = self.safe_string(params, 'provider')
             if provider is None:
@@ -2671,9 +2695,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.type]: address type, available for specific currencies
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'ticker': currency['id'],
         }
         response = self.v4PrivatePostMainAccountCreateNewAddress(self.extend(request, params))
@@ -2722,7 +2747,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accounts = []
         # Fetch sub-accounts
         #
@@ -2762,12 +2788,13 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' setLeverage() does not allow to set per symbol')
         if (leverage < 1) or (leverage > 20):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 20')
-        request: dict = {
+        request = {
             'leverage': leverage,
         }
         return self.v4PrivatePostCollateralAccountLeverage(self.extend(request, params))
@@ -2788,13 +2815,14 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
         amountString = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'ticker': currency['id'],
             'amount': amountString,
             'from': fromAccountId,
@@ -2835,9 +2863,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)  # check if it has canDeposit
-        request: dict = {
+        request = {
             'ticker': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'address': address,
@@ -2927,7 +2956,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '1': 'pending',
             '2': 'pending',
             '3': 'ok',
@@ -2958,9 +2987,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {
+        request = {
             'transactionMethod': 1,
             'uniqueId': id,
             'limit': 1,
@@ -3023,9 +3053,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {
+        request = {
             'transactionMethod': 1,
             'limit': 100,
             'offset': 0,
@@ -3089,8 +3120,9 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3165,7 +3197,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbol = self.symbol(symbol)
         response = self.fetch_funding_rates([symbol], params)
         return self.safe_value(response, symbol)
@@ -3180,7 +3213,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v4PublicGetFutures(params)
         #
@@ -3303,11 +3337,12 @@ class whitebit(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch funding history for
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if since is not None:
@@ -3360,7 +3395,7 @@ class whitebit(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'fundingAmount'),
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, contracts, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
@@ -3388,8 +3423,9 @@ class whitebit(Exchange, ImplicitAPI):
         :param str[] [params.status]: Can be used for filtering transactions by status codes. Caution: You must use self parameter with appropriate transactionMethod and use valid status codes for self method. You can find them below. Example: "status": [3,7]
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -3450,10 +3486,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         fromCurrency = self.currency(fromCode)
         toCurrency = self.currency(toCode)
-        request: dict = {
+        request = {
             'from': fromCode,
             'to': toCode,
             'amount': self.number_to_string(amount),
@@ -3486,10 +3523,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         fromCurrency = self.currency(fromCode)
         toCurrency = self.currency(toCode)
-        request: dict = {
+        request = {
             'quoteId': id,
         }
         response = self.v4PrivatePostConvertConfirm(self.extend(request, params))
@@ -3517,8 +3555,9 @@ class whitebit(Exchange, ImplicitAPI):
         :param str [params.quoteId]: the quote id of the conversion
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         if code is not None:
             request['fromTicker'] = code
         if since is not None:
@@ -3627,9 +3666,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param int [params.positionId]: the id of the requested position
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if since is not None:
@@ -3674,7 +3714,8 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v4PrivatePostCollateralAccountPositionsOpen(params)
         #
@@ -3710,9 +3751,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = self.v4PrivatePostCollateralAccountPositionsOpen(self.extend(request, params))
@@ -3829,9 +3871,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'ticker': currency['id'],
         }
         response = self.v4PrivatePostMainAccountSmartPlans(self.extend(request, params))
@@ -3878,9 +3921,10 @@ class whitebit(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if since is not None:
@@ -3917,7 +3961,7 @@ class whitebit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
         accessibility = self.safe_value(api, 1)
@@ -3925,7 +3969,7 @@ class whitebit(Exchange, ImplicitAPI):
             headers = {}
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
-        url = self.urls['api'][version][accessibility] + pathWithParams
+        url = (self.urls['api'])[version][accessibility] + pathWithParams
         if accessibility == 'public':
             if query:
                 url += '?' + self.urlencode(query)

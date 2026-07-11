@@ -42,10 +42,14 @@
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
+* [setMarginMode](#setmarginmode)
+* [addMargin](#addmargin)
+* [reduceMargin](#reducemargin)
 * [fetchLeverageTiers](#fetchleveragetiers)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchTradingFees](#fetchtradingfees)
 * [watchOHLCV](#watchohlcv)
+* [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOrders](#watchorders)
@@ -69,7 +73,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-hashkey.fetchTime ([params])
+hashkey.fetchTime (params?)
 ```
 
 
@@ -89,7 +93,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-hashkey.fetchStatus ([params])
+hashkey.fetchStatus (params?)
 ```
 
 
@@ -110,7 +114,7 @@ retrieves data on all markets for the exchange
 
 
 ```javascript
-hashkey.fetchMarkets ([params])
+hashkey.fetchMarkets (params?)
 ```
 
 
@@ -130,7 +134,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-hashkey.fetchCurrencies ([params])
+hashkey.fetchCurrencies (params?)
 ```
 
 
@@ -140,7 +144,7 @@ hashkey.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book  
 
@@ -152,7 +156,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hashkey.fetchOrderBook (symbol[, limit, params])
+hashkey.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -175,7 +179,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-hashkey.fetchTrades (symbol[, since, limit, params])
+hashkey.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -209,7 +213,7 @@ fetch all trades made by the user
 
 
 ```javascript
-hashkey.fetchMyTrades (symbol[, since, limit, params])
+hashkey.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -235,7 +239,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-hashkey.fetchOHLCV (symbol, timeframe[, since, limit, params])
+hashkey.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -256,7 +260,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-hashkey.fetchTicker (symbol[, params])
+hashkey.fetchTicker (symbol, params?)
 ```
 
 
@@ -277,7 +281,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-hashkey.fetchTickers ([symbols, params])
+hashkey.fetchTickers (symbols?, params?)
 ```
 
 
@@ -299,7 +303,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-hashkey.fetchLastPrices ([symbols, params])
+hashkey.fetchLastPrices (symbols?, params?)
 ```
 
 
@@ -321,7 +325,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-hashkey.fetchBalance ([params])
+hashkey.fetchBalance (params?)
 ```
 
 
@@ -343,7 +347,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-hashkey.fetchDepositAddress (code[, params])
+hashkey.fetchDepositAddress (code, params?)
 ```
 
 
@@ -368,7 +372,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-hashkey.fetchDeposits (code[, since, limit, params])
+hashkey.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -392,7 +396,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-hashkey.fetchWithdrawals (code[, since, limit, params])
+hashkey.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -419,7 +423,7 @@ make a withdrawal
 
 
 ```javascript
-hashkey.withdraw (code, amount, address, tag[, params])
+hashkey.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -445,7 +449,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-hashkey.transfer (code, amount, fromAccount, toAccount[, params])
+hashkey.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -465,7 +469,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-hashkey.fetchAccounts ([params])
+hashkey.fetchAccounts (params?)
 ```
 
 
@@ -491,7 +495,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-hashkey.fetchLedger ([code, since, limit, params])
+hashkey.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -527,7 +531,7 @@ create a trade order
 
 
 ```javascript
-hashkey.createOrder (symbol, type, side, amount[, price, params])
+hashkey.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -548,7 +552,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-hashkey.createMarketBuyOrderWithCost (symbol, cost[, params])
+hashkey.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -582,7 +586,7 @@ create a trade order on spot market
 
 
 ```javascript
-hashkey.createSpotOrder (symbol, type, side, amount[, price, params])
+hashkey.createSpotOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -612,7 +616,7 @@ create a trade order on swap market
 
 
 ```javascript
-hashkey.createSwapOrder (symbol, type, side, amount[, price, params])
+hashkey.createSwapOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -637,7 +641,7 @@ create a list of trade orders (all orders should be of the same symbol)
 
 
 ```javascript
-hashkey.createOrders (orders[, params])
+hashkey.createOrders (orders, params?)
 ```
 
 
@@ -667,7 +671,7 @@ cancels an open order
 
 
 ```javascript
-hashkey.cancelOrder (id, symbol[, params])
+hashkey.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -693,7 +697,7 @@ cancel all open orders
 
 
 ```javascript
-hashkey.cancelAllOrders (symbol[, params])
+hashkey.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -720,7 +724,7 @@ cancel multiple orders
 
 
 ```javascript
-hashkey.cancelOrders (ids[, symbol, params])
+hashkey.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -751,7 +755,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-hashkey.fetchOrder (id, symbol[, params])
+hashkey.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -787,7 +791,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-hashkey.fetchOpenOrders ([symbol, since, limit, params])
+hashkey.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -823,7 +827,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-hashkey.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+hashkey.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -844,7 +848,7 @@ fetch the current funding rate
 
 
 ```javascript
-hashkey.fetchFundingRate (symbol[, params])
+hashkey.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -865,7 +869,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-hashkey.fetchFundingRates (symbols[, params])
+hashkey.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -890,7 +894,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-hashkey.fetchFundingRateHistory (symbol[, since, limit, params])
+hashkey.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -912,7 +916,7 @@ fetch all open positions
 
 
 ```javascript
-hashkey.fetchPositions (symbols[, params])
+hashkey.fetchPositions (symbols, params?)
 ```
 
 
@@ -934,7 +938,7 @@ fetch all open positions for specific symbol
 
 
 ```javascript
-hashkey.fetchPositionsForSymbol (symbol[, params])
+hashkey.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
@@ -955,7 +959,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-hashkey.fetchLeverage (symbol[, params])
+hashkey.fetchLeverage (symbol, params?)
 ```
 
 
@@ -977,7 +981,75 @@ set the level of leverage for a market
 
 
 ```javascript
-hashkey.setLeverage (leverage, symbol[, params])
+hashkey.setLeverage (leverage, symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.setMarginMode (marginMode, symbol, params?)
+```
+
+
+<a name="addMargin" id="addmargin"></a>
+
+### addMargin{docsify-ignore}
+add margin
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
+
+
+```javascript
+hashkey.addMargin (symbol, amount, params?)
+```
+
+
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from a position
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
+
+
+```javascript
+hashkey.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -998,7 +1070,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-hashkey.fetchLeverageTiers (symbols[, params])
+hashkey.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -1012,7 +1084,7 @@ fetch the trading fees for a market
 
 **See**
 
-- https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+- https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
 - https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
 
 
@@ -1023,7 +1095,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-hashkey.fetchTradingFee (symbol[, params])
+hashkey.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1035,7 +1107,7 @@ hashkey.fetchTradingFee (symbol[, params])
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://developers.binance.com/docs/wallet/asset/trade-fee  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1043,7 +1115,7 @@ hashkey.fetchTradingFee (symbol[, params])
 
 
 ```javascript
-hashkey.fetchTradingFees ([params])
+hashkey.fetchTradingFees (params?)
 ```
 
 
@@ -1068,7 +1140,29 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-hashkey.watchOHLCV (symbol, timeframe[, since, limit, params])
+hashkey.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.binary | <code>bool</code> | No | true or false - default false |
+
+
+```javascript
+hashkey.watchTicker (symbol, params?)
 ```
 
 
@@ -1092,7 +1186,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-hashkey.watchTrades (symbol[, since, limit, params])
+hashkey.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1102,7 +1196,7 @@ hashkey.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream  
 
@@ -1114,7 +1208,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hashkey.watchOrderBook (symbol[, limit, params])
+hashkey.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1137,7 +1231,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-hashkey.watchOrders (symbol[, since, limit, params])
+hashkey.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1160,7 +1254,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-hashkey.watchMyTrades (symbol[, since, limit, params])
+hashkey.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1183,7 +1277,7 @@ watch all open positions
 
 
 ```javascript
-hashkey.watchPositions ([symbols, since, limit, params])
+hashkey.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1204,6 +1298,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-hashkey.watchBalance ([params])
+hashkey.watchBalance (params?)
 ```
 

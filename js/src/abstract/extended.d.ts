@@ -1,0 +1,58 @@
+import { implicitReturnType } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    v1PublicGetInfoMarkets(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoAssets(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoAssetsAssetPrice(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarketsMarketStats(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarketsMarketOrderbook(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarketsMarketTrades(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoCandlesMarketCandleType(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarketFunding(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoMarketOpenInterests(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInfoBuilderDashboard(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserAccounts(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserAccountInfo(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserBalance(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserSpotBalances(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserAssetOperations(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserPositions(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserPositionsHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserOrders(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserOrdersId(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserOrdersExternalExternalId(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserTrades(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserFundingHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserRebatesStats(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserLeverage(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserFees(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserBridgeConfig(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserBridgeQuote(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserAffiliate(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserReferralsStatus(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserReferralsLinks(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserReferralsDashboard(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserRewardsEarned(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetUserRewardsLeaderboardStats(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetPortfolioChartsEquities(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetPortfolioChartsPnl(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetVaultPublicPerformance(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetVaultPublicSummary(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetBuilderTrades(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserOrder(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserOrderMassCancel(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserDeadmanswitch(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserBridgeQuote(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserWithdrawal(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserTransfer(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserReferralsUse(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostUserReferrals(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePutUserReferrals(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePatchUserLeverage(params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteUserOrderId(params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteUserOrder(params?: {}): Promise<implicitReturnType>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

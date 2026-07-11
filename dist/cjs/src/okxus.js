@@ -34,15 +34,11 @@ class okxus extends okx["default"] {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
             },
             'features': {
-                'swap': {
-                    'linear': undefined,
-                    'inverse': undefined,
-                },
                 'future': {
                     'linear': undefined,
                     'inverse': undefined,

@@ -25,7 +25,10 @@ public class TestTrade extends BaseTest {
             put( "amount", exchange.parseNumber("1.5") );
             put( "cost", exchange.parseNumber("0.10376526") );
             put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-            put( "fee", new java.util.HashMap<String, Object>() {{}} );
+            put( "fee", new java.util.HashMap<String, Object>() {{
+                put( "cost", exchange.parseNumber("0.001") );
+                put( "currency", "USDT" );
+            }} );
         }};
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side

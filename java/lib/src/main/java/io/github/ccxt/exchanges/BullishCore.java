@@ -30,7 +30,7 @@ public class BullishCore extends BullishApi
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
@@ -804,7 +804,7 @@ public class BullishCore extends BullishApi
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        Object id = this.safeString(market, "symbol");
+        Object id = ((String)this.safeString(market, "symbol"));
         Object baseId = this.safeString(market, "baseSymbol");
         Object quoteId = this.safeString(market, "quoteSymbol");
         Object base = this.safeCurrencyCode(baseId);
@@ -854,7 +854,7 @@ public class BullishCore extends BullishApi
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 Object idParts = Helpers.split(id, "-");
-                Object datePart = this.safeString(idParts, 2);
+                Object datePart = ((String)this.safeString(idParts, 2));
                 Object dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = Helpers.add(symbol, Helpers.add("-", dateYmd));
                 if (Helpers.isTrue(Helpers.isEqual(type, "future")))
@@ -941,16 +941,17 @@ public class BullishCore extends BullishApi
         }});
     }
 
-    public Object parseMarketType(Object type, Object... optionalArgs)
+    public Object parseMarketType(Object... optionalArgs)
     {
-        Object defaultType = Helpers.getArg(optionalArgs, 0, null);
+        Object type = Helpers.getArg(optionalArgs, 0, null);
+        Object defaultType = Helpers.getArg(optionalArgs, 1, null);
         Object types = new java.util.HashMap<String, Object>() {{
             put( "SPOT", "spot" );
             put( "PERPETUAL", "swap" );
             put( "DATED_FUTURE", "future" );
             put( "OPTION", "option" );
         }};
-        return this.safeString(types, type, defaultType);
+        return this.safeString(types, ((String)type), defaultType);
     }
 
     /**
@@ -961,7 +962,7 @@ public class BullishCore extends BullishApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -970,7 +971,10 @@ public class BullishCore extends BullishApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1023,7 +1027,10 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object maxLimit = 100;
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
@@ -1169,7 +1176,10 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
@@ -1297,7 +1307,10 @@ public class BullishCore extends BullishApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1486,7 +1499,10 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object maxLimit = 100;
             Object paginate = false;
@@ -1573,7 +1589,10 @@ public class BullishCore extends BullishApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object maxLimit = 100;
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
@@ -1684,7 +1703,7 @@ public class BullishCore extends BullishApi
             var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object response = null;
+            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetV2Orders")))
             {
                 //
@@ -2015,7 +2034,7 @@ public class BullishCore extends BullishApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "commandType", "V3CreateOrder" );
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)((String)side)).toUpperCase() );
                 put( "quantity", BullishCore.this.amountToPrecision(symbol, amount) );
                 put( "tradingAccountId", tradingAccountId );
             }};
@@ -2336,7 +2355,7 @@ public class BullishCore extends BullishApi
             put( "CANCELLED", "canceled" );
             put( "REJECTED", "rejected" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object type)
@@ -2347,7 +2366,7 @@ public class BullishCore extends BullishApi
             put( "POST_ONLY", "limit" );
             put( "STOP_LIMIT", "limit" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**
@@ -2469,7 +2488,7 @@ public class BullishCore extends BullishApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
             } else
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
@@ -2549,7 +2568,7 @@ public class BullishCore extends BullishApi
             put( "txid", txid );
             put( "timestamp", timestamp );
             put( "datetime", BullishCore.this.iso8601(timestamp) );
-            put( "network", BullishCore.this.networkIdToCode(network) );
+            put( "network", BullishCore.this.networkIdToCode(network, code) );
             put( "addressFrom", sourceAddress );
             put( "address", address );
             put( "addressTo", address );
@@ -2585,7 +2604,7 @@ public class BullishCore extends BullishApi
             put( "PENDING", "pending" );
             put( "CANCELLED", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public java.util.concurrent.CompletableFuture<Object> loadAccount(Object... optionalArgs)
@@ -2786,7 +2805,7 @@ public class BullishCore extends BullishApi
                     {
                         Object entry = this.safeDict(safeResponse, i, new java.util.HashMap<String, Object>() {{}});
                         Object networkId = this.safeString(entry, "network");
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, code);
                         if (Helpers.isTrue(Helpers.isEqual(network, networkCode)))
                         {
                             data = entry;
@@ -2809,10 +2828,11 @@ public class BullishCore extends BullishApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(depositAddress, "symbol");
         Object network = this.safeString(depositAddress, "network");
+        Object code = this.safeCurrencyCode(id, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", BullishCore.this.safeCurrencyCode(id, currency) );
-            put( "network", BullishCore.this.networkIdToCode(network) );
+            put( "currency", code );
+            put( "network", BullishCore.this.networkIdToCode(network, code) );
             put( "address", BullishCore.this.safeString(depositAddress, "address") );
             put( "tag", null );
         }};
@@ -2880,7 +2900,7 @@ public class BullishCore extends BullishApi
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(response, "availableQuantity"));
         Helpers.addElementToObject(account, "used", this.safeString(response, "lockedQuantity"));
-        Helpers.addElementToObject(result, code, account);
+        Helpers.addElementToObject(result, ((String)code), account);
         return this.safeBalance(result);
     }
 
@@ -3017,7 +3037,7 @@ public class BullishCore extends BullishApi
             put( "BUY", "long" );
             put( "SELL", "short" );
         }};
-        return this.safeString(sides, side, side);
+        return this.safeString(sides, ((String)side), side);
     }
 
     /**
@@ -3313,7 +3333,10 @@ public class BullishCore extends BullishApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3463,6 +3486,7 @@ public class BullishCore extends BullishApi
             }
             if (Helpers.isTrue(Helpers.isEqual(path, "v1/users/hmac/login")))
             {
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "BX-PUBLIC-KEY", this.apiKey);
             } else
             {
@@ -3471,6 +3495,7 @@ public class BullishCore extends BullishApi
                 {
                     throw new AuthenticationError((String)Helpers.add(this.id, " requires a token, please call signIn() first")) ;
                 }
+                headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
                 Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
             }
         }
@@ -3519,7 +3544,7 @@ public class BullishCore extends BullishApi
             Object token = this.safeString(response, "token");
             Object authorizer = this.safeString(response, "authorizer");
             Helpers.addElementToObject(this.options, "authorizer", authorizer);
-            this.token = token;
+            this.token = ((String)token);
             Helpers.addElementToObject(this.options, "tokenExpires", this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24))); // token expires in 24 hours
             return token;
         });
@@ -3576,7 +3601,7 @@ public class BullishCore extends BullishApi
                 message = errorCodeName;
             } else
             {
-                message = type;
+                message = ((String)type);
             }
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);

@@ -5,10 +5,28 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
-import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
-import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
-import { utf8 } from '../../static_dependencies/scure-base/index.js';
+import { isNode, isBun, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
+import { utf8 } from '@scure/base';
+// websocket decompression backends are resolved once at startup so the message
+// hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
+// inflate is always raw deflate (no zlib header), hence node's inflateRawSync.
+let gunzipSync = undefined;
+let inflateRawSync = undefined;
+if (isNode) {
+    import(/* webpackIgnore: true */ 'node:zlib').then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateRawSync; }).catch(() => { });
+}
+else {
+    import(/* webpackMode: "eager" */ 'fflate').then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch(() => { });
+}
+// platform checks are likewise resolved once at module load so the send/ping
+// hot paths stay branch-cheap:
+// - usesNodeWsPackage: the 'ws' npm package is in use (node-style send callbacks, connection.ping ())
+// - bunHasNativePing: bun's native WebSocket exposes ping () as a non-standard extension
+// - hasPing: the active WebSocket implementation supports connection.ping ()
+const usesNodeWsPackage = isNode && !isBun;
+const bunHasNativePing = isBun && (typeof globalThis.WebSocket !== 'undefined') && (typeof globalThis.WebSocket.prototype.ping === 'function');
+const hasPing = usesNodeWsPackage || bunHasNativePing;
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -19,23 +37,23 @@ export default class Client {
             onErrorCallback,
             onCloseCallback,
             onConnectedCallback,
-            verbose: false,
-            protocols: undefined,
-            options: undefined,
+            verbose: false, // verbose output
+            protocols: undefined, // ws-specific protocols
+            options: undefined, // ws-specific options
             futures: {},
             subscriptions: {},
-            rejections: {},
-            connected: undefined,
-            error: undefined,
-            connectionStarted: undefined,
-            connectionEstablished: undefined,
+            rejections: {}, // so that we can reject things in the future
+            connected: undefined, // connection-related Future
+            error: undefined, // stores low-level networking exception, if any
+            connectionStarted: undefined, // initiation timestamp in milliseconds
+            connectionEstablished: undefined, // success timestamp in milliseconds
             isConnected: false,
-            connectionTimer: undefined,
-            connectionTimeout: 10000,
-            pingInterval: undefined,
-            ping: undefined,
-            keepAlive: 30000,
-            maxPingPongMisses: 2.0,
+            connectionTimer: undefined, // connection-related setTimeout
+            connectionTimeout: 10000, // in milliseconds, false to disable
+            pingInterval: undefined, // stores the ping-related interval
+            ping: undefined, // ping-function (if defined)
+            keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
+            maxPingPongMisses: 2.0, // how many missing pongs to throw a RequestTimeout
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             connection: undefined,
@@ -161,9 +179,10 @@ export default class Client {
                         this.onError(error);
                     });
                 }
-                else if (isNode) {
+                else if (hasPing) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+                    // under bun the native WebSocket implements ping () as a non-standard extension
                     this.connection.ping();
                 }
                 else {
@@ -244,7 +263,8 @@ export default class Client {
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
         const future = Future();
-        if (isNode) {
+        if (usesNodeWsPackage) {
+            // bun's native WebSocket send () does not accept a completion callback
             /* eslint-disable no-inner-declarations */
             /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
@@ -278,7 +298,7 @@ export default class Client {
                     arrayBuffer = gunzipSync(arrayBuffer);
                 }
                 else if (this.inflate) {
-                    arrayBuffer = inflateSync(arrayBuffer);
+                    arrayBuffer = inflateRawSync(arrayBuffer);
                 }
                 message = utf8.encode(arrayBuffer);
             }

@@ -50,10 +50,10 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
                 Object AssertionMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
-                Assert(((true)), Helpers.add("Response must be a dictionary. ", AssertionMessage));
+                Assert(exchange.isDictionary(response), Helpers.add("Response must be a dictionary. ", AssertionMessage));
                 Assert(Helpers.inOp(response, symbol), Helpers.add("Response should contain the symbol as key. ", AssertionMessage));
                 Object symbolObj = Helpers.GetValue(response, symbol);
-                Assert((symbolObj instanceof java.util.Map), Helpers.add("Response.Symbol should be a dictionary. ", AssertionMessage));
+                Assert(exchange.isDictionary(symbolObj), Helpers.add("Response.Symbol should be a dictionary. ", AssertionMessage));
                 Assert(Helpers.inOp(symbolObj, chosenTimeframeKey), Helpers.add("Response.symbol should contain the timeframe key. ", AssertionMessage));
                 Object ohlcvs = Helpers.GetValue(symbolObj, chosenTimeframeKey);
                 Assert(Helpers.isArray(ohlcvs), Helpers.add("Response.symbol.timeframe should be an array. ", AssertionMessage));

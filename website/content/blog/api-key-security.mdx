@@ -1,0 +1,118 @@
+---
+title: "How trading bots get drained: the API-key security checklist"
+description: Most stolen-funds stories start with a leaked API key, not a hacked exchange. The permissions, storage, and monitoring habits that make a leaked key a non-event.
+author: CCXT Team
+date: 2026-07-08T11:00:00Z
+tags: [best-practices, security]
+---
+
+Most "my funds are gone" stories don't involve a hacked exchange. They involve an API key
+that leaked — pushed to a public repo, baked into a Docker image, phished by a fake
+"portfolio tracker," or read off a compromised VPS — and a key that was allowed to do far
+more than its job required. The good news: two or three boring habits turn a leaked key from
+a catastrophe into a revoke-and-rotate chore.
+
+## The permission rules (where most of the safety lives)
+
+**1. Never enable withdrawals. Ever.** A trading bot trades; it does not withdraw. Without
+withdrawal permission, a thief's best move is making weird trades — bad, bounded, and
+reversible by revoking the key. With it, your balance is gone in one API call. Every
+serious exchange lets you create keys with withdrawals disabled; there is no bot
+architecture that justifies not doing this.
+
+**2. IP allowlisting.** Bind the key to your server's IP. A stolen key that only works from
+your box is a much smaller problem — the attacker now needs your key *and* your
+infrastructure. Bonus: several exchanges relax rate limits or extend key expiry for
+IP-restricted keys.
+
+**3. Least privilege, one key per job.** A dashboard needs read-only. A trading bot needs
+trade permission on specific markets if the exchange supports scoping. Nothing needs "all
+permissions" — that checkbox is how a leak escalates. Separate keys per bot also means
+revoking one doesn't take down the rest, and the exchange's access logs tell you *which*
+deployment leaked.
+
+**4. Sub-accounts as blast-radius control.** Big exchanges support sub-accounts with their
+own balances and keys. A bot that lives in a sub-account holding two weeks of trading
+capital can only lose two weeks of trading capital.
+
+## Storage: keys never live in code
+
+The rule is one sentence: **credentials come from the environment, not from source.** The
+same pattern in every language:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: process.env.BINANCE_APIKEY,
+    secret: process.env.BINANCE_SECRET,
+});
+```
+
+```python tab="Python"
+exchange = ccxt.binance({
+    'apiKey': os.environ['BINANCE_APIKEY'],
+    'secret': os.environ['BINANCE_SECRET'],
+})
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('BINANCE_APIKEY'),
+    'secret' => getenv('BINANCE_SECRET'),
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_APIKEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(nil)
+exchange.ApiKey = os.Getenv("BINANCE_APIKEY")
+exchange.Secret = os.Getenv("BINANCE_SECRET")
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = System.getenv("BINANCE_APIKEY");
+exchange.secret = System.getenv("BINANCE_SECRET");
+```
+
+Then close the loopholes around it:
+
+- **`.env` files are for development only** — and belong in `.gitignore` *before* the first
+  commit. Git history is forever; a key that was ever committed is burned, even if you
+  deleted it in the next commit. Rotate it.
+- **Production wants a secret manager** (Vault, AWS/GCP secret managers, or at minimum
+  systemd credentials / Docker secrets) — not environment variables baked into images,
+  which anyone with `docker inspect` can read.
+- **Beware `--verbose`.** CCXT's debug mode prints full HTTP requests, including
+  authentication headers. Great for debugging, radioactive in shared logs — scrub before
+  pasting into a GitHub issue or a Discord channel.
+- **Supply chain counts too.** A malicious dependency can read your environment. Pin
+  dependencies, keep the bot's box minimal, and don't run your trading bot next to your
+  browser.
+
+## Detection: assume the leak, catch it fast
+
+- **Watch your own account.** You're already connected — `watchBalance` and `watchOrders`
+  (see [WebSockets](/blog/realtime-market-data-with-websockets)) make a five-line "orders I
+  didn't place" alarm. `fetchLedger` covers the audit trail.
+- **Check the exchange's key-usage logs** occasionally — unknown IPs are the smoking gun.
+- **Rotate on a schedule**, and *immediately* on any weirdness: keys are free, forensics
+  isn't. Exchanges increasingly expire keys automatically (often faster without an IP
+  allowlist) — treat expiry as a feature, not an annoyance.
+- **Test the revoke path.** Know how fast you can kill a key at 3 a.m. — that's your real
+  incident response plan.
+
+## The checklist
+
+Withdrawals disabled · IP allowlist on · one key per bot, least privilege · sub-account
+blast radius · keys from env/secret manager, never in git · `--verbose` output scrubbed ·
+balance/order monitoring on · rotation scheduled · revoke path tested.
+
+None of this is exotic — it's the API-key equivalent of locking your door. Do it once per
+bot, and the day a key leaks it's a Tuesday, not a post-mortem. Then go make sure the bot
+itself isn't making [the seven classic
+mistakes](/blog/seven-mistakes-crypto-exchange-api-developers-make).

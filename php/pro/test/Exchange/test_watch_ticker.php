@@ -30,7 +30,7 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             if ($success === true) {
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 test_ticker($exchange, $skipped_properties, $method, $response, $symbol);
             }

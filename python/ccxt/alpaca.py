@@ -323,7 +323,9 @@ class alpaca(Exchange, ImplicitAPI):
                     'GNSS',  # Genesis
                     'ERSX',  # ErisX
                 ],
-                'defaultTimeInForce': 'gtc',  # fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc',  # fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -447,7 +449,7 @@ class alpaca(Exchange, ImplicitAPI):
         jetlagStrStart = len(timestamp) - 6
         jetlagStrEnd = len(timestamp) - 3
         jetlag = timestamp[jetlagStrStart:jetlagStrEnd]
-        iso = self.parse8601(localTime) - self.parse_to_numeric(jetlag) * 3600 * 1000
+        iso = self.parse_to_int(self.parse8601(localTime)) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -459,7 +461,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request: dict = {
+        request = {
             'asset_class': 'crypto',
             'status': 'active',
         }
@@ -591,12 +593,13 @@ class alpaca(Exchange, ImplicitAPI):
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocTrades
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocTrades')
-        request: dict = {
+        request = {
             'symbols': marketId,
             'loc': loc,
         }
@@ -660,11 +663,12 @@ class alpaca(Exchange, ImplicitAPI):
         :param str [params.loc]: crypto location, default: us
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         id = market['id']
         loc = self.safe_string(params, 'loc', 'us')
-        request: dict = {
+        request = {
             'symbols': id,
             'loc': loc,
         }
@@ -727,12 +731,13 @@ class alpaca(Exchange, ImplicitAPI):
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
-        request: dict = {
+        request = {
             'symbols': marketId,
             'loc': loc,
         }
@@ -836,7 +841,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param str [params.loc]: crypto location, default: us
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbol = self.symbol(symbol)
         tickers = self.fetch_tickers([symbol], params)
         return self.safe_dict(tickers, symbol)
@@ -854,7 +860,8 @@ class alpaca(Exchange, ImplicitAPI):
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         loc = self.safe_string(params, 'loc', 'us')
         ids = self.market_ids(symbols)
@@ -974,7 +981,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         req = {
             'cost': cost,
         }
@@ -991,7 +999,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         req = {
             'cost': cost,
         }
@@ -1008,7 +1017,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         req = {
             'cost': cost,
         }
@@ -1030,10 +1040,11 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [params.cost]: *market orders only* the cost of the order in units of the quote currency
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        request: dict = {
+        request = {
             'symbol': id,
             'side': side,
             'type': type,  # market, limit, stop_limit
@@ -1055,8 +1066,9 @@ class alpaca(Exchange, ImplicitAPI):
             request['notional'] = self.cost_to_precision(symbol, cost)
         else:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        defaultTIF = self.safe_string(self.options, 'defaultTimeInForce')
-        request['time_in_force'] = self.safe_string(params, 'timeInForce', defaultTIF)
+        defaultTIF = None
+        defaultTIF, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        request['time_in_force'] = defaultTIF
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(params)
         params = self.omit(params, ['clientOrderId'])
@@ -1110,7 +1122,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.traderPrivateDeleteV2OrdersOrderId(self.extend(request, params))
@@ -1132,7 +1144,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.traderPrivateDeleteV2Orders(params)
         if isinstance(response, list):
             return self.parse_orders(response)
@@ -1154,8 +1167,9 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'order_id': id,
         }
         order = self.traderPrivateGetV2OrdersOrderId(self.extend(request, params))
@@ -1176,8 +1190,9 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'status': 'all',
         }
         market = None
@@ -1248,7 +1263,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'open',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1266,7 +1281,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'closed',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1289,8 +1304,9 @@ class alpaca(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'order_id': id,
         }
         market = None
@@ -1305,7 +1321,7 @@ class alpaca(Exchange, ImplicitAPI):
         if price is not None:
             request['limit_price'] = self.price_to_precision(symbol, price)
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params_2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce')
+        timeInForce, params = self.handle_option_and_params(params, 'editOrder', 'timeInForce', 'gtc')
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         request['client_order_id'] = self.generate_client_order_id(params)
@@ -1396,7 +1412,7 @@ class alpaca(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'pending_new': 'open',
             'accepted': 'open',
             'new': 'open',
@@ -1407,7 +1423,7 @@ class alpaca(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'day': 'Day',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
@@ -1426,9 +1442,10 @@ class alpaca(Exchange, ImplicitAPI):
         :param str [params.page_token]: page_token - used for paging
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {
+        request = {
             'activity_type': 'FILL',
         }
         if symbol is not None:
@@ -1533,9 +1550,10 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = self.traderPrivateGetV2Wallets(self.extend(request, params))
@@ -1582,11 +1600,12 @@ class alpaca(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         if tag:
             address = address + ':' + tag
-        request: dict = {
+        request = {
             'asset': currency['id'],
             'address': address,
             'amount': self.number_to_string(amount),
@@ -1612,7 +1631,8 @@ class alpaca(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     def fetch_transactions_helper(self, type, code, since, limit, params):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1738,7 +1758,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PROCESSING': 'pending',
             'FAILED': 'failed',
             'COMPLETE': 'ok',
@@ -1746,7 +1766,7 @@ class alpaca(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        types: dict = {
+        types = {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
         }
@@ -1761,7 +1781,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.traderPrivateGetV2Account(params)
         #
         #     {
@@ -1814,7 +1835,7 @@ class alpaca(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         account = self.account()
         currencyId = self.safe_string(response, 'currency')
         code = self.safe_currency_code(currencyId)
@@ -1823,7 +1844,7 @@ class alpaca(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}

@@ -32,7 +32,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 		for IsLessThan(now, ends) {
 			var success any = true
 			var shouldReturn any = false
-			var response any = nil
+			var response any = map[string]any{}
 
 			{
 				func() (ret_ any) {
@@ -74,7 +74,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 				return nil
 			}
 			if IsTrue(IsEqual(success, true)) {
-				Assert(IsObject(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
 				var values any = ObjectValues(response)
 				var checkedSymbol any = nil
 				if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {

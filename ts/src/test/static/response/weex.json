@@ -1202,7 +1202,7 @@
                         "lastPrice": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
-                        "percentage": null,
+                        "percentage": 1.46,
                         "info": {
                             "id": "749422759074857895",
                             "asset": "USDT",
@@ -2368,6 +2368,91 @@
         ],
         "fetchTrades": [
             {
+                "description": "spot +since +limit",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT",
+                    1770000000000,
+                    5
+                ],
+                "httpResponse": [
+                    {
+                        "id": "4526b48b-a03c-42b2-9b7e-a89359a435a9",
+                        "price": "1628.82",
+                        "qty": "0.01484",
+                        "quoteQty": "24.1716888",
+                        "time": "1781115932912",
+                        "isBuyerMaker": false,
+                        "isBestMatch": true
+                    },
+                    {
+                        "id": "ed04402c-571e-4dc8-bfee-2fe1208c171a",
+                        "price": "1628.81",
+                        "qty": "1.90320",
+                        "quoteQty": "3099.9511920",
+                        "time": "1781115930911",
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "ed04402c-571e-4dc8-bfee-2fe1208c171a",
+                            "price": "1628.81",
+                            "qty": "1.90320",
+                            "quoteQty": "3099.9511920",
+                            "time": "1781115930911",
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "id": "ed04402c-571e-4dc8-bfee-2fe1208c171a",
+                        "order": null,
+                        "timestamp": 1781115930911,
+                        "datetime": "2026-06-10T18:25:30.911Z",
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 1628.81,
+                        "amount": 1.9032,
+                        "cost": 3099.951192,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "4526b48b-a03c-42b2-9b7e-a89359a435a9",
+                            "price": "1628.82",
+                            "qty": "0.01484",
+                            "quoteQty": "24.1716888",
+                            "time": "1781115932912",
+                            "isBuyerMaker": false,
+                            "isBestMatch": true
+                        },
+                        "id": "4526b48b-a03c-42b2-9b7e-a89359a435a9",
+                        "order": null,
+                        "timestamp": 1781115932912,
+                        "datetime": "2026-06-10T18:25:32.912Z",
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 1628.82,
+                        "amount": 0.01484,
+                        "cost": 24.1716888,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
                 "description": "fetch swap trades",
                 "method": "fetchTrades",
                 "input": [
@@ -2403,8 +2488,8 @@
                         "datetime": "2026-04-07T20:52:07.994Z",
                         "symbol": "ETH/USDT:USDT",
                         "type": null,
-                        "takerOrMaker": null,
-                        "side": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
                         "price": 2113.69,
                         "amount": 0.002,
                         "cost": 4.22738,

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange, Ticker } from "../../../../ccxt";
+import { Exchange, Ticker, Market } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
@@ -37,7 +37,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     // check market
-    let market = undefined;
+    let market: Market = undefined;
     let isUnrecognizedSymbol = false;
     const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
@@ -87,12 +87,12 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     //
     // base & quote volumes
     //
-    const baseVolume = exchange.omitZero (exchange.safeString (entry, 'baseVolume'));
-    const quoteVolume = exchange.omitZero (exchange.safeString (entry, 'quoteVolume'));
-    const high = exchange.omitZero (exchange.safeString (entry, 'high'));
-    const low = exchange.omitZero (exchange.safeString (entry, 'low'));
-    const open = exchange.omitZero (exchange.safeString (entry, 'open'));
-    const close = exchange.omitZero (exchange.safeString (entry, 'close'));
+    const baseVolume = exchange.omitZero (exchange.safeString (entry, 'baseVolume') as string);
+    const quoteVolume = exchange.omitZero (exchange.safeString (entry, 'quoteVolume') as string);
+    const high = exchange.omitZero (exchange.safeString (entry, 'high') as string);
+    const low = exchange.omitZero (exchange.safeString (entry, 'low') as string);
+    const open = exchange.omitZero (exchange.safeString (entry, 'open') as string);
+    const close = exchange.omitZero (exchange.safeString (entry, 'close') as string);
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
@@ -149,7 +149,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const askString = exchange.safeString (entry, 'ask');
     const bidString = exchange.safeString (entry, 'bid');
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid') as string);
     }
     // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
     const allowedPercentageVariation = '0.01';

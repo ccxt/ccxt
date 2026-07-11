@@ -10,7 +10,7 @@ public partial class apex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class apex
     /// query for account info
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class apex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class apex
     /// retrieves data on all markets for apex
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -90,7 +90,7 @@ public partial class apex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -110,7 +110,7 @@ public partial class apex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -130,7 +130,7 @@ public partial class apex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -170,7 +170,7 @@ public partial class apex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -186,7 +186,7 @@ public partial class apex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -197,7 +197,7 @@ public partial class apex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -243,7 +243,7 @@ public partial class apex
     /// retrieves the open interest of a contract trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -263,7 +263,7 @@ public partial class apex
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -309,7 +309,7 @@ public partial class apex
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -403,7 +403,7 @@ public partial class apex
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -423,7 +423,7 @@ public partial class apex
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -449,8 +449,8 @@ public partial class apex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id"/>  <br/>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -476,7 +476,7 @@ public partial class apex
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -510,7 +510,7 @@ public partial class apex
     /// fetches information on multiple orders made by the user *classic accounts only*
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -580,7 +580,7 @@ public partial class apex
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -614,7 +614,7 @@ public partial class apex
     /// fetches information on multiple orders made by the user *classic accounts only*
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -672,7 +672,7 @@ public partial class apex
     /// fetches information on multiple orders made by the user *classic accounts only*
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -724,7 +724,7 @@ public partial class apex
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -744,7 +744,7 @@ public partial class apex
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data"/>  <br/>
+    /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

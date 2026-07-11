@@ -17,7 +17,7 @@ class luno extends luno$1["default"] {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
-                'watchOrders': undefined,
+                'watchOrders': undefined, // is in beta
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },
@@ -46,7 +46,9 @@ class luno extends luno$1["default"] {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
@@ -139,11 +141,13 @@ class luno extends luno$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
@@ -214,8 +218,8 @@ class luno extends luno$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     customParseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -225,7 +229,7 @@ class luno extends luno$1["default"] {
             'nonce': undefined,
         };
     }
-    parseBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {

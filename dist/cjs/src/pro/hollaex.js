@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hollaex$1 = require('../hollaex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class hollaex extends hollaex$1["default"] {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -46,7 +46,7 @@ class hollaex extends hollaex$1["default"] {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': errors.BadSymbol,
+                        'Bearer or HMAC authentication required': errors.BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': errors.BadRequest, // { error: 'Error: wrong input' }
                     },
                 },
@@ -61,10 +61,12 @@ class hollaex extends hollaex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
         const orderbook = await this.watchPublic(messageHash, params);
@@ -124,7 +126,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
@@ -181,7 +185,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'usertrade';
         let market = undefined;
         if (symbol !== undefined) {
@@ -262,7 +268,9 @@ class hollaex extends hollaex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'order';
         let market = undefined;
         if (symbol !== undefined) {
@@ -444,7 +452,7 @@ class hollaex extends hollaex$1["default"] {
         }
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,
@@ -475,7 +483,7 @@ class hollaex extends hollaex$1["default"] {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

@@ -22,7 +22,10 @@ public partial class testMainClass : BaseTest
             { "amount", exchange.parseNumber("1.5") },
             { "cost", exchange.parseNumber("0.10376526") },
             { "fees", new List<object>() {} },
-            { "fee", new Dictionary<string, object>() {} },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", exchange.parseNumber("0.001") },
+                { "currency", "USDT" },
+            } },
         };
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side

@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchLastprices";
         // log ('fetching all tickers at once...')
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         object checkedSymbol = null;
         try
         {
@@ -21,14 +21,14 @@ public partial class testMainClass : BaseTest
             response = await exchange.fetchLastPrices(new List<object>() {symbol});
             checkedSymbol = symbol;
         }
-        assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " must return an object. "), exchange.json(response)));
+        assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));
         object values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         object atLeastOnePassed = false;
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             // todo: symbol check here
-            testLastPrice(exchange, skippedProperties, method, getValue(values, i), checkedSymbol);
+            testLastPrice(exchange, skippedProperties, method, getValue(values, i), ((string)checkedSymbol));
             atLeastOnePassed = isTrue(atLeastOnePassed) || isTrue((isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0)));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));

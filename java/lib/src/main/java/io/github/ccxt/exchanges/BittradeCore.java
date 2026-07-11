@@ -89,7 +89,7 @@ public class BittradeCore extends BittradeApi
                 put( "1y", "1year" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg" );
+                put( "logo", "https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "market", "https://{hostname}" );
                     put( "public", "https://{hostname}" );
@@ -372,16 +372,27 @@ public class BittradeCore extends BittradeApi
                     put( "HECO", "hrc20" );
                     put( "HT", "hrc20" );
                     put( "ALGO", "algo" );
-                    put( "OMNI", "" );
                 }} );
-                put( "fetchOrdersByStatesMethod", "private_get_order_orders" );
-                put( "fetchOpenOrdersMethod", "fetch_open_orders_v1" );
-                put( "createMarketBuyOrderRequiresPrice", true );
-                put( "fetchMarketsMethod", "publicGetCommonSymbols" );
-                put( "fetchBalanceMethod", "privateGetAccountAccountsIdBalance" );
-                put( "createOrderMethod", "privatePostOrderOrdersPlace" );
+                put( "fetchOrdersByStates", new java.util.HashMap<String, Object>() {{
+                    put( "method", "private_get_order_orders" );
+                }} );
+                put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
+                    put( "method", "fetch_open_orders_v1" );
+                }} );
+                put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createMarketBuyOrderRequiresPrice", true );
+                    put( "method", "privatePostOrderOrdersPlace" );
+                }} );
+                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
+                    put( "method", "publicGetCommonSymbols" );
+                }} );
+                put( "fetchBalance", new java.util.HashMap<String, Object>() {{
+                    put( "method", "privateGetAccountAccountsIdBalance" );
+                }} );
                 put( "currencyToPrecisionRoundingMode", TRUNCATE );
-                put( "language", "en-US" );
+                put( "fetchCurrencies", new java.util.HashMap<String, Object>() {{
+                    put( "language", "en-US" );
+                }} );
                 put( "broker", new java.util.HashMap<String, Object>() {{
                     put( "id", "AA03022abc" );
                 }} );
@@ -426,7 +437,10 @@ public class BittradeCore extends BittradeApi
             //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 symbols = this.symbols;
@@ -521,7 +535,7 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object method = Helpers.GetValue(this.options, "fetchMarketsMethod");
+            Object method = ((String)this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols"));
             Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { parameters })).join();
             //
             //    {
@@ -741,7 +755,7 @@ public class BittradeCore extends BittradeApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -750,7 +764,10 @@ public class BittradeCore extends BittradeApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -809,7 +826,10 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -859,7 +879,10 @@ public class BittradeCore extends BittradeApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object response = (this.marketGetTickers(parameters)).join();
             Object tickers = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -994,7 +1017,10 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -1023,7 +1049,10 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1063,7 +1092,10 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, 1000);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1152,7 +1184,10 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, 1000);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1194,7 +1229,10 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privateGetAccountAccounts(parameters)).join();
             return Helpers.GetValue(response, "data");
         });
@@ -1215,7 +1253,7 @@ public class BittradeCore extends BittradeApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "language", Helpers.GetValue(BittradeCore.this.options, "language") );
+                put( "language", ((String)BittradeCore.this.handleOption("fetchCurrencies", "language", "en-US")) );
             }};
             Object response = (this.publicGetSettingsCurrencys(this.extend(request, parameters))).join();
             //
@@ -1350,9 +1388,12 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
-            Object method = Helpers.GetValue(this.options, "fetchBalanceMethod");
+            Object method = ((String)this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance"));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
             }};
@@ -1371,7 +1412,10 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "states", states );
             }};
@@ -1381,7 +1425,7 @@ public class BittradeCore extends BittradeApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object method = this.safeString(this.options, "fetchOrdersByStatesMethod", "private_get_order_orders");
+            Object method = ((String)this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders"));
             Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             //
             //     { "status":   "ok",
@@ -1421,7 +1465,10 @@ public class BittradeCore extends BittradeApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -1475,7 +1522,7 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object method = this.safeString(this.options, "fetchOpenOrdersMethod", "fetch_open_orders_v1");
+            Object method = ((String)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
             return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, limit, parameters })).join();
         });
 
@@ -1532,7 +1579,10 @@ public class BittradeCore extends BittradeApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1713,7 +1763,10 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -1746,7 +1799,10 @@ public class BittradeCore extends BittradeApi
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object market = this.market(symbol);
             final Object finalSide = side;
@@ -1886,7 +1942,10 @@ public class BittradeCore extends BittradeApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object clientOrderIds = this.safeValue2(parameters, "clientOrderIds", "client-order-ids");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds", "client-order-ids")));
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -2013,7 +2072,10 @@ public class BittradeCore extends BittradeApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2094,7 +2156,10 @@ public class BittradeCore extends BittradeApi
             {
                 limit = 100;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2142,7 +2207,10 @@ public class BittradeCore extends BittradeApi
             {
                 limit = 100;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2297,7 +2365,10 @@ public class BittradeCore extends BittradeApi
             var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkAddress(address);
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{

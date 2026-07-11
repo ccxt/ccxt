@@ -9,29 +9,31 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testAfterConstruct(Exchange exchange, object skippedProperties)
     {
-        testOptionsNetworks(exchange, skippedProperties);
+        if (!isTrue((inOp(skippedProperties, "networks"))))
+        {
+            testOptionsNetworks(exchange, skippedProperties);
+        }
         return true;
     }
     public static void testOptionsNetworks(Exchange exchange, object skippedProperties)
     {
         if (!isTrue((inOp(skippedProperties, "networks"))))
         {
-            // only allow these whitelisted unified networkCodes to be repeated
-            object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM"};
-            object networks = getValue(exchange.options, "networks");
+            object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"};
+            object networks = exchange.safeDict(exchange.options, "networks");
             if (isTrue(isEqual(networks, null)))
             {
                 return;
             }
             // 1) ensure 'networks' dictionary exists in options
-            assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not an object");
+            assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
             if (isTrue(isEqual(getArrayLength(new List<object>(((IDictionary<string,object>)networks).Keys)), 0)))
             {
                 return;
             }
             // 2) ensure 'networksById' dictionary exists in options
             assert(inOp(exchange.options, "networksById"), "exchange.options[\"networksById\"] is not set");
-            assert(exchange.isDictionary(getValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not an object");
+            assert(exchange.isDictionary(getValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not a dict");
             //
             object networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
             // 3) ensure that the same network-id is not assigned to multiple networkCodes

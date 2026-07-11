@@ -26,8 +26,8 @@ export { formatEther, parseEther, formatUnits, parseUnits } from "./units.js";
 export { toUtf8Bytes, toUtf8CodePoints, toUtf8String, Utf8ErrorFuncs, } from "./utf8.js";
 export { uuidV4 } from "./uuid.js";
 import { hash } from '../../../base/functions.js';
-import { keccak_256 } from '../../noble-hashes/sha3.js';
-import { sha256 as sha_256 } from '../../noble-hashes/sha256.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { sha256 as sha_256 } from '@noble/hashes/sha2.js';
 export function id(value) {
     return '0x' + hash(value, keccak_256, 'hex');
 }

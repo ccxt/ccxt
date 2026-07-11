@@ -49,7 +49,10 @@ public partial class luno : ccxt.luno
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object subscriptionHash = add("/stream/", getValue(market, "id"));
@@ -152,13 +155,16 @@ public partial class luno : ccxt.luno
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object subscriptionHash = add("/stream/", getValue(market, "id"));
@@ -242,8 +248,8 @@ public partial class luno : ccxt.luno
         priceKey ??= "price";
         amountKey ??= "volume";
         countOrIdKey ??= 2;
-        object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },
@@ -254,7 +260,7 @@ public partial class luno : ccxt.luno
         };
     }
 
-    public override object parseBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object thirdKey = null)
+    public override object parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object thirdKey = null)
     {
         priceKey ??= "price";
         amountKey ??= "volume";

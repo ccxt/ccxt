@@ -2,13 +2,15 @@ import Transpiler from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
-import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js';
+import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+// import { writeFile } from 'fs/promises';
 import { platform } from 'process';
+import { spawnSync } from 'child_process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -16,7 +18,6 @@ import { isMainEntry } from "./transpile.js";
 type dict = { [key: string]: string };
 
 ansi.nice;
-const promisedWriteFile = promisify (fs.writeFile);
 
 // const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
@@ -29,12 +30,44 @@ let __dirname = new URL('.', import.meta.url).pathname;
 
 let shouldTranspileTests = true;
 
+let gofmtMissingWarned = false;
+
+// gofmt indents with tabs while the transpiler emits 4-space indentation, so
+// we run the generated code through gofmt at write time: the emitted .go files
+// already have tabs and running gofmt over the tree afterwards does nothing
+function formatGoSource (filePath: string, content: string): string {
+    if (!filePath.endsWith ('.go')) {
+        return content;
+    }
+    const gofmt = spawnSync ('gofmt', [], {
+        'input': content,
+        'encoding': 'utf8',
+        'maxBuffer': 256 * 1024 * 1024,
+        'windowsHide': true,
+    });
+    if (gofmt.error) {
+        // gofmt is not installed; keep the previous behavior (unformatted output)
+        if (!gofmtMissingWarned) {
+            gofmtMissingWarned = true;
+            log.bright.yellow ('gofmt not found (' + gofmt.error.message + '), writing go files with the default 4-space indentation');
+        }
+        return content;
+    }
+    if (gofmt.status !== 0) {
+        // the generated code is not valid go; write it unformatted so it can be inspected
+        log.bright.yellow ('gofmt failed for ' + filePath + '\n' + (gofmt.stderr || ''));
+        return content;
+    }
+    return gofmt.stdout;
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    content = formatGoSource (path, content);
     overwriteFile (path, content);
-    writeFile (path, content);
+    fs.writeFileSync (path, content);
 }
 
 function capitalize(s: string) {
@@ -127,7 +160,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchWithdrawals": true,
     "parseAccount": false,
     "parseBalance": false,
-    "parseBidsAsks": false,
+    "parseOrderBookBidsAsks": false,
     "parseBorrowInterest": false,
     "parseBorrowRate": false,
     "parseCurrency": false,
@@ -871,6 +904,13 @@ class NewTranspiler {
             return addTaskIfNeeded('any'); // default if type is unknown;
         }
 
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` / `NewList` identifiers that don't exist in the Go runtime.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('[][]string');
         }
@@ -1025,6 +1065,8 @@ class NewTranspiler {
             'loadOrderBook',
             'setPositionCache',
             'setPositionsCache',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'setSandBoxMode',
@@ -1607,7 +1649,9 @@ ${constStatements.join('\n')}
         const baseMethods = VIRTUAL_BASE_METHODS;
         const allVirtual = Object.keys(baseMethods);
         this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
-        const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile = this.transpiler.transpileGoByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 
@@ -1689,7 +1733,7 @@ ${constStatements.join('\n')}
             ]).join("\n");
 
             const file = fileHeader + baseMethods + "\n";
-            fs.writeFileSync (goExchangeBase, file);
+            fs.writeFileSync (goExchangeBase, formatGoSource (goExchangeBase, file));
         }
     }
 
@@ -1723,7 +1767,7 @@ ${caseStatements.join('\n')}
             functionDecl,
         ].join('\n');
 
-        fs.writeFileSync (dynamicInstanceFile, file);
+        fs.writeFileSync (dynamicInstanceFile, formatGoSource (dynamicInstanceFile, file));
     }
 
 
@@ -1774,7 +1818,7 @@ type IExchange interface {
             functionDecl,
         ].join('\n');
 
-        fs.writeFileSync (TYPED_INTERFACE_FILE, file);
+        fs.writeFileSync (TYPED_INTERFACE_FILE, formatGoSource (TYPED_INTERFACE_FILE, file));
     }
 
     // ----- WS specific ----- //
@@ -1819,7 +1863,7 @@ ${caseStatements.join('\n')}
             functionDecl,
         ].join('\n');
 
-        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, file);
+        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, file));
     }
 
 
@@ -1994,7 +2038,7 @@ ${caseStatements.join('\n')}
             file.push('');
         }
 
-        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
+        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, formatGoSource (EXCHANGE_OPTIONS_FILE, file.join('\n')));
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
@@ -2359,7 +2403,7 @@ func (this *${className}) Init(userConfig map[string]any) {
     //     const inputFiles = fs.readdirSync('./ts/src/test/exchange');
     //     const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
     //     const transpiledFiles = files.map(file => this.transpileExchangeTest(file, `${inputDir}/${file}`));
-    //     await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (`${outDir}/${file[0]}.go`, file[1])));
+    //     await Promise.all (transpiledFiles.map ((file, idx) => writeFile (`${outDir}/${file[0]}.go`, file[1])));
     // }
 
     transpileBaseTestsToGo () {
@@ -2394,6 +2438,9 @@ func (this *${className}) Init(userConfig map[string]any) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
+                // instantiate the core type (channel-based methods, implements ICoreExchange) and let
+                // Init wire up DerivedExchange/InitParent (Exchange above is the only special case)
+                [/(\w+) := NewCcxt\.(\w+)\(([\S\s]+?)\)/gm, '$1 := ccxt.New$2Core(); $1.Init($3)' ],
                 [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
@@ -2545,6 +2592,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
+                [/exchange := (?:&)?ccxt\.Coinbase\{\}/g, 'exchange := ccxt.NewCoinbase()'],
                 [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
@@ -2702,7 +2750,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             }
         }
 
-        fs.writeFileSync(GO_TYPES_FILE_PRO, output.join("\n") + "\n", "utf8");
+        fs.writeFileSync(GO_TYPES_FILE_PRO, formatGoSource(GO_TYPES_FILE_PRO, output.join("\n") + "\n"), "utf8");
     }
     
 }

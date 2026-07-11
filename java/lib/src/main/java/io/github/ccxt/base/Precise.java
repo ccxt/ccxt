@@ -249,9 +249,7 @@ public class Precise {
     }
 
     public static String stringAdd(Object string1, Object string2) {
-        if (string1 == null && string2 == null) return null;
-        if (string1 == null) return String.valueOf(string2);
-        if (string2 == null) return String.valueOf(string1);
+        if (string1 == null || string2 == null) return null;
         return new Precise(String.valueOf(string1))
                 .add(new Precise(String.valueOf(string2)))
                 .toString();

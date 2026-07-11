@@ -1,0 +1,55 @@
+{
+  "name": "website",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "start:static": "serve out",
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "postinstall": "fumadocs-mdx"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^3.0.197",
+    "@openrouter/ai-sdk-provider": "^2.9.0",
+    "@orama/orama": "^3.1.18",
+    "@radix-ui/react-presence": "^1.1.5",
+    "ai": "^6.0.195",
+    "ccxt": "^4.5.58",
+    "class-variance-authority": "^0.7.1",
+    "feed": "^6.0.0",
+    "flexsearch": "^0.8.212",
+    "fumadocs-core": "16.9.2",
+    "fumadocs-mdx": "15.0.9",
+    "fumadocs-ui": "16.9.2",
+    "hast-util-to-jsx-runtime": "^2.3.6",
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "postcss": "^8.5.15",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-icons": "^5.6.0",
+    "rehype-raw": "^7.0.0",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-rehype": "^11.1.2",
+    "tailwind-merge": "^3.6.0",
+    "unist-util-visit": "^5.1.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/hast": "^3.0.4",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "serve": "^14.2.6",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "postcss": "$postcss"
+  }
+}

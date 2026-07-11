@@ -11,12 +11,13 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var method any = "watchOrderBookForSymbols"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		var returnedSymbols any = []any{}
-		for IsTrue(IsLessThan(now, ends)) || IsTrue(IsLessThan(GetArrayLength(returnedSymbols), GetArrayLength(symbols))) {
+		var currentTime any = exchange.Milliseconds()
+		var deadline any = Add(currentTime, 15000)
+		var seenSymbols any = []any{}
+		// keep polling until the time window elapses and every requested symbol has been observed
+		for IsTrue(IsLessThan(currentTime, deadline)) || IsTrue(IsLessThan(GetArrayLength(seenSymbols), GetArrayLength(symbols))) {
 			var response any = nil
-			var success any = true
+			var succeeded any = true
 
 			{
 				func() (ret_ any) {
@@ -27,13 +28,12 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 							}
 							ret_ = func() any {
 								// catch block:
-								// temporary fix for InvalidNonce for c#
+								// interim workaround for InvalidNonce raised by the c# runtime
 								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
-								success = false
+								currentTime = exchange.Milliseconds()
+								succeeded = false
 								return nil
 							}()
 						}
@@ -46,15 +46,14 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
-				// [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-				Assert(IsObject(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an object. "), exchange.Json(response)))
-				now = exchange.Milliseconds()
+			if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an object. "), exchange.Json(response)))
+				currentTime = exchange.Milliseconds()
 				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 				TestOrderBook(exchange, skippedProperties, method, response, nil)
 				var symbol any = GetValue(response, "symbol")
-				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
-					AppendToArray(&returnedSymbols, symbol)
+				if IsTrue(IsTrue((!IsEqual(symbol, nil))) && !IsTrue(exchange.InArray(symbol, seenSymbols))) {
+					AppendToArray(&seenSymbols, symbol)
 				}
 			}
 		}

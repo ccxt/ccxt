@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -188,7 +188,7 @@ export default class weex extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936', // todo
+                'logo': 'https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c', // todo
                 'api': {
                     'public': 'https://api-spot.weex.com',
                     'private': 'https://api-spot.weex.com',
@@ -496,20 +496,17 @@ export default class weex extends Exchange {
                     'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
-                    'ARBITRUM': 'ARBITRUM(ARB)',
-                    'ARB': 'ARBITRUM(ARB)',
-                    'SOLANA': 'SOLANA(SOL)',
+                    'ARBONE': 'ARBITRUM(ARB)',
                     'SOL': 'SOLANA(SOL)',
                     'OP': 'OPTIMISM(OP)',
                     'OPTIMISM': 'OPTIMISM(OP)',
-                    'AVALANCHEC': 'AVALANCHE_C(AVAX_C)',
                     'AVAXC': 'AVALANCHE_C(AVAX_C)',
                 },
                 'networksById': {
                     'BEP20(BSC)': 'BEP20',
                     'ERC20': 'ERC20',
                     'POLYGON(MATIC)': 'MATIC',
-                    'ARBITRUM(ARB)': 'ARB',
+                    'ARBITRUM(ARB)': 'ARBONE',
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
@@ -720,9 +717,9 @@ export default class weex extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (type !== 'spot') {
             response = await this.contractGetCapiV3MarketTime (params);
         } else {
@@ -868,7 +865,7 @@ export default class weex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'network');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -1015,8 +1012,8 @@ export default class weex extends Exchange {
         let active = true;
         let symbol = base + '/' + quote;
         let isSpot = true;
-        let isLinear = undefined;
-        let isInverse = undefined;
+        let isLinear: Bool = undefined;
+        let isInverse: Bool = undefined;
         if (settle !== undefined) {
             symbol += ':' + settle;
             isSpot = false;
@@ -1110,10 +1107,12 @@ export default class weex extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let symbolsLength = 0;
         if (symbols !== undefined) {
@@ -1121,7 +1120,7 @@ export default class weex extends Exchange {
         }
         const request: Dict = {};
         if (symbolsLength === 1) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         let response = undefined;
         if (marketType === 'spot') {
@@ -1190,7 +1189,7 @@ export default class weex extends Exchange {
     async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (marketType === 'spot') {
@@ -1286,10 +1285,12 @@ export default class weex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 15, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1297,7 +1298,7 @@ export default class weex extends Exchange {
         if ((limit !== undefined) && (limit > 15)) {
             request['limit'] = 200; // default is 15, max is 200
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (market['spot']) {
             response = await this.publicGetApiV3MarketDepth (this.extend (request, params));
         } else {
@@ -1343,7 +1344,9 @@ export default class weex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['spot']) {
             return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
@@ -1366,7 +1369,9 @@ export default class weex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1396,7 +1401,9 @@ export default class weex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const maxHistoricalLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -1482,7 +1489,9 @@ export default class weex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1559,8 +1568,11 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const isBuyer = this.safeBool (trade, 'isBuyer');
         let side = this.safeStringLower (trade, 'side');
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
+        } else if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let isSpot = true;
         if (market === undefined) {
@@ -1572,7 +1584,7 @@ export default class weex extends Exchange {
         } else {
             isSpot = market['spot'];
         }
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const commission = this.safeString (trade, 'commission');
         if (commission !== undefined) {
             const commissionAsset = this.safeString (trade, 'commissionAsset');
@@ -1590,9 +1602,11 @@ export default class weex extends Exchange {
             };
         }
         const isMaker = this.safeBool (trade, 'maker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        } else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade ({
             'info': trade,
@@ -1621,7 +1635,9 @@ export default class weex extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1662,7 +1678,9 @@ export default class weex extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         let symbolsLength = 0;
         if (symbols !== undefined) {
@@ -1671,7 +1689,7 @@ export default class weex extends Exchange {
         const request: Dict = {};
         if (symbolsLength === 1) {
             const market = this.getMarketFromSymbols (symbols);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         const response = await this.contractGetCapiV3MarketPremiumIndex (this.extend (request, params));
         //
@@ -1697,7 +1715,7 @@ export default class weex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (contract, 'time');
         const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
-        let interval = undefined;
+        let interval: Str = undefined;
         const collectCycle = this.safeString (contract, 'collectCycle');
         if (collectCycle !== undefined) {
             interval = Precise.stringDiv (collectCycle, '60');
@@ -1741,7 +1759,9 @@ export default class weex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request: Dict = {
             'symbol': market['id'],
@@ -1789,9 +1809,9 @@ export default class weex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             //
             //     {
@@ -1868,9 +1888,11 @@ export default class weex extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1948,7 +1970,9 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['contract']) {
             return await this.createContractOrder (symbol, type, side, amount, price, params);
@@ -1973,7 +1997,9 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostApiV3Order (request);
@@ -2038,11 +2064,13 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = this.createContractOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString (request, 'triggerPrice');
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (triggerPrice !== undefined) {
             response = await this.contractPrivatePostCapiV3AlgoOrder (request);
         } else {
@@ -2108,7 +2136,7 @@ export default class weex extends Exchange {
                 throw new BadRequest (this.id + ' createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time');
             }
             request['clientAlgoId'] = clientOrderId;
-            let orderType = undefined;
+            let orderType: Str = undefined;
             if (isStopLoss) {
                 const stopLossPriceType = this.safeString2 (params, 'stopLossPriceType', 'triggerPriceType');
                 if (stopLossPriceType !== undefined) {
@@ -2182,12 +2210,14 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const trigger = this.safeBool (params, 'trigger', false);
         if (trigger && id === undefined) {
@@ -2203,7 +2233,7 @@ export default class weex extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (type === 'spot') {
             // by orderId
             //     {
@@ -2242,18 +2272,20 @@ export default class weex extends Exchange {
      * @returns Response from the exchange
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const trigger = this.safeBool (params, 'trigger', false);
         params = this.omit (params, 'trigger');
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
@@ -2284,13 +2316,15 @@ export default class weex extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const isSpot = (marketType === 'spot');
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
@@ -2310,7 +2344,7 @@ export default class weex extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an ids argument or clientOrderIds parameter');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isSpot) {
             response = await this.privateDeleteApiV3OrderBatch (this.extend (request, params));
         } else {
@@ -2337,12 +2371,14 @@ export default class weex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const isSpot = (marketType === 'spot');
         const request: Dict = {};
@@ -2358,7 +2394,7 @@ export default class weex extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isSpot) {
             //
             //     {
@@ -2401,12 +2437,14 @@ export default class weex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isSpot = (marketType === 'spot');
         let paginate = false;
@@ -2420,9 +2458,9 @@ export default class weex extends Exchange {
         }
         let request: Dict = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isSpot) {
             //
             //     [
@@ -2537,14 +2575,16 @@ export default class weex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let orders = undefined;
+        let orders: NullableList = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument for spot markets');
@@ -2571,14 +2611,16 @@ export default class weex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
-        let orders = undefined;
+        let orders: NullableList = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument for spot markets');
@@ -2607,7 +2649,9 @@ export default class weex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' fetchOrders() supports spot markets only');
@@ -2667,12 +2711,14 @@ export default class weex extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
@@ -2685,7 +2731,7 @@ export default class weex extends Exchange {
         }
         let request: Dict = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2838,8 +2884,8 @@ export default class weex extends Exchange {
         const rawStatus = this.safeStringLower (order, 'status');
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
-        let takeProfitPrice = undefined;
-        let stopLossPrice = undefined;
+        let takeProfitPrice: Str = undefined;
+        let stopLossPrice: Str = undefined;
         if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
             takeProfitPrice = triggerPrice;
         } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
@@ -2934,7 +2980,9 @@ export default class weex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'orderId': id,
         };
@@ -2956,12 +3004,14 @@ export default class weex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType = undefined;
+        let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const isSpot = (marketType === 'spot');
         if (isSpot && (symbol === undefined)) {
@@ -2975,7 +3025,7 @@ export default class weex extends Exchange {
         }
         let request: Dict = {};
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3045,20 +3095,22 @@ export default class weex extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, maxLimit);
         }
-        let accountType = undefined;
+        let accountType: Str = undefined;
         [ accountType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         accountType = this.safeString (accountsByType, accountType, accountType);
         let request: Dict = {};
-        let items = undefined;
-        let currency = undefined;
+        let items: NullableList = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -3209,7 +3261,9 @@ export default class weex extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountPositionAllPosition (params);
         return this.parsePositions (response, symbols);
@@ -3240,7 +3294,9 @@ export default class weex extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3327,7 +3383,7 @@ export default class weex extends Exchange {
             marginMode = 'isolated';
         }
         const separatedMode = this.safeString (position, 'separatedMode');
-        let hedged = undefined;
+        let hedged: Bool = undefined;
         if (separatedMode === 'COMBINED') {
             hedged = false;
         } else if (separatedMode === 'SEPARATED') {
@@ -3377,7 +3433,9 @@ export default class weex extends Exchange {
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closeAllPositions (params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.contractPrivatePostCapiV3ClosePositions (params);
         //
         //     [
@@ -3403,7 +3461,9 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3423,7 +3483,9 @@ export default class weex extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['spot']) {
             // spot markets return 0 for fees
@@ -3473,7 +3535,9 @@ export default class weex extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3505,7 +3569,9 @@ export default class weex extends Exchange {
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
         return this.parseMarginModes (response, symbols, 'symbol', 'swap');
@@ -3543,7 +3609,9 @@ export default class weex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3574,7 +3642,9 @@ export default class weex extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3594,7 +3664,9 @@ export default class weex extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.contractPrivateGetCapiV3AccountSymbolConfig (params);
         return this.parseLeverages (response, symbols, 'symbol', 'swap');
@@ -3643,12 +3715,14 @@ export default class weex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
         if (marginMode !== undefined) {
             request['marginType'] = this.encodeMarginMode (marginMode);
@@ -3677,7 +3751,9 @@ export default class weex extends Exchange {
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3706,9 +3782,11 @@ export default class weex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setPositionMode', params);
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
@@ -3723,7 +3801,9 @@ export default class weex extends Exchange {
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const isolatedPositionId = this.safeStringN (params, [ 'positionId', 'id', 'isolatedPositionId' ]);
         if (isolatedPositionId === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
@@ -3756,12 +3836,12 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger (data, 'requestTime');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': undefined,
-            'code': market['settle'],
+            'code': this.safeString (market, 'settle'),
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3798,7 +3878,7 @@ export default class weex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const isBatch = (path.indexOf ('batch') >= 0);

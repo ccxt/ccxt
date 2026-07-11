@@ -41,6 +41,7 @@ import testStringToBase64 from './test.stringToBase64.js';
 import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
+import testFetchHistory from './test.fetchHistory.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
@@ -122,6 +123,7 @@ async function baseTestsInit() {
     testUnique();
     testUrlencodeNested();
     await testSleep();
+    await testFetchHistory();
     testIo();
     testIsJsonEncodedObject();
     testEncodeDecode();

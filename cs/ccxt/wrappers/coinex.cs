@@ -120,7 +120,7 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64 limit = 20, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);

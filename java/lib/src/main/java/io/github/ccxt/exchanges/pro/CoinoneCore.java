@@ -67,7 +67,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -76,7 +76,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -150,7 +153,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, "price", "qty");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -169,7 +172,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -221,9 +227,9 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data);
         Object symbol = Helpers.GetValue(ticker, "symbol");
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         Object messageHash = Helpers.add("ticker:", symbol);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
     public Object parseWsTicker(Object ticker, Object... optionalArgs)
@@ -304,7 +310,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -347,12 +356,12 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object trade = this.parseWsTrade(data);
         Object symbol = Helpers.GetValue(trade, "symbol");
-        Object stored = this.safeValue(this.trades, symbol);
+        Object stored = this.safeValue(this.trades, ((String)symbol));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         Object messageHash = Helpers.add("trade:", symbol);
@@ -438,7 +447,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         }
         if (Helpers.isTrue(Helpers.isEqual(type, "DATA")))
         {
-            Object topic = this.safeString(message, "channel", "");
+            Object topic = ((String)this.safeString(message, "channel", ""));
             Object methods = new java.util.HashMap<String, Object>() {{
                 put( "ORDERBOOK", "handleOrderBook");
                 put( "TICKER", "handleTicker");

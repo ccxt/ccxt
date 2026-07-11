@@ -22,7 +22,7 @@ import os
 import secrets
 from typing import Optional, Tuple, Union
 
-from ...ecdsa.rfc6979 import generate_k
+from .rfc6979 import generate_k
 
 from .math_utils import (
     ECPoint,

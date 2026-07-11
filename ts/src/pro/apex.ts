@@ -1,13 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
-import { OHLCV, Order, Position, Str } from '../base/types.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -83,15 +82,17 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const url = this.getWsPublicUrl ();
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -133,7 +134,7 @@ export default class apex extends apexRest {
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
         const trades = data;
-        const parts = topic.split ('.');
+        const parts = (topic as string).split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId, undefined, undefined);
         const symbol = market['symbol'];
@@ -153,7 +154,7 @@ export default class apex extends apexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // public
         //    {
@@ -200,7 +201,7 @@ export default class apex extends apexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -214,18 +215,20 @@ export default class apex extends apexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
-        const topics = [];
-        const messageHashes = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -248,7 +251,7 @@ export default class apex extends apexRest {
         // topics whose messageHash isn't yet tracked on this client; if all
         // are already subscribed, skip the subscribe entirely.
         const client = this.client (url);
-        const newTopics = [];
+        const newTopics: string[] = [];
         let newTopicsCount = 0;
         for (let i = 0; i < topics.length; i++) {
             if (!(messageHashes[i] in client.subscriptions)) {
@@ -256,7 +259,7 @@ export default class apex extends apexRest {
                 newTopicsCount = newTopicsCount + 1;
             }
         }
-        let message = undefined;
+        let message: NullableDict = undefined;
         if (newTopicsCount > 0) {
             const request: Dict = {
                 'op': 'subscribe',
@@ -353,7 +356,7 @@ export default class apex extends apexRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
@@ -373,7 +376,9 @@ export default class apex extends apexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.getWsPublicUrl ();
@@ -393,13 +398,15 @@ export default class apex extends apexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
-        const topics = [ ];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const topics: string[] = [];
+        for (let i = 0; i < (symbols as string[]).length; i++) {
+            const symbol = (symbols as string[])[i];
             const market = this.market (symbol);
             const topic = 'instrumentInfo' + '.H.' + market['id2'];
             topics.push (topic);
@@ -440,8 +447,8 @@ export default class apex extends apexRest {
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
-        let symbol = undefined;
-        let parsed = undefined;
+        let symbol: Str = undefined;
+        let parsed: Ticker = this.parseTicker (data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -459,9 +466,9 @@ export default class apex extends apexRest {
         const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
-        this.tickers[symbol] = parsed;
+        this.tickers[symbol as string] = parsed;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (this.tickers[symbol as string], messageHash);
     }
 
     /**
@@ -494,14 +501,16 @@ export default class apex extends apexRest {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.getWsPublicUrl ();
-        const rawHashes = [];
-        const messageHashes = [];
+        const rawHashes: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString);
+            const market = this.market (symbolString as string);
             symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -541,7 +550,7 @@ export default class apex extends apexRest {
         //
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
-        const topicParts = topic.split ('.');
+        const topicParts = (topic as string).split ('.');
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
         const timeframe = this.findTimeframe (timeframeId);
@@ -553,11 +562,11 @@ export default class apex extends apexRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.ohlcvs[symbol][timeframe as string];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
@@ -607,7 +616,9 @@ export default class apex extends apexRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let messageHash = 'myTrades';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
@@ -633,11 +644,13 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = '';
-        if (!this.isEmpty (symbols)) {
+        if (!this.isEmpty (symbols as any[])) {
             symbols = this.marketSymbols (symbols);
-            messageHash = '::' + symbols.join (',');
+            messageHash = '::' + (symbols as string[]).join (',');
         }
         const url = this.getWsPrivateUrl ();
         messageHash = 'positions' + messageHash;
@@ -669,7 +682,9 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
@@ -711,10 +726,9 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            let parsed = undefined;
-            parsed = this.parseWsTrade (rawTrade);
+            const parsed: Trade = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -764,10 +778,9 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            let parsed = undefined;
-            parsed = this.parseOrder (lists[i]);
+            const parsed: Order = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             orders.append (parsed);
         }
         const symbolsArray = Object.keys (symbols);
@@ -840,7 +853,7 @@ export default class apex extends apexRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < lists.length; i++) {
             const rawPosition = lists[i];
             const position = this.parsePosition (rawPosition);
