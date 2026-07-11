@@ -357,24 +357,23 @@ func SafeStringN(obj any, keys []any, defaultValue any) any {
 }
 
 func (this *Exchange) SafeStringUpperN(obj any, keys2 []any, defaultValue ...any) any {
-	keys := keys2.([]any)
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	res := SafeStringN(obj, keys, nil)
-	if res != "" && res != nil {
-		return strings.ToUpper(res.(string))
+	res := SafeStringN(obj, keys2, nil)
+	if str, ok := res.(string); ok && str != "" {
+		return strings.ToUpper(str)
 	}
 	return defVal
 }
 
 func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
-	value := SafeStringN(obj, keys, defaultValue)
-	if value == nil {
-		return defaultValue
+	value := SafeStringN(obj, keys, nil)
+	if str, ok := value.(string); ok && str != "" {
+		return strings.ToUpper(str)
 	}
-	return strings.ToUpper(value.(string))
+	return defaultValue
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
