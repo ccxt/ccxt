@@ -116,8 +116,8 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker(symbol, params = {}) {
-        return await this.watchPublic('ticker24h', symbol, params);
+    watchTicker(symbol, params = {}) {
+        return this.watchPublic('ticker24h', symbol, params);
     }
     /**
      * @method
@@ -1068,8 +1068,8 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarketsWs(params = {}) {
-        return await this.watchRequest('getMarkets', params);
+    fetchMarketsWs(params = {}) {
+        return this.watchRequest('getMarkets', params);
     }
     /**
      * @method
