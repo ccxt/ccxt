@@ -109,10 +109,11 @@ export default class WsClient extends Client {
         this.onOpen ();
     }
 
-    // one message per async-iterator step, plus one explicit microtask hop
-    // between deliveries: the hop lets a consumer awaiting a just-resolved
-    // future run its re-arm microtask chain ahead of the next delivery
-    // (restores full burst wakeups for shallow re-arm chains at ~zero cost)
+    // one message per async-iterator step: between chunks the loop parks on
+    // the iterator until the next socket event (a macrotask), so a consumer
+    // awaiting a just-resolved future always drains its re-arm microtask
+    // chain (watchX -> loadMarkets -> watch -> client.future) before the
+    // next delivery can happen - no explicit hop between deliveries needed
     async deliverLoop () {
         // discriminates errors escaping onMessage from iterator rejections
         // caused by socket teardown (which are already handled by the
@@ -135,8 +136,7 @@ export default class WsClient extends Client {
                 // under bursts at the cost of per-message consumer wakeups
                 // (consumers awaiting futures observe the merged/cached
                 // state on their next wakeup - identical cross-language
-                // semantics); the microtask hop below then only paces
-                // delivery while the client is keeping up
+                // semantics)
                 while (this.duplex.readableLength > 0) {
                     const queued = this.duplex.read ();
                     if (queued === null) {
@@ -145,7 +145,6 @@ export default class WsClient extends Client {
                     this.onMessage ({ 'data': queued });
                 }
                 dispatching = false;
-                await Promise.resolve ();
             }
         } catch (e) {
             if (dispatching || (this.isOpen () && !this.error)) {
