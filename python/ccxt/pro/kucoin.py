@@ -262,8 +262,8 @@ class kucoin(ccxt.async_support.kucoin):
                     client.reject(e, messageHash)
         return self.safe_string(self.options, 'utaToken')
 
-    async def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None):
-        return await self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
+    def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None) -> Any:
+        return self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
 
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
         requestId = str(self.request_id())

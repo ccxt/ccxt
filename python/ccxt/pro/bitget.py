@@ -154,7 +154,7 @@ class bitget(ccxt.async_support.bitget):
         args[symbolOrInstId] = market['id']
         return await self.watch_public(uta, messageHash, args, params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unsubscribe from the ticker channel
 
@@ -165,9 +165,7 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.un_watch_channel(symbol, 'ticker', 'ticker', 'watchTicker', params)
+        return self.un_watch_channel(symbol, 'ticker', 'ticker', 'watchTicker', params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -699,7 +697,7 @@ class bitget(ccxt.async_support.bitget):
             self.safe_number_2(ohlcv, 'volume', volumeIndex),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -713,7 +711,7 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
@@ -937,7 +935,7 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -952,7 +950,7 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
