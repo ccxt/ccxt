@@ -100,7 +100,7 @@ description: "¡Las sugerencias y contribuciones son siempre bienvenidas! Asegú
 
 ## Lenguajes
 
-- [CCXT](https://github.com/ccxt/ccxt) - Javascript, python, php, C#.
+- [CCXT](https://github.com/ccxt/ccxt) - Javascript, python, php, C#, Go, Java.
 - [kizzx2/ccxt-rs](https://github.com/kizzx2/ccxt-rs) - Rust.
 - [irbis-labs/ccxt-rs](https://github.com/irbis-labs/ccxt-rs) - Rust. Versión temprana. Ver rama 'preview'.
 - [CCXT.NET](https://github.com/lisa3907/ccxt.net) - C#.

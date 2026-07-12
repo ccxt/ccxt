@@ -228,7 +228,7 @@ These tests run in all five languages and are your primary regression net.
 
 ## Step 7 — Verify in all languages
 
-A new exchange means thousands of new lines in Python, PHP, C# and Go. The transpilers must like all of it.
+A new exchange means thousands of new lines in Python, PHP, C#, Go and Java. The transpilers must like all of it.
 
 ```bash
 npm run lint

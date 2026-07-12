@@ -370,20 +370,37 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (typeof message !== 'string') {
-            if (this.gunzip || this.inflate) {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-                if (this.gunzip) {
-                    arrayBuffer = gunzipSync (arrayBuffer)
-                } else if (this.inflate) {
-                    arrayBuffer = inflateRawSync (arrayBuffer)
-                }
-                message = utf8.encode (arrayBuffer)
-            } else {
-                if (this.decompressBinary) {
-                    message = message.toString ()
+        try {
+            if (typeof message !== 'string') {
+                if (this.gunzip || this.inflate) {
+                    arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                    if (this.gunzip) {
+                        arrayBuffer = gunzipSync (arrayBuffer)
+                    } else if (this.inflate) {
+                        arrayBuffer = inflateRawSync (arrayBuffer)
+                    }
+                    message = utf8.encode (arrayBuffer)
+                } else {
+                    if (this.decompressBinary) {
+                        message = message.toString ()
+                    }
                 }
             }
+        } catch (error) {
+            // a frame that cannot be decompressed/decoded is connection-fatal:
+            // the stream is corrupt or misaligned, so no subsequent frame can
+            // be trusted either. the error must be handled here, at the throw
+            // site - if it escaped onMessage it would be lost: on node it
+            // would reject the fire-and-forget deliverLoop promise
+            // (WsClient.ts) and crash the process as an unhandled rejection,
+            // on browsers/bun the host event dispatch swallows handler
+            // exceptions silently. established error semantics: onError
+            // normalizes the error, sets this.error, rejects all pending
+            // futures and notifies the exchange, then close () tears the
+            // connection down
+            this.onError (error)
+            this.close ()
+            return
         }
         try {
             if (isJsonEncodedObject (message)) {
