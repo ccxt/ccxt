@@ -1,7 +1,7 @@
 # CCXT – CryptoCurrency eXchange Trading Library (Full Reference)
 
 > Unified cryptocurrency trading API for 100+ exchanges.
-> JavaScript/TypeScript, Python, PHP, C#, Go. REST and WebSocket.
+> JavaScript/TypeScript, Python, PHP, C#, Go, Java. REST and WebSocket.
 
 CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
 
