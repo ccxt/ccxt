@@ -158,7 +158,7 @@ export default class nado extends Exchange {
                     'placeRequiresUnfilled': true,
                 },
                 'builderFee': true,
-                'builder': '',
+                'builder': '4500',
                 'feeRate': '10',
             },
             'timeframes': {
@@ -2796,7 +2796,7 @@ export default class nado extends Exchange {
         }
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (buildFee) {
-            const builder = this.safeString (this.options, 'builder', '');
+            const builder = this.safeString (this.options, 'builder', '4500');
             const builderFeeRate = this.safeString (this.options, 'feeRate', '10'); // 10 units = 0.01%
             appendix = Precise.stringAdd (appendix, Precise.stringMul (builder, '281474976710656')); // 1<<48
             appendix = Precise.stringAdd (appendix, Precise.stringMul (builderFeeRate, '274877906944')); // 1<<32
