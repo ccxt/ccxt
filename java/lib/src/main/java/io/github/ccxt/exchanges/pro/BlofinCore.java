@@ -130,7 +130,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object trades = (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -230,7 +233,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object callerMethodName = null;
             var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
@@ -407,7 +413,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object symbolsList = (java.util.List<String>)(symbols);
             Object firstMarket = this.market(Helpers.GetValue(symbolsList, 0));
@@ -524,7 +533,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var symboltimeframecandlesVariable = (this.watchMultipleWrapper(true, "candle", "watchOHLCVForSymbols", symbolsAndTimeframes, parameters)).join();
             var symbol = ((java.util.List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((java.util.List<Object>) symboltimeframecandlesVariable).get(1);
@@ -595,7 +607,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -692,7 +707,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate()).join();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object channel = ((Helpers.isTrue(trigger))) ? "orders-algo" : "orders";
@@ -766,7 +784,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate()).join();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object newPositions = (this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -827,7 +848,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
@@ -881,7 +905,10 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             // underlier method for all watch-multiple symbols
             Object symbolsArray = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
             callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);

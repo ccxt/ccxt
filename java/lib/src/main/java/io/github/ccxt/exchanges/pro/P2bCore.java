@@ -119,7 +119,10 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object channel = this.safeInteger(timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(channel, null)))
@@ -156,7 +159,10 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
             var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
@@ -191,7 +197,10 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
@@ -262,7 +271,10 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -310,7 +322,10 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object name = "depth.subscribe";
             Object messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));

@@ -118,18 +118,16 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->watch_public('ticker24h', $symbol, $params));
-        })();
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->watch_public('ticker24h', $symbol, $params);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1142,18 +1140,16 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function fetch_markets_ws($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             *
-             * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
-             *
-             * retrieves data on all markets for bitvavo
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            return Async\await($this->watch_request('getMarkets', $params));
-        })();
+    public function fetch_markets_ws($params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+         *
+         * retrieves data on all markets for bitvavo
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        return $this->watch_request('getMarkets', $params);
     }
 
     public function fetch_currencies_ws($params = array()): PromiseInterface {

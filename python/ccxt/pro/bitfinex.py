@@ -269,14 +269,14 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}):
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unWatches the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_subscribe('trades', 'trades', symbol, params)
+        return self.un_subscribe('trades', 'trades', symbol, params)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -298,23 +298,23 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.subscribe('ticker', symbol, params)
+        return self.subscribe('ticker', symbol, params)
 
-    async def un_watch_ticker(self, symbol: str, params={}):
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_subscribe('ticker', 'ticker', symbol, params)
+        return self.un_subscribe('ticker', 'ticker', symbol, params)
 
     def handle_my_trade(self, client: Client, message, subscription={}):
         #

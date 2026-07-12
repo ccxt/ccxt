@@ -664,7 +664,7 @@ public partial class pacifica
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, Market market, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, MarketInterface market, Dictionary<string, object> parameters = null)
     {
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
         return ((Dictionary<string, object>)res);

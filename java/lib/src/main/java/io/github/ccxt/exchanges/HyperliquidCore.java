@@ -1318,7 +1318,10 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "l2Book" );
@@ -1377,7 +1380,10 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             // at this stage, to get tickers data, we use fetchMarkets endpoints
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1605,7 +1611,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object until = this.safeInteger(parameters, "until", this.milliseconds());
             Object useTail = Helpers.isEqual(since, null);
@@ -1708,7 +1717,10 @@ public class HyperliquidCore extends HyperliquidApi
             var userAddressparametersVariable = this.handlePublicAddress("fetchTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2385,7 +2397,10 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
@@ -2418,7 +2433,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object side = side3;
             Object duration = duration3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.initializeClient()).join();
             Object market = this.market(symbol);
             Object nonce = this.milliseconds();
@@ -2503,7 +2521,10 @@ public class HyperliquidCore extends HyperliquidApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.initializeClient()).join();
             Object request = this.createOrdersRequest(orders, parameters);
             Object response = (this.privatePostExchange(request)).join();
@@ -2840,7 +2861,10 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.initializeClient()).join();
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             Object response = (this.privatePostExchange(request)).join();
@@ -2893,7 +2917,10 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelTwapOrder() requires a symbol argument")) ;
@@ -3042,7 +3069,10 @@ final Object finalClientOrderId = clientOrderId;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.initializeClient()).join();
             Object nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3133,7 +3163,10 @@ final Object finalClientOrderId = clientOrderId;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.initializeClient()).join();
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
             Object nonce = this.milliseconds();
@@ -3342,7 +3375,10 @@ final Object finalClientOrderId = clientOrderId;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument")) ;
@@ -3371,7 +3407,10 @@ final Object finalClientOrderId = clientOrderId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.initializeClient()).join();
             Object request = this.editOrdersRequest(orders, parameters);
             Object response = (this.privatePostExchange(request)).join();
@@ -3435,7 +3474,10 @@ final Object finalClientOrderId = clientOrderId;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
@@ -3487,7 +3529,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -3585,7 +3630,10 @@ final Object finalClientOrderId = clientOrderId;
             var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             final Object finalMethod = method;
             final Object finalUserAddress = userAddress;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3653,7 +3701,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -3681,7 +3732,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -3709,7 +3763,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -3743,7 +3800,10 @@ final Object finalClientOrderId = clientOrderId;
             var userAddressparametersVariable = this.handlePublicAddress("fetchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             final Object finalUserAddress = userAddress;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3837,7 +3897,10 @@ final Object finalClientOrderId = clientOrderId;
             var userAddressparametersVariable = this.handlePublicAddress("fetchOrder", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -4129,7 +4192,10 @@ final Object finalClientOrderId = clientOrderId;
             var userAddressparametersVariable = this.handlePublicAddress("fetchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -4323,7 +4389,10 @@ final Object finalClientOrderId = clientOrderId;
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
@@ -4507,7 +4576,10 @@ final Object finalClientOrderId = clientOrderId;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object leverage = this.safeInteger(parameters, "leverage");
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
@@ -4581,7 +4653,10 @@ final Object finalClientOrderId = clientOrderId;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object marginMode = this.safeString(parameters, "marginMode", "cross");
             Object isCross = (Helpers.isEqual(marginMode, "cross"));
@@ -4676,7 +4751,10 @@ final Object finalClientOrderId = clientOrderId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
             Object sz = this.parseToInt(Precise.stringMul(this.amountToPrecision(symbol, amount), "1000000"));
@@ -4769,7 +4847,10 @@ final Object finalClientOrderId = clientOrderId;
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode");
             Object nonce = this.milliseconds();
             if (Helpers.isTrue(this.inArray(fromAccount, new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "perp")))))
@@ -4915,7 +4996,10 @@ final Object finalClientOrderId = clientOrderId;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkAddress(address);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -5053,7 +5137,10 @@ final Object finalClientOrderId = clientOrderId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handlePublicAddress("fetchTradingFee", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
@@ -5179,7 +5266,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handlePublicAddress("fetchLedger", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
@@ -5297,7 +5387,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handlePublicAddress("fetchDepositsWithdrawals", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
@@ -5387,7 +5480,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handlePublicAddress("fetchDepositsWithdrawals", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
@@ -5466,7 +5562,10 @@ final Object finalClientOrderId = clientOrderId;
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object swapMarkets = (this.fetchSwapMarkets()).join();
             return this.parseOpenInterests(swapMarkets, symbols);
@@ -5489,7 +5588,10 @@ final Object finalClientOrderId = clientOrderId;
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             symbol = this.symbol(symbol);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ois = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(ois, symbol);
         });
@@ -5556,7 +5658,10 @@ final Object finalClientOrderId = clientOrderId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {

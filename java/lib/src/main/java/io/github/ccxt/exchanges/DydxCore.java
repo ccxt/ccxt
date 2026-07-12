@@ -231,7 +231,7 @@ public class DydxCore extends DydxApi
                 put( "privateKey", false );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
-                put( "mnemonic", null );
+                put( "privateKey", null );
                 put( "chainName", "dydx-mainnet-1" );
                 put( "chainId", 1 );
                 put( "sandboxMode", false );
@@ -689,7 +689,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -765,7 +768,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -838,7 +844,10 @@ public class DydxCore extends DydxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -1016,7 +1025,10 @@ public class DydxCore extends DydxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -1056,7 +1068,10 @@ public class DydxCore extends DydxApi
             var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             final Object finalUserAddress = userAddress;
             final Object finalSubAccountNumber = subAccountNumber;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1277,7 +1292,10 @@ public class DydxCore extends DydxApi
             var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             final Object finalUserAddress = userAddress;
             final Object finalSubAccountNumber = subAccountNumber;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1380,13 +1398,13 @@ public class DydxCore extends DydxApi
         {
             return credentials;
         }
-        Object entropy = this.safeString(this.options, "mnemonic");
-        if (Helpers.isTrue(Helpers.isEqual(entropy, null)))
+        Object privateKey = this.safeString(this.options, "privateKey");
+        if (Helpers.isTrue(Helpers.isEqual(privateKey, null)))
         {
             Object signature = this.signOnboardingAction();
-            entropy = this.hashMessage(this.base16ToBinary(Helpers.add(Helpers.GetValue(signature, "r"), Helpers.GetValue(signature, "s"))));
+            privateKey = this.hashMessage(this.base16ToBinary(Helpers.add(Helpers.GetValue(signature, "r"), Helpers.GetValue(signature, "s"))));
         }
-        credentials = this.retrieveDydxCredentials(entropy);
+        credentials = this.retrieveDydxCredentials(privateKey);
         Helpers.addElementToObject(credentials, "privateKey", this.binaryToBase16(Helpers.GetValue(credentials, "privateKey")));
         Helpers.addElementToObject(credentials, "publicKey", this.binaryToBase16(Helpers.GetValue(credentials, "publicKey")));
         Helpers.addElementToObject(this.options, "dydxCredentials", credentials);
@@ -1671,7 +1689,10 @@ public class DydxCore extends DydxApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             Object lastBlockHeight = (this.fetchLatestBlockHeight()).join();
@@ -1741,7 +1762,10 @@ public class DydxCore extends DydxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId", id);
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -1859,7 +1883,10 @@ public class DydxCore extends DydxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
             if (!Helpers.isTrue(clientOrderIds))
@@ -1942,7 +1969,10 @@ public class DydxCore extends DydxApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -2064,7 +2094,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2164,7 +2197,10 @@ public class DydxCore extends DydxApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " transfer() only support USDC")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
             Object toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
             if (Helpers.isTrue(!Helpers.isEqual(fromAccount, "main")))
@@ -2324,7 +2360,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2419,7 +2458,10 @@ public class DydxCore extends DydxApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkAddress(address);
             Object subaccountId = this.safeInteger(parameters, "subaccountId");
             if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
@@ -2494,7 +2536,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2531,7 +2576,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2568,7 +2616,10 @@ public class DydxCore extends DydxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2740,7 +2791,10 @@ public class DydxCore extends DydxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object userAddress = null;
             var userAddressparametersVariable = this.handlePublicAddress("fetchAccounts", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);

@@ -246,20 +246,18 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     }
 
     public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -286,19 +284,17 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] not used by krakenfutures watchOrderBook
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] not used by krakenfutures watchOrderBook
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

@@ -295,10 +295,8 @@ class kucoin extends \ccxt\async\kucoin {
         })();
     }
 
-    public function un_subscribe($url, $messageHash, $topic, $subscriptionHash, $params = array(), ?array $subscription = null) {
-        return Async\async(function () use ($url, $messageHash, $topic, $subscriptionHash, $params, $subscription) {
-            return Async\await($this->un_subscribe_multiple($url, array( $messageHash ), $topic, array( $subscriptionHash ), $params, $subscription));
-        })();
+    public function un_subscribe($url, $messageHash, $topic, $subscriptionHash, $params = array(), ?array $subscription = null): PromiseInterface {
+        return $this->un_subscribe_multiple($url, array( $messageHash ), $topic, array( $subscriptionHash ), $params, $subscription);
     }
 
     public function subscribe_multiple($url, $messageHashes, $topic, $subscriptionHashes, $params = array(), ?array $subscription = null) {

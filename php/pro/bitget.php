@@ -158,22 +158,17 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unsubscribe from the ticker channel
-             *
-             * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-             * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-             *
-             * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {any} status of the unwatch request
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            return Async\await($this->un_watch_channel($symbol, 'ticker', 'ticker', 'watchTicker', $params));
-        })();
+        /**
+         * unsubscribe from the ticker channel
+         *
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return $this->un_watch_channel($symbol, 'ticker', 'ticker', 'watchTicker', $params);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -746,22 +741,20 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-             * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
-             * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
@@ -1023,23 +1016,21 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-             * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-             * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+         * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

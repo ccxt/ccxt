@@ -172,7 +172,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(subscribe, params), messageHashes)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -182,9 +182,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.subscribe('RISK', [symbol], params)
+        return self.subscribe('RISK', [symbol], params)
 
     async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
@@ -496,7 +494,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             stored.append(parsed)
         client.resolve(stored, messageHash + '::' + symbol)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -508,7 +506,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -588,7 +586,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'fee': None,
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -599,9 +597,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -612,9 +610,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.subscribe_multiple('LEVEL2', symbols, params)
+        return self.subscribe_multiple('LEVEL2', symbols, params)
 
     def handle_order_book(self, client, message):
         #

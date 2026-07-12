@@ -763,5 +763,39 @@ public class TestSharedMethods extends BaseTest {
         Object keyUpper = exchange.capitalize(String.valueOf(key));
         return exchange.getProperty(exchange, keyUpper, defaultValue);
     }
+    public static java.util.concurrent.CompletableFuture<Void> validateTickerExceptionForPercentage(Object ex, Exchange exchange, Object ticker)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+        // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+        Object eMessage = exchange.exceptionMessage(ex, false);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))))
+        {
+            Object symbol = Helpers.GetValue(ticker, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                // if it's not in markets, then maybe newly added symbol, so can can compromise there
+                if (!Helpers.isTrue((Helpers.inOp(exchange.markets, symbol))))
+                {
+                    return null;
+                }
+                // if OHLCV supported
+                if (Helpers.isTrue(!Helpers.isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                {
+                    Object ohlcv = (exchange.fetchOHLCV(symbol, "1d", null, 5)).join();
+                    if (Helpers.isTrue(Helpers.isLessThanOrEqual(Helpers.getArrayLength(ohlcv), 1)))
+                    {
+                        // if only 1 day, then allow it
+                        return null;
+                    }
+                }
+            }
+        }
+        Assert(Helpers.isEqual(eMessage, ""), eMessage); // trigger error
+            return null;
+        });
+
+    }
 
 }
