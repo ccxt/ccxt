@@ -771,7 +771,10 @@ class Exchange(object):
         try:
             value = dictionary[key]
             if value is not None and value != '':
-                return str(value)
+                if type(value) is str:
+                    return value
+                if isinstance(value, Number) and type(value) is not bool:
+                    return str(value)
         except Exception:
             pass
         return default_value
@@ -911,27 +914,29 @@ class Exchange(object):
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value) if value is not None else default_value
+        try:
+            if value is not None and value != '':
+                if type(value) is str:
+                    return value
+                if isinstance(value, Number) and type(value) is not bool:
+                    return str(value)
+        except Exception:
+            pass
+        return default_value
 
     @staticmethod
     def safe_string_lower_n(dictionary, key_list, default_value=None):
-        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        value = Exchange.safe_string_n(dictionary, key_list)
         if value is not None:
             return str(value).lower()
-        elif default_value is None:
-            return default_value
-        else:
-            return default_value.lower()
+        return default_value
 
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
-        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
+        value = Exchange.safe_string_n(dictionary, key_list)
         if value is not None:
             return str(value).upper()
-        elif default_value is None:
-            return default_value
-        else:
-            return default_value.upper()
+        return default_value
 
     @staticmethod
     def safe_integer_n(dictionary, key_list, default_value=None):
