@@ -115,16 +115,8 @@ export default class WsClient extends Client {
     // chain (watchX -> loadMarkets -> watch -> client.future) before the
     // next delivery can happen - no explicit hop between deliveries needed
     async deliverLoop () {
-        // discriminates errors escaping onMessage from iterator rejections
-        // caused by socket teardown (which are already handled by the
-        // error/close handlers above). connection state cannot be used for
-        // this: when the loop body throws, for-await first runs the implicit
-        // iterator.return (), which destroys the duplex and starts closing
-        // the socket before the catch executes
-        let dispatching = false;
         try {
             for await (const message of this.duplex) {
-                dispatching = true;
                 this.onMessage ({ 'data': message });
                 // release valve: when the server sends faster than the paced
                 // delivery below drains, messages pile up inside the duplex
@@ -144,18 +136,21 @@ export default class WsClient extends Client {
                     }
                     this.onMessage ({ 'data': queued });
                 }
-                dispatching = false;
             }
         } catch (e) {
-            if (dispatching) {
-                // an error escaped onMessage - apply the established WsClient
-                // error semantics: onError (normalize to NetworkError, set
-                // this.error so the follow-up onClose does not clobber it,
-                // reset, reject all pending futures), then close the
-                // connection
-                this.onError (e);
-                this.close ();
-            }
+            // nothing escapes the loop body: onMessage handles all of its
+            // dispatch errors internally (Client.ts), so the only way into
+            // this catch is a rejection of the iterator itself. that happens
+            // when ws destroys the duplex with an error (ws/lib/stream.js) on
+            // WebSocket 'error' events - protocol violations such as
+            // malformed frames, invalid UTF-8 or oversized payloads - and by
+            // the time the rejection lands here the socket error/close
+            // handlers wired in createConnection have already applied the
+            // full error semantics (this.error set, pending futures rejected,
+            // exchange notified). the rejection is a duplicate signal from
+            // the already-destroyed stream - swallow it: deliverLoop is
+            // fire-and-forget, so an escaping rejection would crash the
+            // process as an unhandled promise rejection
         }
     }
 
