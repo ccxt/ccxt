@@ -147,23 +147,12 @@ export default class WsClient extends Client {
                 dispatching = false;
             }
         } catch (e) {
-            if (dispatching || (this.isOpen () && !this.error)) {
-                // two fatal cases, same established error semantics
-                // (onError: normalize to NetworkError, set this.error so the
-                // follow-up onClose does not clobber it, reject all pending
-                // futures; then close the connection):
-                // 1. dispatching - an error escaped onMessage. connection
-                //    state cannot discriminate this case: when the loop body
-                //    throws, for-await first runs the implicit
-                //    iterator.return (), which destroys the duplex and starts
-                //    closing the socket before the catch executes
-                // 2. a stream-level iterator rejection while the socket is
-                //    still open - without this the loop would stop silently,
-                //    leaving a "connected" client that no longer delivers
-                // iterator rejections caused by socket teardown match neither
-                // (socket no longer open by the time the rejection lands, or
-                // this.error already recorded) - those are already handled by
-                // the error/close handlers above
+            if (dispatching) {
+                // an error escaped onMessage - apply the established WsClient
+                // error semantics: onError (normalize to NetworkError, set
+                // this.error so the follow-up onClose does not clobber it,
+                // reset, reject all pending futures), then close the
+                // connection
                 this.onError (e);
                 this.close ();
             }
