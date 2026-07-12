@@ -222,11 +222,11 @@ public partial class BaseExchange
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, object>)res);
     }
-    public Dictionary<string, object> CreateCcxtTradeId(Int64? timestamp2 = 0, string side = null, object amount = null, object price = null, object takerOrMaker = null)
+    public string CreateCcxtTradeId(Int64? timestamp2 = 0, string side = null, object amount = null, object price = null, object takerOrMaker = null)
     {
         var timestamp = timestamp2 == 0 ? null : (object)timestamp2;
         var res = this.createCcxtTradeId(timestamp, side, amount, price, takerOrMaker);
-        return ((Dictionary<string, object>)res);
+        return ((string)res);
     }
     public async Task<Dictionary<string, object>> FetchBorrowRate(string code, double amount, Dictionary<string, object> parameters = null)
     {

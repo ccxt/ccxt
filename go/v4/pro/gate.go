@@ -2144,7 +2144,9 @@ func (this *GateCore) WatchMyLiquidations(symbol any, optionalArgs ...any) <-cha
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		ch <- this.WatchMyLiquidationsForSymbols([]any{symbol}, since, limit, params)
+		retRes165015 := (<-this.WatchMyLiquidationsForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes165015)
+		ch <- retRes165015
 		return nil
 
 	}()

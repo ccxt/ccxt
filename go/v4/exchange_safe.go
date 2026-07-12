@@ -373,10 +373,10 @@ func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
-func SafeFloatN(obj any, keys []any, defaultValue any) float64 {
+func SafeFloatN(obj any, keys []any, defaultValue any) any {
 	value := SafeValueN(obj, keys, defaultValue)
 	if value == nil {
-		return defaultValue.(float64)
+		return defaultValue
 	}
 
 	switch v := value.(type) {
@@ -399,10 +399,10 @@ func SafeFloatN(obj any, keys []any, defaultValue any) float64 {
 			return f
 		}
 	default:
-		return defaultValue.(float64)
+		return defaultValue
 	}
 
-	return defaultValue.(float64)
+	return defaultValue
 }
 
 // SafeIntegerN retrieves an int64 value from a nested structure
