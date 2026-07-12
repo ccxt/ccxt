@@ -781,15 +781,13 @@ class Exchange(object):
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        val = Exchange.safe_string(dictionary, key, default_value)
-        # Only lowercase if a valid non-default string was found
-        return val.lower() if val is not default_value else default_value
+        val = Exchange.safe_string(dictionary, key)
+        return val.lower() if val is not None else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        val = Exchange.safe_string(dictionary, key, default_value)
-        # Only uppercase if a valid non-default string was found
-        return val.upper() if val is not default_value else default_value
+        val = Exchange.safe_string(dictionary, key)
+        return val.upper() if val is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
@@ -853,13 +851,13 @@ class Exchange(object):
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
-        return value.lower() if value is not None else value
+        value = Exchange.safe_string_2(dictionary, key1, key2)
+        return value.lower() if value is not None else default_value
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2, default_value)
-        return value.upper() if value is not None else value
+        value = Exchange.safe_string_2(dictionary, key1, key2)
+        return value.upper() if value is not None else default_value
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
