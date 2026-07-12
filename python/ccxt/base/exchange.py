@@ -771,10 +771,7 @@ class Exchange(object):
         try:
             value = dictionary[key]
             if value is not None and value != '':
-                if type(value) is str:
-                    return value
-                if isinstance(value, Number) and type(value) is not bool:
-                    return str(value)
+                return str(value)
         except Exception:
             pass
         return default_value
