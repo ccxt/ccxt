@@ -2329,12 +2329,12 @@ export default class hyperliquid extends Exchange {
             const mainOrderObj: Dict = this.createOrderRequest (symbol, (type as string), side, (amount as string), price, orderParams);
             if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
-                const stopLossOrderTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
+                const stopLossOrderTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice' );
                 let stopLossOrderType = this.safeString (stopLoss, 'type', 'limit');
-                const stopLossOrderLimitPrice = this.safeStringN (stopLoss, [ 'price', 'stopLossPrice' ], stopLossOrderTriggerPrice);
-                const takeProfitOrderTriggerPrice = this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
+                const stopLossOrderLimitPrice = this.safeString2 (stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice);
+                const takeProfitOrderTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice');
                 let takeProfitOrderType = this.safeString (takeProfit, 'type', 'limit');
-                const takeProfitOrderLimitPrice = this.safeStringN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
+                const takeProfitOrderLimitPrice = this.safeString2 (takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice);
                 grouping = this.safeString (orderParams, 'grouping', 'normalTpsl');
                 if (grouping === 'positionTpsl') {
                     amount = '0';
