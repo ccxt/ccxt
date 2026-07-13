@@ -8787,7 +8787,7 @@ func (this *BybitCore) Transfer(code any, amount any, fromAccount any, toAccount
 		//
 		var timestamp any = this.SafeInteger(response, "time")
 		var transfer any = this.SafeDict(response, "result", map[string]any{})
-		var statusRaw any = this.SafeStringN(response, []any{"retCode", "retMsg"})
+		var statusRaw any = this.SafeString2(response, "retCode", "retMsg")
 		var status any = this.ParseTransferStatus(statusRaw)
 
 		ch <- this.Extend(this.ParseTransfer(transfer, currency), map[string]any{
