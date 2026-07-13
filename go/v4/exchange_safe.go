@@ -655,11 +655,15 @@ func (this *Exchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any)
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	res := SafeStringN(obj, keys, nil)
-	if res != "" && res != nil {
-		return strings.ToUpper(res.(string))
+	return SafeStringLowerN(obj, keys, defVal)
+}
+
+func SafeStringLowerN(obj any, keys []any, defaultValue any) any {
+	value := SafeStringN(obj, keys, defaultValue)
+	if value == nil {
+		return defaultValue
 	}
-	return defVal
+	return strings.ToLower(value.(string))
 }
 
 func (this *Exchange) SafeFloat(obj any, key any, defaultValue ...any) any {
