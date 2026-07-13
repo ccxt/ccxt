@@ -44,7 +44,7 @@ func (this *Lighter) CreateSubAccount(name string, options ...CreateSubAccountOp
 	}
 	return res.(map[string]any), nil
 }
-func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...FetchNonceOptions) (int64, error) {
+func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...FetchNonceOptions) (float64, error) {
 
 	opts := FetchNonceOptionsStruct{}
 
@@ -58,9 +58,9 @@ func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...Fe
 	}
 	res := <-this.Core.FetchNonce(accountIndex, apiKeyIndex, params)
 	if IsError(res) {
-		return -1, CreateReturnError(res)
+		return float64(-1), CreateReturnError(res)
 	}
-	return (res).(int64), nil
+	return (res).(float64), nil
 }
 
 /**
