@@ -7682,7 +7682,7 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const transfer = this.safeDict (response, 'result', {});
-        const statusRaw = this.safeStringN (response, [ 'retCode', 'retMsg' ]);
+        const statusRaw = this.safeString2 (response, 'retCode', 'retMsg');
         const status = this.parseTransferStatus (statusRaw);
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,

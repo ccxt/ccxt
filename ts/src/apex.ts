@@ -990,15 +990,15 @@ export default class apex extends Exchange {
         //  }
         //  ]
         //
-        const marketId = this.safeStringN (trade, [ 's', 'symbol' ]);
+        const marketId = this.safeString2 (trade, 's', 'symbol');
         market = this.safeMarket (marketId, market);
-        const id = this.safeStringN (trade, [ 'i', 'id' ]);
+        const id = this.safeString2 (trade, 'i', 'id');
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
-        const priceString = this.safeStringN (trade, [ 'p', 'price' ]);
-        const amountString = this.safeStringN (trade, [ 'v', 'size' ]);
-        const side = this.safeStringLowerN (trade, [ 'S', 'side' ]);
-        const type = this.safeStringN (trade, [ 'type' ]);
-        const fee = this.safeStringN (trade, [ 'fee' ]);
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'v', 'size');
+        const side = this.safeStringLower2 (trade, 'S', 'side');
+        const type = this.safeString (trade, 'type');
+        const fee = this.safeString (trade, 'fee');
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -1594,7 +1594,7 @@ export default class apex extends Exchange {
         const toAccount = this.safeString (transfer, 'toAccount');
         return {
             'info': transfer,
-            'id': this.safeStringN (transfer, [ 'transferId', 'id' ]),
+            'id': this.safeString2 (transfer, 'transferId', 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
@@ -1965,7 +1965,7 @@ export default class apex extends Exchange {
         const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
         let leverage = 20;
-        const customInitialMarginRate = this.safeStringN (position, [ 'customInitialMarginRate', 'customImr' ], '0');
+        const customInitialMarginRate = this.safeString2 (position, 'customInitialMarginRate', 'customImr', '0');
         if (this.precisionFromString (customInitialMarginRate) !== 0) {
             leverage = this.parseToInt (Precise.stringDiv ('1', customInitialMarginRate, 4));
         }
