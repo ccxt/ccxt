@@ -365,11 +365,11 @@ func (this *Exchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any)
 }
 
 func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
-	value := SafeStringN(obj, keys, defaultValue)
-	if value == nil {
-		return defaultValue
+	res := SafeStringN(obj, keys, nil)
+	if res != "" && res != nil {
+		return strings.ToUpper(res.(string))
 	}
-	return strings.ToUpper(value.(string))
+	return defaultValue
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
@@ -587,36 +587,48 @@ func (this *Exchange) SafeString(obj any, key any, defaultValue ...any) any {
 
 func (this *Exchange) SafeStringUpper(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString(obj, key, defaultValue...)
+	res := this.SafeString(obj, key)
 	if res != nil {
 		return strings.ToUpper(res.(string))
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
 	}
 	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringLower(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString(obj, key, defaultValue...)
+	res := this.SafeString(obj, key)
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
 	}
 	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString2(obj, key, key2, defaultValue...)
+	res := this.SafeString2(obj, key, key2)
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
 	}
 	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString2(obj, key, key2, defaultValue...)
+	res := this.SafeString2(obj, key, key2)
 	if res != "" && res != nil {
 		return strings.ToUpper(res.(string))
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
 	}
 	return nil // check this return type
 }
@@ -638,15 +650,14 @@ func (this *Exchange) SafeStringN(obj any, keys2 any, defaultValue ...any) any {
 	return SafeStringN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeStringLowerN(obj any, keys2 any, defaultValue ...any) any {
-	keys := keys2.([]any)
+func (this *Exchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	res := SafeStringN(obj, keys, defVal)
+	res := SafeStringN(obj, keys, nil)
 	if res != "" && res != nil {
-		return strings.ToLower(res.(string))
+		return strings.ToUpper(res.(string))
 	}
 	return defVal
 }

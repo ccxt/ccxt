@@ -96,7 +96,7 @@ public partial class Exchange
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
         var res = SafeStringN(obj, new List<object> { key });
-        return res == null ? null : (string)res;
+        return res == null ? defaultValue : (string)res;
     }
     public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
