@@ -1952,7 +1952,7 @@
         "skipMethods": {
             "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"
         },
-        "preferredPredictionOutcome": "GAVIN_NEWSOM_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_568:YES",
+        "preferredPredictionOutcome": "DEMOCRATIC_PRESIDENTIAL_NOMINEE_2028_BERNIE_SANDERS_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_879:YES",
         "predictionNote": "liquid book, resolves 2028; C#/Go/Java dict ordering otherwise scans onto placeholder markets (Another team / Person Y) whose CLOB books 404; the harness falls back to a scan if this pin goes stale"
     },
     "probit": {
