@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
 /**
  * @class alpaca
@@ -1064,7 +1064,7 @@ class alpaca extends alpaca$1["default"] {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             let newType;
             if (type.indexOf('limit') >= 0) {
@@ -1347,7 +1347,7 @@ class alpaca extends alpaca$1["default"] {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, 'triggerPrice');

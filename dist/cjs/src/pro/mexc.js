@@ -7,7 +7,7 @@ var mexc$1 = require('../mexc.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class mexc extends mexc$1["default"] {
     describe() {
@@ -1593,11 +1593,11 @@ class mexc extends mexc$1["default"] {
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
-        const currencyId = this.safeStringN(data, ['currency', 'vcoinName']);
+        const currencyId = this.safeString2(data, 'currency', 'vcoinName');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString2(data, 'balanceAmount', 'availableBalance');
-        account['used'] = this.safeStringN(data, ['frozenBalance', 'frozenAmount']);
+        account['used'] = this.safeString2(data, 'frozenBalance', 'frozenAmount');
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], messageHash);

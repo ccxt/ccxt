@@ -7,7 +7,7 @@ var coinbaseinternational$1 = require('../coinbaseinternational.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinbaseinternational extends coinbaseinternational$1["default"] {
     describe() {

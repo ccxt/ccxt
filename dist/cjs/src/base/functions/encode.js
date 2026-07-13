@@ -7,7 +7,7 @@ var utils_js = require('@noble/curves/utils.js');
 var msgpack = require('../../static_dependencies/messagepack/msgpack.js');
 var index = require('../../static_dependencies/qs/index.js');
 
-/* eslint-disable */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = (object) => ((typeof object === 'string') &&
     // (object.length >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193

@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var time = require('./time.js');
 
-//@ts-nocheck
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 class Throttler {
     constructor(config) {

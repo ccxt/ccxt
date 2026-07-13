@@ -6,6 +6,7 @@ var base = require('@scure/base');
 var legacy_js = require('@noble/hashes/legacy.js');
 var crypto = require('./crypto.js');
 
+// ----------------------------------------------------------------------------
 function totp(secret) {
     const dec2hex = (s) => ((s < 15.5 ? '0' : '') + Math.round(s).toString(16));
     const hex2dec = (s) => parseInt(s, 16);

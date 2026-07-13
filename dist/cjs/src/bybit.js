@@ -9,7 +9,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bybit
@@ -7692,7 +7692,7 @@ class bybit extends bybit$1["default"] {
         //
         const timestamp = this.safeInteger(response, 'time');
         const transfer = this.safeDict(response, 'result', {});
-        const statusRaw = this.safeStringN(response, ['retCode', 'retMsg']);
+        const statusRaw = this.safeString2(response, 'retCode', 'retMsg');
         const status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), {
             'timestamp': timestamp,

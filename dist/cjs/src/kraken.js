@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -1313,7 +1313,7 @@ class kraken extends kraken$1["default"] {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise["default"].stringDiv(until, '1000');
@@ -2556,7 +2556,7 @@ class kraken extends kraken$1["default"] {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise["default"].stringDiv(until, '1000');
@@ -3075,7 +3075,7 @@ class kraken extends kraken$1["default"] {
             const sinceString = this.numberToString(since);
             request['start'] = Precise["default"].stringDiv(sinceString, '1000');
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise["default"].stringDiv(until, '1000');
@@ -3153,7 +3153,7 @@ class kraken extends kraken$1["default"] {
             const sinceString = this.numberToString(since);
             request['start'] = Precise["default"].stringDiv(sinceString, '1000');
         }
-        const until = this.safeStringN(params, ['until', 'till']);
+        const until = this.safeString2(params, 'until', 'till');
         if (until !== undefined) {
             params = this.omit(params, ['until', 'till']);
             const untilDivided = Precise["default"].stringDiv(until, '1000');
