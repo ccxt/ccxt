@@ -1965,7 +1965,7 @@ export default class apex extends Exchange {
         const quantity = this.safeString (position, 'size');
         const timestamp = this.safeInteger (position, 'updatedTime');
         let leverage = 20;
-        const customInitialMarginRate = this.safeStringN (position, [ 'customInitialMarginRate', 'customImr' ], '0');
+        const customInitialMarginRate = this.safeString2 (position, 'customInitialMarginRate', 'customImr', '0');
         if (this.precisionFromString (customInitialMarginRate) !== 0) {
             leverage = this.parseToInt (Precise.stringDiv ('1', customInitialMarginRate, 4));
         }
