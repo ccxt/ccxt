@@ -438,8 +438,12 @@ export default class bithumb extends bithumbRest {
             const bidSize = this.safeNumber (entry, 'bid_size');
             const askPrice = this.safeNumber (entry, 'ask_price');
             const askSize = this.safeNumber (entry, 'ask_size');
-            bids.store (bidPrice, bidSize);
-            asks.store (askPrice, askSize);
+            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
+                bids.store (bidPrice, bidSize);
+            }
+            if ((askPrice !== undefined) && (askSize !== undefined)) {
+                asks.store (askPrice, askSize);
+            }
         }
         const gen2TimestampStr = this.safeString (message, 'timestamp') as string;
         const timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
@@ -684,8 +688,8 @@ export default class bithumb extends bithumbRest {
             return true;
         } catch (e) {
             client.reject (e);
+            return false;
         }
-        return true;
     }
 
     /**
