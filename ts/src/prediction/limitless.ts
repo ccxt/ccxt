@@ -2908,7 +2908,11 @@ export default class limitless extends Exchange {
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         this.setEvents (result);
         this.populateOutcomes ();
-        return this.applyEventFetchParams (result, params, queries);
+        // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
+        // for queries that match nothing — so default searchIn to 'both' to post-filter the
+        // results literally by title/description (an explicit params.searchIn still wins)
+        const searchParams = this.extend ({ 'searchIn': 'both' }, params);
+        return this.applyEventFetchParams (result, searchParams, queries);
     }
 
     /**
