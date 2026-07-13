@@ -583,7 +583,9 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("[ccxtError]::[%s]::[%s]\nStack:\n%s", e.Type, e.Message, e.Stack)
+	// the goroutine dump stays in e.Stack — appending it here buries the actual message
+	// under ~40 lines of runtime frames on every error a user prints
+	return fmt.Sprintf("[ccxtError]::[%s]::[%s]", e.Type, e.Message)
 }
 
 func NewError(errType any, message ...any) error {
@@ -592,7 +594,14 @@ func NewError(errType any, message ...any) error {
 	stack := ""
 	if len(message) > 0 {
 		msg = ToString(message[0])
+		// ReturnPanicError appends "\nStack trace:\n<goroutine dump>" to the recovered
+		// message (and the old Error() format appended "]\nStack:") — strip any such tail
+		// out of Message; the dump still reaches the Stack field via the second vararg
 		msgParts := strings.Split(msg, "]\nStack:")
+		msg = msgParts[0]
+		msgParts = strings.Split(msg, "]\nStack trace:")
+		msg = msgParts[0]
+		msgParts = strings.Split(msg, "\nStack trace:")
 		msg = msgParts[0]
 		if len(message) > 1 {
 			stack = ToString(message[1])

@@ -897,6 +897,11 @@ async function exportEverything () {
         },
         {
             file: './python/ccxt/prediction/__init__.py',
+            regex: /(# DO_NOT_REMOVE__ERROR_IMPORTS_START)[\s\S]*?(# DO_NOT_REMOVE__ERROR_IMPORTS_END\n)[\n]/s,
+            replacement: '$1\n' + flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n$2\n",
+        },
+        {
+            file: './python/ccxt/prediction/__init__.py',
             regex: /(?:from ccxt\.prediction\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: predictionIds.map (id => ('from ccxt.prediction.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },

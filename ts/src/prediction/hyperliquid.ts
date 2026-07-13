@@ -1900,7 +1900,12 @@ export default class hyperliquid extends Exchange {
             if (!(parentSymbol in groupMap)) {
                 groupMap[parentSymbol] = [];
             }
-            (groupMap[parentSymbol] as any[]).push (mkt);
+            // push through a local and write the slice back — the go transpiler's
+            // AppendToArray reassigns only a local copy of a map-stored array, so a
+            // direct push on groupMap[parentSymbol] loses the element in go
+            const parentMarkets = groupMap[parentSymbol] as any[];
+            parentMarkets.push (mkt);
+            groupMap[parentSymbol] = parentMarkets;
         }
         const events = [];
         const groupKeys = Object.keys (groupMap);

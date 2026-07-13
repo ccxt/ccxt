@@ -301,18 +301,26 @@ export default class limitless extends Exchange {
         }
         const markets: Market[] = [];
         const eventGroups: Dict = {};
-        for (let i = 0; i < allRaw.length; i++) {
-            const raw = allRaw[i];
-            const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        const expandedRaw = this.expandGroupRows (allRaw);
+        for (let i = 0; i < expandedRaw.length; i++) {
+            const raw = expandedRaw[i];
+            const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
             const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
             markets.push (m);
             if (eventKey) {
                 if (!(eventKey in eventGroups)) {
-                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
+                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
                 const eventGroup = eventGroups[eventKey] as Dict;
-                eventGroup['markets'].push (m);
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on eventGroup['markets'] loses the element in go
+                const groupMarkets = eventGroup['markets'];
+                groupMarkets.push (m);
+                eventGroup['markets'] = groupMarkets;
             }
         }
         const eventsDict: Dict = {};
@@ -409,7 +417,9 @@ export default class limitless extends Exchange {
         //
         const slug = this.safeString (raw, 'slug');
         const address = this.safeString (raw, 'address', slug);
-        const groupId = this.safeString (raw, 'groupId', slug);
+        // groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
+        // the child's own numeric groupId so symbols/handles derive from the readable slug
+        const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], slug);
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString (raw, 'conditionId');
         const tokens = this.safeValue (raw, 'tokens', {});
@@ -553,12 +563,47 @@ export default class limitless extends Exchange {
     async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         const request: Dict = { 'addressOrSlug': id };
         const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend (request, params));
-        // the single-market endpoint returns one raw market (no `markets` array like the grouped
-        // listing), so wrap it for parseEvent — its loop then parses this market into the event
-        const wrapped = this.extend (response, { 'markets': [ response ] });
+        // a group response carries its tradeable children in `markets` (each a full market row
+        // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
+        // and wraps as its own one-market event, which parseEvent's loop then parses
+        const rows = this.expandGroupRows ([ response ]);
+        const wrapped = this.extend (response, { 'markets': rows });
         const event: any = this.parseEvent (wrapped);
         this.indexEventOutcomes (event);
         return event;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#expandGroupRows
+     * @description flattens listing rows — a 'group' row carries no tradeable tokens itself and
+     * its children (each a full market row with tokens) appear nowhere else in the listing, so
+     * each group row is replaced by its nested markets, tagged with the group's slug and title
+     * (the child's own groupId is an opaque numeric venue id) so they regroup under one readable event
+     * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
+     * @returns {object[]} raw single-market rows only
+     */
+    expandGroupRows (rawRows: any[]): any[] {
+        const result = [];
+        for (let i = 0; i < rawRows.length; i++) {
+            const raw = rawRows[i];
+            const rowType = this.safeString (raw, 'marketType');
+            const nestedMarkets = this.safeList (raw, 'markets');
+            if ((rowType === 'group') && (nestedMarkets !== undefined)) {
+                const groupSlug = this.safeString (raw, 'slug');
+                const groupTitle = this.safeString (raw, 'title', groupSlug);
+                const nestedMarketsLength = nestedMarkets.length;
+                for (let j = 0; j < nestedMarketsLength; j++) {
+                    // extend copies — the raw child stays untouched
+                    const tagged = this.extend (nestedMarkets[j], { 'groupSlug': groupSlug, 'groupTitle': groupTitle });
+                    result.push (tagged);
+                }
+            } else {
+                result.push (raw);
+            }
+        }
+        return result;
     }
 
     parseEvent (event: Dict): any {
@@ -2872,19 +2917,27 @@ export default class limitless extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         const eventGroups: Dict = {};
-        const rawMarketsLength = rawMarkets.length;
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        const expandedMarkets = this.expandGroupRows (rawMarkets);
+        const rawMarketsLength = expandedMarkets.length;
         for (let i = 0; i < rawMarketsLength; i++) {
-            const raw = rawMarkets[i];
-            const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
+            const raw = expandedMarkets[i];
+            const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
             const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
             this.markets[m['symbol'] as string] = m;
             if (eventKey) {
                 if (!(eventKey in eventGroups)) {
-                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
+                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
                 const eventGroup = eventGroups[eventKey] as Dict;
-                eventGroup['markets'].push (m);
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on eventGroup['markets'] loses the element in go
+                const groupMarkets = eventGroup['markets'];
+                groupMarkets.push (m);
+                eventGroup['markets'] = groupMarkets;
             }
         }
         const result: any[] = [];

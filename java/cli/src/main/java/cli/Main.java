@@ -275,8 +275,22 @@ public class Main {
         System.out.println("[java][" + Version.VERSION +"] CCXT CLI");
         // System.out.println("User Directory: " + userDirectory);
 
+        // -p / --prediction forces the prediction namespace for ids that exist in both
+        // (e.g. hyperliquid); prediction-only ids resolve there automatically as a fallback.
+        // strip the flag so it is not mistaken for a positional method argument
+        var forcePrediction = false;
+        ArrayList<String> positionalArgs = new ArrayList<String>();
+        for (String arg : args) {
+            if (arg.equals("-p") || arg.equals("--prediction")) {
+                forcePrediction = true;
+            } else {
+                positionalArgs.add(arg);
+            }
+        }
+        args = positionalArgs.toArray(new String[0]);
+
         if (args.length < 2) {
-            System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
+            System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] [-p|--prediction] <exchange-id> [arg1 arg2 ...]");
             return;
         }
 
@@ -289,7 +303,7 @@ public class Main {
 
         var isProExchange = MetaData.ProExchanges.contains(exchangeName);
 
-        var instance = Exchange.dynamicallyCreateInstance(exchangeName,  null, isProExchange);
+        var instance = Exchange.dynamicallyCreateInstance(exchangeName,  null, isProExchange, forcePrediction);
 
         var callExpressionString = instance.id + "." + methodName + "(" + java.util.Arrays.toString(params) + ")";
         System.out.println(callExpressionString);

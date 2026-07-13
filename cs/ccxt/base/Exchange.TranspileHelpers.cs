@@ -867,7 +867,7 @@ public partial class BaseExchange
 
     public void throwDynamicException(object exception, object message)
     {
-        var Exception = NewException((Type)exception, (string)message);
+        throw NewException((Type)exception, (string)message);
     }
 
     // This function is the salient bit here

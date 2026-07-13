@@ -289,7 +289,12 @@ export default class kalshi extends Exchange {
                             };
                         }
                         const eventEntry = eventsDict[eventKey] as Dict;
-                        eventEntry['markets'].push (m);
+                        // push through a local and write the slice back — the go transpiler's
+                        // AppendToArray reassigns only a local copy of a map-stored array, so a
+                        // direct push on eventEntry['markets'] loses the element in go
+                        const entryMarkets = eventEntry['markets'];
+                        entryMarkets.push (m);
+                        eventEntry['markets'] = entryMarkets;
                     }
                 }
             }
@@ -2498,10 +2503,15 @@ export default class kalshi extends Exchange {
         // }
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
         const marketsList: any[] = [];
-        // aggregate volume/liquidity from the markets and derive the creation time so sort works
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works;
+        // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
+        // resolved and the resolution deadline are aggregated from the child markets too
         let totalVolume = 0;
         let totalLiquidity = 0;
         let earliestCreated = undefined;
+        let anyActive = false;
+        let allResolved = true;
+        let latestClose = undefined;
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket (rawMarket);
@@ -2512,6 +2522,33 @@ export default class kalshi extends Exchange {
             if ((marketCreated !== undefined) && ((earliestCreated === undefined) || (marketCreated < earliestCreated))) {
                 earliestCreated = marketCreated;
             }
+            const marketStatus = this.safeString (rawMarket, 'status');
+            if (marketStatus === 'active') {
+                anyActive = true;
+            }
+            const marketResult = this.safeString (rawMarket, 'result');
+            const marketResolved = (marketStatus === 'settled') || ((marketResult !== undefined) && (marketResult !== ''));
+            if (!marketResolved) {
+                allResolved = false;
+            }
+            const marketClose = this.parse8601 (this.safeString (rawMarket, 'close_time'));
+            if ((marketClose !== undefined) && ((latestClose === undefined) || (marketClose > latestClose))) {
+                latestClose = marketClose;
+            }
+        }
+        // the aggregates only mean something when the payload nested any markets at all
+        const marketsCount = marketsList.length;
+        let active = undefined;
+        if (marketsCount > 0) {
+            active = anyActive;
+        }
+        let resolved = this.safeBool (rawEvent, 'resolved');
+        if ((resolved === undefined) && (marketsCount > 0)) {
+            resolved = allResolved;
+        }
+        let end = this.parse8601 (this.safeString (rawEvent, 'end_date_iso'));
+        if (end === undefined) {
+            end = latestClose;
         }
         const ticker = this.safeString (rawEvent, 'event_ticker');
         const title = this.safeString (rawEvent, 'title');
@@ -2531,13 +2568,14 @@ export default class kalshi extends Exchange {
             'image': this.safeString (rawEvent, 'image_url'),
             'created': created,
             'createdDatetime': this.safeString (rawEvent, 'created_date_iso'),
-            'end': this.parse8601 (this.safeString (rawEvent, 'end_date_iso')),
-            'endDatetime': this.safeString (rawEvent, 'end_date_iso'),
+            'end': end,
+            'endDatetime': this.iso8601 (end),
             'category': this.safeString (rawEvent, 'category'),
             'lastUpdatedAt': this.parse8601 (this.safeString (rawEvent, 'last_updated_date_iso')),
             'lastUpdatedAtDatetime': this.safeString (rawEvent, 'last_updated_date_iso'),
             'resolutionSource': this.safeString (rawEvent, 'resolution_source'),
-            'resolved': this.safeBool (rawEvent, 'resolved'),
+            'active': active,
+            'resolved': resolved,
             'info': rawEvent,
         });
     }

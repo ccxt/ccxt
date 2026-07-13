@@ -1027,6 +1027,418 @@
 					]
 				]
 			}
+		],
+		"fetchEvent": [
+			{
+				"description": "fetchEvent on a group row expands the nested child markets (each carrying tokens/outcomes) instead of returning one dead outcome-less market",
+				"method": "fetchEvent",
+				"input": [
+					"rune-eaters-vs-virtuspro-1783879202232"
+				],
+				"httpResponse": {
+					"id": 10012663,
+					"slug": "rune-eaters-vs-virtuspro-1783879202232",
+					"title": "Rune Eaters vs Virtus.pro",
+					"expirationTimestamp": 1784113200000,
+					"expired": false,
+					"collateralToken": {
+						"symbol": "USDC",
+						"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+						"decimals": 6
+					},
+					"marketType": "group",
+					"status": "FUNDED",
+					"volumeFormatted": "58.414000",
+					"markets": [
+						{
+							"id": 321433,
+							"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+							"groupId": 10012663,
+							"collateralToken": {
+								"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+								"decimals": 6,
+								"symbol": "USDC"
+							},
+							"title": "Rune Eaters",
+							"expirationTimestamp": 1784113200000,
+							"status": "FUNDED",
+							"expired": false,
+							"volumeFormatted": "0.000000",
+							"tokens": {
+								"yes": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+								"no": "108657718374880115572287825818776126799453616791576056811688371517129299323715"
+							},
+							"slug": "rune-eaters-1783879202236",
+							"winningOutcomeIndex": null
+						},
+						{
+							"id": 321434,
+							"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+							"groupId": 10012663,
+							"collateralToken": {
+								"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+								"decimals": 6,
+								"symbol": "USDC"
+							},
+							"title": "Virtus.pro",
+							"expirationTimestamp": 1784113200000,
+							"status": "FUNDED",
+							"expired": false,
+							"volumeFormatted": "58.414000",
+							"tokens": {
+								"yes": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+								"no": "36477779732987670411405148188795106135327776539832137749139532051522057470561"
+							},
+							"slug": "virtuspro-1783879202242",
+							"winningOutcomeIndex": null
+						}
+					]
+				},
+				"parsedResponse": {
+					"id": "rune-eaters-vs-virtuspro-1783879202232",
+					"slug": "rune-eaters-vs-virtuspro-1783879202232",
+					"event": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232",
+					"title": "Rune Eaters vs Virtus.pro",
+					"description": null,
+					"markets": [
+						{
+							"id": "rune-eaters-1783879202236",
+							"symbol": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+							"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+							"marketType": "binary",
+							"executionModel": "clob",
+							"collateral": "USDC",
+							"base": "rune-eaters-1783879202236",
+							"quote": "USDC",
+							"settle": null,
+							"baseId": "rune-eaters-1783879202236",
+							"quoteId": "USDC",
+							"settleId": null,
+							"type": "prediction",
+							"spot": false,
+							"margin": false,
+							"swap": false,
+							"future": false,
+							"option": false,
+							"prediction": true,
+							"active": true,
+							"resolved": false,
+							"resolvedOutcome": null,
+							"contract": false,
+							"linear": null,
+							"inverse": null,
+							"contractSize": null,
+							"expiry": 1784113200000,
+							"expiryDatetime": "2026-07-15T11:00:00.000Z",
+							"strike": null,
+							"optionType": null,
+							"taker": 0.02,
+							"maker": 0.02,
+							"percentage": true,
+							"tierBased": false,
+							"feeSide": "get",
+							"precision": {
+								"amount": 0.000001,
+								"price": 0.001
+							},
+							"limits": {
+								"leverage": {
+									"min": 1,
+									"max": 1
+								},
+								"amount": {
+									"min": 0,
+									"max": null
+								},
+								"price": {
+									"min": 0.001,
+									"max": 0.999
+								},
+								"cost": {
+									"min": null,
+									"max": null
+								}
+							},
+							"outcomes": [
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236:YES",
+									"outcomeId": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+									"label": "yes",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 0.000001,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "rune-eaters-1783879202236",
+										"address": "rune-eaters-1783879202236",
+										"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+										"outcomeLabel": "yes",
+										"tokenId": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+										"volume24h": 0
+									}
+								},
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236:NO",
+									"outcomeId": "108657718374880115572287825818776126799453616791576056811688371517129299323715",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
+									"label": "no",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 0.000001,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "rune-eaters-1783879202236",
+										"address": "rune-eaters-1783879202236",
+										"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+										"outcomeLabel": "no",
+										"tokenId": "108657718374880115572287825818776126799453616791576056811688371517129299323715",
+										"volume24h": 0
+									}
+								}
+							],
+							"info": {
+								"id": 321433,
+								"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Rune Eaters",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "0.000000",
+								"tokens": {
+									"yes": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+									"no": "108657718374880115572287825818776126799453616791576056811688371517129299323715"
+								},
+								"slug": "rune-eaters-1783879202236",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro",
+								"address": "rune-eaters-1783879202236",
+								"volume24h": 0
+							},
+							"created": null
+						},
+						{
+							"id": "virtuspro-1783879202242",
+							"symbol": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+							"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+							"marketType": "binary",
+							"executionModel": "clob",
+							"collateral": "USDC",
+							"base": "virtuspro-1783879202242",
+							"quote": "USDC",
+							"settle": null,
+							"baseId": "virtuspro-1783879202242",
+							"quoteId": "USDC",
+							"settleId": null,
+							"type": "prediction",
+							"spot": false,
+							"margin": false,
+							"swap": false,
+							"future": false,
+							"option": false,
+							"prediction": true,
+							"active": true,
+							"resolved": false,
+							"resolvedOutcome": null,
+							"contract": false,
+							"linear": null,
+							"inverse": null,
+							"contractSize": null,
+							"expiry": 1784113200000,
+							"expiryDatetime": "2026-07-15T11:00:00.000Z",
+							"strike": null,
+							"optionType": null,
+							"taker": 0.02,
+							"maker": 0.02,
+							"percentage": true,
+							"tierBased": false,
+							"feeSide": "get",
+							"precision": {
+								"amount": 0.000001,
+								"price": 0.001
+							},
+							"limits": {
+								"leverage": {
+									"min": 1,
+									"max": 1
+								},
+								"amount": {
+									"min": 0,
+									"max": null
+								},
+								"price": {
+									"min": 0.001,
+									"max": 0.999
+								},
+								"cost": {
+									"min": null,
+									"max": null
+								}
+							},
+							"outcomes": [
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242:YES",
+									"outcomeId": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+									"label": "yes",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 0.000001,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "virtuspro-1783879202242",
+										"address": "virtuspro-1783879202242",
+										"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+										"outcomeLabel": "yes",
+										"tokenId": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+										"volume24h": 58.414
+									}
+								},
+								{
+									"outcome": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242:NO",
+									"outcomeId": "36477779732987670411405148188795106135327776539832137749139532051522057470561",
+									"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
+									"label": "no",
+									"active": true,
+									"winner": null,
+									"settleFraction": null,
+									"precision": {
+										"amount": 0.000001,
+										"price": 0.001
+									},
+									"info": {
+										"slug": "virtuspro-1783879202242",
+										"address": "virtuspro-1783879202242",
+										"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+										"outcomeLabel": "no",
+										"tokenId": "36477779732987670411405148188795106135327776539832137749139532051522057470561",
+										"volume24h": 58.414
+									}
+								}
+							],
+							"info": {
+								"id": 321434,
+								"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Virtus.pro",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "58.414000",
+								"tokens": {
+									"yes": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+									"no": "36477779732987670411405148188795106135327776539832137749139532051522057470561"
+								},
+								"slug": "virtuspro-1783879202242",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro",
+								"address": "virtuspro-1783879202242",
+								"volume24h": 58.414
+							},
+							"created": null
+						}
+					],
+					"volume": 58.414,
+					"liquidity": null,
+					"url": null,
+					"image": null,
+					"active": true,
+					"resolved": false,
+					"category": null,
+					"tags": null,
+					"created": null,
+					"createdDatetime": null,
+					"end": null,
+					"endDatetime": null,
+					"lastUpdatedAt": null,
+					"resolutionSource": null,
+					"info": {
+						"id": 10012663,
+						"slug": "rune-eaters-vs-virtuspro-1783879202232",
+						"title": "Rune Eaters vs Virtus.pro",
+						"expirationTimestamp": 1784113200000,
+						"expired": false,
+						"collateralToken": {
+							"symbol": "USDC",
+							"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+							"decimals": 6
+						},
+						"marketType": "group",
+						"status": "FUNDED",
+						"volumeFormatted": "58.414000",
+						"markets": [
+							{
+								"id": 321433,
+								"conditionId": "0x8326a7dc0975de290abfd2836688b03dbdb116cea7aa0a54b115f462e8e497ac",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Rune Eaters",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "0.000000",
+								"tokens": {
+									"yes": "7797025762134170389913700558063650618886525175942484435251794825003095575858",
+									"no": "108657718374880115572287825818776126799453616791576056811688371517129299323715"
+								},
+								"slug": "rune-eaters-1783879202236",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro"
+							},
+							{
+								"id": 321434,
+								"conditionId": "0x3e91bcd748b0d934573613cda6939a200e7ab7746ec370f8cbc0a89f65069cb9",
+								"groupId": 10012663,
+								"collateralToken": {
+									"address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+									"decimals": 6,
+									"symbol": "USDC"
+								},
+								"title": "Virtus.pro",
+								"expirationTimestamp": 1784113200000,
+								"status": "FUNDED",
+								"expired": false,
+								"volumeFormatted": "58.414000",
+								"tokens": {
+									"yes": "25016075823175711125867208921666352690037236152024924027267727605921161971704",
+									"no": "36477779732987670411405148188795106135327776539832137749139532051522057470561"
+								},
+								"slug": "virtuspro-1783879202242",
+								"winningOutcomeIndex": null,
+								"groupSlug": "rune-eaters-vs-virtuspro-1783879202232",
+								"groupTitle": "Rune Eaters vs Virtus.pro"
+							}
+						]
+					}
+				}
+			}
 		]
 	}
 }
