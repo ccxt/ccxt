@@ -3335,10 +3335,19 @@ public class BingxCore extends BingxApi
             Object isTrailingAmountOrder = !Helpers.isEqual(trailingAmount, null);
             Object isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
             Object isTrailing = Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder);
-            Object stopLoss = this.safeValue(parameters, "stopLoss");
-            Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Object hasStopLoss = !Helpers.isEqual(stopLoss, null);
-            Object hasTakeProfit = !Helpers.isEqual(takeProfit, null);
+            Object stopLossDict = this.safeDict(parameters, "stopLoss");
+            Object takeProfitDict = this.safeDict(parameters, "takeProfit");
+            Object hasStopLoss = !Helpers.isEqual(stopLossDict, null);
+            Object hasTakeProfit = !Helpers.isEqual(takeProfitDict, null);
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if (Helpers.isTrue(hasStopLoss))
+            {
+                parameters = this.omit(parameters, "stopLoss");
+            }
+            if (Helpers.isTrue(hasTakeProfit))
+            {
+                parameters = this.omit(parameters, "takeProfit");
+            }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(type, "TRIGGER_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(type, "STOP")))) || Helpers.isTrue((Helpers.isEqual(type, "TAKE_PROFIT"))))) && !Helpers.isTrue(isTrailing)))
             {
                 Helpers.addElementToObject(request, "price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
@@ -3396,39 +3405,39 @@ public class BingxCore extends BingxApi
                 Object stringifiedAmount = this.numberToString(amount);
                 if (Helpers.isTrue(hasStopLoss))
                 {
-                    Object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                    Object slWorkingType = this.safeString(stopLoss, "workingType", "MARK_PRICE");
-                    Object slType = this.safeString(stopLoss, "type", "STOP_MARKET");
+                    Object slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
+                    Object slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
+                    Object slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
                     Object slRequest = new java.util.HashMap<String, Object>() {{
                         put( "stopPrice", BingxCore.this.parseToNumeric(BingxCore.this.priceToPrecision(symbol, slTriggerPrice)) );
                         put( "workingType", slWorkingType );
                         put( "type", slType );
                     }};
-                    Object slPrice = this.safeString(stopLoss, "price");
+                    Object slPrice = this.safeString(stopLossDict, "price");
                     if (Helpers.isTrue(!Helpers.isEqual(slPrice, null)))
                     {
                         Helpers.addElementToObject(slRequest, "price", this.parseToNumeric(this.priceToPrecision(symbol, slPrice)));
                     }
-                    Object slQuantity = this.safeString(stopLoss, "quantity", stringifiedAmount);
+                    Object slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
                     Helpers.addElementToObject(slRequest, "quantity", this.parseToNumeric(this.amountToPrecision(symbol, slQuantity)));
                     Helpers.addElementToObject(request, "stopLoss", this.json(slRequest));
                 }
                 if (Helpers.isTrue(hasTakeProfit))
                 {
-                    Object tkTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                    Object tkWorkingType = this.safeString(takeProfit, "workingType", "MARK_PRICE");
-                    Object tpType = this.safeString(takeProfit, "type", "TAKE_PROFIT_MARKET");
+                    Object tkTriggerPrice = this.safeString2(takeProfitDict, "triggerPrice", "stopPrice");
+                    Object tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
+                    Object tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
                     Object tpRequest = new java.util.HashMap<String, Object>() {{
                         put( "stopPrice", BingxCore.this.parseToNumeric(BingxCore.this.priceToPrecision(symbol, tkTriggerPrice)) );
                         put( "workingType", tkWorkingType );
                         put( "type", tpType );
                     }};
-                    Object slPrice = this.safeString(takeProfit, "price");
+                    Object slPrice = this.safeString(takeProfitDict, "price");
                     if (Helpers.isTrue(!Helpers.isEqual(slPrice, null)))
                     {
                         Helpers.addElementToObject(tpRequest, "price", this.parseToNumeric(this.priceToPrecision(symbol, slPrice)));
                     }
-                    Object tkQuantity = this.safeString(takeProfit, "quantity", stringifiedAmount);
+                    Object tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
                     Helpers.addElementToObject(tpRequest, "quantity", this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity)));
                     Helpers.addElementToObject(request, "takeProfit", this.json(tpRequest));
                 }
@@ -3461,7 +3470,7 @@ public class BingxCore extends BingxApi
                 Helpers.addElementToObject(request, "quantity", amountReq); // precision not available for inverse contracts
             }
         }
-        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId")));
+        parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId")));
         return this.extend(request, parameters);
     }
 
@@ -3622,8 +3631,11 @@ public class BingxCore extends BingxApi
                 result = data;
             }
             // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+            Object stopLossDict = this.safeDict(result, "stopLoss");
             Object stopLoss = this.safeString(result, "stopLoss");
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLoss, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(stopLoss, "{"), 0)))))
+            // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
+            // so we need trick to check if it's non-parsed string yet
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(stopLossDict, null))) && Helpers.isTrue((!Helpers.isEqual(stopLoss, null)))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(stopLoss, "{"), 0)))))
             {
                 Helpers.addElementToObject(result, "stopLoss", this.parseJson(stopLoss));
             }
