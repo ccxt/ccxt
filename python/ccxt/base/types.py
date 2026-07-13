@@ -683,7 +683,7 @@ class PredictionEvent(TypedDict):
     slug: Str
     category: Str
     tags: List[str]
-    markets: List[Market]   # grouped ccxt market rows (each with its outcomes list) — matches the TS type + runtime
+    markets: List[PredictionMarket]   # grouped ccxt market rows (each with its outcomes list) — matches the TS type + runtime
     mutuallyExclusive: Bool    # exactly one market in the event resolves YES
     active: Bool
     resolved: Bool
