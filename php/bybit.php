@@ -7664,7 +7664,7 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($response, 'time');
         $transfer = $this->safe_dict($response, 'result', array());
-        $statusRaw = $this->safe_string_n($response, array( 'retCode', 'retMsg' ));
+        $statusRaw = $this->safe_string_2($response, 'retCode', 'retMsg');
         $status = $this->parse_transfer_status($statusRaw);
         return $this->extend($this->parse_transfer($transfer, $currency), array(
             'timestamp' => $timestamp,
