@@ -72,8 +72,8 @@ func (this *KrakenCore) Describe() any {
 				},
 				"broad": map[string]any{
 					"Already subscribed":                                  ccxt.BadRequest,
-					"ccxt.Currency pair not in ISO 4217-A3 format":        ccxt.BadSymbol,
-					"ccxt.Currency pair not supported":                    ccxt.BadSymbol,
+					"Currency pair not in ISO 4217-A3 format":             ccxt.BadSymbol,
+					"Currency pair not supported":                         ccxt.BadSymbol,
 					"Malformed request":                                   ccxt.BadRequest,
 					"Pair field must be an array":                         ccxt.BadRequest,
 					"Pair field unsupported for this subscription type":   ccxt.BadRequest,
@@ -87,8 +87,8 @@ func (this *KrakenCore) Describe() any {
 					"Subscription ohlc interval not supported":            ccxt.BadRequest,
 					"Subscription ohlc requires interval":                 ccxt.BadRequest,
 					"EAccount:Invalid permissions":                        ccxt.PermissionDenied,
-					"EAuth:ccxt.Account temporary disabled":               ccxt.AccountSuspended,
-					"EAuth:ccxt.Account unconfirmed":                      ccxt.AuthenticationError,
+					"EAuth:Account temporary disabled":                    ccxt.AccountSuspended,
+					"EAuth:Account unconfirmed":                           ccxt.AuthenticationError,
 					"EAuth:Rate limit exceeded":                           ccxt.RateLimitExceeded,
 					"EAuth:Too many requests":                             ccxt.RateLimitExceeded,
 					"EDatabase: Internal error (to be deprecated)":        ccxt.ExchangeError,
@@ -102,7 +102,7 @@ func (this *KrakenCore) Describe() any {
 					"EOrder:Margin allowance exceeded": ccxt.InvalidOrder,
 					"EOrder:Margin level too low":      ccxt.InvalidOrder,
 					"EOrder:Margin position size exceeded (client would exceed the maximum position size for this pair)": ccxt.InvalidOrder,
-					"EOrder:ccxt.Order minimum not met (volume too low)":                                                 ccxt.InvalidOrder,
+					"EOrder:Order minimum not met (volume too low)":                                                      ccxt.InvalidOrder,
 					"EOrder:Orders limit exceeded":                                                                       ccxt.InvalidOrder,
 					"EOrder:Positions limit exceeded":                                                                    ccxt.InvalidOrder,
 					"EOrder:Rate limit exceeded":                                                                         ccxt.RateLimitExceeded,
@@ -111,9 +111,9 @@ func (this *KrakenCore) Describe() any {
 					"EOrder:Unknown order":                                                                               ccxt.OrderNotFound,
 					"EOrder:Invalid order":                                                                               ccxt.InvalidOrder,
 					"EService:Deadline elapsed":                                                                          ccxt.ExchangeNotAvailable,
-					"EService:ccxt.Market in cancel_only mode":                                                           ccxt.NotSupported,
-					"EService:ccxt.Market in limit_only mode":                                                            ccxt.NotSupported,
-					"EService:ccxt.Market in post_only mode":                                                             ccxt.NotSupported,
+					"EService:Market in cancel_only mode":                                                                ccxt.NotSupported,
+					"EService:Market in limit_only mode":                                                                 ccxt.NotSupported,
+					"EService:Market in post_only mode":                                                                  ccxt.NotSupported,
 					"EService:Unavailable":                                                                               ccxt.ExchangeNotAvailable,
 					"ETrade:Invalid request":                                                                             ccxt.BadRequest,
 					"ESession:Invalid session":                                                                           ccxt.AuthenticationError,
@@ -871,24 +871,13 @@ func (this *KrakenCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *KrakenCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes72515 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes72515)
-		ch <- retRes72515
-		return nil
-
-	}()
-	return ch
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
 }
 
 /**
@@ -940,22 +929,11 @@ func (this *KrakenCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) 
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes76015 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes76015)
-		ch <- retRes76015
-		return nil
-
-	}()
-	return ch
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
 }
 
 /**
@@ -1569,28 +1547,17 @@ func (this *KrakenCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes126815 := (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]any{
-			"snap_orders": true,
-		})))
-		ccxt.PanicOnError(retRes126815)
-		ch <- retRes126815
-		return nil
-
-	}()
-	return ch
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	return this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]any{
+		"snap_orders": true,
+	}))
 }
 func (this *KrakenCore) HandleOrders(client any, message any, optionalArgs ...any) {
 	//
@@ -1922,7 +1889,7 @@ func (this *KrakenCore) HandleSubscriptionStatus(client any, message any) {
 func (this *KrakenCore) HandleErrorMessage(client any, message any) any {
 	//
 	//     {
-	//         "errorMessage": "ccxt.Currency pair not in ISO 4217-A3 format foobar",
+	//         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
 	//         "event": "subscriptionStatus",
 	//         "pair": "foobar",
 	//         "reqid": 1574146735269,

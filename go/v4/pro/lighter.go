@@ -569,20 +569,9 @@ func (this *LighterCore) UnWatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LighterCore) WatchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes41515 := (<-this.WatchTicker(symbol, params))
-		ccxt.PanicOnError(retRes41515)
-		ch <- retRes41515
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.WatchTicker(symbol, params)
 }
 
 /**
@@ -595,22 +584,11 @@ func (this *LighterCore) WatchMarkPrice(symbol any, optionalArgs ...any) <-chan 
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LighterCore) WatchMarkPrices(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes42815 := (<-this.WatchTickers(symbols, params))
-		ccxt.PanicOnError(retRes42815)
-		ch <- retRes42815
-		return nil
-
-	}()
-	return ch
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.WatchTickers(symbols, params)
 }
 
 /**
@@ -623,20 +601,9 @@ func (this *LighterCore) WatchMarkPrices(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LighterCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes44115 := (<-this.UnWatchTicker(symbol, params))
-		ccxt.PanicOnError(retRes44115)
-		ch <- retRes44115
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.UnWatchTicker(symbol, params)
 }
 
 /**
@@ -649,22 +616,11 @@ func (this *LighterCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <-cha
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LighterCore) UnWatchMarkPrices(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes45415 := (<-this.UnWatchTickers(symbols, params))
-		ccxt.PanicOnError(retRes45415)
-		ch <- retRes45415
-		return nil
-
-	}()
-	return ch
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.UnWatchTickers(symbols, params)
 }
 func (this *LighterCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//

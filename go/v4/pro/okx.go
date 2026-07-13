@@ -197,24 +197,13 @@ func (this *OkxCore) Subscribe(access any, messageHash any, channel any, symbol 
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *OkxCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes18915 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes18915)
-		ch <- retRes18915
-		return nil
-
-	}()
-	return ch
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
 }
 
 /**
@@ -368,20 +357,9 @@ func (this *OkxCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any) <
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *OkxCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes29715 := (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
-		ccxt.PanicOnError(retRes29715)
-		ch <- retRes29715
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.UnWatchTradesForSymbols([]any{symbol}, params)
 }
 func (this *OkxCore) HandleTrades(client any, message any) {
 	//
@@ -602,20 +580,9 @@ func (this *OkxCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes47315 := (<-this.UnWatchTickers([]any{symbol}, params))
-		ccxt.PanicOnError(retRes47315)
-		ch <- retRes47315
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.UnWatchTickers([]any{symbol}, params)
 }
 
 /**
@@ -1342,22 +1309,11 @@ func (this *OkxCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *OkxCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes103915 := (<-this.UnWatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, params))
-		ccxt.PanicOnError(retRes103915)
-		ch <- retRes103915
-		return nil
-
-	}()
-	return ch
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.UnWatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, params)
 }
 
 /**
@@ -1541,45 +1497,34 @@ func (this *OkxCore) HandleOHLCV(client any, message any) {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *OkxCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		//
-		// bbo-tbt
-		// 1. Newly added channel that sends tick-by-tick Level 1 data
-		// 2. All API users can subscribe
-		// 3. Public depth channel, verification not required
-		//
-		// books-l2-tbt
-		// 1. Only users who're VIP5 and above can subscribe
-		// 2. Identity verification required before subscription
-		//
-		// books50-l2-tbt
-		// 1. Only users who're VIP4 and above can subscribe
-		// 2. Identity verification required before subscription
-		//
-		// books
-		// 1. All API users can subscribe
-		// 2. Public depth channel, verification not required
-		//
-		// books5
-		// 1. All API users can subscribe
-		// 2. Public depth channel, verification not required
-		// 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-		//
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes121215 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes121215)
-		ch <- retRes121215
-		return nil
-
-	}()
-	return ch
+	//
+	// bbo-tbt
+	// 1. Newly added channel that sends tick-by-tick Level 1 data
+	// 2. All API users can subscribe
+	// 3. Public depth channel, verification not required
+	//
+	// books-l2-tbt
+	// 1. Only users who're VIP5 and above can subscribe
+	// 2. Identity verification required before subscription
+	//
+	// books50-l2-tbt
+	// 1. Only users who're VIP4 and above can subscribe
+	// 2. Identity verification required before subscription
+	//
+	// books
+	// 1. All API users can subscribe
+	// 2. Public depth channel, verification not required
+	//
+	// books5
+	// 1. All API users can subscribe
+	// 2. Public depth channel, verification not required
+	// 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
+	//
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
 }
 
 /**
@@ -1625,7 +1570,7 @@ func (this *OkxCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) 
 		}
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(depth, "books-l2-tbt"))) || ccxt.IsTrue((ccxt.IsEqual(depth, "books50-l2-tbt")))) {
 			if !ccxt.IsTrue(this.CheckRequiredCredentials(false)) {
-				panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. ccxt.Add credentials or change the depth option to books or books5")))
+				panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")))
 			}
 
 			retRes124812 := (<-this.Authenticate(map[string]any{
@@ -1742,20 +1687,9 @@ func (this *OkxCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...any
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *OkxCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes133515 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
-		ccxt.PanicOnError(retRes133515)
-		ch <- retRes133515
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.UnWatchOrderBookForSymbols([]any{symbol}, params)
 }
 func (this *OkxCore) HandleDelta(bookside any, delta any) {
 	//
@@ -2757,7 +2691,7 @@ func (this *OkxCore) HandlePlaceOrders(client any, message any) {
 	//            "ordId": "599823446566084608",
 	//            "clOrdId": "e847386590ce4dBCb939511604f394b0",
 	//            "sCode": "0",
-	//            "sMsg": "ccxt.Order successfully placed."
+	//            "sMsg": "Order successfully placed."
 	//        },
 	//        ...
 	//        ]
@@ -2994,7 +2928,7 @@ func (this *OkxCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
 		ccxt.PanicOnError(retRes23738)
 		var market any = this.Market(symbol)
 		if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "type"), "option")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs is only applicable to ccxt.Option in Portfolio Margin mode, and MMP privilege is required.")))
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")))
 		}
 		var url any = this.GetUrl("private", "private")
 		var messageHash any = this.RequestId()

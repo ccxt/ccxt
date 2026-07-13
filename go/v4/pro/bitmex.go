@@ -370,7 +370,7 @@ func (this *BitmexCore) HandleTicker(client any, message any) any {
 	//                 "hasLiquidity": true,
 	//                 "openInterest": 967826984,
 	//                 "openValue": 10432207060536,
-	//                 "fairMethod": "ccxt.FundingRate",
+	//                 "fairMethod": "FundingRate",
 	//                 "fairBasisRate": 0.6537149999999999,
 	//                 "fairBasis": 0.33,
 	//                 "fairPrice": 9277.2,
@@ -417,24 +417,13 @@ func (this *BitmexCore) HandleTicker(client any, message any) any {
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BitmexCore) WatchLiquidations(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes38215 := (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes38215)
-		ch <- retRes38215
-		return nil
-
-	}()
-	return ch
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	return this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params)
 }
 
 /**
@@ -785,24 +774,13 @@ func (this *BitmexCore) HandleTrades(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitmexCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes70015 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes70015)
-		ch <- retRes70015
-		return nil
-
-	}()
-	return ch
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
 }
 func (this *BitmexCore) Authenticate(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1428,7 +1406,7 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
 	//                 "pegPriceType":"",
 	//                 "currency":"USD",
 	//                 "settlCurrency":"XBt",
-	//                 "execType":"ccxt.Trade",
+	//                 "execType":"Trade",
 	//                 "ordType":"Limit",
 	//                 "timeInForce":"ImmediateOrCancel",
 	//                 "execInst":"",
@@ -1446,7 +1424,7 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
 	//                 "commission":0.00075,
 	//                 "tradePublishIndicator":"DoNotPublishTrade",
 	//                 "multiLegReportingType":"SingleSecurity",
-	//                 "text":"ccxt.Liquidation",
+	//                 "text":"Liquidation",
 	//                 "trdMatchID":"7f4ab7f6-0006-3234-76f4-ae1385aad00f",
 	//                 "execCost":88155,
 	//                 "execComm":66,
@@ -1461,7 +1439,7 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
 	var messageHash any = this.SafeString(message, "table")
 	var data any = this.SafeValue(message, "data", []any{})
 	var dataByExecType any = this.GroupBy(data, "execType")
-	var rawTrades any = this.SafeValue(dataByExecType, "ccxt.Trade", []any{})
+	var rawTrades any = this.SafeValue(dataByExecType, "Trade", []any{})
 	var trades any = this.ParseTrades(rawTrades)
 	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1496,22 +1474,11 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitmexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes132715 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes132715)
-		ch <- retRes132715
-		return nil
-
-	}()
-	return ch
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
 }
 
 /**
