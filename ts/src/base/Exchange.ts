@@ -7985,6 +7985,9 @@ export default class Exchange {
     }
 
     implodeHostname (url: string) {
+        if (this.hostname === undefined) {
+            return url;
+        }
         return this.implodeParams (url, { 'hostname': this.hostname });
     }
 
