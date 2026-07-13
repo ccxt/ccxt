@@ -322,7 +322,10 @@ export default class kalshi extends Exchange {
      * @returns {object} the resolved outcome object
      */
     async fetchOutcome (outcomeSymbol: string): Promise<any> {
-        const symbolLength = outcomeSymbol.length;
+        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
+        // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
+        // the python transpiler — this form emits strlen()/len() correctly in both
+        const symbolLength = this.parseToInt (outcomeSymbol.length);
         const suffix = outcomeSymbol.slice (symbolLength - 3);
         const isNo = (suffix === '-NO');
         const baseTicker = isNo ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
@@ -347,6 +350,68 @@ export default class kalshi extends Exchange {
         // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
         this.indexMarketOutcomes (parsed);
         return this.outcome (outcomeSymbol);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name kalshi#fetchOutcomes
+     * @description resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter (100 per request); anything left unresolved (handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
+     * @see https://docs.kalshi.com/api-reference/market/get-markets
+     * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
+        const tickers: string[] = [];
+        const seen: Dict = {};
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            const outcomeSymbol = outcomeSymbols[i];
+            if (outcomeSymbol.indexOf (':') >= 0) {
+                continue;
+            }
+            // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
+            const symbolLength = this.parseToInt (outcomeSymbol.length);
+            const suffix = outcomeSymbol.slice (symbolLength - 3);
+            const baseTicker = (suffix === '-NO') ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
+            if (!(baseTicker in seen)) {
+                seen[baseTicker] = true;
+                tickers.push (baseTicker);
+            }
+        }
+        if (this.markets === undefined) {
+            this.markets = this.createSafeDictionary ();
+        }
+        const chunkSize = this.safeInteger (this.options, 'fetchOutcomesBatchSize', 100);
+        const tickersLength = tickers.length;
+        let startIndex = 0;
+        while (startIndex < tickersLength) {
+            let endIndex = this.sum (startIndex, chunkSize);
+            if (endIndex > tickersLength) {
+                endIndex = tickersLength;
+            }
+            const chunk: any[] = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                chunk.push (tickers[i]);
+            }
+            const request: Dict = {
+                'tickers': chunk.join (','),
+                'limit': chunkSize,
+            };
+            const response = await this.kalshiPublicGetMarkets (request);
+            const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const parsed = this.parseMarket (rawMarkets[i]);
+                this.markets[parsed['symbol']] = parsed;
+                this.indexMarketOutcomes (parsed);
+            }
+            startIndex = this.sum (startIndex, chunkSize);
+        }
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            if (!this.hasOutcome (outcomeSymbols[i])) {
+                await this.fetchOutcome (outcomeSymbols[i]);
+            }
+        }
+        return this.outcomes;
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -867,9 +932,10 @@ export default class kalshi extends Exchange {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
+        // batch-resolve the uncached outcomes (one markets request per 100 tickers)
+        await this.loadOutcomes (outcomes);
         const targets: any[] = [];
         for (let i = 0; i < outcomes.length; i++) {
-            await this.loadOutcome (outcomes[i]);
             targets.push (outcomes[i]);
         }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
@@ -1447,9 +1513,7 @@ export default class kalshi extends Exchange {
             outcomesLength = outcomes.length;
         }
         if (outcomesLength > 0) {
-            for (let i = 0; i < outcomes.length; i++) {
-                await this.loadOutcome (outcomes[i]);
-            }
+            await this.loadOutcomes (outcomes);
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)

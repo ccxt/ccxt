@@ -180,6 +180,19 @@
                     }
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers batch-resolves uncached token ids through one gamma request with repeated clob_token_ids params",
+                "method": "fetchTickers",
+                "url": "https://gamma-api.polymarket.com/markets?clob_token_ids=11110001&clob_token_ids=22220002&limit=50",
+                "input": [
+                    [
+                        "11110001",
+                        "22220002"
+                    ]
+                ]
+            }
         ]
     }
 }

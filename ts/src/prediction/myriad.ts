@@ -754,11 +754,15 @@ export default class myriad extends Exchange {
      */
     async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         const ordersLength = orders.length;
+        const orderOutcomes = [];
+        for (let i = 0; i < ordersLength; i++) {
+            orderOutcomes.push (this.safeString (orders[i], 'outcome'));
+        }
+        await this.loadOutcomes (orderOutcomes);
         const result = [];
         for (let i = 0; i < ordersLength; i++) {
             const o = orders[i];
             const outcome = this.safeString (o, 'outcome');
-            await this.loadOutcome (outcome);
             const type = this.safeString (o, 'type');
             const side = this.safeString (o, 'side');
             const amount = this.safeNumber (o, 'amount');
@@ -2207,11 +2211,12 @@ export default class myriad extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         const result: PredictionTickers = {};
-        // group target outcomes by their parent market to fetch each market only once
+        // resolve the uncached outcomes first, then group by parent market to fetch each market only once
+        await this.loadOutcomes (outcomes);
         const outcomesByMarket: Dict = {};
         const marketKeys: any[] = [];
         for (let i = 0; i < outcomes.length; i++) {
-            const outcomeObj = await this.loadOutcome (outcomes[i]);
+            const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
             const networkId = this.safeString (info, 'networkId');
             const marketId = this.safeString (info, 'marketId');
@@ -2863,11 +2868,12 @@ export default class myriad extends Exchange {
         const symbolsLength = outcomes.length;
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
         await this.connectCentrifugo (url);
+        await this.loadOutcomes (outcomes);
         const client = this.client (url);
         const seenChannels: Dict = {};
         const resolvedSymbols = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const outcomeObj = await this.loadOutcome (outcomes[i]);
+            const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
             const networkId = this.safeString (info, 'networkId');
             const marketId = this.safeString (info, 'marketId');
@@ -3046,9 +3052,7 @@ export default class myriad extends Exchange {
      */
     async watchPositions (outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionPosition[]> {
         if (outcomes !== undefined) {
-            for (let i = 0; i < outcomes.length; i++) {
-                await this.loadOutcome (outcomes[i]);
-            }
+            await this.loadOutcomes (outcomes);
         }
         const trader = this.walletAddressFromKeys ();
         const networkId = this.safeString (this.options, 'defaultNetworkId', '56');

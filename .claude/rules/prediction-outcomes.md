@@ -20,7 +20,9 @@ venue; everything it finds lands in the cache.
 | Method | Sync/Async | Role |
 |---|---|---|
 | `this.outcome(id)` | **sync** | cache-only resolver; throws `BadSymbol` if absent. Parsers/builders (`parseOrder`, `buildClobOrderBody`, …) use this — it must stay sync (a no-await async body breaks the PHP/typed transpilers). |
-| `loadOutcomes(reload, params)` | async | **explicit** bulk loader: `loadMarkets()` then `populateOutcomes()`. Idempotent. Only called explicitly by the user or by venues whose full universe is one cheap request (hyperliquid); no unified method bulk-loads implicitly anymore. |
+| `loadOutcomes(outcomes = undefined, reload, params)` | async | with an `outcomes` list: sync-filters misses via `hasOutcome` and resolves ONLY those through `fetchOutcomes` (zero per-outcome awaits on a warm cache; respects `loadAllOutcomes` for the cold bulk-warm trade-off). Without a list: **explicit** bulk loader — `loadMarkets()` then `populateOutcomes()`, idempotent. List-addressed methods (`fetchTickers(outcomes)`, filtered `fetchPositions`, `createOrders`) call the list form; never write a per-outcome `await loadOutcome` loop. |
+| `hasOutcome(id)` | **sync** | cache-only membership probe (checks `outcomes` + `outcomes_by_id`); never throws, never fetches. The predicate behind `loadOutcome`'s fast path and `loadOutcomes`' miss filter. |
+| `fetchOutcomes(ids)` | async | resolve several uncached outcomes. Base default: per-outcome `fetchOutcome` loop. kalshi/polymarket **override** it to batch — kalshi `GET /markets?tickers=` (100/request), polymarket gamma repeated `clob_token_ids` params (50/request; comma-joined ids are REJECTED — polymarket's sign uses `urlencodeWithArrayRepeat`); leftovers (handles, unknown ids) fall back per-outcome. |
 | `loadOutcome(id, reload = false)` | async | **per-call resolver** — cache hit → return (`reload = true` skips the cache and refetches the outcome's metadata); miss → index already-loaded markets for free → `fetchOutcome(id)`. `options.loadAllOutcomes` (default **false**) opts back into the legacy bulk warm-up on a cold miss — only hyperliquid sets it `true`. This is what single-outcome methods call. |
 | `fetchOutcome(id)` | async | "fetch just one". Base default: derive a search query from the handle (`outcomeSearchQuery`) → `fetchEvents({query, limit})` → re-check cache → guidance-rich `BadSymbol`. Venues with a real by-id endpoint **override** it (kalshi by ticker, polymarket by CLOB token id) and fall back to `super` on a miss. |
 | `outcomeSearchQuery(id)` | sync | handle → search text (`TRUMP_OUT_2027:YES` → `"trump out 2027"`); `undefined` for id-like inputs (numeric, `0x…`). |
@@ -32,6 +34,10 @@ venue; everything it finds lands in the cache.
 
 - **Single-outcome, needs the token in the request** (`fetchTicker`, `fetchOrderBook`, `fetchOHLCV`,
   `fetchTrades`, `createOrder`, …): `const outcomeObj = await this.loadOutcome (outcome);`
+- **List-addressed** (`fetchTickers (outcomes)`, filtered `fetchPositions`, `createOrders`, `watchTickers`):
+  `await this.loadOutcomes (outcomes);` once, then resolve each synchronously via `this.outcome (...)` /
+  `this.safeOutcome (...)`. Never a per-outcome `await this.loadOutcome` loop — it costs a promise per
+  outcome on a warm cache and a request per miss on a cold one.
 - **All-outcomes methods must be honest** — one ccxt call ≈ one network request. `fetchTickers()` with no
   `outcomes` throws `ArgumentsRequired` (message must contain `requires an outcomes argument` — the live
   harness asserts it) unless the venue serves the whole universe in ~1 request (hyperliquid `allMids`).
@@ -59,10 +65,11 @@ volume-ordered where the venue supports it).
 
 ```ts
 async fetchOutcome (outcomeSymbol: string): Promise<any> {
-    const symbolLength = outcomeSymbol.length;                       // positive-index slicing (transpiler-safe)
-    const suffix = outcomeSymbol.slice (symbolLength - 3);
+    // .length INLINE on strings: the standalone `const n = str.length;` statement transpiles
+    // to php count() (the array hint) and TypeErrors at runtime; inline emits strlen()
+    const suffix = outcomeSymbol.slice (outcomeSymbol.length - 3);
     const isNo = (suffix === '-NO');
-    const baseTicker = isNo ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
+    const baseTicker = isNo ? outcomeSymbol.slice (0, outcomeSymbol.length - 3) : outcomeSymbol;
     const response = await this.kalshiPublicGetMarketsTicker ({ 'ticker': baseTicker });
     const parsed = this.parseMarket (this.safeDict (response, 'market', response));
     if (this.markets === undefined) { this.markets = this.createSafeDictionary (); }
@@ -82,7 +89,9 @@ and falls back to `super.fetchOutcome` (the search path) for handle-shaped symbo
 - `this.outcome()` stays **sync**; never make it async (it's called from sync parsers/builders).
 - In Go/C#/Java the base `loadMarkets` does NOT dispatch the `setMarkets` override, so `loadOutcomes`/
   `fetchOutcome` call `populateOutcomes()`/`indexMarketOutcomes()` **explicitly** to rebuild the cache.
-- Avoid negative-index `.slice(-n)`; hoist `const len = x.length;` and use `x.slice(len - n)`.
+- Avoid negative-index `.slice(-n)` — use `x.slice(x.length - n)`. Keep string `.length` INLINE:
+  the standalone `const n = str.length;` form is the regex transpiler's ARRAY hint and becomes php
+  `count()` (a runtime TypeError); own-line length reads are only for arrays.
 - After editing the base, regenerate it per language with the `--baseClass` flag
   (`tsx build/{transpile,csharpTranspiler,goTranspiler,javaTranspiler}.ts --baseClass`) — `--prediction`
   alone only re-emits the exchanges, not `PredictionExchange`.

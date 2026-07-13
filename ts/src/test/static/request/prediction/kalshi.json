@@ -25,6 +25,17 @@
                         "HUMANS_COLONIZE_MARS_2050:YES"
                     ]
                 ]
+            },
+            {
+                "description": "fetchTickers batch-resolves uncached ticker outcomes through one markets request",
+                "method": "fetchTickers",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets?tickers=KXZZFOO-26DEC31%2CKXZZBAR-26DEC31&limit=100",
+                "input": [
+                    [
+                        "KXZZFOO-26DEC31",
+                        "KXZZBAR-26DEC31-NO"
+                    ]
+                ]
             }
         ],
         "fetchOrderBook": [

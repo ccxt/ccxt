@@ -325,6 +325,16 @@ class PredictionExchange(BaseExchange):
             return self.outcomes_by_id[outcomeSymbol]
         raise BadSymbol(self.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents()/loadOutcomes() first')
 
+    def has_outcome(self, outcomeIdOrSymbol: str):
+        # sync cache-only membership probe — never throws and never fetches. self is the predicate
+        # behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome(stub on miss)
+        # and outcome(throws on miss) are the accessors
+        if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
+            return True
+        if (self.outcomes_by_id is not None) and (outcomeIdOrSymbol in self.outcomes_by_id):
+            return True
+        return False
+
     def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: Any = None):
         if outcomeIdOrSymbol is not None:
             if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
@@ -497,18 +507,52 @@ class PredictionExchange(BaseExchange):
                 self.markets[symbol] = m
         self.populate_outcomes()
 
-    async def load_outcomes(self, reload=False, params={}):
-        # outcome-addressed methods(fetchTicker/createOrder/...) call self first, mirroring how
-        # every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
-        # True refetches and rebuilds. idempotent otherwise: once outcomes are populated(here, or
-        # already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
-        # loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
-        # from the loaded markets(the setMarkets override that normally does self is not dispatched
-        # by the base loadMarkets under the Go/C#/Java transpilers).
+    async def load_outcomes(self, outcomes: Strings = None, reload=False, params={}):
+        # outcome-addressed methods call self first, mirroring loadMarkets(). two modes:
+        # - an `outcomes` list(scoped): sync-filter the cache and resolve ONLY the misses through
+        #   fetchOutcomes — venues with a batch by-id endpoint(kalshi, polymarket) override it to
+        #   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+        # - no `outcomes`(bulk): load the capped markets listing once and index every outcome —
+        #   idempotent unless reload; only worth paying on venues whose whole universe is one
+        #   cheap request(hyperliquid), or when the user explicitly wants the top-N set
+        # loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly(the setMarkets
+        # override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+        if outcomes is not None:
+            missing = []
+            for i in range(0, len(outcomes)):
+                if reload or not self.has_outcome(outcomes[i]):
+                    missing.append(outcomes[i])
+            missingLength = len(missing)
+            wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
+            loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
+            if (missingLength > 0) and loadAll and not wasWarm and not reload:
+                # same trade-off: on venues where the whole universe is one cheap
+                # request(hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                await self.load_outcomes()
+                stillMissing = []
+                for i in range(0, missingLength):
+                    if not self.has_outcome(missing[i]):
+                        stillMissing.append(missing[i])
+                missing = stillMissing
+                missingLength = len(missing)
+            if missingLength > 0:
+                await self.fetch_outcomes(missing)
+            return self.outcomes
         if not reload and (self.outcomes is not None) and not self.is_empty(self.outcomes):
             return self.outcomes
         await self.load_markets(reload, params)
         self.populate_outcomes()
+        return self.outcomes
+
+    async def fetch_outcomes(self, outcomeSymbols: List[str]):
+        """
+ @ignore
+        resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome(which throws BadSymbol for an unresolvable one); venues with a batch endpoint(kalshi, polymarket) override self to collapse the list into one request
+        :param str[] outcomeSymbols: the uncached outcome handles or ids to resolve
+        :returns dict: the outcome cache
+        """
+        for i in range(0, len(outcomeSymbols)):
+            await self.fetch_outcome(outcomeSymbols[i])
         return self.outcomes
 
     async def load_outcome(self, outcomeSymbol: str, reload=False):
@@ -520,22 +564,16 @@ class PredictionExchange(BaseExchange):
         # miss loads the whole(capped) listing once so later lookups are 0-network hits — only
         # sane on venues whose full universe is one cheap request(hyperliquid)
         if not reload:
-            if self.outcomes is not None:
-                if outcomeSymbol in self.outcomes:
-                    return self.outcomes[outcomeSymbol]
-                if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                    return self.outcomes_by_id[outcomeSymbol]
+            if self.has_outcome(outcomeSymbol):
+                return self.safe_outcome(outcomeSymbol)
             wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
             # if markets are already loaded(offline-injected, or loaded by loadMarkets/fetchEvents)
             # but the outcome cache is cold, index them for free before hitting the network — self
             # makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
             if not wasWarm and (self.markets is not None) and not self.is_empty(self.markets):
                 self.populate_outcomes()
-                if self.outcomes is not None:
-                    if outcomeSymbol in self.outcomes:
-                        return self.outcomes[outcomeSymbol]
-                    if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                        return self.outcomes_by_id[outcomeSymbol]
+                if self.has_outcome(outcomeSymbol):
+                    return self.safe_outcome(outcomeSymbol)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
             if loadAll and not wasWarm:
                 # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
@@ -543,11 +581,8 @@ class PredictionExchange(BaseExchange):
                 # listed, so fall through to fetchOutcome(a real BadSymbol) rather than refetching
                 # the whole listing(which would mask typos and clobber offline-injected markets)
                 await self.load_outcomes()
-                if self.outcomes is not None:
-                    if outcomeSymbol in self.outcomes:
-                        return self.outcomes[outcomeSymbol]
-                    if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                        return self.outcomes_by_id[outcomeSymbol]
+                if self.has_outcome(outcomeSymbol):
+                    return self.safe_outcome(outcomeSymbol)
         return await self.fetch_outcome(outcomeSymbol)
 
     def outcome_search_query(self, outcomeSymbol: str):
@@ -569,8 +604,9 @@ class PredictionExchange(BaseExchange):
         letters = 'abcdefghijklmnopqrstuvwxyz'
         for i in range(0, len(rawWords)):
             word = rawWords[i]
-            wordLength = len(word)
-            if wordLength == 0:
+            # inline .length so the php transpiler emits strlen() — the standalone
+            # `n = len(str);` statement form wrongly becomes count()(array)
+            if len(word) == 0:
                 continue
             wordHasLetters = False
             chars = self.string_to_chars_array(word)
@@ -608,11 +644,8 @@ class PredictionExchange(BaseExchange):
                 # plain miss(the guidance-rich raise below); real transport errors propagate
                 if not (isinstance(e, BadSymbol)):
                     raise e
-            if self.outcomes is not None:
-                if outcomeSymbol in self.outcomes:
-                    return self.outcomes[outcomeSymbol]
-                if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                    return self.outcomes_by_id[outcomeSymbol]
+            if self.has_outcome(outcomeSymbol):
+                return self.safe_outcome(outcomeSymbol)
         raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents({'query': ...}) first, or pass a known outcomeId")
 
     async def fetch_ticker(self, outcome: str, params={}):

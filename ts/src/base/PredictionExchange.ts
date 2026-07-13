@@ -388,6 +388,19 @@ export default class PredictionExchange extends BaseExchange {
         throw new BadSymbol (this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
 
+    hasOutcome (outcomeIdOrSymbol: string): boolean {
+        // sync cache-only membership probe — never throws and never fetches. this is the predicate
+        // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
+        // and outcome (throws on miss) are the accessors
+        if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
+            return true;
+        }
+        if ((this.outcomes_by_id !== undefined) && (outcomeIdOrSymbol in this.outcomes_by_id)) {
+            return true;
+        }
+        return false;
+    }
+
     safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): any {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
@@ -592,19 +605,64 @@ export default class PredictionExchange extends BaseExchange {
         this.populateOutcomes ();
     }
 
-    async loadOutcomes (reload = false, params = {}) {
-        // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
-        // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
-        // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
-        // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
-        // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
-        // from the loaded markets (the setMarkets override that normally does this is not dispatched
-        // by the base loadMarkets under the Go/C#/Java transpilers).
+    async loadOutcomes (outcomes: Strings = undefined, reload = false, params = {}) {
+        // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+        // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
+        //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+        //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+        // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
+        //   idempotent unless reload; only worth paying on venues whose whole universe is one
+        //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+        // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+        // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+        if (outcomes !== undefined) {
+            let missing = [];
+            for (let i = 0; i < outcomes.length; i++) {
+                if (reload || !this.hasOutcome (outcomes[i])) {
+                    missing.push (outcomes[i]);
+                }
+            }
+            let missingLength = missing.length;
+            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
+            const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
+            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                await this.loadOutcomes ();
+                const stillMissing = [];
+                for (let i = 0; i < missingLength; i++) {
+                    if (!this.hasOutcome (missing[i])) {
+                        stillMissing.push (missing[i]);
+                    }
+                }
+                missing = stillMissing;
+                missingLength = missing.length;
+            }
+            if (missingLength > 0) {
+                await this.fetchOutcomes (missing);
+            }
+            return this.outcomes;
+        }
         if (!reload && (this.outcomes !== undefined) && !this.isEmpty (this.outcomes)) {
             return this.outcomes;
         }
         await this.loadMarkets (reload, params);
         this.populateOutcomes ();
+        return this.outcomes;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#fetchOutcomes
+     * @description resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+     * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            await this.fetchOutcome (outcomeSymbols[i]);
+        }
         return this.outcomes;
     }
 
@@ -617,13 +675,8 @@ export default class PredictionExchange extends BaseExchange {
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
         if (!reload) {
-            if (this.outcomes !== undefined) {
-                if (outcomeSymbol in this.outcomes) {
-                    return this.outcomes[outcomeSymbol];
-                }
-                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                    return this.outcomes_by_id[outcomeSymbol];
-                }
+            if (this.hasOutcome (outcomeSymbol)) {
+                return this.safeOutcome (outcomeSymbol);
             }
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
@@ -631,13 +684,8 @@ export default class PredictionExchange extends BaseExchange {
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
             if (!wasWarm && (this.markets !== undefined) && !this.isEmpty (this.markets)) {
                 this.populateOutcomes ();
-                if (this.outcomes !== undefined) {
-                    if (outcomeSymbol in this.outcomes) {
-                        return this.outcomes[outcomeSymbol];
-                    }
-                    if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                        return this.outcomes_by_id[outcomeSymbol];
-                    }
+                if (this.hasOutcome (outcomeSymbol)) {
+                    return this.safeOutcome (outcomeSymbol);
                 }
             }
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
@@ -647,13 +695,8 @@ export default class PredictionExchange extends BaseExchange {
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
                 await this.loadOutcomes ();
-                if (this.outcomes !== undefined) {
-                    if (outcomeSymbol in this.outcomes) {
-                        return this.outcomes[outcomeSymbol];
-                    }
-                    if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                        return this.outcomes_by_id[outcomeSymbol];
-                    }
+                if (this.hasOutcome (outcomeSymbol)) {
+                    return this.safeOutcome (outcomeSymbol);
                 }
             }
         }
@@ -681,8 +724,9 @@ export default class PredictionExchange extends BaseExchange {
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         for (let i = 0; i < rawWords.length; i++) {
             const word = rawWords[i];
-            const wordLength = word.length;
-            if (wordLength === 0) {
+            // inline .length so the php transpiler emits strlen() — the standalone
+            // `const n = str.length;` statement form wrongly becomes count() (array)
+            if (word.length === 0) {
                 continue;
             }
             let wordHasLetters = false;
@@ -729,13 +773,8 @@ export default class PredictionExchange extends BaseExchange {
                     throw e;
                 }
             }
-            if (this.outcomes !== undefined) {
-                if (outcomeSymbol in this.outcomes) {
-                    return this.outcomes[outcomeSymbol];
-                }
-                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                    return this.outcomes_by_id[outcomeSymbol];
-                }
+            if (this.hasOutcome (outcomeSymbol)) {
+                return this.safeOutcome (outcomeSymbol);
             }
         }
         throw new BadSymbol (this.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId");

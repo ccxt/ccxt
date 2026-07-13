@@ -692,9 +692,12 @@ export default class hyperliquid extends Exchange {
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         const requestedOutcomeSymbols = {};
         if (outcomes !== undefined) {
+            // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
+            // then identities resolve synchronously
+            await this.loadOutcomes (outcomes);
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                const requestedOutcomeObj = await this.loadOutcome (requested);
+                const requestedOutcomeObj = this.safeOutcome (requested);
                 const requestedOutcome = this.safeString (requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
             }
@@ -997,9 +1000,12 @@ export default class hyperliquid extends Exchange {
     async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         const requestedOutcomeSymbols = {};
         if (outcomes !== undefined) {
+            // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
+            // then identities resolve synchronously
+            await this.loadOutcomes (outcomes);
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
-                const requestedOutcomeObj = await this.loadOutcome (requested);
+                const requestedOutcomeObj = this.safeOutcome (requested);
                 const requestedOutcome = this.safeString (requestedOutcomeObj, 'outcome', requested);
                 requestedOutcomeSymbols[requestedOutcome] = true;
             }
@@ -1876,7 +1882,8 @@ export default class hyperliquid extends Exchange {
                     let allWords = true;
                     for (let wi = 0; wi < wordsLength; wi++) {
                         const word = words[wi];
-                        if ((word !== '') && (haystack.indexOf (word) === -1)) {
+                        // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
+                        if ((word !== '') && (haystack.indexOf (word) < 0)) {
                             allWords = false;
                             break;
                         }

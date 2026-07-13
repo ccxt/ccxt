@@ -834,7 +834,9 @@ export default class polymarket extends Exchange {
      */
     async fetchOutcome (outcomeSymbol: string): Promise<any> {
         // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
-        if (outcomeSymbol.indexOf (':') === -1) {
+        // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
+        // `=== -1` passes through and never matches mb_strpos's false return
+        if (outcomeSymbol.indexOf (':') < 0) {
             const response = await this.gammaPublicGetMarkets ({ 'clob_token_ids': outcomeSymbol });
             const rawMarkets = (response !== undefined) ? response : [];
             const rawMarketsLength = rawMarkets.length;
@@ -856,6 +858,63 @@ export default class polymarket extends Exchange {
             }
         }
         return await super.fetchOutcome (outcomeSymbol);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchOutcomes
+     * @description resolves several uncached outcomes at once — bare CLOB token ids are batched into gamma markets requests (repeated clob_token_ids params, 50 per request to keep the URL bounded); handle-shaped symbols fall back to the single fetch and its search path
+     * @see https://docs.polymarket.com/api-reference/markets/list-markets
+     * @param {string[]} outcomeSymbols outcome token ids or handles
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
+        const tokenIds: string[] = [];
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            const outcomeSymbol = outcomeSymbols[i];
+            // absence must be `< 0` — the php transpiler maps that to `=== false`, while a
+            // literal `=== -1` passes through and never matches mb_strpos's false return
+            if (outcomeSymbol.indexOf (':') < 0) {
+                tokenIds.push (outcomeSymbol);
+            }
+        }
+        const tokenIdsLength = tokenIds.length;
+        if (tokenIdsLength > 0) {
+            if (this.markets === undefined) {
+                this.markets = this.createSafeDictionary ();
+            }
+            // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
+            const chunkSize = this.safeInteger (this.options, 'fetchOutcomesBatchSize', 50);
+            let startIndex = 0;
+            while (startIndex < tokenIdsLength) {
+                let endIndex = this.sum (startIndex, chunkSize);
+                if (endIndex > tokenIdsLength) {
+                    endIndex = tokenIdsLength;
+                }
+                const chunk: any[] = [];
+                for (let i = startIndex; i < endIndex; i++) {
+                    chunk.push (tokenIds[i]);
+                }
+                // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
+                // with a validation error, so the list rides through urlencodeWithArrayRepeat
+                const response = await this.gammaPublicGetMarkets ({ 'clob_token_ids': chunk, 'limit': chunkSize });
+                const rawMarkets = (response !== undefined) ? response : [];
+                const ccxtMarkets = this.parseEventToMarkets ({ 'markets': rawMarkets });
+                for (let i = 0; i < ccxtMarkets.length; i++) {
+                    const mkt = ccxtMarkets[i];
+                    this.markets[mkt['symbol'] as string] = mkt;
+                }
+                startIndex = this.sum (startIndex, chunkSize);
+            }
+            this.populateOutcomes ();
+        }
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            if (!this.hasOutcome (outcomeSymbols[i])) {
+                await this.fetchOutcome (outcomeSymbols[i]);
+            }
+        }
+        return this.outcomes;
     }
 
     /**
@@ -926,9 +985,10 @@ export default class polymarket extends Exchange {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
         }
+        // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
+        await this.loadOutcomes (outcomes);
         const targets: any[] = [];
         for (let oi = 0; oi < outcomes.length; oi++) {
-            await this.loadOutcome (outcomes[oi]);
             targets.push (outcomes[oi]);
         }
         const outcomesByTokenId: Dict = {};
@@ -1539,9 +1599,7 @@ export default class polymarket extends Exchange {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
-            for (let i = 0; i < outcomes.length; i++) {
-                await this.loadOutcome (outcomes[i]);
-            }
+            await this.loadOutcomes (outcomes);
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
         // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
@@ -1815,12 +1873,14 @@ export default class polymarket extends Exchange {
      */
     async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
-        // buildClobOrderBody resolves outcomes synchronously from the cache, so warm each
-        // requested outcome individually instead of bulk-loading the whole listing
+        // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
+        // requested outcomes first (one gamma request for all uncached token ids)
+        const orderOutcomes = [];
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
-            await this.loadOutcome (this.safeString (o, 'outcome'));
+            orderOutcomes.push (this.safeString (o, 'outcome'));
         }
+        await this.loadOutcomes (orderOutcomes);
         const bodies = [];
         const outcomes = [];
         const requests = [];
@@ -2499,7 +2559,17 @@ export default class polymarket extends Exchange {
             query = this.omit (params, this.extractParams (path));
         }
         if (method === 'GET') {
-            const querystring = this.urlencode (query);
+            // array-valued params must repeat the key (gamma's clob_token_ids rejects
+            // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
+            // encoder capitalizes booleans ("False") under the C# base
+            let hasArrayParam = false;
+            const queryKeys = Object.keys (query);
+            for (let i = 0; i < queryKeys.length; i++) {
+                if (Array.isArray (query[queryKeys[i]])) {
+                    hasArrayParam = true;
+                }
+            }
+            const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat (query) : this.urlencode (query);
             if (querystring) {
                 url += '?' + querystring;
             }

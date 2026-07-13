@@ -1109,11 +1109,12 @@ export default class limitless extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         const result: PredictionTickers = {};
-        // group target outcomes by their parent market to fetch each market and book only once
+        // resolve the uncached outcomes first, then group by parent market to fetch each
+        // market and book only once
+        await this.loadOutcomes (outcomes);
         const outcomesBySlug: Dict = {};
         const slugs: any[] = [];
         for (let i = 0; i < outcomes.length; i++) {
-            await this.loadOutcome (outcomes[i]);
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
             if (!(slug in outcomesBySlug)) {
@@ -2624,9 +2625,7 @@ export default class limitless extends Exchange {
             symbolsLength = outcomes.length;
         }
         if (symbolsLength > 0) {
-            for (let i = 0; i < outcomes.length; i++) {
-                await this.loadOutcome (outcomes[i]);
-            }
+            await this.loadOutcomes (outcomes);
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
