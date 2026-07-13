@@ -6,6 +6,17 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any) {
+	// prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+	// books where bid==ask and a stale `last` far from the median are normal — skip the
+	// crypto-oriented price-relationship checks for them
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol":            true,
+			"spread":            true,
+			"lastBetweenBidAsk": true,
+			"maxIncrease":       true,
+		}, skippedProperties)
+	}
 	var format any = map[string]any{
 		"info":          map[string]any{},
 		"symbol":        "ETH/BTC",
