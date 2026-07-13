@@ -7240,7 +7240,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         timestamp = self.safe_integer(response, 'time')
         transfer = self.safe_dict(response, 'result', {})
-        statusRaw = self.safe_string_n(response, ['retCode', 'retMsg'])
+        statusRaw = self.safe_string_2(response, 'retCode', 'retMsg')
         status = self.parse_transfer_status(statusRaw)
         return self.extend(self.parse_transfer(transfer, currency), {
             'timestamp': timestamp,

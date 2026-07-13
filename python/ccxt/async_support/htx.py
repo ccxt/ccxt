@@ -3066,7 +3066,7 @@ class htx(Exchange, ImplicitAPI):
             # 'from': int((since / str(1000))), spot only
             # 'to': self.seconds(), spot only
         }
-        priceType = self.safe_string_n(params, ['priceType', 'price'])
+        priceType = self.safe_string_2(params, 'priceType', 'price')
         params = self.omit(params, ['priceType', 'price'])
         until = None
         until, params = self.handle_param_integer(params, 'until')
@@ -4822,7 +4822,7 @@ class htx(Exchange, ImplicitAPI):
         if isLinearOrder:
             type = self.safe_string(order, 'type')
             if (type is None) or (type == 'tp') or (type == 'sl') or (type == 'tpsl'):
-                type = self.safe_string_n(order, ['tp_type', 'sl_type'])
+                type = self.safe_string_2(order, 'tp_type', 'sl_type')
             if type == '0':
                 type = None
         else:

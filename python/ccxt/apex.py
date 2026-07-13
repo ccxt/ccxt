@@ -967,15 +967,15 @@ class apex(Exchange, ImplicitAPI):
         #  }
         #  ]
         #
-        marketId = self.safe_string_n(trade, ['s', 'symbol'])
+        marketId = self.safe_string_2(trade, 's', 'symbol')
         market = self.safe_market(marketId, market)
-        id = self.safe_string_n(trade, ['i', 'id'])
+        id = self.safe_string_2(trade, 'i', 'id')
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
-        priceString = self.safe_string_n(trade, ['p', 'price'])
-        amountString = self.safe_string_n(trade, ['v', 'size'])
-        side = self.safe_string_lower_n(trade, ['S', 'side'])
-        type = self.safe_string_n(trade, ['type'])
-        fee = self.safe_string_n(trade, ['fee'])
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 'v', 'size')
+        side = self.safe_string_lower_2(trade, 'S', 'side')
+        type = self.safe_string(trade, 'type')
+        fee = self.safe_string(trade, 'fee')
         return self.safe_trade({
             'info': trade,
             'id': id,
@@ -1520,7 +1520,7 @@ class apex(Exchange, ImplicitAPI):
         toAccount = self.safe_string(transfer, 'toAccount')
         return {
             'info': transfer,
-            'id': self.safe_string_n(transfer, ['transferId', 'id']),
+            'id': self.safe_string_2(transfer, 'transferId', 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(currencyId, currency),
@@ -1853,7 +1853,7 @@ class apex(Exchange, ImplicitAPI):
         quantity = self.safe_string(position, 'size')
         timestamp = self.safe_integer(position, 'updatedTime')
         leverage = 20
-        customInitialMarginRate = self.safe_string_n(position, ['customInitialMarginRate', 'customImr'], '0')
+        customInitialMarginRate = self.safe_string_2(position, 'customInitialMarginRate', 'customImr', '0')
         if self.precision_from_string(customInitialMarginRate) != 0:
             leverage = self.parse_to_int(Precise.string_div('1', customInitialMarginRate, 4))
         return self.safe_position({

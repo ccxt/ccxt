@@ -1524,11 +1524,11 @@ class mexc(ccxt.async_support.mexc):
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
-        currencyId = self.safe_string_n(data, ['currency', 'vcoinName'])
+        currencyId = self.safe_string_2(data, 'currency', 'vcoinName')
         code = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
-        account['used'] = self.safe_string_n(data, ['frozenBalance', 'frozenAmount'])
+        account['used'] = self.safe_string_2(data, 'frozenBalance', 'frozenAmount')
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
