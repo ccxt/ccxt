@@ -5640,7 +5640,7 @@ func (this *BybitCore) FetchOrderClassic(id any, optionalArgs ...any) <-chan any
 		PanicOnError(result)
 		var length any = GetArrayLength(result)
 		if IsTrue(IsEqual(length, 0)) {
-			var isTrigger any = this.SafeBoolN(params, []any{"trigger", "stop"}, false)
+			var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 			var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
 			panic(OrderNotFound(Add(Add(Add("Order ", ToString(id)), " was not found."), extra)))
 		}
@@ -5890,7 +5890,7 @@ func (this *BybitCore) FetchOrdersClassic(optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " fetchOrders() is not supported for spot markets")))
 		}
 		AddElementToObject(request, "category", typeVar)
-		var isTrigger any = this.SafeBoolN(params, []any{"trigger", "stop"}, false)
+		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		params = this.Omit(params, []any{"trigger", "stop"})
 		if IsTrue(isTrigger) {
 			AddElementToObject(request, "orderFilter", "StopOrder")
@@ -6006,7 +6006,7 @@ func (this *BybitCore) FetchClosedOrder(id any, optionalArgs ...any) <-chan any 
 		PanicOnError(result)
 		var length any = GetArrayLength(result)
 		if IsTrue(IsEqual(length, 0)) {
-			var isTrigger any = this.SafeBoolN(params, []any{"trigger", "stop"}, false)
+			var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 			var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
 			panic(OrderNotFound(Add(Add(Add("Order ", ToString(id)), " was not found."), extra)))
 		}
@@ -6060,7 +6060,7 @@ func (this *BybitCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 		PanicOnError(result)
 		var length any = GetArrayLength(result)
 		if IsTrue(IsEqual(length, 0)) {
-			var isTrigger any = this.SafeBoolN(params, []any{"trigger", "stop"}, false)
+			var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 			var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
 			panic(OrderNotFound(Add(Add(Add("Order ", ToString(id)), " was not found."), extra)))
 		}
@@ -6133,7 +6133,7 @@ func (this *BybitCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan 
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		AddElementToObject(request, "category", typeVar)
-		var isTrigger any = this.SafeBoolN(params, []any{"trigger", "stop"}, false)
+		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		params = this.Omit(params, []any{"trigger", "stop"})
 		if IsTrue(isTrigger) {
 			AddElementToObject(request, "orderFilter", "StopOrder")
@@ -7856,10 +7856,10 @@ func (this *BybitCore) ParsePosition(position any, optionalArgs ...any) any {
 	var unrealisedPnl any = this.OmitZero(this.SafeString(position, "unrealisedPnl"))
 	var initialMarginString any = this.SafeString2(position, "positionIM", "cumEntryValue")
 	var maintenanceMarginString any = this.SafeString(position, "positionMM")
-	var timestamp any = this.SafeIntegerN(position, []any{"createdTime", "createdAt"})
+	var timestamp any = this.SafeInteger2(position, "createdTime", "createdAt")
 	var lastUpdateTimestamp any = this.Parse8601(this.SafeString(position, "updated_at"))
 	if IsTrue(IsEqual(lastUpdateTimestamp, nil)) {
-		lastUpdateTimestamp = this.SafeIntegerN(position, []any{"updatedTime", "updatedAt", "updatedTime"})
+		lastUpdateTimestamp = this.SafeInteger2(position, "updatedTime", "updatedAt")
 	}
 	var collateralString any = this.SafeString(position, "positionBalance")
 	var entryPrice any = this.OmitZero(this.SafeStringN(position, []any{"entryPrice", "avgPrice", "avgEntryPrice"}))

@@ -978,7 +978,7 @@ func (this *ApexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeIntegerN(ohlcv, []any{"start", "t"}), this.SafeNumberN(ohlcv, []any{"open", "o"}), this.SafeNumberN(ohlcv, []any{"high", "h"}), this.SafeNumberN(ohlcv, []any{"low", "l"}), this.SafeNumberN(ohlcv, []any{"close", "c"}), this.SafeNumberN(ohlcv, []any{"volume", "v"})}
+	return []any{this.SafeInteger2(ohlcv, "start", "t"), this.SafeNumber2(ohlcv, "open", "o"), this.SafeNumber2(ohlcv, "high", "h"), this.SafeNumber2(ohlcv, "low", "l"), this.SafeNumber2(ohlcv, "close", "c"), this.SafeNumber2(ohlcv, "volume", "v")}
 }
 
 /**
