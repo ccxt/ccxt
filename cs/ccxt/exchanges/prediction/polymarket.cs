@@ -260,6 +260,7 @@ public partial class polymarket : PredictionExchange
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "No orderbook exists", typeof(BadSymbol) },
+                    { "invalid clob token ids", typeof(BadSymbol) },
                     { "not enough balance", typeof(InsufficientFunds) },
                     { "allowance", typeof(InsufficientFunds) },
                     { "invalid amount", typeof(InvalidOrder) },
@@ -293,6 +294,7 @@ public partial class polymarket : PredictionExchange
                 { "fetchMarketsLimit", 200 },
                 { "maxFetchEventsLimit", 500 },
                 { "defaultEventStatus", "active" },
+                { "maxPricesHistoryWindow", 1296000 },
                 { "chainId", 137 },
                 { "ctfExchangeName", "Polymarket CTF Exchange" },
                 { "ctfExchangeVersion", "2" },
@@ -890,10 +892,13 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<object> fetchOutcome(object outcomeSymbol)
     {
-        // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+        // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
+        // searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
+        // word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup (which 422s on
+        // non-ids) and falls through to the search path and its local BadSymbol below.
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
-        if (isTrue(isLessThan(getIndexOf(outcomeSymbol, ":"), 0)))
+        if (isTrue(isTrue((isLessThan(getIndexOf(outcomeSymbol, ":"), 0))) && isTrue((isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))))
         {
             object response = await this.gammaPublicGetMarkets(new Dictionary<string, object>() {
                 { "clob_token_ids", outcomeSymbol },
@@ -941,9 +946,11 @@ public partial class polymarket : PredictionExchange
         for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
             object outcomeSymbol = getValue(outcomeSymbols, i);
-            // absence must be `< 0` — the php transpiler maps that to `=== false`, while a
-            // literal `=== -1` passes through and never matches mb_strpos's false return
-            if (isTrue(isLessThan(getIndexOf(outcomeSymbol, ":"), 0)))
+            // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
+            // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
+            // maps that to `=== false`, while a literal `=== -1` passes through and never
+            // matches mb_strpos's false return
+            if (isTrue(isTrue((isLessThan(getIndexOf(outcomeSymbol, ":"), 0))) && isTrue((isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))))
             {
                 ((IList<object>)tokenIds).Add(outcomeSymbol);
             }
@@ -1005,6 +1012,7 @@ public partial class polymarket : PredictionExchange
      * @description fetches the current mid-price and best bid/ask for a single outcome token
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
      * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -1018,13 +1026,17 @@ public partial class polymarket : PredictionExchange
     { "token_id", tokenId },
 }), this.clobPublicGetBook(new Dictionary<string, object>() {
     { "token_id", tokenId },
+}), this.clobPublicGetLastTradePrice(new Dictionary<string, object>() {
+    { "token_id", tokenId },
 })};
-        var midpointResponsebookResponseVariable = await promiseAll(promises);
-        var midpointResponse = ((IList<object>) midpointResponsebookResponseVariable)[0];
-        var bookResponse = ((IList<object>) midpointResponsebookResponseVariable)[1];
+        var midpointResponsebookResponselastTradeResponseVariable = await promiseAll(promises);
+        var midpointResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[0];
+        var bookResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[1];
+        var lastTradeResponse = ((IList<object>) midpointResponsebookResponselastTradeResponseVariable)[2];
         object response = new Dictionary<string, object>() {
             { "midpoint", midpointResponse },
             { "book", bookResponse },
+            { "lastTrade", lastTradeResponse },
         };
         //
         //     {
@@ -1052,6 +1064,10 @@ public partial class polymarket : PredictionExchange
         //             "tick_size": "0.001",
         //             "neg_risk": false,
         //             "last_trade_price": "0.998"
+        //         },
+        //         "lastTrade": {
+        //             "price": "0.46",
+        //             "side": "BUY"
         //         }
         //     }
         //
@@ -1061,14 +1077,15 @@ public partial class polymarket : PredictionExchange
     /**
      * @method
      * @name polymarket#fetchTickers
-     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints (200 per request pair)
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
      * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcomes, null)))
@@ -1112,10 +1129,22 @@ public partial class polymarket : PredictionExchange
                     { "token_id", getValue(tokenIds, i) },
                 });
             }
-            object promises = new List<object> {this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams)};
+            object promises = new List<object> {this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)};
             object responses = await promiseAll(promises);
             object books = getValue(responses, 0);
             object midpoints = getValue(responses, 1);
+            object lastTrades = getValue(responses, 2);
+            object lastTradesByTokenId = new Dictionary<string, object>() {};
+            object lastTradesLength = getArrayLength(lastTrades);
+            for (object li = 0; isLessThan(li, lastTradesLength); postFixIncrement(ref li))
+            {
+                object lastTradeEntry = getValue(lastTrades, li);
+                object lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
+                if (isTrue(!isEqual(lastTradeTokenId, null)))
+                {
+                    ((IDictionary<string,object>)lastTradesByTokenId)[(string)lastTradeTokenId] = lastTradeEntry;
+                }
+            }
             object booksLength = getArrayLength(books);
             for (object i = 0; isLessThan(i, booksLength); postFixIncrement(ref i))
             {
@@ -1132,6 +1161,7 @@ public partial class polymarket : PredictionExchange
                         { "mid", mid },
                     } },
                     { "book", book },
+                    { "lastTrade", this.safeDict(lastTradesByTokenId, tokenId, new Dictionary<string, object>() {}) },
                 };
                 object ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
                 object symbolKey = this.safeString(ticker, "outcome", tokenId);
@@ -1179,6 +1209,10 @@ public partial class polymarket : PredictionExchange
         //             "tick_size": "0.001",
         //             "neg_risk": false,
         //             "last_trade_price": "0.998"
+        //         },
+        //         "lastTrade": {
+        //             "price": "0.46",
+        //             "side": "BUY"
         //         }
         //     }
         //
@@ -1192,8 +1226,16 @@ public partial class polymarket : PredictionExchange
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
         object bestBid = ((bool) isTrue((isGreaterThan(bidsLength, 0)))) ? getValue(bids, subtract(bidsLength, 1)) : null;
         object bestAsk = ((bool) isTrue((isGreaterThan(asksLength, 0)))) ? getValue(asks, subtract(asksLength, 1)) : null;
-        object lastTradePrice = this.safeNumber(bookData, "last_trade_price");
-        object last = ((bool) isTrue((!isEqual(lastTradePrice, null)))) ? lastTradePrice : mid;
+        // book.last_trade_price is market-level and denominated in whichever token traded last —
+        // on the complementary token it is the OTHER side's price, so only the per-token
+        // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
+        // never-traded token, which also falls back to the mid
+        object lastTradeData = this.safeDict(ticker, "lastTrade", new Dictionary<string, object>() {});
+        object last = this.safeNumber(lastTradeData, "price");
+        if (isTrue(isTrue((isEqual(last, null))) || isTrue((isEqual(last, 0)))))
+        {
+            last = mid;
+        }
         object outcome = this.safeOutcomeSymbol(null, market);
         object timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
         object quoteVolume = null;
@@ -1286,8 +1328,14 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<object> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
+        // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
+        if (!isTrue((inOp(this.timeframes, timeframe))))
+        {
+            object supportedKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
+            throw new BadRequest ((string)add(add(add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
+        }
         object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         object fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
@@ -1306,6 +1354,21 @@ public partial class polymarket : PredictionExchange
         {
             object barCount = ((bool) isTrue((!isEqual(limit, null)))) ? limit : 100;
             startS = subtract(nowS, (multiply(multiply(barCount, fidelityMin), 60)));
+        }
+        // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
+        // regardless of fidelity, so clamp the window to the cap: keep the requested
+        // `since` anchor (oldest chunk first, consistent with since/limit paging),
+        // or the most recent window when no `since` was given
+        object maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
+        if (isTrue(isGreaterThan((subtract(endS, startS)), maxWindow)))
+        {
+            if (isTrue(!isEqual(since, null)))
+            {
+                endS = this.sum(startS, maxWindow);
+            } else
+            {
+                startS = subtract(endS, maxWindow);
+            }
         }
         object request = new Dictionary<string, object>() {
             { "market", tokenId },
@@ -1337,14 +1400,12 @@ public partial class polymarket : PredictionExchange
             }
             object rawMs = multiply(t, 1000);
             object snappedMs = multiply((Math.Floor(Double.Parse((divide(rawMs, resolutionMs)).ToString()))), resolutionMs);
+            // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
+            // rather than fabricating a 0, probing s/v in case the field ever appears
             object vol = this.safeNumber(item, "s");
             if (isTrue(isEqual(vol, null)))
             {
                 vol = this.safeNumber(item, "v");
-            }
-            if (isTrue(isEqual(vol, null)))
-            {
-                vol = 0;
             }
             object bucketKey = ((object)snappedMs).ToString();
             if (!isTrue((inOp(buckets, bucketKey))))
@@ -1356,7 +1417,11 @@ public partial class polymarket : PredictionExchange
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)
-                ((List<object>)candle)[Convert.ToInt32(5)] = this.sum(getValue(candle, 5), vol); // volume
+                if (isTrue(!isEqual(vol, null)))
+                {
+                    object prevVol = getValue(candle, 5);
+                    ((List<object>)candle)[Convert.ToInt32(5)] = ((bool) isTrue((isEqual(prevVol, null)))) ? vol : this.sum(prevVol, vol); // volume
+                }
                 ((IDictionary<string,object>)buckets)[(string)bucketKey] = candle; // reassign after mutation, php arrays are value types
             }
         }
@@ -1385,7 +1450,7 @@ public partial class polymarket : PredictionExchange
         //     }
         //
         object price = this.safeNumber(ohlcv, "p");
-        return new List<object> {this.safeTimestamp(ohlcv, "t"), price, price, price, price, 0};
+        return new List<object> {this.safeTimestamp(ohlcv, "t"), price, price, price, price, null};
     }
 
     /**
@@ -1752,7 +1817,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomesLength = 0;
@@ -1880,7 +1945,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();

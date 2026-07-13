@@ -2114,7 +2114,7 @@ class Exchange(BaseExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
-            tickers = await self.fetchTickers([symbol], params)
+            tickers = await self.fetch_tickers([symbol], params)
             ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
                 raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)

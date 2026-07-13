@@ -108,7 +108,7 @@ export interface PredictionEvent {
     slug?: Str;
     category?: Str;
     tags?: string[];
-    markets: Market[];
+    markets: PredictionMarket[];
     mutuallyExclusive?: Bool;
     active?: Bool;
     resolved?: Bool;

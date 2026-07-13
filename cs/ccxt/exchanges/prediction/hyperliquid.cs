@@ -752,7 +752,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -1087,7 +1087,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -1642,7 +1642,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -2150,7 +2150,12 @@ public partial class hyperliquid : PredictionExchange
             {
                 ((IDictionary<string,object>)groupMap)[(string)parentSymbol] = new List<object>() {};
             }
-            ((IList<object>)(IList<object>)(getValue(groupMap, parentSymbol))).Add(mkt);
+            // push through a local and write the slice back — the go transpiler's
+            // AppendToArray reassigns only a local copy of a map-stored array, so a
+            // direct push on groupMap[parentSymbol] loses the element in go
+            object parentMarkets = (IList<object>)(getValue(groupMap, parentSymbol));
+            ((IList<object>)parentMarkets).Add(mkt);
+            ((IDictionary<string,object>)groupMap)[(string)parentSymbol] = parentMarkets;
         }
         object events = new List<object>() {};
         object groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);

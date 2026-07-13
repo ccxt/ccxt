@@ -73,6 +73,7 @@ export default class polymarket extends Exchange {
      * @description fetches the current mid-price and best bid/ask for a single outcome token
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
      * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -81,9 +82,10 @@ export default class polymarket extends Exchange {
     /**
      * @method
      * @name polymarket#fetchTickers
-     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints (200 per request pair)
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
      * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome

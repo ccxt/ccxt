@@ -805,6 +805,16 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
     }
 
+    public function fetch_tickers(?array $outcomes = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple prediction $outcomes at once
+         * @param {string[]} [$outcomes] unified outcome handles or outcome ids
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+         */
+        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
     public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a prediction $outcome
@@ -913,6 +923,18 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
+    public function fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on the user's open orders
+         * @param {string} [$outcome] unified $outcome handle
+         * @param {int} [$since] timestamp in ms of the earliest order to fetch
+         * @param {int} [$limit] the maximum number of orders to fetch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
+    }
+
     public function fetch_closed_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple closed orders made by the user
@@ -958,6 +980,16 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
          * @return {array} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
          */
         throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_positions(?array $outcomes = null, $params = array()) {
+        /**
+         * fetches the user's open positions
+         * @param {string[]} [$outcomes] unified outcome handles to filter by
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+         */
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
     }
 
     public function fetch_trading_fee(string $outcome, $params = array()) {

@@ -862,7 +862,7 @@ public partial class PredictionExchange : BaseExchange
             object word = getValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (isTrue(isEqual(((string)word).Length, 0)))
+            if (isTrue(isEqual(getArrayLength(word), 0)))
             {
                 continue;
             }
@@ -942,6 +942,20 @@ public partial class PredictionExchange : BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTicker() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchTickers
+     * @description fetches price tickers for multiple prediction outcomes at once
+     * @param {string[]} [outcomes] unified outcome handles or outcome ids
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     */
+    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
     }
 
     /**
@@ -1089,6 +1103,22 @@ public partial class PredictionExchange : BaseExchange
 
     /**
      * @method
+     * @name fetchOpenOrders
+     * @description fetches information on the user's open orders
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOpenOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
      * @name fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @param {string} [outcome] unified outcome handle
@@ -1148,6 +1178,20 @@ public partial class PredictionExchange : BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name fetchPositions
+     * @description fetches the user's open positions
+     * @param {string[]} [outcomes] unified outcome handles to filter by
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
     }
 
     /**
@@ -1980,6 +2024,11 @@ public partial class PredictionExchange
         var res = await this.fetchTicker(outcome, parameters);
         return new PredictionTicker(res);
     }
+    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(outcomes, parameters);
+        return new PredictionTickers(res);
+    }
     public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -2036,6 +2085,13 @@ public partial class PredictionExchange
         var res = await this.fetchOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
     public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2061,6 +2117,11 @@ public partial class PredictionExchange
     {
         var res = await this.fetchPosition(outcome, parameters);
         return new PredictionPosition(res);
+    }
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(outcomes, parameters);
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     public async Task<PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
     {

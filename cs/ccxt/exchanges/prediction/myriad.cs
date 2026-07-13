@@ -399,7 +399,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -548,11 +548,11 @@ public partial class myriad : PredictionExchange
         object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         object rHex = this.safeString(signature, "r");
         object sHex = this.safeString(signature, "s");
-        if (isTrue(!isEqual((mod(getArrayLength(rHex), 2)), 0)))
+        if (isTrue(!isEqual((mod(((string)rHex).Length, 2)), 0)))
         {
             rHex = add("0", rHex);
         }
-        if (isTrue(!isEqual((mod(getArrayLength(sHex), 2)), 0)))
+        if (isTrue(!isEqual((mod(((string)sHex).Length, 2)), 0)))
         {
             sHex = add("0", sHex);
         }
@@ -1358,7 +1358,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -2420,7 +2420,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcomes, null)))

@@ -9410,7 +9410,7 @@ class Exchange extends BaseExchange {
             $this->load_markets();
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $tickers = $this->fetchTickers(array( $symbol ), $params);
+            $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
                 throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);

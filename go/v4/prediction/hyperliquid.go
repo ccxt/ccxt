@@ -2245,8 +2245,12 @@ func (this *HyperliquidCore) FetchEvents(optionalArgs ...any) <-chan any {
 			if !ccxt.IsTrue((ccxt.InOp(groupMap, parentSymbol))) {
 				ccxt.AddElementToObject(groupMap, parentSymbol, []any{})
 			}
-			retRes190212 := ccxt.GetValue(groupMap, parentSymbol)
-			ccxt.AppendToArray(&retRes190212, mkt)
+			// push through a local and write the slice back — the go transpiler's
+			// ccxt.AppendToArray reassigns only a local copy of a map-stored array, so a
+			// direct push on groupMap[parentSymbol] loses the element in go
+			var parentMarkets any = ccxt.GetValue(groupMap, parentSymbol)
+			ccxt.AppendToArray(&parentMarkets, mkt)
+			ccxt.AddElementToObject(groupMap, parentSymbol, parentMarkets)
 		}
 		var events any = []any{}
 		var groupKeys any = ccxt.ObjectKeys(groupMap)
@@ -2433,8 +2437,8 @@ func (this *HyperliquidCore) InitializeClient() <-chan any {
 		// resolve the outcome's market and precision. loading them also keeps this method genuinely
 		// async for the PHP and typed transpilers, which mishandle an async body that never suspends
 
-		retRes20788 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes20788)
+		retRes20838 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes20838)
 		var buildFee any = this.SafeBool(this.Options, "builderFee", false)
 		if !ccxt.IsTrue(buildFee) {
 

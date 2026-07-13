@@ -922,7 +922,7 @@ public Object describe()
             Object word = Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(word), 0)))
             {
                 continue;
             }
@@ -1010,6 +1010,26 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchTickers
+     * @description fetches price tickers for multiple prediction outcomes at once
+     * @param {string[]} [outcomes] unified outcome handles or outcome ids
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
         });
 
     }
@@ -1217,6 +1237,30 @@ public Object describe()
 
     /**
      * @method
+     * @name fetchOpenOrders
+     * @description fetches information on the user's open orders
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
      * @name fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @param {string} [outcome] unified outcome handle
@@ -1303,6 +1347,26 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name fetchPositions
+     * @description fetches the user's open positions
+     * @param {string[]} [outcomes] unified outcome handles to filter by
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
         });
 
     }
@@ -2240,31 +2304,9 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
 
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        });
-
-    }
 
 
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            throw new NotSupported((String)Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
-        });
-
-    }
 
 
     public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
@@ -2340,24 +2382,6 @@ public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Objec
 
 
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchOrders")))
-            {
-                Object orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
-                return this.filterBy(orders, "status", "open");
-            }
-            throw new NotSupported((String)Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
-        });
-
-    }
 
 
     public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)

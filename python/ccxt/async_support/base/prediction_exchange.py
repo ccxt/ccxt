@@ -657,6 +657,15 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
+    async def fetch_tickers(self, outcomes: Strings = None, params={}):
+        """
+        fetches price tickers for multiple prediction outcomes at once
+        :param str[] [outcomes]: unified outcome handles or outcome ids
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict: a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+        """
+        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
     async def fetch_order_book(self, outcome: str, limit: Int = None, params={}):
         """
         fetches the order book for a prediction outcome
@@ -754,6 +763,17 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on the user's open orders
+        :param str [outcome]: unified outcome handle
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum number of orders to fetch
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        """
+        raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
+
     async def fetch_closed_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple closed orders made by the user
@@ -796,6 +816,15 @@ class PredictionExchange(BaseExchange):
         :returns dict: a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
         """
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions(self, outcomes: Strings = None, params={}):
+        """
+        fetches the user's open positions
+        :param str[] [outcomes]: unified outcome handles to filter by
+        :param dict [params]: extra exchange-specific parameters
+        :returns dict[]: a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        """
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
     async def fetch_trading_fee(self, outcome: str, params={}):
         """

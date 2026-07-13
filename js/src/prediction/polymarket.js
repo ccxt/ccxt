@@ -274,6 +274,8 @@ export default class polymarket extends Exchange {
                 },
                 'broad': {
                     'No orderbook exists': BadSymbol,
+                    // gamma rejects non-token-id values in clob_token_ids with a 422
+                    'invalid clob token ids': BadSymbol,
                     'not enough balance': InsufficientFunds,
                     'allowance': InsufficientFunds,
                     'invalid amount': InvalidOrder,
@@ -317,6 +319,8 @@ export default class polymarket extends Exchange {
                 'fetchMarketsLimit': 200,
                 'maxFetchEventsLimit': 500,
                 'defaultEventStatus': 'active', // 'active' | 'closed' | 'all'
+                // prices-history rejects startTs/endTs spans over 15 days regardless of fidelity
+                'maxPricesHistoryWindow': 1296000,
                 // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
                 // mainnet (137) and Amoy (80002), see @polymarket/clob-client config.ts
                 'chainId': 137,
@@ -831,10 +835,13 @@ export default class polymarket extends Exchange {
      * @returns {object} the resolved outcome object
      */
     async fetchOutcome(outcomeSymbol) {
-        // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+        // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
+        // searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
+        // word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup (which 422s on
+        // non-ids) and falls through to the search path and its local BadSymbol below.
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
-        if (outcomeSymbol.indexOf(':') < 0) {
+        if ((outcomeSymbol.indexOf(':') < 0) && (this.outcomeSearchQuery(outcomeSymbol) === undefined)) {
             const response = await this.gammaPublicGetMarkets({ 'clob_token_ids': outcomeSymbol });
             const rawMarkets = (response !== undefined) ? response : [];
             const rawMarketsLength = rawMarkets.length;
@@ -870,9 +877,11 @@ export default class polymarket extends Exchange {
         const tokenIds = [];
         for (let i = 0; i < outcomeSymbols.length; i++) {
             const outcomeSymbol = outcomeSymbols[i];
-            // absence must be `< 0` — the php transpiler maps that to `=== false`, while a
-            // literal `=== -1` passes through and never matches mb_strpos's false return
-            if (outcomeSymbol.indexOf(':') < 0) {
+            // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
+            // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
+            // maps that to `=== false`, while a literal `=== -1` passes through and never
+            // matches mb_strpos's false return
+            if ((outcomeSymbol.indexOf(':') < 0) && (this.outcomeSearchQuery(outcomeSymbol) === undefined)) {
                 tokenIds.push(outcomeSymbol);
             }
         }
@@ -919,6 +928,7 @@ export default class polymarket extends Exchange {
      * @description fetches the current mid-price and best bid/ask for a single outcome token
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
      * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -929,9 +939,10 @@ export default class polymarket extends Exchange {
         const promises = [
             this.clobPublicGetMidpoint({ 'token_id': tokenId }),
             this.clobPublicGetBook({ 'token_id': tokenId }),
+            this.clobPublicGetLastTradePrice({ 'token_id': tokenId }),
         ];
-        const [midpointResponse, bookResponse] = await Promise.all(promises);
-        const response = { 'midpoint': midpointResponse, 'book': bookResponse };
+        const [midpointResponse, bookResponse, lastTradeResponse] = await Promise.all(promises);
+        const response = { 'midpoint': midpointResponse, 'book': bookResponse, 'lastTrade': lastTradeResponse };
         //
         //     {
         //         "midpoint": {
@@ -958,6 +969,10 @@ export default class polymarket extends Exchange {
         //             "tick_size": "0.001",
         //             "neg_risk": false,
         //             "last_trade_price": "0.998"
+        //         },
+        //         "lastTrade": {
+        //             "price": "0.46",
+        //             "side": "BUY"
         //         }
         //     }
         //
@@ -966,9 +981,10 @@ export default class polymarket extends Exchange {
     /**
      * @method
      * @name polymarket#fetchTickers
-     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints (200 per request pair)
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
      * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+     * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
@@ -1009,10 +1025,21 @@ export default class polymarket extends Exchange {
             const promises = [
                 this.clobPublicPostBooks(bookParams),
                 this.clobPublicPostMidpoints(bookParams),
+                this.clobPublicPostLastTradesPrices(bookParams),
             ];
             const responses = await Promise.all(promises);
             const books = responses[0];
             const midpoints = responses[1];
+            const lastTrades = responses[2];
+            const lastTradesByTokenId = {};
+            const lastTradesLength = lastTrades.length;
+            for (let li = 0; li < lastTradesLength; li++) {
+                const lastTradeEntry = lastTrades[li];
+                const lastTradeTokenId = this.safeString(lastTradeEntry, 'token_id');
+                if (lastTradeTokenId !== undefined) {
+                    lastTradesByTokenId[lastTradeTokenId] = lastTradeEntry;
+                }
+            }
             const booksLength = books.length;
             for (let i = 0; i < booksLength; i++) {
                 const book = books[i];
@@ -1022,7 +1049,7 @@ export default class polymarket extends Exchange {
                 }
                 const outcomeObj = outcomesByTokenId[tokenId];
                 const mid = this.safeString(midpoints, tokenId);
-                const tickerInput = { 'midpoint': { 'mid': mid }, 'book': book };
+                const tickerInput = { 'midpoint': { 'mid': mid }, 'book': book, 'lastTrade': this.safeDict(lastTradesByTokenId, tokenId, {}) };
                 const ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
                 const symbolKey = this.safeString(ticker, 'outcome', tokenId);
                 result[symbolKey] = ticker;
@@ -1067,6 +1094,10 @@ export default class polymarket extends Exchange {
         //             "tick_size": "0.001",
         //             "neg_risk": false,
         //             "last_trade_price": "0.998"
+        //         },
+        //         "lastTrade": {
+        //             "price": "0.46",
+        //             "side": "BUY"
         //         }
         //     }
         //
@@ -1080,8 +1111,15 @@ export default class polymarket extends Exchange {
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
         const bestBid = (bidsLength > 0) ? bids[bidsLength - 1] : undefined;
         const bestAsk = (asksLength > 0) ? asks[asksLength - 1] : undefined;
-        const lastTradePrice = this.safeNumber(bookData, 'last_trade_price');
-        const last = (lastTradePrice !== undefined) ? lastTradePrice : mid;
+        // book.last_trade_price is market-level and denominated in whichever token traded last —
+        // on the complementary token it is the OTHER side's price, so only the per-token
+        // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
+        // never-traded token, which also falls back to the mid
+        const lastTradeData = this.safeDict(ticker, 'lastTrade', {});
+        let last = this.safeNumber(lastTradeData, 'price');
+        if ((last === undefined) || (last === 0)) {
+            last = mid;
+        }
         const outcome = this.safeOutcomeSymbol(undefined, market);
         const timestamp = this.safeInteger(bookData, 'timestamp', this.milliseconds());
         let quoteVolume = undefined;
@@ -1171,6 +1209,11 @@ export default class polymarket extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(outcome, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (!(timeframe in this.timeframes)) {
+            // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
+            const supportedKeys = Object.keys(this.timeframes);
+            throw new BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
+        }
         const outcomeObj = await this.loadOutcome(outcome);
         const tokenId = outcomeObj['outcomeId'];
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
@@ -1187,6 +1230,19 @@ export default class polymarket extends Exchange {
         else {
             const barCount = (limit !== undefined) ? limit : 100;
             startS = nowS - (barCount * fidelityMin * 60);
+        }
+        // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
+        // regardless of fidelity, so clamp the window to the cap: keep the requested
+        // `since` anchor (oldest chunk first, consistent with since/limit paging),
+        // or the most recent window when no `since` was given
+        const maxWindow = this.safeInteger(this.options, 'maxPricesHistoryWindow', 1296000);
+        if ((endS - startS) > maxWindow) {
+            if (since !== undefined) {
+                endS = this.sum(startS, maxWindow);
+            }
+            else {
+                startS = endS - maxWindow;
+            }
         }
         const request = {
             'market': tokenId,
@@ -1216,12 +1272,11 @@ export default class polymarket extends Exchange {
             }
             const rawMs = t * 1000;
             const snappedMs = Math.floor(rawMs / resolutionMs) * resolutionMs;
+            // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
+            // rather than fabricating a 0, probing s/v in case the field ever appears
             let vol = this.safeNumber(item, 's');
             if (vol === undefined) {
                 vol = this.safeNumber(item, 'v');
-            }
-            if (vol === undefined) {
-                vol = 0;
             }
             const bucketKey = snappedMs.toString();
             if (!(bucketKey in buckets)) {
@@ -1232,7 +1287,10 @@ export default class polymarket extends Exchange {
                 candle[2] = Math.max(candle[2], price); // high
                 candle[3] = Math.min(candle[3], price); // low
                 candle[4] = price; // close (last tick wins)
-                candle[5] = this.sum(candle[5], vol); // volume
+                if (vol !== undefined) {
+                    const prevVol = candle[5];
+                    candle[5] = (prevVol === undefined) ? vol : this.sum(prevVol, vol); // volume
+                }
                 buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
             }
         }
@@ -1257,7 +1315,7 @@ export default class polymarket extends Exchange {
         //     }
         //
         const price = this.safeNumber(ohlcv, 'p');
-        return [this.safeTimestamp(ohlcv, 't'), price, price, price, price, 0];
+        return [this.safeTimestamp(ohlcv, 't'), price, price, price, price, undefined];
     }
     /**
      * @method

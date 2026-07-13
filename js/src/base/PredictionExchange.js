@@ -771,6 +771,17 @@ export default class PredictionExchange extends BaseExchange {
     }
     /**
      * @method
+     * @name fetchTickers
+     * @description fetches price tickers for multiple prediction outcomes at once
+     * @param {string[]} [outcomes] unified outcome handles or outcome ids
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     */
+    async fetchTickers(outcomes = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
+    }
+    /**
+     * @method
      * @name fetchOrderBook
      * @description fetches the order book for a prediction outcome
      * @param {string} outcome unified outcome handle
@@ -886,6 +897,19 @@ export default class PredictionExchange extends BaseExchange {
     }
     /**
      * @method
+     * @name fetchOpenOrders
+     * @description fetches information on the user's open orders
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
+    }
+    /**
+     * @method
      * @name fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @param {string} [outcome] unified outcome handle
@@ -934,6 +958,17 @@ export default class PredictionExchange extends BaseExchange {
      */
     async fetchPosition(outcome, params = {}) {
         throw new NotSupported(this.id + ' fetchPosition() is not supported yet');
+    }
+    /**
+     * @method
+     * @name fetchPositions
+     * @description fetches the user's open positions
+     * @param {string[]} [outcomes] unified outcome handles to filter by
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async fetchPositions(outcomes = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchPositions() is not supported yet');
     }
     /**
      * @method

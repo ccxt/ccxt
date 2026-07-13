@@ -1887,7 +1887,12 @@ class hyperliquid extends Exchange {
                 if (!(is_array($groupMap) && array_key_exists($parentSymbol, $groupMap))) {
                     $groupMap[$parentSymbol] = array();
                 }
-                ($groupMap[$parentSymbol])[] = $mkt;
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on $groupMap[$parentSymbol] loses the element in go
+                $parentMarkets = $groupMap[$parentSymbol];
+                $parentMarkets[] = $mkt;
+                $groupMap[$parentSymbol] = $parentMarkets;
             }
             $events = array();
             $groupKeys = is_array($groupMap) ? array_keys($groupMap) : array();

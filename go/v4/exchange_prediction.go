@@ -818,7 +818,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
         var word any = GetValue(rawWords, i)
         // inline .length so the php transpiler emits strlen() — the standalone
         // `const n = str.length;` statement form wrongly becomes count() (array)
-        if IsTrue(IsEqual(GetLength(word), 0)) {
+        if IsTrue(IsEqual(GetArrayLength(word), 0)) {
             continue
         }
         var wordHasLetters any = false
@@ -922,6 +922,28 @@ func  (this *PredictionExchange) FetchTicker(outcome any, optionalArgs ...any) <
         }
 /**
  * @method
+ * @name fetchTickers
+ * @description fetches price tickers for multiple prediction outcomes at once
+ * @param {string[]} [outcomes] unified outcome handles or outcome ids
+ * @param {object} [params] extra exchange-specific parameters
+ * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ */
+func  (this *PredictionExchange) FetchTickers(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    outcomes := GetArg(optionalArgs, 0, nil)
+            _ = outcomes
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchTickers() is not supported yet")))
+        
+            }()
+            return ch
+        }
+/**
+ * @method
  * @name fetchOrderBook
  * @description fetches the order book for a prediction outcome
  * @param {string} outcome unified outcome handle
@@ -968,9 +990,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes81915 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes81915)
-                ch <- retRes81915
+                retRes83115 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes83115)
+                ch <- retRes83115
                 return nil
         
             }()
@@ -1150,6 +1172,34 @@ func  (this *PredictionExchange) FetchOrders(optionalArgs ...any) <- chan any {
         }
 /**
  * @method
+ * @name fetchOpenOrders
+ * @description fetches information on the user's open orders
+ * @param {string} [outcome] unified outcome handle
+ * @param {int} [since] timestamp in ms of the earliest order to fetch
+ * @param {int} [limit] the maximum number of orders to fetch
+ * @param {object} [params] extra exchange-specific parameters
+ * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func  (this *PredictionExchange) FetchOpenOrders(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    outcome := GetArg(optionalArgs, 0, nil)
+            _ = outcome
+            since := GetArg(optionalArgs, 1, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 2, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 3, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchOpenOrders() is not supported yet")))
+        
+            }()
+            return ch
+        }
+/**
+ * @method
  * @name fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
  * @param {string} [outcome] unified outcome handle
@@ -1249,6 +1299,28 @@ func  (this *PredictionExchange) FetchPosition(outcome any, optionalArgs ...any)
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " fetchPosition() is not supported yet")))
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name fetchPositions
+ * @description fetches the user's open positions
+ * @param {string[]} [outcomes] unified outcome handles to filter by
+ * @param {object} [params] extra exchange-specific parameters
+ * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ */
+func  (this *PredictionExchange) FetchPositions(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    outcomes := GetArg(optionalArgs, 0, nil)
+            _ = outcomes
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchPositions() is not supported yet")))
         
             }()
             return ch
@@ -1356,9 +1428,9 @@ func  (this *PredictionExchange) CreateMarketBuyOrderWithCost(outcome any, cost 
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false))) {
         
-                    retRes103519 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
-                    PanicOnError(retRes103519)
-                    ch <- retRes103519
+                    retRes107319 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
+                    PanicOnError(retRes107319)
+                    ch <- retRes107319
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
@@ -1384,9 +1456,9 @@ func  (this *PredictionExchange) CreateMarketSellOrderWithCost(outcome any, cost
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false))) {
         
-                    retRes105119 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
-                    PanicOnError(retRes105119)
-                    ch <- retRes105119
+                    retRes108919 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
+                    PanicOnError(retRes108919)
+                    ch <- retRes108919
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
@@ -2093,9 +2165,9 @@ func  (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, fro
             var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
             PanicOnError(signed)
         
-                retRes163715 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-                PanicOnError(retRes163715)
-                ch <- retRes163715
+                retRes167515 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+                PanicOnError(retRes167515)
+                ch <- retRes167515
                 return nil
         
             }()
@@ -2119,8 +2191,8 @@ func  (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash an
                     return nil
                 }
         
-                retRes164712 := (<-this.Sleep(2000))
-                PanicOnError(retRes164712)
+                retRes168512 := (<-this.Sleep(2000))
+                PanicOnError(retRes168512)
             }
             panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
         

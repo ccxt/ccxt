@@ -279,6 +279,8 @@ class polymarket extends Exchange {
                 ),
                 'broad' => array(
                     'No orderbook exists' => '\\ccxt\\BadSymbol',
+                    // gamma rejects non-token-id values in clob_token_ids with a 422
+                    'invalid clob token ids' => '\\ccxt\\BadSymbol',
                     'not enough balance' => '\\ccxt\\InsufficientFunds',
                     'allowance' => '\\ccxt\\InsufficientFunds',
                     'invalid amount' => '\\ccxt\\InvalidOrder',
@@ -322,6 +324,8 @@ class polymarket extends Exchange {
                 'fetchMarketsLimit' => 200,
                 'maxFetchEventsLimit' => 500,
                 'defaultEventStatus' => 'active',  // 'active' | 'closed' | 'all'
+                // prices-history rejects startTs/endTs spans over 15 days regardless of fidelity
+                'maxPricesHistoryWindow' => 1296000,
                 // CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
                 // mainnet (137) and Amoy (80002), see @polymarket/clob-client config.ts
                 'chainId' => 137,
@@ -839,10 +843,13 @@ class polymarket extends Exchange {
              * @param {string} $outcomeSymbol the outcome token id or handle
              * @return {array} the resolved outcome object
              */
-            // a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+            // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
+            // searchable words — outcomeSearchQuery returns null only for id-like inputs, so
+            // word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup (which 422s on
+            // non-ids) and falls through to the search path and its local BadSymbol below.
             // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
             // `=== -1` passes through and never matches mb_strpos's false return
-            if (mb_strpos($outcomeSymbol, ':') === false) {
+            if ((mb_strpos($outcomeSymbol, ':') === false) && ($this->outcome_search_query($outcomeSymbol) === null)) {
                 $response = Async\await($this->gammaPublicGetMarkets(array( 'clob_token_ids' => $outcomeSymbol )));
                 $rawMarkets = ($response !== null) ? $response : array();
                 $rawMarketsLength = count($rawMarkets);
@@ -881,9 +888,11 @@ class polymarket extends Exchange {
             $tokenIds = array();
             for ($i = 0; $i < count($outcomeSymbols); $i++) {
                 $outcomeSymbol = $outcomeSymbols[$i];
-                // absence must be `< 0` — the php transpiler maps that to `=== false`, while a
-                // literal `=== -1` passes through and never matches mb_strpos's false return
-                if (mb_strpos($outcomeSymbol, ':') === false) {
+                // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
+                // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
+                // maps that to `=== false`, while a literal `=== -1` passes through and never
+                // matches mb_strpos's false return
+                if ((mb_strpos($outcomeSymbol, ':') === false) && ($this->outcome_search_query($outcomeSymbol) === null)) {
                     $tokenIds[] = $outcomeSymbol;
                 }
             }
@@ -933,6 +942,7 @@ class polymarket extends Exchange {
              *
              * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
              * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+             * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
              *
              * @param {string} $outcome unified $outcome like TRUMP_DANCE_TODAY_997:YES or an $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -943,15 +953,16 @@ class polymarket extends Exchange {
             $promises = array(
                 $this->clobPublicGetMidpoint(array( 'token_id' => $tokenId )),
                 $this->clobPublicGetBook(array( 'token_id' => $tokenId )),
+                $this->clobPublicGetLastTradePrice(array( 'token_id' => $tokenId )),
             );
-            list($midpointResponse, $bookResponse) = Async\await(Promise\all($promises));
-            $response = array( 'midpoint' => $midpointResponse, 'book' => $bookResponse );
+            list($midpointResponse, $bookResponse, $lastTradeResponse) = Async\await(Promise\all($promises));
+            $response = array( 'midpoint' => $midpointResponse, 'book' => $bookResponse, 'lastTrade' => $lastTradeResponse );
             //
             //     {
             //         "midpoint" => array(
             //             "mid" => "0.9985"
             //         ),
-            //         "book" => {
+            //         "book" => array(
             //             "market" => "0x2d55f622bc12e23dc1f1bb4db8360c28c92155f9376bf73953c0756ee1387b2f",
             //             "asset_id" => "16718041887881762329859205887704087070587186248220606272297433440108449709696",
             //             "timestamp" => "1777344471023",
@@ -972,6 +983,10 @@ class polymarket extends Exchange {
             //             "tick_size" => "0.001",
             //             "neg_risk" => false,
             //             "last_trade_price" => "0.998"
+            //         ),
+            //         "lastTrade" => {
+            //             "price" => "0.46",
+            //             "side" => "BUY"
             //         }
             //     }
             //
@@ -985,10 +1000,11 @@ class polymarket extends Exchange {
     public function fetch_tickers(?array $outcomes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcomes, $params) {
             /**
-             * fetches tickers for multiple outcome tokens at once using the batched CLOB $book and midpoint endpoints (200 per request pair)
+             * fetches tickers for multiple outcome tokens at once using the batched CLOB $book, midpoint and last-trade-price endpoints (200 per request trio)
              *
              * @see https://docs.polymarket.com/api-reference/market-data/get-order-$books-request-body
              * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+             * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
              *
              * @param {string[]} $outcomes unified $outcomes or outcome token ids — required => polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1029,10 +1045,21 @@ class polymarket extends Exchange {
                 $promises = array(
                     $this->clobPublicPostBooks($bookParams),
                     $this->clobPublicPostMidpoints($bookParams),
+                    $this->clobPublicPostLastTradesPrices($bookParams),
                 );
                 $responses = Async\await(Promise\all($promises));
                 $books = $responses[0];
                 $midpoints = $responses[1];
+                $lastTrades = $responses[2];
+                $lastTradesByTokenId = array();
+                $lastTradesLength = count($lastTrades);
+                for ($li = 0; $li < $lastTradesLength; $li++) {
+                    $lastTradeEntry = $lastTrades[$li];
+                    $lastTradeTokenId = $this->safe_string($lastTradeEntry, 'token_id');
+                    if ($lastTradeTokenId !== null) {
+                        $lastTradesByTokenId[$lastTradeTokenId] = $lastTradeEntry;
+                    }
+                }
                 $booksLength = count($books);
                 for ($i = 0; $i < $booksLength; $i++) {
                     $book = $books[$i];
@@ -1042,7 +1069,7 @@ class polymarket extends Exchange {
                     }
                     $outcomeObj = $outcomesByTokenId[$tokenId];
                     $mid = $this->safe_string($midpoints, $tokenId);
-                    $tickerInput = array( 'midpoint' => array( 'mid' => $mid ), 'book' => $book );
+                    $tickerInput = array( 'midpoint' => array( 'mid' => $mid ), 'book' => $book, 'lastTrade' => $this->safe_dict($lastTradesByTokenId, $tokenId, array()) );
                     $ticker = $this->parse_prediction_ticker($tickerInput, $outcomeObj);
                     $symbolKey = $this->safe_string($ticker, 'outcome', $tokenId);
                     $result[$symbolKey] = $ticker;
@@ -1066,7 +1093,7 @@ class polymarket extends Exchange {
         //         "midpoint" => array(
         //             "mid" => "0.9985"
         //         ),
-        //         "book" => {
+        //         "book" => array(
         //             "market" => "0x2d55f622bc12e23dc1f1bb4db8360c28c92155f9376bf73953c0756ee1387b2f",
         //             "asset_id" => "16718041887881762329859205887704087070587186248220606272297433440108449709696",
         //             "timestamp" => "1777344471023",
@@ -1087,6 +1114,10 @@ class polymarket extends Exchange {
         //             "tick_size" => "0.001",
         //             "neg_risk" => false,
         //             "last_trade_price" => "0.998"
+        //         ),
+        //         "lastTrade" => {
+        //             "price" => "0.46",
+        //             "side" => "BUY"
         //         }
         //     }
         //
@@ -1100,8 +1131,15 @@ class polymarket extends Exchange {
         // the CLOB book endpoint returns levels sorted away from the touch ($bids ascending, $asks descending), so the best level is the $last entry
         $bestBid = ($bidsLength > 0) ? $bids[$bidsLength - 1] : null;
         $bestAsk = ($asksLength > 0) ? $asks[$asksLength - 1] : null;
-        $lastTradePrice = $this->safe_number($bookData, 'last_trade_price');
-        $last = ($lastTradePrice !== null) ? $lastTradePrice : $mid;
+        // book.last_trade_price is $market-level and denominated in whichever token traded $last —
+        // on the complementary token it is the OTHER side's price, so only the per-token
+        // $last-trade-price endpoint value is usable here; that endpoint reports "0" for a
+        // never-traded token, which also falls back to the $mid
+        $lastTradeData = $this->safe_dict($ticker, 'lastTrade', array());
+        $last = $this->safe_number($lastTradeData, 'price');
+        if (($last === null) || ($last === 0)) {
+            $last = $mid;
+        }
         $outcome = $this->safe_outcome_symbol(null, $market);
         $timestamp = $this->safe_integer($bookData, 'timestamp', $this->milliseconds());
         $quoteVolume = null;
@@ -1196,6 +1234,11 @@ class polymarket extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
              */
+            if (!(is_array($this->timeframes) && array_key_exists($timeframe, $this->timeframes))) {
+                // hoisted keys list => chaining join onto Object.keys breaks the python transpiler
+                $supportedKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
+                throw new BadRequest($this->id . ' fetchOHLCV() unsupported $timeframe ' . $timeframe . ', supported timeframes are ' . implode(', ', $supportedKeys));
+            }
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
             $fidelityMin = $this->safe_integer($this->timeframes, $timeframe, 1); // fidelity in minutes
@@ -1210,6 +1253,18 @@ class polymarket extends Exchange {
             } else {
                 $barCount = ($limit !== null) ? $limit : 100;
                 $startS = $nowS - ($barCount * $fidelityMin * 60);
+            }
+            // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
+            // regardless of fidelity, so clamp the window to the cap => keep the requested
+            // `$since` anchor (oldest chunk first, consistent with since/limit paging),
+            // or the most recent window when no `$since` was given
+            $maxWindow = $this->safe_integer($this->options, 'maxPricesHistoryWindow', 1296000);
+            if (($endS - $startS) > $maxWindow) {
+                if ($since !== null) {
+                    $endS = $this->sum($startS, $maxWindow);
+                } else {
+                    $startS = $endS - $maxWindow;
+                }
             }
             $request = array(
                 'market' => $tokenId,
@@ -1239,12 +1294,11 @@ class polymarket extends Exchange {
                 }
                 $rawMs = $t * 1000;
                 $snappedMs = (int) floor($rawMs / $resolutionMs) * $resolutionMs;
+                // the venue supplies no $candle volume (array($t, p) ticks only) — leave it null
+                // rather than fabricating a 0, probing s/v in case the field ever appears
                 $vol = $this->safe_number($item, 's');
                 if ($vol === null) {
                     $vol = $this->safe_number($item, 'v');
-                }
-                if ($vol === null) {
-                    $vol = 0;
                 }
                 $bucketKey = (string) $snappedMs;
                 if (!(is_array($buckets) && array_key_exists($bucketKey, $buckets))) {
@@ -1254,7 +1308,10 @@ class polymarket extends Exchange {
                     $candle[2] = max($candle[2], $price); // high
                     $candle[3] = min($candle[3], $price); // low
                     $candle[4] = $price;                                  // close (last tick wins)
-                    $candle[5] = $this->sum($candle[5], $vol);   // volume
+                    if ($vol !== null) {
+                        $prevVol = $candle[5];
+                        $candle[5] = ($prevVol === null) ? $vol : $this->sum($prevVol, $vol); // volume
+                    }
                     $buckets[$bucketKey] = $candle; // reassign after mutation, php arrays are value types
                 }
             }
@@ -1281,7 +1338,7 @@ class polymarket extends Exchange {
         //     }
         //
         $price = $this->safe_number($ohlcv, 'p');
-        return array( $this->safe_timestamp($ohlcv, 't'), $price, $price, $price, $price, 0 );
+        return array( $this->safe_timestamp($ohlcv, 't'), $price, $price, $price, $price, null );
     }
 
     public function fetch_time($params = array()): PromiseInterface {

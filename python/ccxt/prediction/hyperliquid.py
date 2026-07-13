@@ -1699,7 +1699,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     continue
             if not (parentSymbol in groupMap):
                 groupMap[parentSymbol] = []
-            (groupMap[parentSymbol]).append(mkt)
+            # push through a local and write the slice back — the go transpiler's
+            # AppendToArray reassigns only a local copy of a map-stored array, so a
+            # direct push on groupMap[parentSymbol] loses the element in go
+            parentMarkets = groupMap[parentSymbol]
+            parentMarkets.append(mkt)
+            groupMap[parentSymbol] = parentMarkets
         events = []
         groupKeys = list(groupMap.keys())
         for gi in range(0, len(groupKeys)):

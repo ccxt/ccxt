@@ -287,10 +287,13 @@ public partial class limitless : PredictionExchange
         }
         object markets = new List<object>() {};
         object eventGroups = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(allRaw)); postFixIncrement(ref i))
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        object expandedRaw = this.expandGroupRows(allRaw);
+        for (object i = 0; isLessThan(i, getArrayLength(expandedRaw)); postFixIncrement(ref i))
         {
-            object raw = getValue(allRaw, i);
-            object groupId = this.safeString(raw, "groupId", this.safeString(raw, "slug"));
+            object raw = getValue(expandedRaw, i);
+            object groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             object eventKey = ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null;
             object m = this.parseMarket(raw);
             ((IList<object>)markets).Add(m);
@@ -300,13 +303,18 @@ public partial class limitless : PredictionExchange
                 {
                     ((IDictionary<string,object>)eventGroups)[(string)eventKey] = new Dictionary<string, object>() {
                         { "groupId", groupId },
-                        { "title", this.safeString(raw, "title", groupId) },
+                        { "title", this.safeString2(raw, "groupTitle", "title", groupId) },
                         { "raw", raw },
                         { "markets", new List<object>() {} },
                     };
                 }
                 object eventGroup = getValue(eventGroups, eventKey);
-                ((IList<object>)getValue(eventGroup, "markets")).Add(m);
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on eventGroup['markets'] loses the element in go
+                object groupMarkets = getValue(eventGroup, "markets");
+                ((IList<object>)groupMarkets).Add(m);
+                ((IDictionary<string,object>)eventGroup)["markets"] = groupMarkets;
             }
         }
         object eventsDict = new Dictionary<string, object>() {};
@@ -406,7 +414,9 @@ public partial class limitless : PredictionExchange
         //
         object slug = this.safeString(raw, "slug");
         object address = this.safeString(raw, "address", slug);
-        object groupId = this.safeString(raw, "groupId", slug);
+        // groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
+        // the child's own numeric groupId so symbols/handles derive from the readable slug
+        object groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, slug);
         // CTF condition id — needed to redeem a resolved winning position
         object conditionId = this.safeString(raw, "conditionId");
         object tokens = this.safeValue(raw, "tokens", new Dictionary<string, object>() {});
@@ -571,14 +581,57 @@ public partial class limitless : PredictionExchange
             { "addressOrSlug", id },
         };
         object response = await this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters));
-        // the single-market endpoint returns one raw market (no `markets` array like the grouped
-        // listing), so wrap it for parseEvent — its loop then parses this market into the event
+        // a group response carries its tradeable children in `markets` (each a full market row
+        // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
+        // and wraps as its own one-market event, which parseEvent's loop then parses
+        object rows = this.expandGroupRows(new List<object>() {response});
         object wrapped = this.extend(response, new Dictionary<string, object>() {
-            { "markets", new List<object>() {response} },
+            { "markets", rows },
         });
         object eventVar = this.parseEvent(wrapped);
         this.indexEventOutcomes(eventVar);
         return eventVar;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#expandGroupRows
+     * @description flattens listing rows — a 'group' row carries no tradeable tokens itself and
+     * its children (each a full market row with tokens) appear nowhere else in the listing, so
+     * each group row is replaced by its nested markets, tagged with the group's slug and title
+     * (the child's own groupId is an opaque numeric venue id) so they regroup under one readable event
+     * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
+     * @returns {object[]} raw single-market rows only
+     */
+    public virtual object expandGroupRows(object rawRows)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawRows)); postFixIncrement(ref i))
+        {
+            object raw = getValue(rawRows, i);
+            object rowType = this.safeString(raw, "marketType");
+            object nestedMarkets = this.safeList(raw, "markets");
+            if (isTrue(isTrue((isEqual(rowType, "group"))) && isTrue((!isEqual(nestedMarkets, null)))))
+            {
+                object groupSlug = this.safeString(raw, "slug");
+                object groupTitle = this.safeString(raw, "title", groupSlug);
+                object nestedMarketsLength = getArrayLength(nestedMarkets);
+                for (object j = 0; isLessThan(j, nestedMarketsLength); postFixIncrement(ref j))
+                {
+                    // extend copies — the raw child stays untouched
+                    object tagged = this.extend(getValue(nestedMarkets, j), new Dictionary<string, object>() {
+                        { "groupSlug", groupSlug },
+                        { "groupTitle", groupTitle },
+                    });
+                    ((IList<object>)result).Add(tagged);
+                }
+            } else
+            {
+                ((IList<object>)result).Add(raw);
+            }
+        }
+        return result;
     }
 
     public virtual object parseEvent(object eventVar)
@@ -1145,7 +1198,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcomes, null)))
@@ -1572,7 +1625,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcome, null)))
@@ -2849,7 +2902,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object symbolsLength = 0;
@@ -3127,11 +3180,14 @@ public partial class limitless : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         object eventGroups = new Dictionary<string, object>() {};
-        object rawMarketsLength = getArrayLength(rawMarkets);
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        object expandedMarkets = this.expandGroupRows(rawMarkets);
+        object rawMarketsLength = getArrayLength(expandedMarkets);
         for (object i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
         {
-            object raw = getValue(rawMarkets, i);
-            object groupId = this.safeString(raw, "groupId", this.safeString(raw, "slug"));
+            object raw = getValue(expandedMarkets, i);
+            object groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             object eventKey = ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null;
             object m = this.parseMarket(raw);
             ((IDictionary<string,object>)this.markets)[(string)((string)getValue(m, "symbol"))] = m;
@@ -3141,13 +3197,18 @@ public partial class limitless : PredictionExchange
                 {
                     ((IDictionary<string,object>)eventGroups)[(string)eventKey] = new Dictionary<string, object>() {
                         { "groupId", groupId },
-                        { "title", this.safeString(raw, "title", groupId) },
+                        { "title", this.safeString2(raw, "groupTitle", "title", groupId) },
                         { "raw", raw },
                         { "markets", new List<object>() {} },
                     };
                 }
                 object eventGroup = getValue(eventGroups, eventKey);
-                ((IList<object>)getValue(eventGroup, "markets")).Add(m);
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on eventGroup['markets'] loses the element in go
+                object groupMarkets = getValue(eventGroup, "markets");
+                ((IList<object>)groupMarkets).Add(m);
+                ((IDictionary<string,object>)eventGroup)["markets"] = groupMarkets;
             }
         }
         object result = new List<object>() {};

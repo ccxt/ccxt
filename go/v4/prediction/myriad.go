@@ -620,10 +620,10 @@ func (this *MyriadCore) SignEvmTransaction(tx any, privateKey any) any {
 	var signature any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any = this.SafeString(signature, "r")
 	var sHex any = this.SafeString(signature, "s")
-	if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetArrayLength(rHex), 2)), 0)) {
+	if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetLength(rHex), 2)), 0)) {
 		rHex = ccxt.Add("0", rHex)
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetArrayLength(sHex), 2)), 0)) {
+	if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(ccxt.GetLength(sHex), 2)), 0)) {
 		sHex = ccxt.Add("0", sHex)
 	}
 	var yParity any = this.SafeInteger(signature, "v")

@@ -62,6 +62,15 @@ export default class PredictionExchange extends BaseExchange {
     fetchTicker(outcome: string, params?: {}): Promise<PredictionTicker>;
     /**
      * @method
+     * @name fetchTickers
+     * @description fetches price tickers for multiple prediction outcomes at once
+     * @param {string[]} [outcomes] unified outcome handles or outcome ids
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     */
+    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
+    /**
+     * @method
      * @name fetchOrderBook
      * @description fetches the order book for a prediction outcome
      * @param {string} outcome unified outcome handle
@@ -159,6 +168,17 @@ export default class PredictionExchange extends BaseExchange {
     fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
+     * @name fetchOpenOrders
+     * @description fetches information on the user's open orders
+     * @param {string} [outcome] unified outcome handle
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    /**
+     * @method
      * @name fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @param {string} [outcome] unified outcome handle
@@ -200,6 +220,15 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
     fetchPosition(outcome: string, params?: {}): Promise<PredictionPosition>;
+    /**
+     * @method
+     * @name fetchPositions
+     * @description fetches the user's open positions
+     * @param {string[]} [outcomes] unified outcome handles to filter by
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name fetchTradingFee

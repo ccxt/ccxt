@@ -287,7 +287,12 @@ class kalshi extends Exchange {
                                 );
                             }
                             $eventEntry = $eventsDict[$eventKey];
-                            $eventEntry['markets'][] = $m;
+                            // push through a local and write the slice back — the go transpiler's
+                            // AppendToArray reassigns only a local copy of a map-stored array, so a
+                            // direct push on $eventEntry['markets'] loses the element in go
+                            $entryMarkets = $eventEntry['markets'];
+                            $entryMarkets[] = $m;
+                            $eventEntry['markets'] = $entryMarkets;
                         }
                     }
                 }
@@ -2516,10 +2521,15 @@ class kalshi extends Exchange {
         // }
         $rawMarkets = $this->safe_list($rawEvent, 'markets', array());
         $marketsList = array();
-        // aggregate volume/liquidity from the markets and derive the creation time so sort works
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works;
+        // kalshi event payloads carry no status/end_date_iso/resolved of their own, so $active,
+        // $resolved and the resolution deadline are aggregated from the child markets too
         $totalVolume = 0;
         $totalLiquidity = 0;
         $earliestCreated = null;
+        $anyActive = false;
+        $allResolved = true;
+        $latestClose = null;
         for ($i = 0; $i < count($rawMarkets); $i++) {
             $rawMarket = $rawMarkets[$i];
             $parsed = $this->parse_market($rawMarket);
@@ -2530,6 +2540,33 @@ class kalshi extends Exchange {
             if (($marketCreated !== null) && (($earliestCreated === null) || ($marketCreated < $earliestCreated))) {
                 $earliestCreated = $marketCreated;
             }
+            $marketStatus = $this->safe_string($rawMarket, 'status');
+            if ($marketStatus === 'active') {
+                $anyActive = true;
+            }
+            $marketResult = $this->safe_string($rawMarket, 'result');
+            $marketResolved = ($marketStatus === 'settled') || (($marketResult !== null) && ($marketResult !== ''));
+            if (!$marketResolved) {
+                $allResolved = false;
+            }
+            $marketClose = $this->parse8601($this->safe_string($rawMarket, 'close_time'));
+            if (($marketClose !== null) && (($latestClose === null) || ($marketClose > $latestClose))) {
+                $latestClose = $marketClose;
+            }
+        }
+        // the aggregates only mean something when the payload nested any markets at all
+        $marketsCount = count($marketsList);
+        $active = null;
+        if ($marketsCount > 0) {
+            $active = $anyActive;
+        }
+        $resolved = $this->safe_bool($rawEvent, 'resolved');
+        if (($resolved === null) && ($marketsCount > 0)) {
+            $resolved = $allResolved;
+        }
+        $end = $this->parse8601($this->safe_string($rawEvent, 'end_date_iso'));
+        if ($end === null) {
+            $end = $latestClose;
         }
         $ticker = $this->safe_string($rawEvent, 'event_ticker');
         $title = $this->safe_string($rawEvent, 'title');
@@ -2549,13 +2586,14 @@ class kalshi extends Exchange {
             'image' => $this->safe_string($rawEvent, 'image_url'),
             'created' => $created,
             'createdDatetime' => $this->safe_string($rawEvent, 'created_date_iso'),
-            'end' => $this->parse8601($this->safe_string($rawEvent, 'end_date_iso')),
-            'endDatetime' => $this->safe_string($rawEvent, 'end_date_iso'),
+            'end' => $end,
+            'endDatetime' => $this->iso8601($end),
             'category' => $this->safe_string($rawEvent, 'category'),
             'lastUpdatedAt' => $this->parse8601($this->safe_string($rawEvent, 'last_updated_date_iso')),
             'lastUpdatedAtDatetime' => $this->safe_string($rawEvent, 'last_updated_date_iso'),
             'resolutionSource' => $this->safe_string($rawEvent, 'resolution_source'),
-            'resolved' => $this->safe_bool($rawEvent, 'resolved'),
+            'active' => $active,
+            'resolved' => $resolved,
             'info' => $rawEvent,
         ));
     }

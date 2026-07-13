@@ -29,6 +29,18 @@ export default class limitless extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
+    /**
+     * @ignore
+     * @method
+     * @name limitless#expandGroupRows
+     * @description flattens listing rows — a 'group' row carries no tradeable tokens itself and
+     * its children (each a full market row with tokens) appear nowhere else in the listing, so
+     * each group row is replaced by its nested markets, tagged with the group's slug and title
+     * (the child's own groupId is an opaque numeric venue id) so they regroup under one readable event
+     * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
+     * @returns {object[]} raw single-market rows only
+     */
+    expandGroupRows(rawRows: any[]): any[];
     parseEvent(event: Dict): any;
     /**
      * @method

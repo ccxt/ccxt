@@ -281,18 +281,26 @@ class limitless extends Exchange {
             }
             $markets = array();
             $eventGroups = array();
-            for ($i = 0; $i < count($allRaw); $i++) {
-                $raw = $allRaw[$i];
-                $groupId = $this->safe_string($raw, 'groupId', $this->safe_string($raw, 'slug'));
+            // group rows carry their tradeable children in a nested `$markets` list — expand them
+            // into regular rows before parsing (a group row itself has no tokens)
+            $expandedRaw = $this->expand_group_rows($allRaw);
+            for ($i = 0; $i < count($expandedRaw); $i++) {
+                $raw = $expandedRaw[$i];
+                $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
                 $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
                 $m = $this->parse_market($raw);
                 $markets[] = $m;
                 if ($eventKey) {
                     if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
-                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string($raw, 'title', $groupId), 'raw' => $raw, 'markets' => array() );
+                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
                     $eventGroup = $eventGroups[$eventKey];
-                    $eventGroup['markets'][] = $m;
+                    // push through a local and write the slice back — the go transpiler's
+                    // AppendToArray reassigns only a local copy of a map-stored array, so a
+                    // direct push on $eventGroup['markets'] loses the element in go
+                    $groupMarkets = $eventGroup['markets'];
+                    $groupMarkets[] = $m;
+                    $eventGroup['markets'] = $groupMarkets;
                 }
             }
             $eventsDict = array();
@@ -390,7 +398,9 @@ class limitless extends Exchange {
         //
         $slug = $this->safe_string($raw, 'slug');
         $address = $this->safe_string($raw, 'address', $slug);
-        $groupId = $this->safe_string($raw, 'groupId', $slug);
+        // groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
+        // the child's own numeric $groupId so symbols/handles derive from the readable $slug
+        $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $slug);
         // CTF condition id — needed to redeem a resolved winning position
         $conditionId = $this->safe_string($raw, 'conditionId');
         $tokens = $this->safe_value($raw, 'tokens', array());
@@ -535,13 +545,46 @@ class limitless extends Exchange {
              */
             $request = array( 'addressOrSlug' => $id );
             $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)));
-            // the single-market endpoint returns one raw market (no `markets` array like the grouped
-            // listing), so wrap it for parseEvent — its loop then parses this market into the $event
-            $wrapped = $this->extend($response, array( 'markets' => array( $response ) ));
+            // a group $response carries its tradeable children in `markets` (each a full market row
+            // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
+            // and wraps own one-market $event, which parseEvent's loop then parses
+            $rows = $this->expand_group_rows(array( $response ));
+            $wrapped = $this->extend($response, array( 'markets' => $rows ));
             $event = $this->parse_event($wrapped);
             $this->index_event_outcomes($event);
             return $event;
         })();
+    }
+
+    public function expand_group_rows(array $rawRows): array {
+        /**
+         * @ignore
+         * flattens listing rows — a 'group' row carries no tradeable tokens itself and
+         * its children (each a full market row with tokens) appear nowhere else in the listing, so
+         * each group row is replaced by its nested markets, $tagged with the group's slug and title
+         * (the child's own groupId is an opaque numeric venue id) so they regroup under one readable event
+         * @param {array[]} $rawRows $raw listing rows, single-market and group rows mixed
+         * @return {array[]} $raw single-market rows only
+         */
+        $result = array();
+        for ($i = 0; $i < count($rawRows); $i++) {
+            $raw = $rawRows[$i];
+            $rowType = $this->safe_string($raw, 'marketType');
+            $nestedMarkets = $this->safe_list($raw, 'markets');
+            if (($rowType === 'group') && ($nestedMarkets !== null)) {
+                $groupSlug = $this->safe_string($raw, 'slug');
+                $groupTitle = $this->safe_string($raw, 'title', $groupSlug);
+                $nestedMarketsLength = count($nestedMarkets);
+                for ($j = 0; $j < $nestedMarketsLength; $j++) {
+                    // extend copies — the $raw child stays untouched
+                    $tagged = $this->extend($nestedMarkets[$j], array( 'groupSlug' => $groupSlug, 'groupTitle' => $groupTitle ));
+                    $result[] = $tagged;
+                }
+            } else {
+                $result[] = $raw;
+            }
+        }
+        return $result;
     }
 
     public function parse_event(array $event): mixed {
@@ -2878,19 +2921,27 @@ class limitless extends Exchange {
                 $this->markets = $this->create_safe_dictionary();
             }
             $eventGroups = array();
-            $rawMarketsLength = count($rawMarkets);
+            // group rows carry their tradeable children in a nested `markets` list — expand them
+            // into regular rows before parsing (a group row itself has no tokens)
+            $expandedMarkets = $this->expand_group_rows($rawMarkets);
+            $rawMarketsLength = count($expandedMarkets);
             for ($i = 0; $i < $rawMarketsLength; $i++) {
-                $raw = $rawMarkets[$i];
-                $groupId = $this->safe_string($raw, 'groupId', $this->safe_string($raw, 'slug'));
+                $raw = $expandedMarkets[$i];
+                $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
                 $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
                 $m = $this->parse_market($raw);
                 $this->markets[$m['symbol']] = $m;
                 if ($eventKey) {
                     if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
-                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string($raw, 'title', $groupId), 'raw' => $raw, 'markets' => array() );
+                        $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
                     $eventGroup = $eventGroups[$eventKey];
-                    $eventGroup['markets'][] = $m;
+                    // push through a local and write the slice back — the go transpiler's
+                    // AppendToArray reassigns only a local copy of a map-stored array, so a
+                    // direct push on $eventGroup['markets'] loses the element in go
+                    $groupMarkets = $eventGroup['markets'];
+                    $groupMarkets[] = $m;
+                    $eventGroup['markets'] = $groupMarkets;
                 }
             }
             $result = array();

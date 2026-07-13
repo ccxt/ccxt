@@ -270,17 +270,25 @@ class limitless(PredictionExchange, ImplicitAPI):
                         break
         markets = []
         eventGroups = {}
-        for i in range(0, len(allRaw)):
-            raw = allRaw[i]
-            groupId = self.safe_string(raw, 'groupId', self.safe_string(raw, 'slug'))
+        # group rows carry their tradeable children in a nested `markets` list — expand them
+        # into regular rows before parsing(a group row itself has no tokens)
+        expandedRaw = self.expand_group_rows(allRaw)
+        for i in range(0, len(expandedRaw)):
+            raw = expandedRaw[i]
+            groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
             eventKey = self.shorten_slug(groupId) if groupId else None
             m = self.parse_market(raw)
             markets.append(m)
             if eventKey:
                 if not (eventKey in eventGroups):
-                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string(raw, 'title', groupId), 'raw': raw, 'markets': []}
+                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
-                eventGroup['markets'].append(m)
+                # push through a local and write the slice back — the go transpiler's
+                # AppendToArray reassigns only a local copy of a map-stored array, so a
+                # direct push on eventGroup['markets'] loses the element in go
+                groupMarkets = eventGroup['markets']
+                groupMarkets.append(m)
+                eventGroup['markets'] = groupMarkets
         eventsDict = {}
         eventKeys = list(eventGroups.keys())
         for i in range(0, len(eventKeys)):
@@ -372,7 +380,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         #
         slug = self.safe_string(raw, 'slug')
         address = self.safe_string(raw, 'address', slug)
-        groupId = self.safe_string(raw, 'groupId', slug)
+        # groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
+        # the child's own numeric groupId so symbols/handles derive from the readable slug
+        groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], slug)
         # CTF condition id — needed to redeem a resolved winning position
         conditionId = self.safe_string(raw, 'conditionId')
         tokens = self.safe_value(raw, 'tokens', {})
@@ -511,12 +521,41 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         request = {'addressOrSlug': id}
         response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend(request, params))
-        # the single-market endpoint returns one raw market(no `markets` array like the grouped
-        # listing), so wrap it for parseEvent — its loop then parses self market into the event
-        wrapped = self.extend(response, {'markets': [response]})
+        # a group response carries its tradeable children in `markets`(each a full market row
+        # with tokens) — expandGroupRows unwraps them; a single market has no nested markets
+        # and wraps own one-market event, which parseEvent's loop then parses
+        rows = self.expand_group_rows([response])
+        wrapped = self.extend(response, {'markets': rows})
         event = self.parse_event(wrapped)
         self.index_event_outcomes(event)
         return event
+
+    def expand_group_rows(self, rawRows: List[Any]) -> List[Any]:
+        """
+ @ignore
+        flattens listing rows — a 'group' row carries no tradeable tokens itself and
+ its children(each a full market row with tokens) appear nowhere else in the listing, so
+ each group row is replaced by its nested markets, tagged with the group's slug and title
+ (the child's own groupId is an opaque numeric venue id) so they regroup under one readable event
+        :param dict[] rawRows: raw listing rows, single-market and group rows mixed
+        :returns dict[]: raw single-market rows only
+        """
+        result = []
+        for i in range(0, len(rawRows)):
+            raw = rawRows[i]
+            rowType = self.safe_string(raw, 'marketType')
+            nestedMarkets = self.safe_list(raw, 'markets')
+            if (rowType == 'group') and (nestedMarkets is not None):
+                groupSlug = self.safe_string(raw, 'slug')
+                groupTitle = self.safe_string(raw, 'title', groupSlug)
+                nestedMarketsLength = len(nestedMarkets)
+                for j in range(0, nestedMarketsLength):
+                    # self.extend copies — the raw child stays untouched
+                    tagged = self.extend(nestedMarkets[j], {'groupSlug': groupSlug, 'groupTitle': groupTitle})
+                    result.append(tagged)
+            else:
+                result.append(raw)
+        return result
 
     def parse_event(self, event: dict) -> Any:
         # {
@@ -2666,18 +2705,26 @@ class limitless(PredictionExchange, ImplicitAPI):
         if not self.markets:
             self.markets = self.create_safe_dictionary()
         eventGroups = {}
-        rawMarketsLength = len(rawMarkets)
+        # group rows carry their tradeable children in a nested `markets` list — expand them
+        # into regular rows before parsing(a group row itself has no tokens)
+        expandedMarkets = self.expand_group_rows(rawMarkets)
+        rawMarketsLength = len(expandedMarkets)
         for i in range(0, rawMarketsLength):
-            raw = rawMarkets[i]
-            groupId = self.safe_string(raw, 'groupId', self.safe_string(raw, 'slug'))
+            raw = expandedMarkets[i]
+            groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
             eventKey = self.shorten_slug(groupId) if groupId else None
             m = self.parse_market(raw)
             self.markets[m['symbol']] = m
             if eventKey:
                 if not (eventKey in eventGroups):
-                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string(raw, 'title', groupId), 'raw': raw, 'markets': []}
+                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
-                eventGroup['markets'].append(m)
+                # push through a local and write the slice back — the go transpiler's
+                # AppendToArray reassigns only a local copy of a map-stored array, so a
+                # direct push on eventGroup['markets'] loses the element in go
+                groupMarkets = eventGroup['markets']
+                groupMarkets.append(m)
+                eventGroup['markets'] = groupMarkets
         result = []
         eventKeys = list(eventGroups.keys())
         eventKeysLength = len(eventKeys)

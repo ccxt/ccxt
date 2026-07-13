@@ -282,7 +282,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
                                 'markets': [],
                             }
                         eventEntry = eventsDict[eventKey]
-                        eventEntry['markets'].append(m)
+                        # push through a local and write the slice back — the go transpiler's
+                        # AppendToArray reassigns only a local copy of a map-stored array, so a
+                        # direct push on eventEntry['markets'] loses the element in go
+                        entryMarkets = eventEntry['markets']
+                        entryMarkets.append(m)
+                        eventEntry['markets'] = entryMarkets
             cursor = self.safe_string(response, 'cursor')
             collectedLength = len(flatMarkets)
             if not cursor or rawMarketsLength < limit or collectedLength >= maxMarkets:
@@ -2248,9 +2253,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
         rawMarkets = self.safe_list(rawEvent, 'markets', [])
         marketsList = []
         # aggregate volume/liquidity from the markets and derive the creation time so sort works
+        # kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
+        # resolved and the resolution deadline are aggregated from the child markets too
         totalVolume = 0
         totalLiquidity = 0
         earliestCreated = None
+        anyActive = False
+        allResolved = True
+        latestClose = None
         for i in range(0, len(rawMarkets)):
             rawMarket = rawMarkets[i]
             parsed = self.parse_market(rawMarket)
@@ -2260,6 +2270,27 @@ class kalshi(PredictionExchange, ImplicitAPI):
             marketCreated = self.parse8601(self.safe_string(rawMarket, 'open_time'))
             if (marketCreated is not None) and ((earliestCreated is None) or (marketCreated < earliestCreated)):
                 earliestCreated = marketCreated
+            marketStatus = self.safe_string(rawMarket, 'status')
+            if marketStatus == 'active':
+                anyActive = True
+            marketResult = self.safe_string(rawMarket, 'result')
+            marketResolved = (marketStatus == 'settled') or ((marketResult is not None) and (marketResult != ''))
+            if not marketResolved:
+                allResolved = False
+            marketClose = self.parse8601(self.safe_string(rawMarket, 'close_time'))
+            if (marketClose is not None) and ((latestClose is None) or (marketClose > latestClose)):
+                latestClose = marketClose
+        # the aggregates only mean something when the payload nested any markets at all
+        marketsCount = len(marketsList)
+        active = None
+        if marketsCount > 0:
+            active = anyActive
+        resolved = self.safe_bool(rawEvent, 'resolved')
+        if (resolved is None) and (marketsCount > 0):
+            resolved = allResolved
+        end = self.parse8601(self.safe_string(rawEvent, 'end_date_iso'))
+        if end is None:
+            end = latestClose
         ticker = self.safe_string(rawEvent, 'event_ticker')
         title = self.safe_string(rawEvent, 'title')
         created = self.parse8601(self.safe_string(rawEvent, 'created_date_iso'))
@@ -2277,13 +2308,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'image': self.safe_string(rawEvent, 'image_url'),
             'created': created,
             'createdDatetime': self.safe_string(rawEvent, 'created_date_iso'),
-            'end': self.parse8601(self.safe_string(rawEvent, 'end_date_iso')),
-            'endDatetime': self.safe_string(rawEvent, 'end_date_iso'),
+            'end': end,
+            'endDatetime': self.iso8601(end),
             'category': self.safe_string(rawEvent, 'category'),
             'lastUpdatedAt': self.parse8601(self.safe_string(rawEvent, 'last_updated_date_iso')),
             'lastUpdatedAtDatetime': self.safe_string(rawEvent, 'last_updated_date_iso'),
             'resolutionSource': self.safe_string(rawEvent, 'resolution_source'),
-            'resolved': self.safe_bool(rawEvent, 'resolved'),
+            'active': active,
+            'resolved': resolved,
             'info': rawEvent,
         })
 

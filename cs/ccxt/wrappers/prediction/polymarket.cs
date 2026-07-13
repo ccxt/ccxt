@@ -136,6 +136,7 @@ public partial class polymarket
     /// <remarks>
     /// See <see href="https://docs.polymarket.com/api-reference/data/get-midpoint-price"/>  <br/>
     /// See <see href="https://docs.polymarket.com/api-reference/market-data/get-order-book"/>  <br/>
+    /// See <see href="https://docs.polymarket.com/api-reference/data/get-last-trade-price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -152,11 +153,12 @@ public partial class polymarket
         return new PredictionTicker(res);
     }
     /// <summary>
-    /// fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints (200 per request pair)
+    /// fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body"/>  <br/>
     /// See <see href="https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body"/>  <br/>
+    /// See <see href="https://docs.polymarket.com/api-reference/data/get-last-trades-prices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

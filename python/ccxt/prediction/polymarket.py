@@ -282,6 +282,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 },
                 'broad': {
                     'No orderbook exists': BadSymbol,
+                    # gamma rejects non-token-id values in clob_token_ids with a 422
+                    'invalid clob token ids': BadSymbol,
                     'not enough balance': InsufficientFunds,
                     'allowance': InsufficientFunds,
                     'invalid amount': InvalidOrder,
@@ -325,6 +327,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'fetchMarketsLimit': 200,
                 'maxFetchEventsLimit': 500,
                 'defaultEventStatus': 'active',  # 'active' | 'closed' | 'all'
+                # prices-history rejects startTs/endTs spans over 15 days regardless of fidelity
+                'maxPricesHistoryWindow': 1296000,
                 # CTF Exchange V2 signing constants(Polygon); the V2 contracts are the same on
                 # mainnet(137) and Amoy(80002), see @polymarket/clob-client config.ts
                 'chainId': 137,
@@ -786,10 +790,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str outcomeSymbol: the outcome token id or handle
         :returns dict: the resolved outcome object
         """
-        # a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
+        # a bare CLOB token id has no ':'(an outcome handle is always "MARKET:LABEL") and no
+        # searchable words — outcomeSearchQuery returns None only for id-like inputs, so
+        # word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup(which 422s on
+        # non-ids) and falls through to the search path and its local BadSymbol below.
         # absence must be `< 0` — the php transpiler maps that to `== False`, while a literal
         # `== -1` passes through and never matches mb_strpos's False return
-        if outcomeSymbol.find(':') < 0:
+        if (outcomeSymbol.find(':') < 0) and (self.outcome_search_query(outcomeSymbol) is None):
             response = await self.gammaPublicGetMarkets({'clob_token_ids': outcomeSymbol})
             rawMarkets = response if (response is not None) else []
             rawMarketsLength = len(rawMarkets)
@@ -820,9 +827,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
         tokenIds = []
         for i in range(0, len(outcomeSymbols)):
             outcomeSymbol = outcomeSymbols[i]
-            # absence must be `< 0` — the php transpiler maps that to `== False`, while a
-            # literal `== -1` passes through and never matches mb_strpos's False return
-            if outcomeSymbol.find(':') < 0:
+            # only id-like symbols(no ':', no searchable words) belong in the by-id batch —
+            # see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
+            # maps that to `== False`, while a literal `== -1` passes through and never
+            # matches mb_strpos's False return
+            if (outcomeSymbol.find(':') < 0) and (self.outcome_search_query(outcomeSymbol) is None):
                 tokenIds.append(outcomeSymbol)
         tokenIdsLength = len(tokenIds)
         if tokenIdsLength > 0:
@@ -859,6 +868,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         https://docs.polymarket.com/api-reference/data/get-midpoint-price
         https://docs.polymarket.com/api-reference/market-data/get-order-book
+        https://docs.polymarket.com/api-reference/data/get-last-trade-price
 
         :param str outcome: unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -869,9 +879,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         promises = [
             self.clobPublicGetMidpoint({'token_id': tokenId}),
             self.clobPublicGetBook({'token_id': tokenId}),
+            self.clobPublicGetLastTradePrice({'token_id': tokenId}),
         ]
-        midpointResponse, bookResponse = await asyncio.gather(*promises)
-        response = {'midpoint': midpointResponse, 'book': bookResponse}
+        midpointResponse, bookResponse, lastTradeResponse = await asyncio.gather(*promises)
+        response = {'midpoint': midpointResponse, 'book': bookResponse, 'lastTrade': lastTradeResponse}
         #
         #     {
         #         "midpoint": {
@@ -898,6 +909,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             "tick_size": "0.001",
         #             "neg_risk": False,
         #             "last_trade_price": "0.998"
+        #         },
+        #         "lastTrade": {
+        #             "price": "0.46",
+        #             "side": "BUY"
         #         }
         #     }
         #
@@ -908,10 +923,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
     async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
         """
-        fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints(200 per request pair)
+        fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints(200 per request trio)
 
         https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
         https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+        https://docs.polymarket.com/api-reference/data/get-last-trades-prices
 
         :param str[] outcomes: unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -946,10 +962,19 @@ class polymarket(PredictionExchange, ImplicitAPI):
             promises = [
                 self.clobPublicPostBooks(bookParams),
                 self.clobPublicPostMidpoints(bookParams),
+                self.clobPublicPostLastTradesPrices(bookParams),
             ]
             responses = await asyncio.gather(*promises)
             books = responses[0]
             midpoints = responses[1]
+            lastTrades = responses[2]
+            lastTradesByTokenId = {}
+            lastTradesLength = len(lastTrades)
+            for li in range(0, lastTradesLength):
+                lastTradeEntry = lastTrades[li]
+                lastTradeTokenId = self.safe_string(lastTradeEntry, 'token_id')
+                if lastTradeTokenId is not None:
+                    lastTradesByTokenId[lastTradeTokenId] = lastTradeEntry
             booksLength = len(books)
             for i in range(0, booksLength):
                 book = books[i]
@@ -958,7 +983,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     continue
                 outcomeObj = outcomesByTokenId[tokenId]
                 mid = self.safe_string(midpoints, tokenId)
-                tickerInput = {'midpoint': {'mid': mid}, 'book': book}
+                tickerInput = {'midpoint': {'mid': mid}, 'book': book, 'lastTrade': self.safe_dict(lastTradesByTokenId, tokenId, {})}
                 ticker = self.parse_prediction_ticker(tickerInput, outcomeObj)
                 symbolKey = self.safe_string(ticker, 'outcome', tokenId)
                 result[symbolKey] = ticker
@@ -999,6 +1024,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             "tick_size": "0.001",
         #             "neg_risk": False,
         #             "last_trade_price": "0.998"
+        #         },
+        #         "lastTrade": {
+        #             "price": "0.46",
+        #             "side": "BUY"
         #         }
         #     }
         #
@@ -1012,8 +1041,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # the CLOB book endpoint returns levels sorted away from the touch(bids ascending, asks descending), so the best level is the last entry
         bestBid = bids[bidsLength - 1] if (bidsLength > 0) else None
         bestAsk = asks[asksLength - 1] if (asksLength > 0) else None
-        lastTradePrice = self.safe_number(bookData, 'last_trade_price')
-        last = lastTradePrice if (lastTradePrice is not None) else mid
+        # book.last_trade_price is market-level and denominated in whichever token traded last —
+        # on the complementary token it is the OTHER side's price, so only the per-token
+        # last-trade-price endpoint value is usable here; that endpoint reports "0" for a
+        # never-traded token, which also falls back to the mid
+        lastTradeData = self.safe_dict(ticker, 'lastTrade', {})
+        last = self.safe_number(lastTradeData, 'price')
+        if (last is None) or (last == 0):
+            last = mid
         outcome = self.safe_outcome_symbol(None, market)
         timestamp = self.safe_integer(bookData, 'timestamp', self.milliseconds())
         quoteVolume = None
@@ -1102,6 +1137,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: a list of candles ordered, open, high, low, close, volume
         """
+        if not (timeframe in self.timeframes):
+            # hoisted keys list: chaining join onto Object.keys breaks the python transpiler
+            supportedKeys = list(self.timeframes.keys())
+            raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + ', '.join(supportedKeys))
         outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
         fidelityMin = self.safe_integer(self.timeframes, timeframe, 1)  # fidelity in minutes
@@ -1116,6 +1155,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         else:
             barCount = limit if (limit is not None) else 100
             startS = nowS - (barCount * fidelityMin * 60)
+        # the venue rejects startTs/endTs spans over 15 days("interval is too long")
+        # regardless of fidelity, so clamp the window to the cap: keep the requested
+        # `since` anchor(oldest chunk first, consistent with since/limit paging),
+        # or the most recent window when no `since` was given
+        maxWindow = self.safe_integer(self.options, 'maxPricesHistoryWindow', 1296000)
+        if (endS - startS) > maxWindow:
+            if since is not None:
+                endS = self.sum(startS, maxWindow)
+            else:
+                startS = endS - maxWindow
         request = {
             'market': tokenId,
             'fidelity': fidelityMin,
@@ -1143,11 +1192,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 continue
             rawMs = t * 1000
             snappedMs = int(math.floor(rawMs / resolutionMs)) * resolutionMs
+            # the venue supplies no candle volume({t, p} ticks only) — leave it None
+            # rather than fabricating a 0, probing s/v in case the field ever appears
             vol = self.safe_number(item, 's')
             if vol is None:
                 vol = self.safe_number(item, 'v')
-            if vol is None:
-                vol = 0
             bucketKey = str(snappedMs)
             if not (bucketKey in buckets):
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol]
@@ -1156,7 +1205,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 candle[2] = max(candle[2], price)  # high
                 candle[3] = min(candle[3], price)  # low
                 candle[4] = price                                  # close(last tick wins)
-                candle[5] = self.sum(candle[5], vol)   # volume
+                if vol is not None:
+                    prevVol = candle[5]
+                    candle[5] = vol if (prevVol is None) else self.sum(prevVol, vol)  # volume
                 buckets[bucketKey] = candle  # reassign after mutation, php arrays are value types
         bucketKeys = list(buckets.keys())
         unsortedCandles = []
@@ -1177,7 +1228,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #     }
         #
         price = self.safe_number(ohlcv, 'p')
-        return [self.safe_timestamp(ohlcv, 't'), price, price, price, price, 0]
+        return [self.safe_timestamp(ohlcv, 't'), price, price, price, price, None]
 
     async def fetch_time(self, params={}) -> Int:
         """

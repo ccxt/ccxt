@@ -285,7 +285,12 @@ public partial class kalshi : PredictionExchange
                             };
                         }
                         object eventEntry = getValue(eventsDict, eventKey);
-                        ((IList<object>)getValue(eventEntry, "markets")).Add(m);
+                        // push through a local and write the slice back — the go transpiler's
+                        // AppendToArray reassigns only a local copy of a map-stored array, so a
+                        // direct push on eventEntry['markets'] loses the element in go
+                        object entryMarkets = getValue(eventEntry, "markets");
+                        ((IList<object>)entryMarkets).Add(m);
+                        ((IDictionary<string,object>)eventEntry)["markets"] = entryMarkets;
                     }
                 }
             }
@@ -1033,7 +1038,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcomes, null)))
@@ -1681,7 +1686,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomesLength = 0;
@@ -1911,7 +1916,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2785,10 +2790,15 @@ public partial class kalshi : PredictionExchange
         // }
         object rawMarkets = (IList<object>)(this.safeList(rawEvent, "markets", new List<object>() {}));
         object marketsList = new List<object>() {};
-        // aggregate volume/liquidity from the markets and derive the creation time so sort works
+        // aggregate volume/liquidity from the markets and derive the creation time so sort works;
+        // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
+        // resolved and the resolution deadline are aggregated from the child markets too
         object totalVolume = 0;
         object totalLiquidity = 0;
         object earliestCreated = null;
+        object anyActive = false;
+        object allResolved = true;
+        object latestClose = null;
         for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object rawMarket = getValue(rawMarkets, i);
@@ -2801,6 +2811,39 @@ public partial class kalshi : PredictionExchange
             {
                 earliestCreated = marketCreated;
             }
+            object marketStatus = this.safeString(rawMarket, "status");
+            if (isTrue(isEqual(marketStatus, "active")))
+            {
+                anyActive = true;
+            }
+            object marketResult = this.safeString(rawMarket, "result");
+            object marketResolved = isTrue((isEqual(marketStatus, "settled"))) || isTrue((isTrue((!isEqual(marketResult, null))) && isTrue((!isEqual(marketResult, "")))));
+            if (!isTrue(marketResolved))
+            {
+                allResolved = false;
+            }
+            object marketClose = this.parse8601(this.safeString(rawMarket, "close_time"));
+            if (isTrue(isTrue((!isEqual(marketClose, null))) && isTrue((isTrue((isEqual(latestClose, null))) || isTrue((isGreaterThan(marketClose, latestClose)))))))
+            {
+                latestClose = marketClose;
+            }
+        }
+        // the aggregates only mean something when the payload nested any markets at all
+        object marketsCount = getArrayLength(marketsList);
+        object active = null;
+        if (isTrue(isGreaterThan(marketsCount, 0)))
+        {
+            active = anyActive;
+        }
+        object resolved = this.safeBool(rawEvent, "resolved");
+        if (isTrue(isTrue((isEqual(resolved, null))) && isTrue((isGreaterThan(marketsCount, 0)))))
+        {
+            resolved = allResolved;
+        }
+        object end = this.parse8601(this.safeString(rawEvent, "end_date_iso"));
+        if (isTrue(isEqual(end, null)))
+        {
+            end = latestClose;
         }
         object ticker = this.safeString(rawEvent, "event_ticker");
         object title = this.safeString(rawEvent, "title");
@@ -2821,13 +2864,14 @@ public partial class kalshi : PredictionExchange
             { "image", this.safeString(rawEvent, "image_url") },
             { "created", created },
             { "createdDatetime", this.safeString(rawEvent, "created_date_iso") },
-            { "end", this.parse8601(this.safeString(rawEvent, "end_date_iso")) },
-            { "endDatetime", this.safeString(rawEvent, "end_date_iso") },
+            { "end", end },
+            { "endDatetime", this.iso8601(end) },
             { "category", this.safeString(rawEvent, "category") },
             { "lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "last_updated_date_iso")) },
             { "lastUpdatedAtDatetime", this.safeString(rawEvent, "last_updated_date_iso") },
             { "resolutionSource", this.safeString(rawEvent, "resolution_source") },
-            { "resolved", this.safeBool(rawEvent, "resolved") },
+            { "active", active },
+            { "resolved", resolved },
             { "info", rawEvent },
         });
     }
