@@ -502,11 +502,29 @@ export default class polymarket extends Exchange {
         const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags' ]);
         let baseRequest: Dict = { 'limit': pageSize, 'order': order, 'ascending': false };
         baseRequest = this.extend (baseRequest, rest);
-        // push a requested tag server-side (gamma accepts tag_slug) so a tags-only fetchEvents returns
-        // the tagged events rather than filtering the top-volume listing down to nothing; the base
-        // filterEventsByTags then narrows further client-side when multiple tags are requested
+        // push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
+        // fetchEvents returns the tagged events rather than filtering the top-volume listing down
+        // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
         const requestedTags = this.safeList (params, 'tags', []);
         const requestedTagsLength = requestedTags.length;
+        if (requestedTagsLength > 1) {
+            const seen: Dict = {};
+            const unioned: any[] = [];
+            for (let ti = 0; ti < requestedTagsLength; ti++) {
+                const singleTagParams = this.extend ({}, params);
+                singleTagParams['tags'] = [ requestedTags[ti] ];
+                const tagEvents = await this.fetchRawEventsList (singleTagParams);
+                for (let ei = 0; ei < tagEvents.length; ei++) {
+                    const rawEvent = tagEvents[ei];
+                    const eventId = this.safeString (rawEvent, 'id');
+                    if ((eventId !== undefined) && !(eventId in seen)) {
+                        seen[eventId] = true;
+                        unioned.push (rawEvent);
+                    }
+                }
+            }
+            return unioned;
+        }
         if (requestedTagsLength > 0) {
             baseRequest['tag_slug'] = this.safeString (requestedTags, 0);
         }
@@ -897,26 +915,21 @@ export default class polymarket extends Exchange {
     /**
      * @method
      * @name polymarket#fetchTickers
-     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints (200 per request pair)
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
      * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
-     * @param {string[]} [outcomes] unified outcomes or outcome token ids, fetches all loaded outcomes when omitted
+     * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        await this.loadOutcomes ();
-        const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
+        if (outcomes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
+        }
         const targets: any[] = [];
-        if (outcomes !== undefined) {
-            for (let oi = 0; oi < outcomes.length; oi++) {
-                targets.push (outcomes[oi]);
-            }
-        } else {
-            const allOutcomeKeys = Object.keys (outcomesMap);
-            for (let ki = 0; ki < allOutcomeKeys.length; ki++) {
-                targets.push (allOutcomeKeys[ki]);
-            }
+        for (let oi = 0; oi < outcomes.length; oi++) {
+            await this.loadOutcome (outcomes[oi]);
+            targets.push (outcomes[oi]);
         }
         const outcomesByTokenId: Dict = {};
         const tokenIds: any[] = [];
@@ -1526,8 +1539,12 @@ export default class polymarket extends Exchange {
         let outcomesLength = 0;
         if (outcomes !== undefined) {
             outcomesLength = outcomes.length;
+            for (let i = 0; i < outcomes.length; i++) {
+                await this.loadOutcome (outcomes[i]);
+            }
         }
-        await this.loadOutcomes ();
+        // no bulk warm-up on the unfiltered path: the positions request is self-contained and
+        // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' walletAddress is required to fetchPositions');
         }
@@ -1798,7 +1815,12 @@ export default class polymarket extends Exchange {
      */
     async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         await this.loadApiCredentials ();
-        await this.loadOutcomes ();
+        // buildClobOrderBody resolves outcomes synchronously from the cache, so warm each
+        // requested outcome individually instead of bulk-loading the whole listing
+        for (let i = 0; i < orders.length; i++) {
+            const o = orders[i];
+            await this.loadOutcome (this.safeString (o, 'outcome'));
+        }
         const bodies = [];
         const outcomes = [];
         const requests = [];
@@ -2190,7 +2212,7 @@ export default class polymarket extends Exchange {
     /**
      * @method
      * @name polymarket#fetchEvents
-     * @description fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
      * @see https://docs.polymarket.com/api-reference/events/list-events
      * @param {object} [params] extra exchange-specific parameters
@@ -2207,8 +2229,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
-        // no requireEventQuery: polymarket has a bounded gamma listing (fetchRawEventsList), so an
-        // unscoped call returns the most-active events (matching this method's documented contract)
+        this.requireEventQuery (params);
         const requestedEventId = this.safeString (params, 'eventId');
         const requestedSlug = this.safeString (params, 'slug');
         const queries = this.parseSearchQueries (params);

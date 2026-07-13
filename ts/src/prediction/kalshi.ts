@@ -207,10 +207,9 @@ export default class kalshi extends Exchange {
                 'maxFetchEventsResults': 100,      // default cap on events actually fetched when the caller gives no limit
                 'maxEventPagesPerSeries': 20,      // safety cap on /events pages fetched per resolved series
                 'defaultEventStatus': 'open',  // 'open' | 'closed' | 'settled'
-                // kalshi has tens of thousands of markets. false (default) = resolve each outcome on
-                // demand (~1s per market, cached) so hot paths are cheap; set true to bulk-load every
-                // outcome once up front (a multi-second listing scan) and make every later lookup a hit
-                'loadAllOutcomes': false,
+                // venue-specific fetchEvents scope params accepted by requireEventQuery in
+                // addition to the unified query/queries/tags/eventId/slug
+                'eventScopeParams': [ 'category', 'series_ticker' ],
             },
         });
     }
@@ -858,25 +857,20 @@ export default class kalshi extends Exchange {
     /**
      * @method
      * @name kalshi#fetchTickers
-     * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
+     * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
      * @see https://docs.kalshi.com/api-reference/market/get-markets
-     * @param {string[]} [outcomes] unified outcomes, fetches tickers for all loaded outcomes when omitted
+     * @param {string[]} outcomes unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        if (outcomes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+        }
         const targets: any[] = [];
-        if (outcomes !== undefined) {
-            for (let i = 0; i < outcomes.length; i++) {
-                await this.loadOutcome (outcomes[i]);
-                targets.push (outcomes[i]);
-            }
-        } else {
-            await this.loadOutcomes ();
-            const allKeys = Object.keys (this.outcomes);
-            for (let i = 0; i < allKeys.length; i++) {
-                targets.push (allKeys[i]);
-            }
+        for (let i = 0; i < outcomes.length; i++) {
+            await this.loadOutcome (outcomes[i]);
+            targets.push (outcomes[i]);
         }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
@@ -1294,8 +1288,6 @@ export default class kalshi extends Exchange {
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         const request: Dict = {};
         let outcomeObj: any = undefined;
@@ -1458,9 +1450,9 @@ export default class kalshi extends Exchange {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.loadOutcome (outcomes[i]);
             }
-        } else {
-            await this.loadOutcomes ();
         }
+        // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
+        // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
         const positions = this.safeList (response, 'market_positions', []) as any[];
         // filter by the requested outcomes' market tickers — a kalshi position is per market
@@ -1504,8 +1496,6 @@ export default class kalshi extends Exchange {
     async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         const request: Dict = {};
         if (limit !== undefined) {
@@ -1661,8 +1651,6 @@ export default class kalshi extends Exchange {
     async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         const request: Dict = { 'status': 'resting' };
         let outcomeObj: any = undefined;
@@ -1689,8 +1677,6 @@ export default class kalshi extends Exchange {
     async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-        } else {
-            await this.loadOutcomes ();
         }
         // no status filter — the endpoint returns every order; pass params.status to narrow
         const request: Dict = {};

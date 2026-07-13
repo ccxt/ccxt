@@ -852,9 +852,27 @@ class testMainClass {
             // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
             // Java and its async lambda can't propagate (or re-throw) a checked exception
             try {
-                // some venues require fetchEvents to be scoped (e.g. hyperliquid's requireEventQuery);
-                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
-                const eventQuery = exchange.safeString (this.skippedSettingsForExchange, 'preferredEventQuery');
+                // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                // every prediction venue — assert it so the contract can't silently regress
+                let unscopedError = '';
+                try {
+                    await callExchangeMethodDynamically (exchange, 'fetchEvents', [ {} ]);
+                } catch (e) {
+                    unscopedError = exceptionMessage (e);
+                }
+                assert (unscopedError.indexOf ('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
+                // every venue requires fetchEvents to be scoped; a skip-tests.json
+                // preferredEventQuery supplies a query known to match the venue's markets
+                let eventQuery = exchange.safeString (this.skippedSettingsForExchange, 'preferredEventQuery');
+                if (eventQuery === undefined) {
+                    // derive one from the selected outcome handle (the market words with
+                    // separators as spaces) so the scoped contract holds even without a pin
+                    const handleParts = outcomeSymbol.split (':');
+                    const marketPart = handleParts[0];
+                    const lowerPart = marketPart.toLowerCase ();
+                    const dedashed = lowerPart.replaceAll ('-', ' ');
+                    eventQuery = dedashed.replaceAll ('_', ' ');
+                }
                 const eventParams = {};
                 if (eventQuery !== undefined) {
                     eventParams['query'] = eventQuery;
@@ -911,6 +929,19 @@ class testMainClass {
             } catch (e) {
                 dump ('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exceptionMessage (e));
                 return false;
+            }
+            // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            // instead of silently returning a capped subset
+            const canServeAllTickers = exchange.safeBool (exchange.options, 'loadAllOutcomes', false);
+            if (!canServeAllTickers && exchange.safeBool (exchange.has, 'fetchTickers', false)) {
+                let tickersError = '';
+                try {
+                    await callExchangeMethodDynamically (exchange, 'fetchTickers', []);
+                } catch (e) {
+                    tickersError = exceptionMessage (e);
+                }
+                assert (tickersError.indexOf ('requires an outcomes argument') >= 0, exchange.id + ' fetchTickers () without outcomes must throw ArgumentsRequired, got: ' + tickersError);
             }
         }
         dump ('[INFO:MAIN] Selected prediction OUTCOME:', outcomeSymbol, '| EVENT:', exchange.json (eventId));

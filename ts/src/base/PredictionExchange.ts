@@ -96,7 +96,9 @@ export default class PredictionExchange extends BaseExchange {
 
     requireEventQuery (params = {}) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-        // entire exchange. require one of query / queries / tags / eventId / slug
+        // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
+        // venue-specific scope params an exchange declares in options['eventScopeParams']
+        // (e.g. kalshi's category / series_ticker)
         const query = this.safeString (params, 'query');
         const queries = this.safeList (params, 'queries', []);
         const tags = this.safeList (params, 'tags', []);
@@ -104,10 +106,20 @@ export default class PredictionExchange extends BaseExchange {
         const slug = this.safeString (params, 'slug');
         const queriesLength = queries.length;
         const tagsLength = tags.length;
-        if ((query === undefined) && (queriesLength === 0) && (tagsLength === 0) && (eventId === undefined) && (slug === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search');
+        if ((query !== undefined) || (queriesLength > 0) || (tagsLength > 0) || (eventId !== undefined) || (slug !== undefined)) {
+            return undefined;
         }
-        return undefined;
+        const extraScopeParams = this.safeList (this.options, 'eventScopeParams', []);
+        const extraScopeParamsLength = extraScopeParams.length;
+        let extraNames = '';
+        for (let i = 0; i < extraScopeParamsLength; i++) {
+            const scopeKey = extraScopeParams[i];
+            if (scopeKey in params) {
+                return undefined;
+            }
+            extraNames = extraNames + ', ' + scopeKey;
+        }
+        throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }
 
     applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
@@ -596,25 +608,15 @@ export default class PredictionExchange extends BaseExchange {
         return this.outcomes;
     }
 
-    async loadOutcome (outcomeSymbol: string) {
+    async loadOutcome (outcomeSymbol: string, reload = false) {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-        // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
-        // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
-        if (this.outcomes !== undefined) {
-            if (outcomeSymbol in this.outcomes) {
-                return this.outcomes[outcomeSymbol];
-            }
-            if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                return this.outcomes_by_id[outcomeSymbol];
-            }
-        }
-        const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
-        // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-        // but the outcome cache is cold, index them for free before hitting the network — this
-        // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-        if (!wasWarm && (this.markets !== undefined) && !this.isEmpty (this.markets)) {
-            this.populateOutcomes ();
+        // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
+        // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+        // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+        // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
+        // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+        // sane on venues whose full universe is one cheap request (hyperliquid)
+        if (!reload) {
             if (this.outcomes !== undefined) {
                 if (outcomeSymbol in this.outcomes) {
                     return this.outcomes[outcomeSymbol];
@@ -623,33 +625,111 @@ export default class PredictionExchange extends BaseExchange {
                     return this.outcomes_by_id[outcomeSymbol];
                 }
             }
-        }
-        const loadAll = this.safeBool (this.options, 'loadAllOutcomes', true);
-        if (loadAll && !wasWarm) {
-            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-            // the whole listing (which would mask typos and clobber offline-injected markets)
-            await this.loadOutcomes ();
-            if (this.outcomes !== undefined) {
-                if (outcomeSymbol in this.outcomes) {
-                    return this.outcomes[outcomeSymbol];
+            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if (!wasWarm && (this.markets !== undefined) && !this.isEmpty (this.markets)) {
+                this.populateOutcomes ();
+                if (this.outcomes !== undefined) {
+                    if (outcomeSymbol in this.outcomes) {
+                        return this.outcomes[outcomeSymbol];
+                    }
+                    if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                        return this.outcomes_by_id[outcomeSymbol];
+                    }
                 }
-                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                    return this.outcomes_by_id[outcomeSymbol];
+            }
+            const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
+            if (loadAll && !wasWarm) {
+                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
+                await this.loadOutcomes ();
+                if (this.outcomes !== undefined) {
+                    if (outcomeSymbol in this.outcomes) {
+                        return this.outcomes[outcomeSymbol];
+                    }
+                    if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                        return this.outcomes_by_id[outcomeSymbol];
+                    }
                 }
             }
         }
         return await this.fetchOutcome (outcomeSymbol);
     }
 
+    outcomeSearchQuery (outcomeSymbol: string): Str {
+        // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
+        // cache miss can be resolved through the venue's scoped search instead of a bulk listing
+        // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
+        // carry no searchable words
+        let marketPart = outcomeSymbol;
+        const colonIndex = outcomeSymbol.indexOf (':');
+        if (colonIndex >= 0) {
+            marketPart = outcomeSymbol.slice (0, colonIndex);
+        }
+        if (marketPart.indexOf ('0x') === 0) {
+            return undefined;
+        }
+        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        const normalized = marketPart.toLowerCase ().replaceAll ('-', '_');
+        const rawWords = normalized.split ('_');
+        const words = [];
+        let hasLetters = false;
+        const letters = 'abcdefghijklmnopqrstuvwxyz';
+        for (let i = 0; i < rawWords.length; i++) {
+            const word = rawWords[i];
+            const wordLength = word.length;
+            if (wordLength === 0) {
+                continue;
+            }
+            words.push (word);
+            const chars = this.stringToCharsArray (word);
+            for (let ci = 0; ci < chars.length; ci++) {
+                if (letters.indexOf (chars[ci]) >= 0) {
+                    hasLetters = true;
+                    break;
+                }
+            }
+        }
+        const wordsLength = words.length;
+        if ((wordsLength === 0) || !hasLetters) {
+            // a purely numeric/symbolic handle is an id, not searchable text
+            return undefined;
+        }
+        return words.join (' ');
+    }
+
     async fetchOutcome (outcomeSymbol: string) {
-        // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-        // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
-        // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
-        // override this to fetch and cache only the requested outcome — the "always fetch one" path.
-        await this.loadOutcomes ();
-        return this.outcome (outcomeSymbol);
+        // fetch just one outcome on demand — never through a bulk listing download. the base has
+        // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+        // through the venue's own scoped fetchEvents (which caches everything it finds), then
+        // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
+        // token id) override this with a cheaper single fetch and fall back to super on a miss.
+        const searchQuery = this.outcomeSearchQuery (outcomeSymbol);
+        if ((searchQuery !== undefined) && this.safeBool (this.has, 'fetchEvents', false)) {
+            const searchLimit = this.safeInteger (this.options, 'fetchOutcomeSearchLimit', 10);
+            try {
+                await this.fetchEvents ({ 'query': searchQuery, 'limit': searchLimit });
+            } catch (e) {
+                // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                // plain miss (the guidance-rich throw below); let real transport errors propagate
+                if (!(e instanceof BadSymbol)) {
+                    throw e;
+                }
+            }
+            if (this.outcomes !== undefined) {
+                if (outcomeSymbol in this.outcomes) {
+                    return this.outcomes[outcomeSymbol];
+                }
+                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
+                    return this.outcomes_by_id[outcomeSymbol];
+                }
+            }
+        }
+        throw new BadSymbol (this.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId");
     }
 
     /**
@@ -1068,9 +1148,12 @@ export default class PredictionExchange extends BaseExchange {
             }
         }
         let fee = this.safeDict (outcomeOrder, 'fee');
-        if ((fee === undefined) && (feeList.length > 0)) {
+        // own-line length reads so the regex transpiler emits count() (array), not strlen()
+        const feeListLength = feeList.length;
+        if ((fee === undefined) && (feeListLength > 0)) {
             const reduced = this.reduceFeesByCurrency (feeList);
-            if (reduced.length > 0) {
+            const reducedLength = reduced.length;
+            if (reducedLength > 0) {
                 fee = reduced[0];
             }
         }

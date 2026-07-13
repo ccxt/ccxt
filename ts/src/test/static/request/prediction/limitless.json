@@ -1,67 +1,81 @@
 {
-	"exchange": "limitless",
-	"asyncOnly": true,
-	"skipKeys": [],
-	"outputType": "json",
-	"methods": {
-		"fetchOrderBook": [
-			{
-				"description": "fetchOrderBook for a yes outcome",
-				"method": "fetchOrderBook",
-				"url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/orderbook",
-				"input": [
-					"USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES"
-				]
-			}
-		],
-		"fetchTrades": [
-			{
-				"description": "fetchTrades with limit",
-				"method": "fetchTrades",
-				"url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/events?limit=5",
-				"input": [
-					"USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
-					null,
-					5
-				]
-			}
-		],
-		"fetchOHLCV": [
-			{
-				"description": "fetchOHLCV daily",
-				"method": "fetchOHLCV",
-				"url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/historical-price?interval=1d",
-				"input": [
-					"USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
-					"1d"
-				]
-			}
-		],
-		"fetchMyTrades": [
-			{
-				"description": "fetchMyTrades without an outcome must not require the outcome cache",
-				"method": "fetchMyTrades",
-				"url": "https://api.limitless.exchange/portfolio/history?limit=5",
-				"input": [
-					null,
-					null,
-					5
-				]
-			}
-		],
-		"redeem": [
-			{
-				"description": "redeem a resolved market position by conditionId",
-				"method": "redeem",
-				"url": "https://api.limitless.exchange/portfolio/redeem",
-				"input": [
-					null,
-					{
-						"conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015"
-					}
-				],
-				"output": "{\"conditionId\":\"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015\"}"
-			}
-		]
-	}
+    "exchange": "limitless",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/orderbook",
+                "input": [
+                    "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/events?limit=5",
+                "input": [
+                    "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/historical-price?interval=1d",
+                "input": [
+                    "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+                    "1d"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades without an outcome must not require the outcome cache",
+                "method": "fetchMyTrades",
+                "url": "https://api.limitless.exchange/portfolio/history?limit=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
+        ],
+        "redeem": [
+            {
+                "description": "redeem a resolved market position by conditionId",
+                "method": "redeem",
+                "url": "https://api.limitless.exchange/portfolio/redeem",
+                "input": [
+                    null,
+                    {
+                        "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015"
+                    }
+                ],
+                "output": "{\"conditionId\":\"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015\"}"
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by tags resolves categories first (server-side category listing)",
+                "method": "fetchEvents",
+                "url": "https://api.limitless.exchange/categories",
+                "input": [
+                    {
+                        "tags": [
+                            "crypto"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
 }

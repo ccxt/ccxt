@@ -104,6 +104,20 @@
                     10
                 ]
             }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by tags maps each tag to a server-side keyword search",
+                "method": "fetchEvents",
+                "url": "https://api-v2.myriadprotocol.com/markets?keyword=world%20cup&state=open&limit=50",
+                "input": [
+                    {
+                        "tags": [
+                            "world-cup"
+                        ]
+                    }
+                ]
+            }
         ]
     }
 }

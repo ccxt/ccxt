@@ -100,6 +100,7 @@ export default class limitless extends Exchange {
                         'get': {
                             'markets/active': 1,
                             'markets/active/{categoryId}': 1,
+                            'categories': 1,
                             'markets/{addressOrSlug}': 1,
                             'markets/categories/count': 1,
                             'markets/active/slugs': 1,
@@ -1096,32 +1097,18 @@ export default class limitless extends Exchange {
     /**
      * @method
      * @name limitless#fetchTickers
-     * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when outcomes is omitted
+     * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market (two requests per market: detail + order book)
      * @see https://docs.limitless.exchange/api-reference/markets/get-market
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
-     * @param {string[]} [outcomes] unified outcomes or outcome token ids
+     * @param {string[]} outcomes unified outcomes or outcome token ids — required: limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const result: PredictionTickers = {};
         if (outcomes === undefined) {
-            // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
-            const allMarkets = await this.fetchMarkets (params);
-            for (let i = 0; i < allMarkets.length; i++) {
-                const m = allMarkets[i];
-                const raw = m['info'];
-                const outcomesList = this.safeList (m as any, 'outcomes', []) as any[];
-                for (let j = 0; j < outcomesList.length; j++) {
-                    const ticker = this.parsePredictionTicker (raw, outcomesList[j]);
-                    const symbolKey = this.safeString (ticker, 'outcome');
-                    if (symbolKey !== undefined) {
-                        result[symbolKey] = ticker;
-                    }
-                }
-            }
-            return result;
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
+        const result: PredictionTickers = {};
         // group target outcomes by their parent market to fetch each market and book only once
         const outcomesBySlug: Dict = {};
         const slugs: any[] = [];
@@ -2640,9 +2627,9 @@ export default class limitless extends Exchange {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.loadOutcome (outcomes[i]);
             }
-        } else {
-            await this.loadOutcomes ();
         }
+        // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
+        // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
         const response = await this.limitlessPrivateGetPortfolioPositions (params);
         //
         //     {
@@ -2826,11 +2813,12 @@ export default class limitless extends Exchange {
     /**
      * @method
      * @name limitless#fetchEvents
-     * @description fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
+     * @description fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
      * @see https://docs.limitless.exchange/api-reference/markets/search
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string} [params.query] a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
+     * @param {string} [params.query] a single search term; an eventId/slug does a direct lookup and tags resolve to limitless categories, paging only those categories' listings
      * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {string[]} [params.tags] category names to scope by (matched against GET /categories, e.g. ['crypto'])
      * @param {string} [params.eventId] direct lookup by market address or slug
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
@@ -2869,7 +2857,10 @@ export default class limitless extends Exchange {
             const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend ({ 'addressOrSlug': eventId }, rest));
             rawMarkets.push (response);
         } else {
-            const listRaw = await this.fetchRawActiveMarkets (params);
+            // tags scope: resolve the tags to limitless categories and page only those
+            // categories' listings server-side — never the whole active listing
+            const requestedTags = this.safeList (params, 'tags', []);
+            const listRaw = await this.fetchRawMarketsByTags (requestedTags, params);
             const listRawLength = listRaw.length;
             for (let i = 0; i < listRawLength; i++) {
                 rawMarkets.push (listRaw[i]);
@@ -2910,21 +2901,26 @@ export default class limitless extends Exchange {
         this.populateOutcomes ();
         // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
         // for queries that match nothing — so default searchIn to 'both' to post-filter the
-        // results literally by title/description (an explicit params.searchIn still wins)
+        // results literally by title/description (an explicit params.searchIn still wins).
+        // tags were already applied server-side (category-scoped listing); strip them before the
+        // client-side pass — events built from raw markets carry venue tags, not category names,
+        // so the base tag filter would wrongly drop server-matched events
         const searchParams = this.extend ({ 'searchIn': 'both' }, params);
-        return this.applyEventFetchParams (result, searchParams, queries);
+        const postParams = this.omit (searchParams, [ 'tags' ]);
+        return this.applyEventFetchParams (result, postParams, queries);
     }
 
     /**
      * @ignore
      * @method
      * @name limitless#fetchRawActiveMarkets
-     * @description pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+     * @description pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.limit] max number of raw markets to collect
+     * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    async fetchRawActiveMarkets (params = {}): Promise<any[]> {
+    async fetchRawActiveMarkets (params = {}, categoryId: Str = undefined): Promise<any[]> {
         const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
@@ -2933,7 +2929,13 @@ export default class limitless extends Exchange {
         let collected = 0;
         while (true) {
             const request: Dict = { 'page': page, 'limit': pageSize };
-            const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+            let response = undefined;
+            if (categoryId !== undefined) {
+                request['categoryId'] = categoryId;
+                response = await this.limitlessPublicGetMarketsActiveCategoryId (this.extend (request, rest));
+            } else {
+                response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+            }
             const data = this.safeList (response, 'data', []) as any[];
             const dataLength = data.length;
             if (dataLength === 0) {
@@ -2948,6 +2950,61 @@ export default class limitless extends Exchange {
             page = this.sum (page, 1);
             if (dataLength < pageSize || collected >= maxMarkets) {
                 break;
+            }
+        }
+        return allRaw;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#fetchRawMarketsByTags
+     * @description resolves the requested tags to limitless categories via GET /categories, then pages only those categories' active listings server-side
+     * @param {string[]} tags tag/category names to match (case-insensitive substring match on the category name)
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] max number of raw markets to collect per category
+     * @returns {object[]} raw limitless market objects, deduped by slug
+     */
+    async fetchRawMarketsByTags (tags: string[], params = {}): Promise<any[]> {
+        const categoriesResponse = await this.limitlessPublicGetCategories ();
+        const categories = (categoriesResponse !== undefined) ? categoriesResponse : [];
+        const wanted = [];
+        for (let i = 0; i < tags.length; i++) {
+            wanted.push (tags[i].toLowerCase ());
+        }
+        const categoryIds = [];
+        const categoriesLength = categories.length;
+        for (let i = 0; i < categoriesLength; i++) {
+            const category = categories[i];
+            const name = this.safeStringLower (category, 'name', '');
+            const categoryId = this.safeString (category, 'id');
+            let matched = false;
+            for (let wi = 0; wi < wanted.length; wi++) {
+                if (name.indexOf (wanted[wi]) >= 0) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched && (categoryId !== undefined)) {
+                categoryIds.push (categoryId);
+            }
+        }
+        const categoryIdsLength = categoryIds.length;
+        if (categoryIdsLength === 0) {
+            throw new BadRequest (this.id + ' fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names');
+        }
+        const seen: Dict = {};
+        const allRaw: any[] = [];
+        for (let ci = 0; ci < categoryIdsLength; ci++) {
+            const categoryMarkets = await this.fetchRawActiveMarkets (params, categoryIds[ci]);
+            const categoryMarketsLength = categoryMarkets.length;
+            for (let mi = 0; mi < categoryMarketsLength; mi++) {
+                const raw = categoryMarkets[mi];
+                const slug = this.safeString (raw, 'slug');
+                if ((slug !== undefined) && !(slug in seen)) {
+                    seen[slug] = true;
+                    allRaw.push (raw);
+                }
             }
         }
         return allRaw;

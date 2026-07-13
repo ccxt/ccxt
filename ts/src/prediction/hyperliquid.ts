@@ -122,6 +122,9 @@ export default class hyperliquid extends Exchange {
             },
             'options': {
                 'defaultType': 'prediction',
+                // the whole outcome universe is one cheap outcomeMeta request, so bulk-warming on
+                // a cache miss stays the right trade-off here (the base default is false)
+                'loadAllOutcomes': true,
                 'sandboxMode': false,  // outcome markets currently deployed on testnet
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,

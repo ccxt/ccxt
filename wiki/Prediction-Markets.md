@@ -106,7 +106,7 @@ The rest of this page documents `fetchEvents` and `fetchEvent`, the two entry po
 fetchEvents (params = {})
 ```
 
-- `params` — a `fetchEventsParams` object; must be scoped by at least one of `query` (a search string), `queries` (a list of strings), `tags`, `eventId` or `slug`. Optional: `limit`, `sort` (`volume`/`liquidity`/`newest`), `status` (`active`/`inactive`/`closed`/`all`), `searchIn` (`title`/`description`/`both`)
+- `params` — a `fetchEventsParams` object; **must be scoped** by at least one of `query` (a search string), `queries` (a list of strings), `tags`, `eventId` or `slug` — an unscoped call throws `ArgumentsRequired` on every venue (some venues accept extra scope keys, e.g. Kalshi's `category` / `series_ticker`). Optional: `limit`, `sort` (`volume`/`liquidity`/`newest`), `status` (`active`/`inactive`/`closed`/`all`), `searchIn` (`title`/`description`/`both`). The scope is pushed to the venue's API server-side: `tags` resolve to Kalshi series, Polymarket `tag_slug` listings (one per tag), Limitless categories, and Myriad keyword searches. For an unscoped "most active markets" browse use `fetchMarkets ()` — it returns a capped, volume-ordered listing where the venue supports it
 - returns an **array of event structures** and caches the discovered events, markets and outcomes on the instance (`exchange.events`, `exchange.outcomes`)
 
 ```javascript
@@ -138,7 +138,7 @@ const candles = await exchange.fetchOHLCV (outcome['outcome'], '1h')
 const order = await exchange.createOrder (outcome['outcome'], 'limit', 'buy', 5, 0.40)
 ```
 
-Outcome-addressed methods (`fetchTicker`, `createOrder`, …) auto-load the outcome cache on first use — like `loadMarkets()` + `market(symbol)` in regular ccxt — so you don't need to `fetchEvents`/`loadMarkets` first. A genuinely unknown outcome throws `BadSymbol`. Call `loadOutcomes()` to warm the cache explicitly, or `getEvent(idOrHandle)` to read a cached event.
+Outcome-addressed methods (`fetchTicker`, `createOrder`, …) auto-load the outcome cache on first use — like `loadMarkets()` + `market(symbol)` in regular ccxt — so you don't need to `fetchEvents`/`loadMarkets` first. The auto-load is scoped to the requested outcome: a by-id fetch where the venue has one (Kalshi tickers, Polymarket token ids), otherwise a search derived from the handle — never a bulk listing download. A genuinely unknown outcome throws `BadSymbol`. Call `loadOutcomes()` to warm the cache explicitly, or `getEvent(idOrHandle)` to read a cached event.
 
 ## fetchEvent
 
@@ -161,12 +161,17 @@ Supported by `polymarket`, `kalshi`, `myriad` and `limitless` (check `exchange.h
 
 Prediction exchanges address an **outcome** (e.g. `TRUMP_WINS:YES`, or its raw `outcomeId`) the way regular ccxt addresses a `symbol`. The outcome cache (`exchange.outcomes` / `exchange.outcomes_by_id`) is loaded automatically on first use, so you rarely touch it directly:
 
-- **Auto-load** — the first outcome-addressed call (`fetchTicker`, `fetchOrderBook`, `createOrder`, …) loads and caches the outcomes; later calls hit the cache with no extra request. This mirrors `loadMarkets()` + `market(symbol)`.
-- **`loadOutcomes (reload = false, params = {})`** — warm the whole cache explicitly (the analogue of `loadMarkets`). `reload = true` refetches.
+- **Auto-load** — the first outcome-addressed call (`fetchTicker`, `fetchOrderBook`, `createOrder`, …) resolves and caches just the requested outcome (a by-id fetch on Kalshi/Polymarket, the venue's search elsewhere); later calls hit the cache with no extra request. This mirrors `loadMarkets()` + `market(symbol)` without ever downloading the whole listing implicitly.
+- **`loadOutcome (outcome, reload = false)`** — resolve one outcome explicitly; `reload = true` skips the cache and refetches the outcome's metadata (status, tick size, token ids) — the per-outcome refresh knob.
+- **`loadOutcomes (reload = false, params = {})`** — warm the whole (capped) cache explicitly via the markets listing (the analogue of `loadMarkets`). `reload = true` refetches. This is the only bulk path, and it only runs when you call it.
 - **`getEvent (idOrHandle)`** — read a cached event by its id, slug, or shortened handle (the `event` field). Cache-only; call `fetchEvents(...)` first.
-- **`options['loadAllOutcomes']`** — defaults to `true`: the first cache miss bulk-loads every outcome once. **Kalshi** sets it `false` (it has tens of thousands of markets), so a cache miss fetches just the one requested market on demand (~1s, then cached). Flip it to `true` to pay the full listing scan once.
+- **`options['loadAllOutcomes']`** — defaults to `false`: a cache miss resolves only the requested outcome. Hyperliquid sets it `true` because its entire outcome universe is a single cheap request. Flip it to `true` on any venue to pay the (capped) listing scan on the first miss instead.
 
 An unknown outcome throws `BadSymbol`; a genuinely cold cache accessed through the sync `outcome()` resolver (used inside parsers) throws `ExchangeError`. You never need to pre-load — just call the method.
+
+### All-tickers honesty — `fetchTickers` requires `outcomes`
+
+One ccxt call maps to a bounded number of venue requests. Kalshi, Polymarket, Limitless and Myriad have no endpoint returning every ticker at once, so `fetchTickers ()` without an `outcomes` list throws `ArgumentsRequired` on those venues instead of silently returning a capped subset — pass the outcome handles you actually want (Kalshi batches 100 per request, Polymarket 200 per batched request pair; Limitless costs two requests per market and Myriad one). Hyperliquid serves the whole universe in one `allMids` request, so its no-arg `fetchTickers ()` remains available. Account-scoped methods (`fetchPositions`, `fetchOrders`, `fetchMyTrades`, …) are always a single self-contained request; when the outcome cache is cold their rows are labelled with raw venue ids, and with unified handles once you've scoped a `fetchEvents` call.
 
 ## CLI
 

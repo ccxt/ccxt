@@ -61,6 +61,20 @@
                     24
                 ]
             }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents scoped by tags resolves series tickers via the series listing",
+                "method": "fetchEvents",
+                "url": "https://external-api.kalshi.com/trade-api/v2/series?tags=BTC",
+                "input": [
+                    {
+                        "tags": [
+                            "BTC"
+                        ]
+                    }
+                ]
+            }
         ]
     },
     "options": {
