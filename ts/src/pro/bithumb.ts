@@ -205,13 +205,14 @@ export default class bithumb extends bithumbRest {
             tickerMessage = content;
         }
         const marketId = this.safeString2 (tickerMessage, 'symbol', 'code');
-        let delimiter = undefined;
-        if (isGenerationTwo) {
-            delimiter = '-';
-        } else {
-            delimiter = '_';
+        if (marketId === undefined) {
+            return;
         }
+        const delimiter = (isGenerationTwo) ? '-' : '_';
         const symbol = this.safeSymbol (marketId, undefined, delimiter);
+        if (symbol === undefined) {
+            return;
+        }
         const ticker = this.parseWsTicker (tickerMessage);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
