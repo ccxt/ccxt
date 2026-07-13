@@ -82,11 +82,9 @@
 					"bidVolume": 1000,
 					"ask": 0.995,
 					"askVolume": 222222,
-					"vwap": null,
 					"open": null,
 					"close": 0.152,
 					"last": 0.152,
-					"previousClose": null,
 					"change": null,
 					"percentage": null,
 					"average": 0.1515,
@@ -204,9 +202,8 @@
 							"mid": "0.1515"
 						}
 					},
-					"indexPrice": null,
-					"markPrice": null,
-					"event": null
+					"event": null,
+					"openInterest": null
 				}
 			}
 		],
@@ -436,12 +433,8 @@
 						"price": 0.152,
 						"amount": 368,
 						"cost": 55.936,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
+						"fee": null,
+						"realizedPnl": null
 					},
 					{
 						"id": "0x3c49025c45025d25c7e4a88619ca9454135f6dcb53343096a7aa361003b471d0",
@@ -479,12 +472,8 @@
 						"price": 0.152,
 						"amount": 256,
 						"cost": 38.912,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
+						"fee": null,
+						"realizedPnl": null
 					}
 				]
 			}
@@ -918,8 +907,6 @@
 					"postOnly": false,
 					"side": "buy",
 					"price": 0.5,
-					"stopPrice": null,
-					"triggerPrice": null,
 					"average": null,
 					"amount": 5,
 					"cost": 0,
@@ -927,11 +914,8 @@
 					"remaining": 5,
 					"fee": null,
 					"trades": [],
-					"fees": [],
 					"lastUpdateTimestamp": null,
 					"reduceOnly": null,
-					"takeProfitPrice": null,
-					"stopLossPrice": null,
 					"event": null
 				}
 			}
@@ -958,7 +942,6 @@
 							"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
 						]
 					},
-					"fees": [],
 					"clientOrderId": null,
 					"timestamp": null,
 					"datetime": null,
@@ -976,10 +959,6 @@
 					"postOnly": null,
 					"trades": [],
 					"reduceOnly": null,
-					"stopPrice": null,
-					"triggerPrice": null,
-					"takeProfitPrice": null,
-					"stopLossPrice": null,
 					"fee": null,
 					"outcome": null,
 					"outcomeId": null,
@@ -1040,21 +1019,11 @@
 						"contractSize": 1,
 						"side": "long",
 						"notional": 3.86325,
-						"leverage": 1,
 						"unrealizedPnl": null,
 						"realizedPnl": 0,
 						"collateral": null,
 						"entryPrice": 0.12,
 						"markPrice": 0.1515,
-						"liquidationPrice": null,
-						"hedged": false,
-						"maintenanceMargin": null,
-						"maintenanceMarginPercentage": null,
-						"initialMargin": null,
-						"initialMarginPercentage": null,
-						"marginRatio": null,
-						"marginMode": "cross",
-						"marginType": "cross",
 						"percentage": null,
 						"info": {
 							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
@@ -1072,7 +1041,12 @@
 							"currentPrice": 0.1515,
 							"title": "Will JD Vance win the 2028 US Presidential Election?",
 							"outcome": "Yes"
-						}
+						},
+						"lastPrice": null,
+						"resolved": null,
+						"won": null,
+						"settleFraction": null,
+						"payout": null
 					},
 					{
 						"id": null,
@@ -1087,21 +1061,11 @@
 						"contractSize": 1,
 						"side": "long",
 						"notional": 5.5,
-						"leverage": 1,
 						"unrealizedPnl": null,
 						"realizedPnl": 1.25,
 						"collateral": null,
 						"entryPrice": 0.5,
 						"markPrice": 0.55,
-						"liquidationPrice": null,
-						"hedged": false,
-						"maintenanceMargin": null,
-						"maintenanceMarginPercentage": null,
-						"initialMargin": null,
-						"initialMarginPercentage": null,
-						"marginRatio": null,
-						"marginMode": "cross",
-						"marginType": "cross",
 						"percentage": null,
 						"info": {
 							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
@@ -1113,7 +1077,12 @@
 							"realizedPnl": 1.25,
 							"title": "Unknown market not in the outcome cache",
 							"outcome": "No"
-						}
+						},
+						"lastPrice": null,
+						"resolved": null,
+						"won": null,
+						"settleFraction": null,
+						"payout": null
 					}
 				]
 			}

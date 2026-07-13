@@ -77,11 +77,9 @@
                     "bidVolume": 444.32,
                     "ask": 0.12,
                     "askVolume": 1967.33,
-                    "vwap": null,
                     "open": null,
                     "close": 0.1,
                     "last": 0.1,
-                    "previousClose": null,
                     "change": null,
                     "percentage": null,
                     "average": 0.1,
@@ -135,9 +133,8 @@
                         "yes_bid_size_fp": "444.32",
                         "yes_sub_title": "Mars"
                     },
-                    "indexPrice": null,
-                    "markPrice": null,
-                    "event": null
+                    "event": null,
+                    "openInterest": null
                 }
             }
         ],
@@ -266,11 +263,9 @@
                         "bidVolume": 444.32,
                         "ask": 0.12,
                         "askVolume": 1967.33,
-                        "vwap": null,
                         "open": null,
                         "close": 0.1,
                         "last": 0.1,
-                        "previousClose": null,
                         "change": null,
                         "percentage": null,
                         "average": 0.1,
@@ -324,9 +319,8 @@
                             "yes_bid_size_fp": "444.32",
                             "yes_sub_title": "Mars"
                         },
-                        "indexPrice": null,
-                        "markPrice": null,
-                        "event": null
+                        "event": null,
+                        "openInterest": null
                     },
                     "HUMANS_COLONIZE_MARS_2050:YES": {
                         "outcome": "HUMANS_COLONIZE_MARS_2050:YES",
@@ -341,11 +335,9 @@
                         "bidVolume": 30.97,
                         "ask": 0.195,
                         "askVolume": 97.53,
-                        "vwap": null,
                         "open": null,
                         "close": 0.195,
                         "last": 0.195,
-                        "previousClose": null,
                         "change": null,
                         "percentage": null,
                         "average": 0.179,
@@ -399,9 +391,8 @@
                             "yes_bid_size_fp": "30.97",
                             "yes_sub_title": "Before 2050"
                         },
-                        "indexPrice": null,
-                        "markPrice": null,
-                        "event": null
+                        "event": null,
+                        "openInterest": null
                     }
                 }
             }
@@ -721,12 +712,8 @@
                         "price": 0.08,
                         "amount": 9.4,
                         "cost": 0.752,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "event": null
+                        "fee": null,
+                        "realizedPnl": null
                     },
                     {
                         "id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
@@ -755,12 +742,8 @@
                         "price": 0.1,
                         "amount": 0.94,
                         "cost": 0.094,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "event": null
+                        "fee": null,
+                        "realizedPnl": null
                     },
                     {
                         "id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
@@ -789,12 +772,8 @@
                         "price": 0.1,
                         "amount": 9.4,
                         "cost": 0.9400000000000001,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "event": null
+                        "fee": null,
+                        "realizedPnl": null
                     }
                 ]
             }
@@ -922,21 +901,11 @@
                         "contractSize": 1,
                         "side": "short",
                         "notional": null,
-                        "leverage": 1,
                         "unrealizedPnl": null,
                         "realizedPnl": null,
                         "collateral": null,
                         "entryPrice": null,
                         "markPrice": null,
-                        "liquidationPrice": null,
-                        "hedged": false,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "marginRatio": null,
-                        "marginMode": "cross",
-                        "marginType": "cross",
                         "percentage": null,
                         "info": {
                             "ticker": "KXELONMARS-99",
@@ -947,7 +916,12 @@
                             "resting_orders_count": 0,
                             "fees_paid": 6
                         },
-                        "event": null
+                        "event": null,
+                        "lastPrice": null,
+                        "resolved": null,
+                        "won": null,
+                        "settleFraction": null,
+                        "payout": null
                     }
                 ]
             }
@@ -1024,8 +998,6 @@
                         "postOnly": false,
                         "side": "buy",
                         "price": 0.08,
-                        "stopPrice": null,
-                        "triggerPrice": null,
                         "average": null,
                         "amount": 10,
                         "cost": 0,
@@ -1033,11 +1005,8 @@
                         "remaining": 10,
                         "fee": null,
                         "trades": [],
-                        "fees": [],
                         "lastUpdateTimestamp": null,
                         "reduceOnly": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null,
                         "event": null
                     },
                     {
@@ -1070,8 +1039,6 @@
                         "postOnly": false,
                         "side": "sell",
                         "price": 0.93,
-                        "stopPrice": null,
-                        "triggerPrice": null,
                         "average": null,
                         "amount": 5,
                         "cost": 0,
@@ -1079,14 +1046,59 @@
                         "remaining": 5,
                         "fee": null,
                         "trades": [],
-                        "fees": [],
                         "lastUpdateTimestamp": null,
                         "reduceOnly": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null,
                         "event": null
                     }
                 ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder on a minimal DELETE body preserves the resolved outcome and never fabricates a sell side for a canceled buy",
+                "method": "cancelOrder",
+                "options": {
+                    "loadAllOutcomes": true
+                },
+                "input": [
+                    "ORD-CANCEL-BUY-1",
+                    "KXELONMARS-99"
+                ],
+                "httpResponse": {
+                    "order": {
+                        "order_id": "ORD-CANCEL-BUY-1"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "ORD-CANCEL-BUY-1",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": 0,
+                    "remaining": null,
+                    "cost": null,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": false,
+                    "trades": [],
+                    "outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                    "outcomeId": "KXELONMARS-99",
+                    "label": "YES",
+                    "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                    "event": null,
+                    "info": {
+                        "order_id": "ORD-CANCEL-BUY-1"
+                    }
+                }
             }
         ]
     },

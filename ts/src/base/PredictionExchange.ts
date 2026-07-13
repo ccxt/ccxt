@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import { BaseExchange } from './Exchange.js';
+import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
 import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 
@@ -8,7 +9,7 @@ import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, P
 
 /**
  * @class PredictionExchange
- * @augments Exchange
+ * @augments BaseExchange
  * @description Base class for prediction-market exchanges. It carries the
  * prediction-specific state (events / outcomes) and helpers, and re-declares the
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
@@ -988,26 +989,258 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchSettlements() is not supported yet');
     }
 
-    safePredictionOrder (order: Dict, market = undefined): PredictionOrder {
-        // the prediction identity is the `outcome` handle carried on the raw dict (read by
-        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
-        const parsed = super.safeOrder (order);
-        return this.toPredictionStructure (parsed, order);
+    safePredictionOrder (outcomeOrder: Dict, outcomeObj = undefined): PredictionOrder {
+        // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
+        // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
+        // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
+        // outcome-addressed row). prediction is always linear with a contract size of 1.
+        let amount = this.omitZero (this.safeString (outcomeOrder, 'amount'));
+        let filled = this.safeString (outcomeOrder, 'filled');
+        let remaining = this.safeString (outcomeOrder, 'remaining');
+        let cost = this.safeString (outcomeOrder, 'cost');
+        let average = this.omitZero (this.safeString (outcomeOrder, 'average'));
+        const price = this.omitZero (this.safeString (outcomeOrder, 'price'));
+        let side = this.safeString (outcomeOrder, 'side');
+        const status = this.safeString (outcomeOrder, 'status');
+        let lastTradeTimestamp = this.safeInteger (outcomeOrder, 'lastTradeTimestamp');
+        // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
+        const rawTrades = this.safeList (outcomeOrder, 'trades', []);
+        const trades = this.parsePredictionTrades (rawTrades, outcomeObj);
+        const tradesLength = trades.length;
+        const feeList = [];
+        if (tradesLength > 0) {
+            if (filled === undefined) {
+                filled = '0';
+            }
+            if (cost === undefined) {
+                cost = '0';
+            }
+            for (let i = 0; i < tradesLength; i++) {
+                const trade = trades[i];
+                const tradeAmount = this.safeString (trade, 'amount');
+                if (tradeAmount !== undefined) {
+                    filled = Precise.stringAdd (filled, tradeAmount);
+                }
+                const tradeCost = this.safeString (trade, 'cost');
+                if (tradeCost !== undefined) {
+                    cost = Precise.stringAdd (cost, tradeCost);
+                }
+                if (side === undefined) {
+                    side = this.safeString (trade, 'side');
+                }
+                const tradeTimestamp = this.safeInteger (trade, 'timestamp');
+                if (tradeTimestamp !== undefined) {
+                    if (lastTradeTimestamp === undefined) {
+                        lastTradeTimestamp = tradeTimestamp;
+                    } else if (tradeTimestamp > lastTradeTimestamp) {
+                        lastTradeTimestamp = tradeTimestamp;
+                    }
+                }
+                const tradeFee = this.safeDict (trade, 'fee');
+                if (tradeFee !== undefined) {
+                    feeList.push (tradeFee);
+                }
+            }
+        }
+        // fill any totals the venue left undefined (linear, contract size 1)
+        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
+            filled = Precise.stringSub (amount, remaining);
+        }
+        if ((remaining === undefined) && (amount !== undefined) && (filled !== undefined)) {
+            remaining = Precise.stringSub (amount, filled);
+        }
+        if ((amount === undefined) && (filled !== undefined) && (remaining !== undefined)) {
+            amount = Precise.stringAdd (filled, remaining);
+        }
+        if ((average === undefined) && (filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
+            average = Precise.stringDiv (cost, filled);
+        }
+        if ((cost === undefined) && (filled !== undefined)) {
+            const multiplyPrice = (average !== undefined) ? average : price;
+            if (multiplyPrice !== undefined) {
+                cost = Precise.stringMul (filled, multiplyPrice);
+            }
+        }
+        let fee = this.safeDict (outcomeOrder, 'fee');
+        if ((fee === undefined) && (feeList.length > 0)) {
+            const reduced = this.reduceFeesByCurrency (feeList);
+            if (reduced.length > 0) {
+                fee = reduced[0];
+            }
+        }
+        // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
+        // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
+        const orderType = this.safeString (outcomeOrder, 'type');
+        let timeInForce = this.safeString (outcomeOrder, 'timeInForce');
+        let postOnly = this.safeBool (outcomeOrder, 'postOnly');
+        if (timeInForce === undefined) {
+            if (orderType === 'market') {
+                timeInForce = 'IOC';
+            }
+            if (postOnly) {
+                timeInForce = 'PO';
+            }
+        } else if (postOnly === undefined) {
+            postOnly = (timeInForce === 'PO');
+        }
+        const timestamp = this.safeInteger (outcomeOrder, 'timestamp');
+        let datetime = this.safeString (outcomeOrder, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
+        const result: Dict = {
+            'id': this.safeString (outcomeOrder, 'id'),
+            'clientOrderId': this.safeString (outcomeOrder, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': this.safeInteger (outcomeOrder, 'lastUpdateTimestamp'),
+            'status': status,
+            'type': orderType,
+            'timeInForce': timeInForce,
+            'side': side,
+            'price': this.parseNumber (price),
+            'average': this.parseNumber (average),
+            'amount': this.parseNumber (amount),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
+            'cost': this.parseNumber (cost),
+            'fee': fee,
+            'reduceOnly': this.safeBool (outcomeOrder, 'reduceOnly'),
+            'postOnly': postOnly,
+            'trades': trades,
+            'outcome': this.safeString (outcomeOrder, 'outcome'),
+            'outcomeId': this.safeString (outcomeOrder, 'outcomeId'),
+            'label': this.safeString (outcomeOrder, 'label'),
+            'market': this.safeString (outcomeOrder, 'market'),
+            'event': this.safeString (outcomeOrder, 'event'),
+            'info': this.safeValue (outcomeOrder, 'info', outcomeOrder),
+        };
+        return result as PredictionOrder;
     }
 
-    safePredictionTrade (trade: Dict, market = undefined): PredictionTrade {
-        const parsed = super.safeTrade (trade);
-        return this.toPredictionStructure (parsed, trade);
+    safePredictionTrade (trade: Dict, outcomeObj = undefined): PredictionTrade {
+        // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        let cost = this.safeString (trade, 'cost');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
+            cost = Precise.stringMul (price, amount);
+        }
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        let datetime = this.safeString (trade, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
+        const result: Dict = {
+            'id': this.safeString (trade, 'id'),
+            'order': this.safeString (trade, 'order'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'type': this.safeString (trade, 'type'),
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': this.safeString (trade, 'takerOrMaker'),
+            'price': this.parseNumber (price),
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'fee': this.safeDict (trade, 'fee'),
+            'realizedPnl': this.safeNumber (trade, 'realizedPnl'),
+            'outcome': this.safeString (trade, 'outcome'),
+            'outcomeId': this.safeString (trade, 'outcomeId'),
+            'label': this.safeString (trade, 'label'),
+            'market': this.safeString (trade, 'market'),
+            'info': this.safeValue (trade, 'info', trade),
+        };
+        return result as PredictionTrade;
     }
 
-    safePredictionTicker (ticker: Dict, market = undefined): PredictionTicker {
-        const parsed = super.safeTicker (ticker);
-        return this.toPredictionStructure (parsed, ticker);
+    safePredictionTicker (ticker: Dict, outcomeObj = undefined): PredictionTicker {
+        // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
+        // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
+        // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
+        const open = this.omitZero (this.safeString (ticker, 'open'));
+        const close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
+        const last = this.omitZero (this.safeString2 (ticker, 'last', 'close'));
+        let change = this.safeString (ticker, 'change');
+        let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
+        let average = this.omitZero (this.safeString (ticker, 'average'));
+        if ((change === undefined) && (open !== undefined) && (close !== undefined)) {
+            change = Precise.stringSub (close, open);
+        }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
+            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+        }
+        if ((average === undefined) && (open !== undefined) && (close !== undefined)) {
+            average = Precise.stringDiv (Precise.stringAdd (open, close), '2');
+        }
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        let datetime = this.safeString (ticker, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
+        const result: Dict = {
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.parseNumber (this.omitZero (this.safeString (ticker, 'bid'))),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'ask': this.parseNumber (this.omitZero (this.safeString (ticker, 'ask'))),
+            'askVolume': this.safeNumber (ticker, 'askVolume'),
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (close),
+            'last': this.parseNumber (last),
+            'change': this.parseNumber (change),
+            'percentage': this.parseNumber (percentage),
+            'average': this.parseNumber (average),
+            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'openInterest': this.safeNumber (ticker, 'openInterest'),
+            'outcome': this.safeString (ticker, 'outcome'),
+            'outcomeId': this.safeString (ticker, 'outcomeId'),
+            'label': this.safeString (ticker, 'label'),
+            'market': this.safeString (ticker, 'market'),
+            'event': this.safeString (ticker, 'event'),
+            'info': this.safeValue (ticker, 'info', ticker),
+        };
+        return result as PredictionTicker;
     }
 
     safePredictionPosition (position: Dict): PredictionPosition {
-        const parsed = super.safePosition (position);
-        return this.toPredictionStructure (parsed, position);
+        // build the prediction position directly (no crypto safePosition, which carries the whole
+        // leverage/marginMode/liquidation block the prediction type omits)
+        const timestamp = this.safeInteger (position, 'timestamp');
+        let datetime = this.safeString (position, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
+        const result: Dict = {
+            'id': this.safeString (position, 'id'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'contracts': this.safeNumber (position, 'contracts'),
+            'contractSize': this.safeNumber (position, 'contractSize'),
+            'side': this.safeString (position, 'side'),
+            'notional': this.safeNumber (position, 'notional'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'realizedPnl': this.safeNumber (position, 'realizedPnl'),
+            'collateral': this.safeNumber (position, 'collateral'),
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': this.safeNumber (position, 'lastPrice'),
+            'percentage': this.safeNumber (position, 'percentage'),
+            'resolved': this.safeBool (position, 'resolved'),
+            'won': this.safeBool (position, 'won'),
+            'settleFraction': this.safeNumber (position, 'settleFraction'),
+            'payout': this.safeNumber (position, 'payout'),
+            'outcome': this.safeString (position, 'outcome'),
+            'outcomeId': this.safeString (position, 'outcomeId'),
+            'label': this.safeString (position, 'label'),
+            'market': this.safeString (position, 'market'),
+            'event': this.safeString (position, 'event'),
+            'info': this.safeValue (position, 'info', position),
+        };
+        return result as PredictionPosition;
     }
 
     safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict = undefined): PredictionOrderBook {
@@ -1040,23 +1273,6 @@ export default class PredictionExchange extends BaseExchange {
 
     parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         throw new NotSupported (this.id + ' parsePredictionOpenInterest() is not supported yet');
-    }
-
-    toPredictionStructure (parsed: Dict, raw: Dict): any {
-        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
-        // and the other prediction fields (raw exchange id, label, parent market/event) that the
-        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        parsed['outcome'] = this.safeString (raw, 'outcome');
-        parsed['outcomeId'] = this.safeString (raw, 'outcomeId');
-        parsed['label'] = this.safeString (raw, 'label');
-        parsed['market'] = this.safeString (raw, 'market');
-        parsed['event'] = this.safeString (raw, 'event');
-        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
-        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
-        if ('symbol' in parsed) {
-            delete parsed['symbol'];
-        }
-        return parsed;
     }
 
     /**

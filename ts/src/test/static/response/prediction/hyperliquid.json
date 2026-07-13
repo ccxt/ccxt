@@ -86,12 +86,8 @@
                         "price": 0.00012,
                         "amount": 84166,
                         "cost": 10.09992,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "event": null
+                        "fee": null,
+                        "realizedPnl": null
                     }
                 ]
             }
@@ -324,17 +320,12 @@
                     "cost": 10.92,
                     "fee": null,
                     "trades": [],
-                    "fees": [],
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "average": null,
                     "timeInForce": "IOC",
                     "postOnly": null,
                     "reduceOnly": null,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null,
                     "event": null
                 }
             }

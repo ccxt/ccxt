@@ -43,12 +43,12 @@ Prediction exchanges are flagged with `exchange.has['prediction']`. Their data m
 - **markets** — each event contains one or more markets, returned by `fetchMarkets()` / `loadMarkets()` with `market['type'] === 'prediction'`
 - **outcomes** — each market carries an `outcomes` list (for example YES and NO tokens); each outcome has its own `outcome` handle like `TRUMP_OUT_PRESIDENT_2027:YES`, an exchange-specific `outcomeId`, the parent `market`, and a `label` (e.g. `YES`/`NO`)
 
-How the structures relate — `PredictionEvent` → `PredictionMarket` → `PredictionOutcome`, where the **outcome** is the tradeable unit that every price/trade method takes:
+How the structures relate — `PredictionEvent` → market → `PredictionOutcome`, where the **outcome** is the tradeable unit that every price/trade method takes. Each market is a standard ccxt `Market` row that additionally carries prediction fields (`marketType`, `executionModel`, `collateral`, …) and its own `outcomes` list:
 
 ```mermaid
 flowchart TD
     F["fetchEvents() / fetchEvent()"] --> E["PredictionEvent — a question or grouping (id, title, active, resolved, volume)"]
-    E -->|"markets: PredictionMarket[]"| M["PredictionMarket — marketType: binary / categorical / scalar · executionModel: clob / amm / parimutuel · collateral · tickSize"]
+    E -->|"markets: Market[]"| M["Market (+ prediction fields) — marketType: binary / categorical / scalar · executionModel: clob / amm / parimutuel · collateral · tickSize"]
     M -->|"outcomes: PredictionOutcome[] · 1..N"| O["PredictionOutcome — the tradeable unit · outcome handle, outcomeId, label · price 0..1 · bid / ask"]
     O -->|"the outcome handle is what every price / trade method takes"| T["fetchTicker · fetchOrderBook · fetchOHLCV · createOrder · fetchPositions · fetchMyTrades"]
     T --> R["PredictionTicker · PredictionOrderBook · OHLCV[] · PredictionOrder · PredictionPosition[] · PredictionTrade[]"]
