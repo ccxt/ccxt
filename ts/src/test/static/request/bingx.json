@@ -117,6 +117,7 @@
             {
                 "description": "with stopLoss (exchange-specific)",
                 "disabledGO": true,
+                "disabledJava": true,
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=1000&quantity=0.01&side=BUY&stopLoss=%7B%22stopPrice%22%3A%20900%2C%22workingType%22%3A%20%22MARK_PRICE%22%2C%22type%22%3A%22STOP%22%2C%22price%22%3A%20890%7D&symbol=ETH-USDT&timestamp=1783631671969&type=LIMIT&signature=ca496710dd26886c078db762178d25f5bea12993e90bfa7ba403e4553d4d21b3",
                 "input": [
@@ -134,6 +135,7 @@
             {
                 "description": "with stopLoss (unified)",
                 "disabledGO": true,
+                "disabledJava": true,
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=1000&quantity=0.01&side=BUY&stopLoss=%7B%22stopPrice%22%3A900%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.01%7D&symbol=ETH-USDT&timestamp=1783631494336&type=LIMIT&signature=726bfb0716145dd9490425b36a68c9b4f8b9ef09a19a3b4a2591636c5e3c4b5c",
                 "input": [
