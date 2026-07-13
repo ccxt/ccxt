@@ -3163,13 +3163,9 @@ export default class bingx extends Exchange {
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
             const stopLossDict = this.safeDict (params, 'stopLoss');
-            const stopLossNumber = this.safeNumber (params, 'stopLoss');
-            const stopLossString = this.safeString (params, 'stopLoss');
             const takeProfitDict = this.safeDict (params, 'takeProfit');
-            const takeProfitNumber = this.safeNumber (params, 'takeProfit');
-            const takeProfitString = this.safeString (params, 'takeProfit');
-            const hasStopLoss = stopLossDict !== undefined || stopLossNumber !== undefined;
-            const hasTakeProfit = takeProfitDict !== undefined || takeProfitNumber !== undefined;
+            const hasStopLoss = stopLossDict !== undefined;
+            const hasTakeProfit = takeProfitDict !== undefined;
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
             if (hasStopLoss) {
                 params = this.omit (params, 'stopLoss');
@@ -3218,7 +3214,7 @@ export default class bingx extends Exchange {
             if (hasStopLoss || hasTakeProfit) {
                 const stringifiedAmount = this.numberToString (amount);
                 if (hasStopLoss) {
-                    const slTriggerPrice = this.safeString2 (stopLossDict, 'triggerPrice', 'stopPrice', stopLossString);
+                    const slTriggerPrice = this.safeString2 (stopLossDict, 'triggerPrice', 'stopPrice');
                     const slWorkingType = this.safeString (stopLossDict, 'workingType', 'MARK_PRICE');
                     const slType = this.safeString (stopLossDict, 'type', 'STOP_MARKET');
                     const slRequest: Dict = {
@@ -3235,7 +3231,7 @@ export default class bingx extends Exchange {
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (hasTakeProfit) {
-                    const tkTriggerPrice = this.safeString2 (takeProfitDict, 'triggerPrice', 'stopPrice', takeProfitString);
+                    const tkTriggerPrice = this.safeString2 (takeProfitDict, 'triggerPrice', 'stopPrice');
                     const tkWorkingType = this.safeString (takeProfitDict, 'workingType', 'MARK_PRICE');
                     const tpType = this.safeString (takeProfitDict, 'type', 'TAKE_PROFIT_MARKET');
                     const tpRequest: Dict = {
