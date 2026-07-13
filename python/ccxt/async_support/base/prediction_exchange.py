@@ -97,8 +97,8 @@ class PredictionExchange(BaseExchange):
     def require_event_query(self, params={}):
         # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         # entire exchange. require one of query / queries / tags / eventId / slug, or one of the
-        # venue-specific scope params an exchange declares in options['eventScopeParams']
-        #(e.g. kalshi's category / series_ticker)
+        # venue-specific scope params an exchange declares in options['eventScopeParams'],
+        # e.g. kalshi's category / series_ticker
         query = self.safe_string(params, 'query')
         queries = self.safe_list(params, 'queries', [])
         tags = self.safe_list(params, 'tags', [])
@@ -614,8 +614,8 @@ class PredictionExchange(BaseExchange):
                 if letters.find(chars[ci]) >= 0:
                     wordHasLetters = True
                     break
-            # the query is the handle's letter-bearing words only. standalone numeric tokens
-            #(slug timestamps, strikes, years) are venue artifacts that title searches don't
+            # the query is the handle's letter-bearing words only. standalone numeric
+            # tokens(slug timestamps, strikes, years) are venue artifacts that title searches don't
             # reliably index — and since the result is re-checked against the EXACT handle,
             # a broader query only adds recall, never a wrong match
             if not wordHasLetters:

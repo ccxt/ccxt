@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTradingFee(Exchange exchange, object skippedProperties, object method, object symbol, object entry)
+    public static void testTradingFee(BaseExchange exchange, object skippedProperties, object method, object symbol, object entry)
     {
         // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
         if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))

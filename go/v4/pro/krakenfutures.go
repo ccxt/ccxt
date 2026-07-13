@@ -361,13 +361,24 @@ func (this *KrakenfuturesCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *KrakenfuturesCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes24315 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes24315)
+		ch <- retRes24315
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -419,11 +430,22 @@ func (this *KrakenfuturesCore) WatchTradesForSymbols(symbols any, optionalArgs .
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenfuturesCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
-	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		limit := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes27815 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes27815)
+		ch <- retRes27815
+		return nil
+
+	}()
+	return ch
 }
 
 /**

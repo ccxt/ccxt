@@ -95,8 +95,8 @@ public partial class PredictionExchange : BaseExchange
     {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
-        // venue-specific scope params an exchange declares in options['eventScopeParams']
-        // (e.g. kalshi's category / series_ticker)
+        // venue-specific scope params an exchange declares in options['eventScopeParams'],
+        // e.g. kalshi's category / series_ticker
         parameters ??= new Dictionary<string, object>();
         object query = this.safeString(parameters, "query");
         object queries = this.safeList(parameters, "queries", new List<object>() {});
@@ -862,7 +862,7 @@ public partial class PredictionExchange : BaseExchange
             object word = getValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (isTrue(isEqual(getArrayLength(word), 0)))
+            if (isTrue(isEqual(((string)word).Length, 0)))
             {
                 continue;
             }
@@ -876,8 +876,8 @@ public partial class PredictionExchange : BaseExchange
                     break;
                 }
             }
-            // the query is the handle's letter-bearing words only. standalone numeric tokens
-            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // the query is the handle's letter-bearing words only. standalone numeric
+            // tokens (slug timestamps, strikes, years) are venue artifacts that title searches don't
             // reliably index — and since the result is re-checked against the EXACT handle,
             // a broader query only adds recall, never a wrong match
             if (!isTrue(wordHasLetters))

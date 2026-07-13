@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public partial class SharedMethods
     {
-        public object logTemplate(Exchange exchange, object method, object entry)
+        public object logTemplate(BaseExchange exchange, object method, object entry)
         {
             // there are cases when exchange is undefined (eg. base tests)
             object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
             }
             return stringVal;
         }
-        public object assertType(Exchange exchange, object skippedProperties, object entry, object key, object format)
+        public object assertType(BaseExchange exchange, object skippedProperties, object entry, object key, object format)
         {
             if (isTrue(inOp(skippedProperties, key)))
             {
@@ -61,7 +61,7 @@ public partial class testMainClass : BaseTest
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
-        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
+        public void assertStructure(BaseExchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
         {
             deep ??= false;
             object logText = logTemplate(exchange, method, entry);
@@ -141,7 +141,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        public void assertTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object nowToCheck = null, object keyNameOrIndex = null, object allowNull = null)
+        public void assertTimestamp(BaseExchange exchange, object skippedProperties, object method, object entry, object nowToCheck = null, object keyNameOrIndex = null, object allowNull = null)
         {
             keyNameOrIndex ??= "timestamp";
             allowNull ??= true;
@@ -177,7 +177,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        public void assertTimestampAndDatetime(Exchange exchange, object skippedProperties, object method, object entry, object nowToCheck = null, object keyNameOrIndex = null, object allowNull = null)
+        public void assertTimestampAndDatetime(BaseExchange exchange, object skippedProperties, object method, object entry, object nowToCheck = null, object keyNameOrIndex = null, object allowNull = null)
         {
             keyNameOrIndex ??= "timestamp";
             allowNull ??= true;
@@ -214,7 +214,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        public void assertCurrencyCode(Exchange exchange, object skippedProperties, object method, object entry, object actualCode, object expectedCode = null, object allowNull = null)
+        public void assertCurrencyCode(BaseExchange exchange, object skippedProperties, object method, object entry, object actualCode, object expectedCode = null, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
@@ -233,7 +233,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        public void assertValidCurrencyIdAndCode(Exchange exchange, object skippedProperties, object method, object entry, object currencyId, object currencyCode, object allowNull = null)
+        public void assertValidCurrencyIdAndCode(BaseExchange exchange, object skippedProperties, object method, object entry, object currencyId, object currencyCode, object allowNull = null)
         {
             // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
             allowNull ??= true;
@@ -256,7 +256,7 @@ public partial class testMainClass : BaseTest
                 assert(isEqual(getValue(currencyById, "code"), currencyCode), add(add(add(add("currencyCode ", stringValue(currencyCode)), " does not match currency of id: "), stringValue(currencyId)), logText));
             }
         }
-        public void assertSymbol(Exchange exchange, object skippedProperties, object method, object entry, object key, object expectedSymbol = null, object allowNull = null)
+        public void assertSymbol(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object expectedSymbol = null, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -276,12 +276,12 @@ public partial class testMainClass : BaseTest
             object definedValues = isTrue(!isEqual(actualSymbol, null)) && isTrue(!isEqual(expectedSymbol, null));
             assert(isTrue(definedValues) || isTrue(allowNull), add("symbols are not defined", logText));
         }
-        public void assertSymbolInMarkets(Exchange exchange, object skippedProperties, object method, object symbol)
+        public void assertSymbolInMarkets(BaseExchange exchange, object skippedProperties, object method, object symbol)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
             assert((inOp(exchange.markets, symbol)), add("symbol should be present in exchange.symbols", logText));
         }
-        public void assertGreater(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
+        public void assertGreater(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -296,7 +296,7 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringGt(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be > "), stringValue(compareTo)), logText));
             }
         }
-        public void assertGreaterOrEqual(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
+        public void assertGreaterOrEqual(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -311,7 +311,7 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringGe(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be >= "), stringValue(compareTo)), logText));
             }
         }
-        public void assertLess(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
+        public void assertLess(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -326,7 +326,7 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringLt(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be < "), stringValue(compareTo)), logText));
             }
         }
-        public void assertLessOrEqual(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
+        public void assertLessOrEqual(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -341,7 +341,7 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringLe(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be <= "), stringValue(compareTo)), logText));
             }
         }
-        public void assertEqual(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
+        public void assertEqual(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -356,7 +356,7 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringEq(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be equal to "), stringValue(compareTo)), logText));
             }
         }
-        public void assertNonEqual(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
+        public void assertNonEqual(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -371,7 +371,7 @@ public partial class testMainClass : BaseTest
                 assert(!isTrue(Precise.stringEq(value, compareTo)), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected not to be equal to "), stringValue(compareTo)), logText));
             }
         }
-        public void assertInArray(Exchange exchange, object skippedProperties, object method, object entry, object key, object expectedArray, object allowNull = null)
+        public void assertInArray(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object expectedArray, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -388,7 +388,7 @@ public partial class testMainClass : BaseTest
                 assert(exchange.inArray(value, expectedArray), add(add(add(add(add(add(add("\"", stringValue(key)), "\" key (value \""), stringValue(value)), "\") is not from the expected list : ["), stingifiedArrayValue), "]"), logText));
             }
         }
-        public void assertFeeStructure(Exchange exchange, object skippedProperties, object method, object entry, object key, object allowNull = null)
+        public void assertFeeStructure(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object allowNull = null)
         {
             allowNull ??= true;
             object logText = logTemplate(exchange, method, entry);
@@ -418,7 +418,7 @@ public partial class testMainClass : BaseTest
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
             }
         }
-        public void assertTimestampOrder(Exchange exchange, object method, object codeOrSymbol, object items, object ascending = null)
+        public void assertTimestampOrder(BaseExchange exchange, object method, object codeOrSymbol, object items, object ascending = null)
         {
             ascending ??= true;
             for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
@@ -436,7 +436,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        public void assertInteger(Exchange exchange, object skippedProperties, object method, object entry, object key, object allowNull = null)
+        public void assertInteger(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object allowNull = null)
         {
             allowNull ??= true;
             if (isTrue(inOp(skippedProperties, key)))
@@ -455,7 +455,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        public void checkPrecisionAccuracy(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        public void checkPrecisionAccuracy(BaseExchange exchange, object skippedProperties, object method, object entry, object key)
         {
             if (isTrue(inOp(skippedProperties, key)))
             {
@@ -485,7 +485,7 @@ public partial class testMainClass : BaseTest
                 assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8"); // in real-world cases, there would not be less than that
             }
         }
-        async public Task<object> fetchBestBidAsk(Exchange exchange, object method, object symbol)
+        async public Task<object> fetchBestBidAsk(BaseExchange exchange, object method, object symbol)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
             // find out best bid/ask price
@@ -495,7 +495,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(getValue(exchange.has, "fetchOrderBook")))
             {
                 usedMethod = "fetchOrderBook";
-                object orderbook = await exchange.fetchOrderBook(symbol);
+                object orderbook = await ((dynamic)exchange).fetchOrderBook(symbol);
                 object bids = exchange.safeList(orderbook, "bids");
                 object asks = exchange.safeList(orderbook, "asks");
                 object bestBidArray = exchange.safeList(bids, 0);
@@ -505,20 +505,20 @@ public partial class testMainClass : BaseTest
             } else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
             {
                 usedMethod = "fetchBidsAsks";
-                object tickers = await exchange.fetchBidsAsks(new List<object>() {symbol});
+                object tickers = await ((dynamic)exchange).fetchBidsAsks(new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
             } else if (isTrue(getValue(exchange.has, "fetchTicker")))
             {
                 usedMethod = "fetchTicker";
-                object ticker = await exchange.fetchTicker(symbol);
+                object ticker = await ((dynamic)exchange).fetchTicker(symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
             } else if (isTrue(getValue(exchange.has, "fetchTickers")))
             {
                 usedMethod = "fetchTickers";
-                object tickers = await exchange.fetchTickers(new List<object>() {symbol});
+                object tickers = await ((dynamic)exchange).fetchTickers(new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
@@ -527,7 +527,7 @@ public partial class testMainClass : BaseTest
             assert(isTrue(!isEqual(bestBid, null)) && isTrue(!isEqual(bestAsk, null)), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
             return new List<object>() {bestBid, bestAsk};
         }
-        async public Task<object> fetchOrder(Exchange exchange, object symbol, object orderId, object skippedProperties)
+        async public Task<object> fetchOrder(BaseExchange exchange, object symbol, object orderId, object skippedProperties)
         {
             object fetchedOrder = null;
             object originalId = orderId;
@@ -580,7 +580,7 @@ public partial class testMainClass : BaseTest
             }
             return fetchedOrder;
         }
-        public void assertOrderState(Exchange exchange, object skippedProperties, object method, object order, object assertedStatus, object strictCheck)
+        public void assertOrderState(BaseExchange exchange, object skippedProperties, object method, object order, object assertedStatus, object strictCheck)
         {
             // note, `strictCheck` is `true` only from "fetchOrder" cases
             object logText = logTemplate(exchange, method, order);
@@ -647,7 +647,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
         }
-        public object getActiveMarkets(Exchange exchange, object includeUnknown = null)
+        public object getActiveMarkets(BaseExchange exchange, object includeUnknown = null)
         {
             includeUnknown ??= true;
             object filteredActive = exchange.filterBy(exchange.markets, "active", true);
@@ -658,7 +658,7 @@ public partial class testMainClass : BaseTest
             }
             return filteredActive;
         }
-        public object removeProxyOptions(Exchange exchange, object skippedProperties)
+        public object removeProxyOptions(BaseExchange exchange, object skippedProperties)
         {
             object proxyUrl = exchange.checkProxyUrlSettings();
             var httpProxyhttpsProxysocksProxyVariable = exchange.checkProxySettings();
@@ -676,7 +676,7 @@ public partial class testMainClass : BaseTest
             exchange.setProperty(exchange, "socks_proxy", null);
             return new List<object>() {proxyUrl, httpProxy, httpsProxy, socksProxy};
         }
-        public void setProxyOptions(Exchange exchange, object skippedProperties, object proxyUrl, object httpProxy, object httpsProxy, object socksProxy)
+        public void setProxyOptions(BaseExchange exchange, object skippedProperties, object proxyUrl, object httpProxy, object httpsProxy, object socksProxy)
         {
             exchange.proxyUrl = proxyUrl;
             exchange.httpProxy = httpProxy;
@@ -706,7 +706,7 @@ public partial class testMainClass : BaseTest
                 return result;
             }
         }
-        public void assertNonEmtpyArray(Exchange exchange, object skippedProperties, object method, object entry, object hint = null)
+        public void assertNonEmtpyArray(BaseExchange exchange, object skippedProperties, object method, object entry, object hint = null)
         {
             object logText = logTemplate(exchange, method, entry);
             if (isTrue(!isEqual(hint, null)))
@@ -720,7 +720,7 @@ public partial class testMainClass : BaseTest
             }
             assert(isGreaterThan(getArrayLength(entry), 0), add(add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"));
         }
-        public void assertRoundMinuteTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        public void assertRoundMinuteTimestamp(BaseExchange exchange, object skippedProperties, object method, object entry, object key)
         {
             if (isTrue(inOp(skippedProperties, key)))
             {
@@ -730,16 +730,16 @@ public partial class testMainClass : BaseTest
             object ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
-        public object deepEqual(Exchange exchange, object a, object b)
+        public object deepEqual(BaseExchange exchange, object a, object b)
         {
             return isEqual(json(a), json(b));
         }
-        public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+        public void assertDeepEqual(BaseExchange exchange, object skippedProperties, object method, object a, object b)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
             assert(deepEqual(exchange, a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
-        public object exchangeProp(Exchange exchange, object key, object defaultValue = null)
+        public object exchangeProp(BaseExchange exchange, object key, object defaultValue = null)
         {
             object value = exchange.getProperty(exchange, ((object)key).ToString());
             if (isTrue(!isEqual(value, null)))
@@ -750,7 +750,7 @@ public partial class testMainClass : BaseTest
             object keyUpper = exchange.capitalize(((object)key).ToString());
             return exchange.getProperty(exchange, keyUpper, defaultValue);
         }
-        async public Task validateTickerExceptionForPercentage(object ex, Exchange exchange, object ticker)
+        async public Task validateTickerExceptionForPercentage(object ex, BaseExchange exchange, object ticker)
         {
             // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
             object eMessage = exchange.exceptionMessage(ex, false);
@@ -767,7 +767,7 @@ public partial class testMainClass : BaseTest
                     // if OHLCV supported
                     if (isTrue(!isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
                     {
-                        object ohlcv = await exchange.fetchOHLCV(symbol, "1d", null, 5);
+                        object ohlcv = await ((dynamic)exchange).fetchOHLCV(symbol, "1d", null, 5);
                         if (isTrue(isLessThanOrEqual(getArrayLength(ohlcv), 1)))
                         {
                             // if only 1 day, then allow it

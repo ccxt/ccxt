@@ -606,8 +606,23 @@ class testMainClass:
         event_id = None
         if not self.ws_tests:
             try:
-                # a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                # the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                # every prediction venue — assert it so the contract can't silently regress
+                unscoped_error = ''
+                try:
+                    await call_exchange_method_dynamically(exchange, 'fetchEvents', [{}])
+                except Exception as e:
+                    unscoped_error = exception_message(e)
+                # preferredEventQuery supplies a query known to match the venue's markets
                 event_query = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredEventQuery')
+                if event_query is None:
+                    # derive one from the selected outcome handle (the market words with
+                    # separators as spaces) so the scoped contract holds even without a pin
+                    handle_parts = outcome_symbol.split(':')
+                    market_part = handle_parts[0]
+                    lower_part = market_part.lower()
+                    dedashed = lower_part.replace('-', ' ')
+                    event_query = dedashed.replace('_', ' ')
                 event_params = {}
                 if event_query is not None:
                     event_params['query'] = event_query
@@ -668,6 +683,16 @@ class testMainClass:
             except Exception as e:
                 dump('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exception_message(e))
                 return False
+            # no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            # unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            # instead of silently returning a capped subset
+            can_serve_all_tickers = exchange.safe_bool(exchange.options, 'loadAllOutcomes', False)
+            if not can_serve_all_tickers and exchange.safe_bool(exchange.has, 'fetchTickers', False):
+                tickers_error = ''
+                try:
+                    await call_exchange_method_dynamically(exchange, 'fetchTickers', [])
+                except Exception as e:
+                    tickers_error = exception_message(e)
         dump('[INFO:MAIN] Selected prediction OUTCOME:', outcome_symbol, '| EVENT:', exchange.json(event_id))
         public_tests = {
             'fetchStatus': [],
@@ -729,7 +754,9 @@ class testMainClass:
         # optional typed fields must have the right type when present
         active = exchange.safe_value(event, 'active')
         if active is not None:
-            assert (active) or (active == False), exchange.id + ' event active must be a bool' + log_text
+            # typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            # in Python, which ruff rejects (E712)
+            assert isinstance(active, bool), exchange.id + ' event active must be a bool' + log_text
         tags = exchange.safe_value(event, 'tags')
         if tags is not None:
             assert isinstance(tags, list), exchange.id + ' event tags must be a list' + log_text

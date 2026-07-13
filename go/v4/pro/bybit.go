@@ -615,9 +615,20 @@ func (this *BybitCore) UnWatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BybitCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchTickers([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes48315 := (<-this.UnWatchTickers([]any{symbol}, params))
+		ccxt.PanicOnError(retRes48315)
+		ch <- retRes48315
+		return nil
+
+	}()
+	return ch
 }
 func (this *BybitCore) HandleTicker(client any, message any) {
 	//
@@ -1109,11 +1120,22 @@ func (this *BybitCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BybitCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
-	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		limit := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes88815 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes88815)
+		ch <- retRes88815
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -1255,9 +1277,20 @@ func (this *BybitCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...a
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BybitCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchOrderBookForSymbols([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes99415 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes99415)
+		ch <- retRes99415
+		return nil
+
+	}()
+	return ch
 }
 func (this *BybitCore) HandleOrderBook(client any, message any) {
 	//
@@ -1353,13 +1386,24 @@ func (this *BybitCore) HandleDeltas(bookside any, deltas any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BybitCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes109315 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes109315)
+		ch <- retRes109315
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -1481,9 +1525,20 @@ func (this *BybitCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any)
  * @returns {any} status of the unwatch request
  */
 func (this *BybitCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchTradesForSymbols([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes117715 := (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes117715)
+		ch <- retRes117715
+		return nil
+
+	}()
+	return ch
 }
 func (this *BybitCore) HandleTrades(client any, message any) {
 	//

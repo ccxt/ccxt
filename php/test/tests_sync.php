@@ -5,6 +5,7 @@ namespace ccxt;
 use \React\Async;
 use \React\Promise;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidProxySettings;
 use ccxt\OperationFailed;
@@ -746,8 +747,25 @@ class testMainClass {
         $event_id = null;
         if (!$this->ws_tests) {
             try {
-                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                // every prediction venue — assert it so the contract can't silently regress
+                $unscoped_error = '';
+                try {
+                    call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]);
+                } catch(\Throwable $e) {
+                    $unscoped_error = exception_message($e);
+                }
+                // preferredEventQuery supplies a query known to match the venue's markets
                 $event_query = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredEventQuery');
+                if ($event_query === null) {
+                    // derive one from the selected outcome handle (the market words with
+                    // separators as spaces) so the scoped contract holds even without a pin
+                    $handle_parts = explode(':', $outcome_symbol);
+                    $market_part = $handle_parts[0];
+                    $lower_part = strtolower($market_part);
+                    $dedashed = str_replace('-', ' ', $lower_part);
+                    $event_query = str_replace('_', ' ', $dedashed);
+                }
                 $event_params = array();
                 if ($event_query !== null) {
                     $event_params['query'] = $event_query;
@@ -815,6 +833,18 @@ class testMainClass {
             } catch(\Throwable $e) {
                 dump('[TEST_FAILURE]', $exchange->id, 'fetchEvents/fetchEvent failed:', exception_message($e));
                 return false;
+            }
+            // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            // instead of silently returning a capped subset
+            $can_serve_all_tickers = $exchange->safe_bool($exchange->options, 'loadAllOutcomes', false);
+            if (!$can_serve_all_tickers && $exchange->safe_bool($exchange->has, 'fetchTickers', false)) {
+                $tickers_error = '';
+                try {
+                    call_exchange_method_dynamically($exchange, 'fetchTickers', []);
+                } catch(\Throwable $e) {
+                    $tickers_error = exception_message($e);
+                }
             }
         }
         dump('[INFO:MAIN] Selected prediction OUTCOME:', $outcome_symbol, '| EVENT:', $exchange->json($event_id));
@@ -886,7 +916,9 @@ class testMainClass {
         // optional typed fields must have the right type when present
         $active = $exchange->safe_value($event, 'active');
         if ($active !== null) {
-            assert(($active === true) || ($active === false), $exchange->id . ' event active must be a bool' . $log_text);
+            // typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            // in Python, which ruff rejects (E712)
+            assert(is_bool($active), $exchange->id . ' event active must be a bool' . $log_text);
         }
         $tags = $exchange->safe_value($event, 'tags');
         if ($tags !== null) {

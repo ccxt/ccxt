@@ -114,11 +114,22 @@ func (this *CryptocomCore) Pong(client any, message any) <-chan any {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CryptocomCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
-	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		limit := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes8715 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes8715)
+		ch <- retRes8715
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -133,9 +144,20 @@ func (this *CryptocomCore) WatchOrderBook(symbol any, optionalArgs ...any) <-cha
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CryptocomCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchOrderBookForSymbols([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes10215 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes10215)
+		ch <- retRes10215
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -402,13 +424,24 @@ func (this *CryptocomCore) HandleOrderBook(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *CryptocomCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes32415 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes32415)
+		ch <- retRes32415
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -421,9 +454,20 @@ func (this *CryptocomCore) WatchTrades(symbol any, optionalArgs ...any) <-chan a
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *CryptocomCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchTradesForSymbols([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes33715 := (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes33715)
+		ch <- retRes33715
+		return nil
+
+	}()
+	return ch
 }
 
 /**

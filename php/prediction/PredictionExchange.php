@@ -102,8 +102,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     public function require_event_query($params = array()) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         // entire exchange. require one of $query / $queries / $tags / $eventId / $slug, or one of the
-        // venue-specific scope $params an exchange declares in options['eventScopeParams']
-        // (e.g. kalshi's category / series_ticker)
+        // venue-specific scope $params an exchange declares in options['eventScopeParams'],
+        // e.g. kalshi's category / series_ticker
         $query = $this->safe_string($params, 'query');
         $queries = $this->safe_list($params, 'queries', array());
         $tags = $this->safe_list($params, 'tags', array());
@@ -750,8 +750,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                     break;
                 }
             }
-            // the query is the handle's letter-bearing $words only. standalone numeric tokens
-            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // the query is the handle's letter-bearing $words only. standalone numeric
+            // tokens (slug timestamps, strikes, years) are venue artifacts that title searches don't
             // reliably index — and since the result is re-checked against the EXACT handle,
             // a broader query only adds recall, never a wrong match
             if (!$wordHasLetters) {

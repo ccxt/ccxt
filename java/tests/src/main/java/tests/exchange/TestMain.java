@@ -112,7 +112,7 @@ public class TestMain extends BaseTest
                 put( "enableRateLimit", true );
                 put( "timeout", 30000 );
             }};
-            Exchange exchange = ((Exchange)initExchange(exchangeId, exchangeArgs, this.wsTests));
+            BaseExchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
             if (Helpers.isTrue(exchange.alias))
             {
                 dump(this.addPadding("[INFO] skipping alias", 25));
@@ -950,9 +950,30 @@ public class TestMain extends BaseTest
             {
                 try
                 {
-                    // some venues require fetchEvents to be scoped (e.g. hyperliquid's requireEventQuery);
-                    // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                    // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                    // every prediction venue — Assert it so the contract can't silently regress
+                    Object unscopedError = "";
+                    try
+                    {
+                        (callExchangeMethodDynamically(exchange, "fetchEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{}})))).join();
+                    } catch(Exception e)
+                    {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(unscopedError, "requires at least one of"), 0), Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
+                    // every venue requires fetchEvents to be scoped; a skip-tests.json
+                    // preferredEventQuery supplies a query known to match the venue's markets
                     Object eventQuery = exchange.safeString(this.skippedSettingsForExchange, "preferredEventQuery");
+                    if (Helpers.isTrue(Helpers.isEqual(eventQuery, null)))
+                    {
+                        // derive one from the selected outcome handle (the market words with
+                        // separators as spaces) so the scoped contract holds even without a pin
+                        Object handleParts = Helpers.split(outcomeSymbol, ":");
+                        Object marketPart = Helpers.GetValue(handleParts, 0);
+                        Object lowerPart = ((String)marketPart).toLowerCase();
+                        Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
+                        eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
+                    }
                     Object eventParams = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(!Helpers.isEqual(eventQuery, null)))
                     {
@@ -1030,6 +1051,22 @@ public class TestMain extends BaseTest
                 {
                     dump("[TEST_FAILURE]", exchange.id, "fetchEvents/fetchEvent failed:", exceptionMessage(e));
                     return false;
+                }
+                // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+                // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+                // instead of silently returning a capped subset
+                Object canServeAllTickers = exchange.safeBool(exchange.options, "loadAllOutcomes", false);
+                if (Helpers.isTrue(!Helpers.isTrue(canServeAllTickers) && Helpers.isTrue(exchange.safeBool(exchange.has, "fetchTickers", false))))
+                {
+                    Object tickersError = "";
+                    try
+                    {
+                        (callExchangeMethodDynamically(exchange, "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
+                    } catch(Exception e)
+                    {
+                        tickersError = exceptionMessage(e);
+                    }
+                    Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(tickersError, "requires an outcomes argument"), 0), Helpers.add(Helpers.add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
                 }
             }
             dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));

@@ -113,9 +113,20 @@ func (this *UpbitCore) WatchPublicMultiple(symbols any, channel any, optionalArg
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *UpbitCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.WatchPublicMultiple([]any{symbol}, "ticker")
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes9615 := (<-this.WatchPublicMultiple([]any{symbol}, "ticker"))
+		ccxt.PanicOnError(retRes9615)
+		ch <- retRes9615
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -166,13 +177,24 @@ func (this *UpbitCore) WatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *UpbitCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes13015 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes13015)
+		ch <- retRes13015
+		return nil
+
+	}()
+	return ch
 }
 
 /**

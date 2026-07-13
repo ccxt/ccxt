@@ -100,7 +100,7 @@ public partial class testMainClass
             { "enableRateLimit", true },
             { "timeout", 30000 },
         };
-        Exchange exchange = ((Exchange)initExchange(exchangeId, exchangeArgs, this.wsTests));
+        BaseExchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
         if (isTrue(exchange.alias))
         {
             dump(this.addPadding("[INFO] skipping alias", 25));
@@ -896,9 +896,30 @@ public partial class testMainClass
         {
             try
             {
-                // some venues require fetchEvents to be scoped (e.g. hyperliquid's requireEventQuery);
-                // a skip-tests.json preferredEventQuery supplies a query that matches their markets
+                // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                // every prediction venue — assert it so the contract can't silently regress
+                object unscopedError = "";
+                try
+                {
+                    await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {new Dictionary<string, object>() {}});
+                } catch(Exception e)
+                {
+                    unscopedError = exceptionMessage(e);
+                }
+                assert(isGreaterThanOrEqual(getIndexOf(unscopedError, "requires at least one of"), 0), add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
+                // every venue requires fetchEvents to be scoped; a skip-tests.json
+                // preferredEventQuery supplies a query known to match the venue's markets
                 object eventQuery = exchange.safeString(this.skippedSettingsForExchange, "preferredEventQuery");
+                if (isTrue(isEqual(eventQuery, null)))
+                {
+                    // derive one from the selected outcome handle (the market words with
+                    // separators as spaces) so the scoped contract holds even without a pin
+                    object handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+                    object marketPart = getValue(handleParts, 0);
+                    object lowerPart = ((string)marketPart).ToLower();
+                    object dedashed = ((string)lowerPart).Replace((string)"-", (string)" ");
+                    eventQuery = ((string)dedashed).Replace((string)"_", (string)" ");
+                }
                 object eventParams = new Dictionary<string, object>() {};
                 if (isTrue(!isEqual(eventQuery, null)))
                 {
@@ -974,6 +995,22 @@ public partial class testMainClass
             {
                 dump("[TEST_FAILURE]", exchange.id, "fetchEvents/fetchEvent failed:", exceptionMessage(e));
                 return false;
+            }
+            // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            // instead of silently returning a capped subset
+            object canServeAllTickers = exchange.safeBool(exchange.options, "loadAllOutcomes", false);
+            if (isTrue(!isTrue(canServeAllTickers) && isTrue(exchange.safeBool(exchange.has, "fetchTickers", false))))
+            {
+                object tickersError = "";
+                try
+                {
+                    await callExchangeMethodDynamically(exchange, "fetchTickers", new List<object>() {});
+                } catch(Exception e)
+                {
+                    tickersError = exceptionMessage(e);
+                }
+                assert(isGreaterThanOrEqual(getIndexOf(tickersError, "requires an outcomes argument"), 0), add(add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
             }
         }
         dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
@@ -1054,7 +1091,9 @@ public partial class testMainClass
         object active = exchange.safeValue(eventVar, "active");
         if (isTrue(!isEqual(active, null)))
         {
-            assert(isTrue((isEqual(active, true))) || isTrue((isEqual(active, false))), add(add(exchange.id, " event active must be a bool"), logText));
+            // typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            // in Python, which ruff rejects (E712)
+            assert((active is bool), add(add(exchange.id, " event active must be a bool"), logText));
         }
         object tags = exchange.safeValue(eventVar, "tags");
         if (isTrue(!isEqual(tags, null)))
@@ -1436,12 +1475,15 @@ public partial class testMainClass
             ((IDictionary<string,object>)result)[(string)targetExchange] = ioFileRead(path);
             return result;
         }
-        object files = ioDirRead(folder);
+        object files = (IList<string>)(ioDirRead(folder));
         for (object i = 0; isLessThan(i, getArrayLength(files)); postFixIncrement(ref i))
         {
             object file = getValue(files, i);
-            // skip subdirectories (e.g. the prediction/ folder) and any non-json entries
-            if (isTrue(isLessThan(getIndexOf(file, ".json"), 0)))
+            // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            // check the AST transpiler renders correctly in every language (indexOf/slice on this
+            // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if (isTrue(isEqual(file, "prediction")))
             {
                 continue;
             }

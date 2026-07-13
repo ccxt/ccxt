@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchMarkets extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchMarkets(Exchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testFetchMarkets(BaseExchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchMarkets";
-        Object markets = (exchange.fetchMarkets()).join();
+        Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(markets), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a dict. "), exchange.json(markets)));
         Object marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
@@ -29,7 +30,7 @@ public class TestFetchMarkets extends BaseTest {
         });
 
     }
-    public Object detectMarketConflicts(Exchange exchange, Object marketValues)
+    public Object detectMarketConflicts(BaseExchange exchange, Object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
         Object ids = new java.util.HashMap<String, Object>() {{}};

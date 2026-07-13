@@ -7,13 +7,15 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTrade(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testTrade(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
-        // prediction-market structures are keyed by an outcome handle, not a `symbol`
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+        // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
         if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new Dictionary<string, object>() {
                 { "symbol", true },
+                { "fees", true },
             }, skippedProperties);
         }
         object format = new Dictionary<string, object>() {

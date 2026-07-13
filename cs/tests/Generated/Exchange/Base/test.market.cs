@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testMarket(Exchange exchange, object skippedProperties, object method, object market)
+    public static void testMarket(BaseExchange exchange, object skippedProperties, object method, object market)
     {
         if (isTrue(isEqual(market, null)))
         {

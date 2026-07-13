@@ -417,13 +417,24 @@ func (this *BitmexCore) HandleTicker(client any, message any) any {
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BitmexCore) WatchLiquidations(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes38215 := (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes38215)
+		ch <- retRes38215
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -774,13 +785,24 @@ func (this *BitmexCore) HandleTrades(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitmexCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes70015 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes70015)
+		ch <- retRes70015
+		return nil
+
+	}()
+	return ch
 }
 func (this *BitmexCore) Authenticate(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1474,11 +1496,22 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitmexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
-	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		limit := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes132715 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes132715)
+		ch <- retRes132715
+		return nil
+
+	}()
+	return ch
 }
 
 /**

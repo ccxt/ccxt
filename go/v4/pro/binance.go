@@ -283,13 +283,24 @@ func (this *BinanceCore) GetPrivateWsUrl(typeVar any, listenKey any) any {
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BinanceCore) WatchLiquidations(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes28915 := (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes28915)
+		ch <- retRes28915
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -539,13 +550,24 @@ func (this *BinanceCore) ParseWsLiquidation(liquidation any, optionalArgs ...any
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BinanceCore) WatchMyLiquidations(symbol any, optionalArgs ...any) <-chan any {
-	since := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-	_ = params
-	return this.WatchMyLiquidationsForSymbols([]any{symbol}, since, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		since := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = since
+		limit := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+		_ = params
+
+		retRes51415 := (<-this.WatchMyLiquidationsForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes51415)
+		ch <- retRes51415
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -700,48 +722,59 @@ func (this *BinanceCore) HandleMyLiquidation(client any, message any) {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	//
-	// todo add support for <levels>-snapshots (depth)
-	// https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-	// valid <levels> are 5, 10, or 20
-	//
-	// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-	//
-	// notice the differences between trading futures and spot trading
-	// the algorithms use different urls in step 1
-	// delta caching and merging also differs in steps 4, 5, 6
-	//
-	// spot/margin
-	// https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-	//
-	// 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-	// 2. Buffer the events you receive from the stream.
-	// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-	// 4. Drop any event where u is <= lastUpdateId in the snapshot.
-	// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-	// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-	// 7. The data in each event is the absolute quantity for a price level.
-	// 8. If the quantity is 0, remove the price level.
-	// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-	//
-	// futures
-	// https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-	//
-	// 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-	// 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-	// 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-	// 4. Drop any event where u is < lastUpdateId in the snapshot.
-	// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-	// 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-	// 7. The data in each event is the absolute quantity for a price level.
-	// 8. If the quantity is 0, remove the price level.
-	// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-	//
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
-	return this.WatchOrderBookForSymbols([]any{symbol}, limit, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		//
+		// todo add support for <levels>-snapshots (depth)
+		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
+		// valid <levels> are 5, 10, or 20
+		//
+		// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+		//
+		// notice the differences between trading futures and spot trading
+		// the algorithms use different urls in step 1
+		// delta caching and merging also differs in steps 4, 5, 6
+		//
+		// spot/margin
+		// https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
+		//
+		// 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+		// 2. Buffer the events you receive from the stream.
+		// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+		// 4. Drop any event where u is <= lastUpdateId in the snapshot.
+		// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+		// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+		// 7. The data in each event is the absolute quantity for a price level.
+		// 8. If the quantity is 0, remove the price level.
+		// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+		//
+		// futures
+		// https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+		//
+		// 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+		// 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+		// 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
+		// 4. Drop any event where u is < lastUpdateId in the snapshot.
+		// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+		// 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+		// 7. The data in each event is the absolute quantity for a price level.
+		// 8. If the quantity is 0, remove the price level.
+		// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+		//
+		limit := ccxt.GetArg(optionalArgs, 0, nil)
+		_ = limit
+		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+
+		retRes68015 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes68015)
+		ch <- retRes68015
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -931,9 +964,20 @@ func (this *BinanceCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ..
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchOrderBookForSymbols([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes83415 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes83415)
+		ch <- retRes83415
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -1476,9 +1520,20 @@ func (this *BinanceCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...an
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BinanceCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchTradesForSymbols([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes128815 := (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes128815)
+		ch <- retRes128815
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -2463,9 +2518,20 @@ func (this *BinanceCore) UnWatchMarkPrices(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchMarkPrices([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes203215 := (<-this.UnWatchMarkPrices([]any{symbol}, params))
+		ccxt.PanicOnError(retRes203215)
+		ch <- retRes203215
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -2483,9 +2549,20 @@ func (this *BinanceCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <-cha
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.UnWatchTickers([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes205015 := (<-this.UnWatchTickers([]any{symbol}, params))
+		ccxt.PanicOnError(retRes205015)
+		ch <- retRes205015
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -3523,9 +3600,20 @@ func (this *BinanceCore) HandleAccountStatusWs(client any, message any) {
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BinanceCore) FetchPositionWs(symbol any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	return this.FetchPositionsWs([]any{symbol}, params)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		retRes291315 := (<-this.FetchPositionsWs([]any{symbol}, params))
+		ccxt.PanicOnError(retRes291315)
+		ch <- retRes291315
+		return nil
+
+	}()
+	return ch
 }
 
 /**

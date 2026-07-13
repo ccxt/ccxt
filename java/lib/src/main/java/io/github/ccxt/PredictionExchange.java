@@ -111,8 +111,8 @@ public Object describe()
     {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
-        // venue-specific scope params an exchange declares in options['eventScopeParams']
-        // (e.g. kalshi's category / series_ticker)
+        // venue-specific scope params an exchange declares in options['eventScopeParams'],
+        // e.g. kalshi's category / series_ticker
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object query = this.safeString(parameters, "query");
         Object queries = this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -922,7 +922,7 @@ public Object describe()
             Object word = Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(word), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
             {
                 continue;
             }
@@ -936,8 +936,8 @@ public Object describe()
                     break;
                 }
             }
-            // the query is the handle's letter-bearing words only. standalone numeric tokens
-            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // the query is the handle's letter-bearing words only. standalone numeric
+            // tokens (slug timestamps, strikes, years) are venue artifacts that title searches don't
             // reliably index — and since the result is re-checked against the EXACT handle,
             // a broader query only adds recall, never a wrong match
             if (!Helpers.isTrue(wordHasLetters))

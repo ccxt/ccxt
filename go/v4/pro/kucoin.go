@@ -405,11 +405,22 @@ func (this *KucoinCore) AuthenticateUta() <-chan any {
 	return ch
 }
 func (this *KucoinCore) UnSubscribe(url any, messageHash any, topic any, subscriptionHash any, optionalArgs ...any) <-chan any {
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-	_ = params
-	subscription := ccxt.GetArg(optionalArgs, 1, nil)
-	_ = subscription
-	return this.UnSubscribeMultiple(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription)
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		subscription := ccxt.GetArg(optionalArgs, 1, nil)
+		_ = subscription
+
+		retRes28315 := (<-this.UnSubscribeMultiple(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription))
+		ccxt.PanicOnError(retRes28315)
+		ch <- retRes28315
+		return nil
+
+	}()
+	return ch
 }
 func (this *KucoinCore) SubscribeMultiple(url any, messageHashes any, topic any, subscriptionHashes any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

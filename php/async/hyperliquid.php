@@ -14,13 +14,14 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\InvalidProxySettings;
 use ccxt\Precise;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
+
 use const ccxt\ROUND;
 use const ccxt\DECIMAL_PLACES;
 use const ccxt\SIGNIFICANT_DIGITS;
 use const ccxt\TICK_SIZE;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
 
 class hyperliquid extends Exchange {
     public function describe(): mixed {

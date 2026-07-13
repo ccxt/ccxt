@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testBalance(Exchange exchange, object skippedProperties, object method, object entry)
+    public static void testBalance(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
         object format = new Dictionary<string, object>() {
             { "free", new Dictionary<string, object>() {} },

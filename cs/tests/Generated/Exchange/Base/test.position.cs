@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testPosition(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testPosition(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
         // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
         // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
