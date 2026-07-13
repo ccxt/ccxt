@@ -14,7 +14,10 @@ partial class Examples
         var exchange = new ccxt.prediction.polymarket();
         Console.WriteLine("id: " + exchange.id);
         Console.WriteLine("isPrediction: " + exchange.isPrediction());
-        var markets = exchange.FetchMarkets();
+        var events = exchange.FetchEvents(new Dictionary<string, object>() { { "query", "Fed Chair" } });
+        events.Wait();
+        Console.WriteLine("fetchEvents({query}): " + events.Result.Count);
+        var markets = exchange.FetchMarkets(new Dictionary<string, object>() { { "query", "Fed" } });
         markets.Wait();
         Console.WriteLine("fetched markets: " + markets.Result.Count);
     }

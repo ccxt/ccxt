@@ -14,7 +14,9 @@ $exchange = new \ccxt\prediction\polymarket([]);
 echo 'id: ' . $exchange->id . "\n";
 echo 'isPrediction: ' . ($exchange->is_prediction() ? 'true' : 'false') . "\n";
 try {
-    $markets = await($exchange->load_markets());
+    $events = await($exchange->fetch_events(['query' => 'Fed Chair']));
+    echo 'fetchEvents({query}): ' . count($events) . "\n";
+    $markets = await($exchange->fetch_markets(['query' => 'Fed']));
     echo 'fetched markets: ' . count($markets) . "\n";
 } catch (\Exception $e) {
     echo 'fetchMarkets skipped (offline/geo): ' . get_class($e) . "\n";

@@ -17,7 +17,9 @@ async def main():
     print('id:', exchange.id)
     print('isPrediction:', exchange.isPrediction())
     try:
-        markets = await exchange.fetch_markets()
+        events = await exchange.fetch_events({'query': 'Fed Chair'})
+        print('fetchEvents({query}):', len(events))
+        markets = await exchange.fetch_markets({'query': 'Fed'})
         print('fetched markets:', len(markets))
     except Exception as e:
         print('fetchMarkets skipped (offline/geo):', type(e).__name__)
