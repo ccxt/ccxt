@@ -596,7 +596,7 @@ public class BitsoCore extends BitsoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object catalogues = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicGetCatalogues", new Object[] { parameters })).join();
+            Object catalogues = (this.publicGetCatalogues(parameters)).join();
             //
             //     {
             //         "payload": {

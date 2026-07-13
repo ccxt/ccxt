@@ -3134,10 +3134,17 @@ class bingx extends Exchange {
             $isTrailingAmountOrder = $trailingAmount !== null;
             $isTrailingPercentOrder = $trailingPercent !== null;
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-            $stopLoss = $this->safe_value($params, 'stopLoss');
-            $takeProfit = $this->safe_value($params, 'takeProfit');
-            $hasStopLoss = $stopLoss !== null;
-            $hasTakeProfit = $takeProfit !== null;
+            $stopLossDict = $this->safe_dict($params, 'stopLoss');
+            $takeProfitDict = $this->safe_dict($params, 'takeProfit');
+            $hasStopLoss = $stopLossDict !== null;
+            $hasTakeProfit = $takeProfitDict !== null;
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if ($hasStopLoss) {
+                $params = $this->omit($params, 'stopLoss');
+            }
+            if ($hasTakeProfit) {
+                $params = $this->omit($params, 'takeProfit');
+            }
             if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
@@ -3179,36 +3186,36 @@ class bingx extends Exchange {
             if ($hasStopLoss || $hasTakeProfit) {
                 $stringifiedAmount = $this->number_to_string($amount);
                 if ($hasStopLoss) {
-                    $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
-                    $slType = $this->safe_string($stopLoss, 'type', 'STOP_MARKET');
+                    $slTriggerPrice = $this->safe_string_2($stopLossDict, 'triggerPrice', 'stopPrice');
+                    $slWorkingType = $this->safe_string($stopLossDict, 'workingType', 'MARK_PRICE');
+                    $slType = $this->safe_string($stopLossDict, 'type', 'STOP_MARKET');
                     $slRequest = array(
                         'stopPrice' => $this->parse_to_numeric($this->price_to_precision($symbol, $slTriggerPrice)),
                         'workingType' => $slWorkingType,
                         'type' => $slType,
                     );
-                    $slPrice = $this->safe_string($stopLoss, 'price');
+                    $slPrice = $this->safe_string($stopLossDict, 'price');
                     if ($slPrice !== null) {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $slQuantity = $this->safe_string($stopLoss, 'quantity', $stringifiedAmount);
+                    $slQuantity = $this->safe_string($stopLossDict, 'quantity', $stringifiedAmount);
                     $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
                     $request['stopLoss'] = $this->json($slRequest);
                 }
                 if ($hasTakeProfit) {
-                    $tkTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $tkWorkingType = $this->safe_string($takeProfit, 'workingType', 'MARK_PRICE');
-                    $tpType = $this->safe_string($takeProfit, 'type', 'TAKE_PROFIT_MARKET');
+                    $tkTriggerPrice = $this->safe_string_2($takeProfitDict, 'triggerPrice', 'stopPrice');
+                    $tkWorkingType = $this->safe_string($takeProfitDict, 'workingType', 'MARK_PRICE');
+                    $tpType = $this->safe_string($takeProfitDict, 'type', 'TAKE_PROFIT_MARKET');
                     $tpRequest = array(
                         'stopPrice' => $this->parse_to_numeric($this->price_to_precision($symbol, $tkTriggerPrice)),
                         'workingType' => $tkWorkingType,
                         'type' => $tpType,
                     );
-                    $slPrice = $this->safe_string($takeProfit, 'price');
+                    $slPrice = $this->safe_string($takeProfitDict, 'price');
                     if ($slPrice !== null) {
                         $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
-                    $tkQuantity = $this->safe_string($takeProfit, 'quantity', $stringifiedAmount);
+                    $tkQuantity = $this->safe_string($takeProfitDict, 'quantity', $stringifiedAmount);
                     $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
                     $request['takeProfit'] = $this->json($tpRequest);
                 }
@@ -3235,7 +3242,7 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ));
         return $this->extend($request, $params);
     }
 
@@ -3378,8 +3385,11 @@ class bingx extends Exchange {
             $result = $data;
         }
         // when the $response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        $stopLossDict = $this->safe_dict($result, 'stopLoss');
         $stopLoss = $this->safe_string($result, 'stopLoss');
-        if (($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
+        // for py fix, the SL is already parsed (instead of stringified,'s provided)
+        // so we need trick to check if it's non-parsed string yet
+        if (($stopLossDict === null) && ($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
             $result['stopLoss'] = $this->parse_json($stopLoss);
         }
         $takeProfit = $this->safe_string($result, 'takeProfit');

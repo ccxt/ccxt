@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var cairo = require('./cairo.js');
 
-// ----------------------------------------------------------------------------
+/* eslint-disable no-plusplus */
 function parseNamedTuple(namedTuple) {
     const name = namedTuple.substring(0, namedTuple.indexOf(':'));
     const type = namedTuple.substring(name.length + ':'.length);
