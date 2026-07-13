@@ -7711,7 +7711,7 @@ public partial class bitget : Exchange
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                 }
-                object endTime = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+                object endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
                 if (isTrue(isEqual(since, null)))
                 {
