@@ -1632,7 +1632,7 @@ func (this *BingxCore) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = Precise.StringMul(volume, contractSize)
 	}
 	return this.SafeTrade(map[string]any{
-		"id":           this.SafeStringN(trade, []any{"id", "t"}),
+		"id":           this.SafeString2(trade, "id", "t"),
 		"info":         trade,
 		"timestamp":    time,
 		"datetime":     this.Iso8601(time),
