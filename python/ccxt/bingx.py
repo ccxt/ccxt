@@ -1489,7 +1489,7 @@ class bingx(Exchange, ImplicitAPI):
             volume = self.safe_string(trade, 'volume')
             amount = Precise.string_mul(volume, contractSize)
         return self.safe_trade({
-            'id': self.safe_string_n(trade, ['id', 't']),
+            'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
