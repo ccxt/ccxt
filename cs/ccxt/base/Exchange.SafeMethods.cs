@@ -95,8 +95,44 @@ public partial class Exchange
 
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
-        var res = SafeStringN(obj, new List<object> { key });
-        return res == null ? null : (string)res;
+        var result = SafeValue(obj, key, defaultValue);
+        if (result == null)
+            return defaultValue as string;
+        string returnResult = null;
+        if (result is IList || result is IDictionary)
+        {
+            return defaultValue as string;
+        }
+        if (result.GetType() == typeof(float))
+        {
+            returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else if (result.GetType() == typeof(double))
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else if (result is double)
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+
+        }
+        else if (result is decimal)
+        {
+            returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            returnResult = result.ToString();
+        }
+        if (returnResult != null)
+        {
+            var stringRest = (string)returnResult;
+            if (stringRest.Length > 0)
+            {
+                return stringRest;
+            }
+        }
+        return defaultValue as string;
     }
     public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
@@ -110,37 +146,37 @@ public partial class Exchange
 
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
-        var result = toStringOrNull(safeString(obj, key, defaultValue));
-        return result == null ? defaultValue as string : result.ToUpper();
+        var result = safeString(obj, key);
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, key1, key2, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToUpper();
+        var result = safeString2(obj, key1, key2);
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
-        var result = safeStringN(obj, keys, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToUpper();
+        var result = safeStringN(obj, keys);
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
-        var result = safeString(obj, key, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToLower();
+        var result = safeString(obj, key);
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToLower();
     }
 
     public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, key1, key2, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToLower();
+        var result = safeString2(obj, key1, key2);
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToLower();
     }
 
     public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
-        var result = safeStringN(obj, keys, defaultValue);
+        var result = safeStringN(obj, keys);
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 
@@ -247,7 +283,7 @@ public partial class Exchange
 
     public static string? SafeStringN(object obj, object keys, object defaultValue = null)
     {
-        var result = SafeValueN(obj, keys, defaultValue);
+        var result = SafeValueN(obj, keys);
         if (result == null)
             return defaultValue as string;
         string returnResult = null;
@@ -272,10 +308,19 @@ public partial class Exchange
         {
             returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
         }
-        else
+        else if (result is int || result is long || result is short || result is byte)
+        {
+            returnResult = Convert.ToString(result, CultureInfo.InvariantCulture);
+        }
+        else if (result is string || (result.GetType().IsPrimitive && !(result is bool)))
         {
             returnResult = result.ToString();
         }
+        else
+        {
+            return defaultValue as string;
+        }
+
         if (returnResult != null)
         {
             var stringRest = (string)returnResult;

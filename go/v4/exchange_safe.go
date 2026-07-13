@@ -356,20 +356,24 @@ func SafeStringN(obj any, keys []any, defaultValue any) any {
 	}
 }
 
-func (this *Exchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any) any {
+func (this *Exchange) SafeStringUpperN(obj any, keys2 []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeStringUpperN(obj, keys, defVal)
+	res := SafeStringN(obj, keys2, nil)
+	if str, ok := res.(string); ok && str != "" {
+		return strings.ToUpper(str)
+	}
+	return defVal
 }
 
 func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
-	value := SafeStringN(obj, keys, defaultValue)
-	if value == nil {
-		return defaultValue
+	value := SafeStringN(obj, keys, nil)
+	if str, ok := value.(string); ok && str != "" {
+		return strings.ToUpper(str)
 	}
-	return strings.ToUpper(value.(string))
+	return defaultValue
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
@@ -449,7 +453,32 @@ func SafeValue(obj any, key any, defaultValue any) any {
 
 // SafeString retrieves a string value from a nested structure
 func SafeString(obj any, key any, defaultValue any) any {
-	return SafeStringN(obj, []any{key}, defaultValue)
+	value := SafeValue(obj, key, defaultValue)
+	if value == nil {
+		return defaultValue
+	}
+
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			return defaultValue
+		}
+		return v
+	case int:
+		return strconv.Itoa(v)
+	case int8, int16, int32, int64:
+		return strconv.FormatInt(v.(int64), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(v.(uint64), 10)
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case json.Number:
+		return string(v)
+	default:
+		return defaultValue
+	}
 }
 
 func SafeString2(obj any, key any, key2 any, defaultValue any) any {
@@ -587,38 +616,49 @@ func (this *Exchange) SafeString(obj any, key any, defaultValue ...any) any {
 
 func (this *Exchange) SafeStringUpper(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString(obj, key, defaultValue...)
-	if res != nil {
+	res := this.SafeString(obj, key)
+	if res != nil && res != "" {
 		return strings.ToUpper(res.(string))
 	}
-	return nil // check this return type
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
 }
 
 func (this *Exchange) SafeStringLower(obj any, key any, defaultValue ...any) any {
-	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString(obj, key, defaultValue...)
-	if res != "" && res != nil {
+	res := this.SafeString(obj, key)
+	if res != nil && res != "" {
 		return strings.ToLower(res.(string))
 	}
-	return nil // check this return type
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
 }
 
 func (this *Exchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString2(obj, key, key2, defaultValue...)
+	res := this.SafeString2(obj, key, key2)
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
-	return nil // check this return type
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
 }
 
 func (this *Exchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString2(obj, key, key2, defaultValue...)
+	res := this.SafeString2(obj, key, key2)
 	if res != "" && res != nil {
 		return strings.ToUpper(res.(string))
 	}
-	return nil // check this return type
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
 }
 
 func (this *Exchange) SafeString2(obj any, key any, key2 any, defaultValue ...any) any {
@@ -644,7 +684,7 @@ func (this *Exchange) SafeStringLowerN(obj any, keys2 any, defaultValue ...any) 
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	res := SafeStringN(obj, keys, defVal)
+	res := SafeStringN(obj, keys, nil)
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
