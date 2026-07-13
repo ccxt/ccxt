@@ -1271,13 +1271,16 @@ class testMainClass {
             'token' => 'token',
             'login' => 'login',
             'accountId' => '12345',
-            'accounts' => [array(
-    'id' => 'myAccount',
-    'code' => 'USDT',
-), array(
-    'id' => 'myAccount',
-    'code' => 'USDC',
-)],
+            'accounts' => [
+                array(
+                    'id' => 'myAccount',
+                    'code' => 'USDT',
+                ), 
+                array(
+                    'id' => 'myAccount',
+                    'code' => 'USDC',
+                ),
+            ],
             'options' => array(
                 'enableUnifiedAccount' => true,
                 'enableUnifiedMargin' => false,
