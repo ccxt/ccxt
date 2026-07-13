@@ -9,6 +9,7 @@ namespace ccxt\prediction;
 // ----------------------------------------------------------------------------
 
 use Exception; // a common import
+use ccxt\Precise;
 use ccxt\ExchangeError;
 use ccxt\BadSymbol;
 use ccxt\NotSupported;
@@ -965,26 +966,258 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchSettlements() is not supported yet');
     }
 
-    public function safe_prediction_order(array $order, $market = null) {
-        // the prediction identity is the `outcome` handle carried on the raw dict (read by
-        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object $market
-        $parsed = parent::safe_order($order);
-        return $this->to_prediction_structure($parsed, $order);
+    public function safe_prediction_order(array $outcomeOrder, $outcomeObj = null) {
+        // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
+        // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
+        // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
+        // outcome-addressed row). prediction is always linear with a contract size of 1.
+        $amount = $this->omit_zero($this->safe_string($outcomeOrder, 'amount'));
+        $filled = $this->safe_string($outcomeOrder, 'filled');
+        $remaining = $this->safe_string($outcomeOrder, 'remaining');
+        $cost = $this->safe_string($outcomeOrder, 'cost');
+        $average = $this->omit_zero($this->safe_string($outcomeOrder, 'average'));
+        $price = $this->omit_zero($this->safe_string($outcomeOrder, 'price'));
+        $side = $this->safe_string($outcomeOrder, 'side');
+        $status = $this->safe_string($outcomeOrder, 'status');
+        $lastTradeTimestamp = $this->safe_integer($outcomeOrder, 'lastTradeTimestamp');
+        // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
+        $rawTrades = $this->safe_list($outcomeOrder, 'trades', array());
+        $trades = $this->parse_prediction_trades($rawTrades, $outcomeObj);
+        $tradesLength = count($trades);
+        $feeList = array();
+        if ($tradesLength > 0) {
+            if ($filled === null) {
+                $filled = '0';
+            }
+            if ($cost === null) {
+                $cost = '0';
+            }
+            for ($i = 0; $i < $tradesLength; $i++) {
+                $trade = $trades[$i];
+                $tradeAmount = $this->safe_string($trade, 'amount');
+                if ($tradeAmount !== null) {
+                    $filled = Precise::string_add($filled, $tradeAmount);
+                }
+                $tradeCost = $this->safe_string($trade, 'cost');
+                if ($tradeCost !== null) {
+                    $cost = Precise::string_add($cost, $tradeCost);
+                }
+                if ($side === null) {
+                    $side = $this->safe_string($trade, 'side');
+                }
+                $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
+                if ($tradeTimestamp !== null) {
+                    if ($lastTradeTimestamp === null) {
+                        $lastTradeTimestamp = $tradeTimestamp;
+                    } elseif ($tradeTimestamp > $lastTradeTimestamp) {
+                        $lastTradeTimestamp = $tradeTimestamp;
+                    }
+                }
+                $tradeFee = $this->safe_dict($trade, 'fee');
+                if ($tradeFee !== null) {
+                    $feeList[] = $tradeFee;
+                }
+            }
+        }
+        // fill any totals the venue left null (linear, contract size 1)
+        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
+            $filled = Precise::string_sub($amount, $remaining);
+        }
+        if (($remaining === null) && ($amount !== null) && ($filled !== null)) {
+            $remaining = Precise::string_sub($amount, $filled);
+        }
+        if (($amount === null) && ($filled !== null) && ($remaining !== null)) {
+            $amount = Precise::string_add($filled, $remaining);
+        }
+        if (($average === null) && ($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
+            $average = Precise::string_div($cost, $filled);
+        }
+        if (($cost === null) && ($filled !== null)) {
+            $multiplyPrice = ($average !== null) ? $average : $price;
+            if ($multiplyPrice !== null) {
+                $cost = Precise::string_mul($filled, $multiplyPrice);
+            }
+        }
+        $fee = $this->safe_dict($outcomeOrder, 'fee');
+        if (($fee === null) && (strlen($feeList) > 0)) {
+            $reduced = $this->reduce_fees_by_currency($feeList);
+            if (strlen($reduced) > 0) {
+                $fee = $reduced[0];
+            }
+        }
+        // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
+        // trigger orders, so the isTriggerOrSLTp guard collapses) => a market order defaults to IOC
+        $orderType = $this->safe_string($outcomeOrder, 'type');
+        $timeInForce = $this->safe_string($outcomeOrder, 'timeInForce');
+        $postOnly = $this->safe_bool($outcomeOrder, 'postOnly');
+        if ($timeInForce === null) {
+            if ($orderType === 'market') {
+                $timeInForce = 'IOC';
+            }
+            if ($postOnly) {
+                $timeInForce = 'PO';
+            }
+        } elseif ($postOnly === null) {
+            $postOnly = ($timeInForce === 'PO');
+        }
+        $timestamp = $this->safe_integer($outcomeOrder, 'timestamp');
+        $datetime = $this->safe_string($outcomeOrder, 'datetime');
+        if ($datetime === null) {
+            $datetime = $this->iso8601($timestamp);
+        }
+        $result = array(
+            'id' => $this->safe_string($outcomeOrder, 'id'),
+            'clientOrderId' => $this->safe_string($outcomeOrder, 'clientOrderId'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $this->safe_integer($outcomeOrder, 'lastUpdateTimestamp'),
+            'status' => $status,
+            'type' => $orderType,
+            'timeInForce' => $timeInForce,
+            'side' => $side,
+            'price' => $this->parse_number($price),
+            'average' => $this->parse_number($average),
+            'amount' => $this->parse_number($amount),
+            'filled' => $this->parse_number($filled),
+            'remaining' => $this->parse_number($remaining),
+            'cost' => $this->parse_number($cost),
+            'fee' => $fee,
+            'reduceOnly' => $this->safe_bool($outcomeOrder, 'reduceOnly'),
+            'postOnly' => $postOnly,
+            'trades' => $trades,
+            'outcome' => $this->safe_string($outcomeOrder, 'outcome'),
+            'outcomeId' => $this->safe_string($outcomeOrder, 'outcomeId'),
+            'label' => $this->safe_string($outcomeOrder, 'label'),
+            'market' => $this->safe_string($outcomeOrder, 'market'),
+            'event' => $this->safe_string($outcomeOrder, 'event'),
+            'info' => $this->safe_value($outcomeOrder, 'info', $outcomeOrder),
+        );
+        return $result;
     }
 
-    public function safe_prediction_trade(array $trade, $market = null) {
-        $parsed = parent::safe_trade($trade);
-        return $this->to_prediction_structure($parsed, $trade);
+    public function safe_prediction_trade(array $trade, $outcomeObj = null) {
+        // build the prediction $trade directly (no crypto safeTrade, which leaks fields the type omits)
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'amount');
+        $cost = $this->safe_string($trade, 'cost');
+        if (($cost === null) && ($price !== null) && ($amount !== null)) {
+            $cost = Precise::string_mul($price, $amount);
+        }
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        $datetime = $this->safe_string($trade, 'datetime');
+        if ($datetime === null) {
+            $datetime = $this->iso8601($timestamp);
+        }
+        $result = array(
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => $this->safe_string($trade, 'order'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'type' => $this->safe_string($trade, 'type'),
+            'side' => $this->safe_string($trade, 'side'),
+            'takerOrMaker' => $this->safe_string($trade, 'takerOrMaker'),
+            'price' => $this->parse_number($price),
+            'amount' => $this->parse_number($amount),
+            'cost' => $this->parse_number($cost),
+            'fee' => $this->safe_dict($trade, 'fee'),
+            'realizedPnl' => $this->safe_number($trade, 'realizedPnl'),
+            'outcome' => $this->safe_string($trade, 'outcome'),
+            'outcomeId' => $this->safe_string($trade, 'outcomeId'),
+            'label' => $this->safe_string($trade, 'label'),
+            'market' => $this->safe_string($trade, 'market'),
+            'info' => $this->safe_value($trade, 'info', $trade),
+        );
+        return $result;
     }
 
-    public function safe_prediction_ticker(array $ticker, $market = null) {
-        $parsed = parent::safe_ticker($ticker);
-        return $this->to_prediction_structure($parsed, $ticker);
+    public function safe_prediction_ticker(array $ticker, $outcomeObj = null) {
+        // build the prediction $ticker directly (no crypto safeTicker, which injects vwap/previousClose/
+        // indexPrice/markPrice the type omits). derive change/percentage/average only from $open+$close —
+        // prediction venues report those directly, so the crypto back-derivation from $percentage is moot.
+        $open = $this->omit_zero($this->safe_string($ticker, 'open'));
+        $close = $this->omit_zero($this->safe_string_2($ticker, 'close', 'last'));
+        $last = $this->omit_zero($this->safe_string_2($ticker, 'last', 'close'));
+        $change = $this->safe_string($ticker, 'change');
+        $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
+        $average = $this->omit_zero($this->safe_string($ticker, 'average'));
+        if (($change === null) && ($open !== null) && ($close !== null)) {
+            $change = Precise::string_sub($close, $open);
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && Precise::string_gt($open, '0')) {
+            $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+        }
+        if (($average === null) && ($open !== null) && ($close !== null)) {
+            $average = Precise::string_div(Precise::string_add($open, $close), '2');
+        }
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $datetime = $this->safe_string($ticker, 'datetime');
+        if ($datetime === null) {
+            $datetime = $this->iso8601($timestamp);
+        }
+        $result = array(
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'bid'))),
+            'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
+            'ask' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'ask'))),
+            'askVolume' => $this->safe_number($ticker, 'askVolume'),
+            'open' => $this->parse_number($open),
+            'close' => $this->parse_number($close),
+            'last' => $this->parse_number($last),
+            'change' => $this->parse_number($change),
+            'percentage' => $this->parse_number($percentage),
+            'average' => $this->parse_number($average),
+            'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'openInterest' => $this->safe_number($ticker, 'openInterest'),
+            'outcome' => $this->safe_string($ticker, 'outcome'),
+            'outcomeId' => $this->safe_string($ticker, 'outcomeId'),
+            'label' => $this->safe_string($ticker, 'label'),
+            'market' => $this->safe_string($ticker, 'market'),
+            'event' => $this->safe_string($ticker, 'event'),
+            'info' => $this->safe_value($ticker, 'info', $ticker),
+        );
+        return $result;
     }
 
     public function safe_prediction_position(array $position) {
-        $parsed = parent::safe_position($position);
-        return $this->to_prediction_structure($parsed, $position);
+        // build the prediction $position directly (no crypto safePosition, which carries the whole
+        // leverage/marginMode/liquidation block the prediction type omits)
+        $timestamp = $this->safe_integer($position, 'timestamp');
+        $datetime = $this->safe_string($position, 'datetime');
+        if ($datetime === null) {
+            $datetime = $this->iso8601($timestamp);
+        }
+        $result = array(
+            'id' => $this->safe_string($position, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'contracts' => $this->safe_number($position, 'contracts'),
+            'contractSize' => $this->safe_number($position, 'contractSize'),
+            'side' => $this->safe_string($position, 'side'),
+            'notional' => $this->safe_number($position, 'notional'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
+            'realizedPnl' => $this->safe_number($position, 'realizedPnl'),
+            'collateral' => $this->safe_number($position, 'collateral'),
+            'entryPrice' => $this->safe_number($position, 'entryPrice'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'lastPrice' => $this->safe_number($position, 'lastPrice'),
+            'percentage' => $this->safe_number($position, 'percentage'),
+            'resolved' => $this->safe_bool($position, 'resolved'),
+            'won' => $this->safe_bool($position, 'won'),
+            'settleFraction' => $this->safe_number($position, 'settleFraction'),
+            'payout' => $this->safe_number($position, 'payout'),
+            'outcome' => $this->safe_string($position, 'outcome'),
+            'outcomeId' => $this->safe_string($position, 'outcomeId'),
+            'label' => $this->safe_string($position, 'label'),
+            'market' => $this->safe_string($position, 'market'),
+            'event' => $this->safe_string($position, 'event'),
+            'info' => $this->safe_value($position, 'info', $position),
+        );
+        return $result;
     }
 
     public function safe_prediction_order_book(array $orderbook, ?array $outcomeObj = null) {
@@ -1017,23 +1250,6 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function parse_prediction_open_interest(array $interest, ?array $market = null) {
         throw new NotSupported($this->id . ' parsePredictionOpenInterest() is not supported yet');
-    }
-
-    public function to_prediction_structure(array $parsed, array $raw) {
-        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
-        // and the other prediction fields ($raw exchange id, label, parent market/event) that the
-        // base safe* helpers drop. the exchange parser passes them on the $raw input dict.
-        $parsed['outcome'] = $this->safe_string($raw, 'outcome');
-        $parsed['outcomeId'] = $this->safe_string($raw, 'outcomeId');
-        $parsed['label'] = $this->safe_string($raw, 'label');
-        $parsed['market'] = $this->safe_string($raw, 'market');
-        $parsed['event'] = $this->safe_string($raw, 'event');
-        // guard the delete => a bare `delete` is a no-op on a missing key in JS, but transpiles to
-        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
-        if (is_array($parsed) && array_key_exists('symbol', $parsed)) {
-            unset($parsed['symbol']);
-        }
-        return $parsed;
     }
 
     public function parse_prediction_trades(array $trades, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {

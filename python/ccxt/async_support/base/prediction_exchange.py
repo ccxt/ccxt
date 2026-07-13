@@ -9,6 +9,7 @@
 from typing import Any, List
 from ccxt.async_support.base.exchange import BaseExchange
 from ccxt.base.types import Str, Strings, Int, Num, Market, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
+from ccxt.base.precise import Precise
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
@@ -809,23 +810,226 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchSettlements() is not supported yet')
 
-    def safe_prediction_order(self, order: dict, market=None):
-        # the prediction identity is the `outcome` handle carried on the raw dict(read by
-        # toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object market
-        parsed = super(PredictionExchange, self).safe_order(order)
-        return self.to_prediction_structure(parsed, order)
+    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj=None):
+        # build the prediction order directly(do NOT delegate to the crypto safeOrder, which injects
+        # ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
+        # never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
+        # outcome-addressed row). prediction is always linear with a contract size of 1.
+        amount = self.omit_zero(self.safe_string(outcomeOrder, 'amount'))
+        filled = self.safe_string(outcomeOrder, 'filled')
+        remaining = self.safe_string(outcomeOrder, 'remaining')
+        cost = self.safe_string(outcomeOrder, 'cost')
+        average = self.omit_zero(self.safe_string(outcomeOrder, 'average'))
+        price = self.omit_zero(self.safe_string(outcomeOrder, 'price'))
+        side = self.safe_string(outcomeOrder, 'side')
+        status = self.safe_string(outcomeOrder, 'status')
+        lastTradeTimestamp = self.safe_integer(outcomeOrder, 'lastTradeTimestamp')
+        # parse embedded fills with the OUTCOME-aware parser(parseTrades would drop them on the symbol filter)
+        rawTrades = self.safe_list(outcomeOrder, 'trades', [])
+        trades = self.parse_prediction_trades(rawTrades, outcomeObj)
+        tradesLength = len(trades)
+        feeList = []
+        if tradesLength > 0:
+            if filled is None:
+                filled = '0'
+            if cost is None:
+                cost = '0'
+            for i in range(0, tradesLength):
+                trade = trades[i]
+                tradeAmount = self.safe_string(trade, 'amount')
+                if tradeAmount is not None:
+                    filled = Precise.string_add(filled, tradeAmount)
+                tradeCost = self.safe_string(trade, 'cost')
+                if tradeCost is not None:
+                    cost = Precise.string_add(cost, tradeCost)
+                if side is None:
+                    side = self.safe_string(trade, 'side')
+                tradeTimestamp = self.safe_integer(trade, 'timestamp')
+                if tradeTimestamp is not None:
+                    if lastTradeTimestamp is None:
+                        lastTradeTimestamp = tradeTimestamp
+                    elif tradeTimestamp > lastTradeTimestamp:
+                        lastTradeTimestamp = tradeTimestamp
+                tradeFee = self.safe_dict(trade, 'fee')
+                if tradeFee is not None:
+                    feeList.append(tradeFee)
+        # fill any totals the venue left None(linear, contract size 1)
+        if (filled is None) and (amount is not None) and (remaining is not None):
+            filled = Precise.string_sub(amount, remaining)
+        if (remaining is None) and (amount is not None) and (filled is not None):
+            remaining = Precise.string_sub(amount, filled)
+        if (amount is None) and (filled is not None) and (remaining is not None):
+            amount = Precise.string_add(filled, remaining)
+        if (average is None) and (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
+            average = Precise.string_div(cost, filled)
+        if (cost is None) and (filled is not None):
+            multiplyPrice = average if (average is not None) else price
+            if multiplyPrice is not None:
+                cost = Precise.string_mul(filled, multiplyPrice)
+        fee = self.safe_dict(outcomeOrder, 'fee')
+        if (fee is None) and (len(feeList) > 0):
+            reduced = self.reduce_fees_by_currency(feeList)
+            if len(reduced) > 0:
+                fee = reduced[0]
+        # derive timeInForce/postOnly the same way the crypto safeOrder does(prediction has no
+        # trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
+        orderType = self.safe_string(outcomeOrder, 'type')
+        timeInForce = self.safe_string(outcomeOrder, 'timeInForce')
+        postOnly = self.safe_bool(outcomeOrder, 'postOnly')
+        if timeInForce is None:
+            if orderType == 'market':
+                timeInForce = 'IOC'
+            if postOnly:
+                timeInForce = 'PO'
+        elif postOnly is None:
+            postOnly = (timeInForce == 'PO')
+        timestamp = self.safe_integer(outcomeOrder, 'timestamp')
+        datetime = self.safe_string(outcomeOrder, 'datetime')
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        result = {
+            'id': self.safe_string(outcomeOrder, 'id'),
+            'clientOrderId': self.safe_string(outcomeOrder, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': self.safe_integer(outcomeOrder, 'lastUpdateTimestamp'),
+            'status': status,
+            'type': orderType,
+            'timeInForce': timeInForce,
+            'side': side,
+            'price': self.parse_number(price),
+            'average': self.parse_number(average),
+            'amount': self.parse_number(amount),
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(remaining),
+            'cost': self.parse_number(cost),
+            'fee': fee,
+            'reduceOnly': self.safe_bool(outcomeOrder, 'reduceOnly'),
+            'postOnly': postOnly,
+            'trades': trades,
+            'outcome': self.safe_string(outcomeOrder, 'outcome'),
+            'outcomeId': self.safe_string(outcomeOrder, 'outcomeId'),
+            'label': self.safe_string(outcomeOrder, 'label'),
+            'market': self.safe_string(outcomeOrder, 'market'),
+            'event': self.safe_string(outcomeOrder, 'event'),
+            'info': self.safe_value(outcomeOrder, 'info', outcomeOrder),
+        }
+        return result
 
-    def safe_prediction_trade(self, trade: dict, market=None):
-        parsed = super(PredictionExchange, self).safe_trade(trade)
-        return self.to_prediction_structure(parsed, trade)
+    def safe_prediction_trade(self, trade: dict, outcomeObj=None):
+        # build the prediction trade directly(no crypto safeTrade, which leaks fields the type omits)
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
+        cost = self.safe_string(trade, 'cost')
+        if (cost is None) and (price is not None) and (amount is not None):
+            cost = Precise.string_mul(price, amount)
+        timestamp = self.safe_integer(trade, 'timestamp')
+        datetime = self.safe_string(trade, 'datetime')
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        result = {
+            'id': self.safe_string(trade, 'id'),
+            'order': self.safe_string(trade, 'order'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'type': self.safe_string(trade, 'type'),
+            'side': self.safe_string(trade, 'side'),
+            'takerOrMaker': self.safe_string(trade, 'takerOrMaker'),
+            'price': self.parse_number(price),
+            'amount': self.parse_number(amount),
+            'cost': self.parse_number(cost),
+            'fee': self.safe_dict(trade, 'fee'),
+            'realizedPnl': self.safe_number(trade, 'realizedPnl'),
+            'outcome': self.safe_string(trade, 'outcome'),
+            'outcomeId': self.safe_string(trade, 'outcomeId'),
+            'label': self.safe_string(trade, 'label'),
+            'market': self.safe_string(trade, 'market'),
+            'info': self.safe_value(trade, 'info', trade),
+        }
+        return result
 
-    def safe_prediction_ticker(self, ticker: dict, market=None):
-        parsed = super(PredictionExchange, self).safe_ticker(ticker)
-        return self.to_prediction_structure(parsed, ticker)
+    def safe_prediction_ticker(self, ticker: dict, outcomeObj=None):
+        # build the prediction ticker directly(no crypto safeTicker, which injects vwap/previousClose/
+        # indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
+        # prediction venues report those directly, so the crypto back-derivation from percentage is moot.
+        open = self.omit_zero(self.safe_string(ticker, 'open'))
+        close = self.omit_zero(self.safe_string_2(ticker, 'close', 'last'))
+        last = self.omit_zero(self.safe_string_2(ticker, 'last', 'close'))
+        change = self.safe_string(ticker, 'change')
+        percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
+        average = self.omit_zero(self.safe_string(ticker, 'average'))
+        if (change is None) and (open is not None) and (close is not None):
+            change = Precise.string_sub(close, open)
+        if (percentage is None) and (change is not None) and (open is not None) and Precise.string_gt(open, '0'):
+            percentage = Precise.string_mul(Precise.string_div(change, open), '100')
+        if (average is None) and (open is not None) and (close is not None):
+            average = Precise.string_div(Precise.string_add(open, close), '2')
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        datetime = self.safe_string(ticker, 'datetime')
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        result = {
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.parse_number(self.omit_zero(self.safe_string(ticker, 'bid'))),
+            'bidVolume': self.safe_number(ticker, 'bidVolume'),
+            'ask': self.parse_number(self.omit_zero(self.safe_string(ticker, 'ask'))),
+            'askVolume': self.safe_number(ticker, 'askVolume'),
+            'open': self.parse_number(open),
+            'close': self.parse_number(close),
+            'last': self.parse_number(last),
+            'change': self.parse_number(change),
+            'percentage': self.parse_number(percentage),
+            'average': self.parse_number(average),
+            'baseVolume': self.safe_number(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'openInterest': self.safe_number(ticker, 'openInterest'),
+            'outcome': self.safe_string(ticker, 'outcome'),
+            'outcomeId': self.safe_string(ticker, 'outcomeId'),
+            'label': self.safe_string(ticker, 'label'),
+            'market': self.safe_string(ticker, 'market'),
+            'event': self.safe_string(ticker, 'event'),
+            'info': self.safe_value(ticker, 'info', ticker),
+        }
+        return result
 
     def safe_prediction_position(self, position: dict):
-        parsed = super(PredictionExchange, self).safe_position(position)
-        return self.to_prediction_structure(parsed, position)
+        # build the prediction position directly(no crypto safePosition, which carries the whole
+        # leverage/marginMode/liquidation block the prediction type omits)
+        timestamp = self.safe_integer(position, 'timestamp')
+        datetime = self.safe_string(position, 'datetime')
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        result = {
+            'id': self.safe_string(position, 'id'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'contracts': self.safe_number(position, 'contracts'),
+            'contractSize': self.safe_number(position, 'contractSize'),
+            'side': self.safe_string(position, 'side'),
+            'notional': self.safe_number(position, 'notional'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
+            'realizedPnl': self.safe_number(position, 'realizedPnl'),
+            'collateral': self.safe_number(position, 'collateral'),
+            'entryPrice': self.safe_number(position, 'entryPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'lastPrice'),
+            'percentage': self.safe_number(position, 'percentage'),
+            'resolved': self.safe_bool(position, 'resolved'),
+            'won': self.safe_bool(position, 'won'),
+            'settleFraction': self.safe_number(position, 'settleFraction'),
+            'payout': self.safe_number(position, 'payout'),
+            'outcome': self.safe_string(position, 'outcome'),
+            'outcomeId': self.safe_string(position, 'outcomeId'),
+            'label': self.safe_string(position, 'label'),
+            'market': self.safe_string(position, 'market'),
+            'event': self.safe_string(position, 'event'),
+            'info': self.safe_value(position, 'info', position),
+        }
+        return result
 
     def safe_prediction_order_book(self, orderbook: dict, outcomeObj: dict = None):
         # normalize a parsed order book to the prediction shape: replace the unified
@@ -852,21 +1056,6 @@ class PredictionExchange(BaseExchange):
 
     def parse_prediction_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePredictionOpenInterest() is not supported yet')
-
-    def to_prediction_structure(self, parsed: dict, raw: dict):
-        # the prediction identity is the `outcome` handle(never the base `symbol`); attach it
-        # and the other prediction fields(raw exchange id, label, parent market/event) that the
-        # base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        parsed['outcome'] = self.safe_string(raw, 'outcome')
-        parsed['outcomeId'] = self.safe_string(raw, 'outcomeId')
-        parsed['label'] = self.safe_string(raw, 'label')
-        parsed['market'] = self.safe_string(raw, 'market')
-        parsed['event'] = self.safe_string(raw, 'event')
-        # guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
-        # `del`/`unset` which raises in Python when the inherited `symbol` was never set
-        if 'symbol' in parsed:
-            del parsed['symbol']
-        return parsed
 
     def parse_prediction_trades(self, trades: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
         """
