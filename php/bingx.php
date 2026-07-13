@@ -1512,7 +1512,7 @@ class bingx extends Exchange {
             $amount = Precise::string_mul($volume, $contractSize);
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string_n($trade, array( 'id', 't' )),
+            'id' => $this->safe_string_2($trade, 'id', 't'),
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),
