@@ -95,7 +95,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'trades.'
         if symbol is not None:
             market = self.market(symbol)
@@ -156,9 +157,10 @@ class paradex(ccxt.async_support.paradex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms'
         url = self.urls['api']['ws']
@@ -241,7 +243,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         channel = 'markets_summary'
         url = self.urls['api']['ws']
@@ -265,7 +268,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'markets_summary'
         url = self.urls['api']['ws']
@@ -302,7 +306,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         messageHash = 'orders'
         channel = 'orders.'
@@ -416,7 +421,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         channel = 'funding_data'
         url = self.urls['api']['ws']
@@ -440,7 +446,8 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'funding_data'
         url = self.urls['api']['ws']

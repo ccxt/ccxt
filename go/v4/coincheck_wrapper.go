@@ -28,6 +28,22 @@ func NewCoincheckFromCore(core *CoincheckCore) *Coincheck {
 
 /**
  * @method
+ * @name coincheck#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @see https://coincheck.com/documents/exchange/api#status-retrieval
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *Coincheck) FetchStatus(params ...any) (map[string]any, error) {
+	res := <-this.Core.FetchStatus(params...)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
  * @name coincheck#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
@@ -95,7 +111,7 @@ func (this *Coincheck) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coincheck) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -730,9 +746,6 @@ func (this *Coincheck) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 }
 func (this *Coincheck) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Coincheck) FetchStatus(params ...any) (map[string]any, error) {
-	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coincheck) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)

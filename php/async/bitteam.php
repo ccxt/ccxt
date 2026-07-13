@@ -12,11 +12,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadSymbol;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitteam extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
@@ -249,9 +248,11 @@ class bitteam extends Exchange {
                     'ufobject' => 'ufobject',
                     'tonchain' => 'tonchain',
                 ),
-                'currenciesValuedInUsd' => array(
-                    'USDT' => true,
-                    'BUSD' => true,
+                'fetchMarkets' => array(
+                    'currenciesValuedInUsd' => array(
+                        'USDT' => true,
+                        'BUSD' => true,
+                    ),
                 ),
             ),
             'features' => array(
@@ -357,7 +358,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitteam
@@ -367,7 +368,7 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetTradeApiCcxtPairs ($params));
+            $response = Async\await($this->publicGetTradeApiCcxtPairs($params));
             //
             //     {
             //         "ok" => true,
@@ -457,7 +458,7 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $markets = $this->safe_value($result, 'pairs', array());
             return $this->parse_markets($markets);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -472,7 +473,7 @@ class bitteam extends Exchange {
         $timeStart = $this->safe_string($market, 'timeStart');
         $created = $this->parse8601($timeStart);
         $minCost = null;
-        $currenciesValuedInUsd = $this->safe_value($this->options, 'currenciesValuedInUsd', array());
+        $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
         if ($quoteInUsd) {
             $settings = $this->safe_value($market, 'settings', array());
@@ -530,7 +531,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -540,7 +541,7 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $response = Async\await($this->publicGetTradeApiCurrencies ($params));
+            $response = Async\await($this->publicGetTradeApiCurrencies($params));
             //
             //     {
             //         "ok" => true,
@@ -634,7 +635,7 @@ class bitteam extends Exchange {
             $responseResult = $this->safe_value($response, 'result', array());
             $currencies = $this->safe_value($responseResult, 'currencies', array());
             // usding another endpoint to fetch statuses of deposits and withdrawals
-            $statusesResponse = Async\await($this->publicGetTradeApiCmcAssets ());
+            $statusesResponse = Async\await($this->publicGetTradeApiCmcAssets());
             //
             //     {
             //         "ZNX" => array(
@@ -660,7 +661,7 @@ class bitteam extends Exchange {
             $result = $this->parse_currencies($currencies);
             unset($this->options['_temp_currencies_statuses']);
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_currency(array $currency): array {
@@ -751,7 +752,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -762,14 +763,16 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
                 'pairName' => $market['id'],
                 'resolution' => $resolution,
             );
-            $response = Async\await($this->historyGetApiTwHistoryPairNameResolution ($this->extend($request, $params)));
+            $response = Async\await($this->historyGetApiTwHistoryPairNameResolution($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -800,7 +803,7 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $data = $this->safe_list($result, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -824,7 +827,7 @@ class bitteam extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -836,12 +839,14 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTradeApiCmcOrderbookPair($this->extend($request, $params)));
             //
             //     {
             //         "timestamp" => 1701166703284,
@@ -872,10 +877,10 @@ class bitteam extends Exchange {
             $timestamp = $this->safe_integer($response, 'timestamp');
             $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -889,7 +894,9 @@ class bitteam extends Exchange {
              * @param {string} [$params->type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = $this->safe_string($params, 'type', 'all');
             $request = array(
                 'type' => $type,
@@ -902,7 +909,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiCcxtOrdersOfUser ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtOrdersOfUser($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -988,10 +995,10 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $orders = $this->safe_list($result, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order
@@ -1003,7 +1010,9 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'id' => $id,
             );
@@ -1011,7 +1020,7 @@ class bitteam extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetTradeApiCcxtOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtOrderId($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1051,10 +1060,10 @@ class bitteam extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1067,15 +1076,17 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'type' => 'active',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1088,15 +1099,17 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'type' => 'closed',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -1109,15 +1122,17 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'type' => 'cancelled',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1132,7 +1147,9 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pairId' => $this->safe_string($market, 'numericId'),
@@ -1147,7 +1164,7 @@ class bitteam extends Exchange {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            $response = Async\await($this->privatePostTradeApiCcxtOrdercreate ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtOrdercreate($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1173,10 +1190,10 @@ class bitteam extends Exchange {
             //
             $order = $this->safe_dict($response, 'result', array());
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1188,11 +1205,13 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privatePostTradeApiCcxtCancelorder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtCancelorder($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1203,10 +1222,10 @@ class bitteam extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel open $orders of $market
@@ -1217,7 +1236,9 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
@@ -1226,7 +1247,7 @@ class bitteam extends Exchange {
             } else {
                 $request['pairId'] = '0'; // '0' for all markets
             }
-            $response = Async\await($this->privatePostTradeApiCcxtCancelAllOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtCancelAllOrder($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1238,7 +1259,7 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $orders = array( $result );
             return $this->parse_orders($orders, $market);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1415,7 +1436,7 @@ class bitteam extends Exchange {
         return Precise::string_mul($valueRawString, $precisionString);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1426,8 +1447,10 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->publicGetTradeApiCmcSummary ());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->publicGetTradeApiCmcSummary());
             //
             //     array(
             //         array(
@@ -1469,10 +1492,10 @@ class bitteam extends Exchange {
                 $tickers[] = $ticker;
             }
             return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1483,12 +1506,14 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiPairName ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTradeApiPairName($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1675,7 +1700,7 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $pair = $this->safe_dict($result, 'pair', array());
             return $this->parse_ticker($pair, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1806,7 +1831,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1819,12 +1844,14 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiCmcTradesPair ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTradeApiCmcTradesPair($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1847,10 +1874,10 @@ class bitteam extends Exchange {
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1863,7 +1890,9 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -1873,7 +1902,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiCcxtTradesOfUser ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtTradesOfUser($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -2010,7 +2039,7 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -2120,7 +2149,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2130,10 +2159,12 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the betteam api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetTradeApiCcxtBalance ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetTradeApiCcxtBalance($params));
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -2203,7 +2234,7 @@ class bitteam extends Exchange {
         return $this->safe_balance($balance);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
@@ -2216,7 +2247,9 @@ class bitteam extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -2226,7 +2259,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiTransactionsOfUser ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTradeApiTransactionsOfUser($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -2318,7 +2351,7 @@ class bitteam extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $transactions = $this->safe_list($result, 'transactions', array());
             return $this->parse_transactions($transactions, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2428,7 +2461,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

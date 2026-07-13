@@ -7,6 +7,10 @@ import type { Dict, Strings, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe (): any {
         return this.deepExtend (super.describe (), {
@@ -64,7 +68,9 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request: Dict = {

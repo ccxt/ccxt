@@ -681,3 +681,35 @@ func ExchangeProp(exchange ccxt.ICoreExchange, key any, optionalArgs ...any) any
 	var keyUpper any = exchange.Capitalize(ToString(key))
 	return exchange.GetProperty(exchange, keyUpper, defaultValue)
 }
+func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, ticker any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		// only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+		var eMessage any = exchange.ExceptionMessage(ex, false)
+		if IsTrue(IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be above"), 0)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(eMessage, "percentage should be below"), 0))) {
+			var symbol any = GetValue(ticker, "symbol")
+			if IsTrue(!IsEqual(symbol, nil)) {
+				// if it's not in markets, then maybe newly added symbol, so can can compromise there
+				if !IsTrue((InOp(exchange.GetMarkets(), symbol))) {
+
+					return nil
+				}
+				// if OHLCV supported
+				if IsTrue(!IsEqual(exchange.FeatureValue(symbol, "fetchOHLCV"), nil)) {
+
+					ohlcv := (<-exchange.FetchOHLCV(symbol, "1d", nil, 5))
+					PanicOnError(ohlcv)
+					if IsTrue(IsLessThanOrEqual(GetArrayLength(ohlcv), 1)) {
+
+						return nil
+					}
+				}
+			}
+		}
+		Assert(IsEqual(eMessage, ""), eMessage) // trigger error
+		return nil
+	}()
+	return ch
+}

@@ -13,12 +13,11 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise;
+use React\Promise\PromiseInterface;
 
 class weex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'weex',
@@ -192,7 +191,7 @@ class weex extends Exchange {
                 'withdraw' => false,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936', // todo
+                'logo' => 'https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c', // todo
                 'api' => array(
                     'public' => 'https://api-spot.weex.com',
                     'private' => 'https://api-spot.weex.com',
@@ -690,7 +689,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -700,7 +699,7 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
              */
-            $response = Async\await($this->publicGetApiV3Ping ($params));
+            $response = Async\await($this->publicGetApiV3Ping($params));
             // reutns an empty $response if the exchange is alive, otherwise will trigger an error
             return array(
                 'status' => 'ok',
@@ -709,10 +708,10 @@ class weex extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -728,9 +727,9 @@ class weex extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
             $response = null;
             if ($type !== 'spot') {
-                $response = Async\await($this->contractGetCapiV3MarketTime ($params));
+                $response = Async\await($this->contractGetCapiV3MarketTime($params));
             } else {
-                $response = Async\await($this->publicGetApiV3Time ($params));
+                $response = Async\await($this->publicGetApiV3Time($params));
             }
             //
             //     {
@@ -738,10 +737,10 @@ class weex extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'serverTime');
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -751,7 +750,7 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetApiV3Coins ($params));
+            $response = Async\await($this->publicGetApiV3Coins($params));
             //
             //     array(
             //         {
@@ -863,7 +862,7 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_currencies($response);
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -931,7 +930,7 @@ class weex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for exchagne
@@ -946,15 +945,15 @@ class weex extends Exchange {
                 Async\await($this->load_time_difference());
             }
             $promises = array(
-                $this->publicGetApiV3ExchangeInfo ($params),
-                $this->contractGetCapiV3MarketExchangeInfo ($params),
+                $this->publicGetApiV3ExchangeInfo($params),
+                $this->contractGetCapiV3MarketExchangeInfo($params),
             );
             list($spotResponse, $contractResponse) = Async\await(Promise\all($promises));
             $spotArray = $this->safe_list($spotResponse, 'symbols', array());
             $contractArray = $this->safe_list($contractResponse, 'symbols', array());
             $result = $this->array_concat($spotArray, $contractArray);
             return $this->parse_markets($result);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -1107,7 +1106,7 @@ class weex extends Exchange {
         ));
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1120,7 +1119,9 @@ class weex extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
@@ -1157,7 +1158,7 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = Async\await($this->publicGetApiV3MarketTicker24hr ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetApiV3MarketTicker24hr($this->extend($request, $params)));
             } else {
                 //
                 //     array(
@@ -1178,16 +1179,16 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = Async\await($this->contractGetCapiV3MarketTicker24hr ($this->extend($request, $params)));
+                $response = Async\await($this->contractGetCapiV3MarketTicker24hr($this->extend($request, $params)));
             }
             if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
                 $response = array( $response );
             }
             return $this->parse_tickers($response, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
@@ -1206,15 +1207,15 @@ class weex extends Exchange {
             list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $response = null;
             if ($marketType === 'spot') {
-                $response = Async\await($this->publicGetApiV3MarketTickerBookTicker ($params));
+                $response = Async\await($this->publicGetApiV3MarketTickerBookTicker($params));
             } else {
-                $response = Async\await($this->contractGetCapiV3MarketTickerBookTicker ($params));
+                $response = Async\await($this->contractGetCapiV3MarketTickerBookTicker($params));
             }
             if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
                 $response = array( $response );
             }
             return $this->parse_tickers($response, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1290,7 +1291,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1301,9 +1302,11 @@ class weex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 15, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1313,9 +1316,9 @@ class weex extends Exchange {
             }
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->publicGetApiV3MarketDepth ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetApiV3MarketDepth($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractGetCapiV3MarketDepth ($this->extend($request, $params)));
+                $response = Async\await($this->contractGetCapiV3MarketDepth($this->extend($request, $params)));
             }
             //
             //     {
@@ -1337,10 +1340,10 @@ class weex extends Exchange {
             $orderbook = $this->parse_order_book($response, $symbol);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1359,17 +1362,19 @@ class weex extends Exchange {
              * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['spot']) {
                 return Async\await($this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params));
             } else {
                 return Async\await($this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params));
             }
-        }) ();
+        })();
     }
 
-    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @ignore
@@ -1384,18 +1389,20 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $response = Async\await($this->publicGetApiV3MarketKlines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV3MarketKlines($this->extend($request, $params)));
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @ignore
@@ -1416,7 +1423,9 @@ class weex extends Exchange {
              * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $maxHistoricalLimit = 100;
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
@@ -1438,7 +1447,7 @@ class weex extends Exchange {
             $params = $this->omit($params, array( 'historical', 'until', 'price' ));
             $response = null;
             if ($limit !== null) {
-                $limit = min ($limit, 1000); // hardcap threshold
+                $limit = min($limit, 1000); // hardcap threshold
             }
             if ($historical) {
                 if ($priceType !== null) {
@@ -1462,21 +1471,21 @@ class weex extends Exchange {
                 }
                 $request['startTime'] = $startTime;
                 $request['endTime'] = $endTime;
-                $response = Async\await($this->contractGetCapiV3MarketHistoryKlines ($this->extend($request, $params)));
+                $response = Async\await($this->contractGetCapiV3MarketHistoryKlines($this->extend($request, $params)));
             } else {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
                 if ($priceType === 'MARK') {
-                    $response = Async\await($this->contractGetCapiV3MarketMarkPriceKlines ($this->extend($request, $params)));
+                    $response = Async\await($this->contractGetCapiV3MarketMarkPriceKlines($this->extend($request, $params)));
                 } elseif ($priceType === 'INDEX') {
-                    $response = Async\await($this->contractGetCapiV3MarketIndexPriceKlines ($this->extend($request, $params)));
+                    $response = Async\await($this->contractGetCapiV3MarketIndexPriceKlines($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->contractGetCapiV3MarketKlines ($this->extend($request, $params)));
+                    $response = Async\await($this->contractGetCapiV3MarketKlines($this->extend($request, $params)));
                 }
             }
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1490,7 +1499,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1504,19 +1513,21 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000);
+                $request['limit'] = min($limit, 1000);
             }
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->publicGetApiV3MarketTrades ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetApiV3MarketTrades($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractGetCapiV3MarketTrades ($this->extend($request, $params)));
+                $response = Async\await($this->contractGetCapiV3MarketTrades($this->extend($request, $params)));
             }
             //
             //     array(
@@ -1532,7 +1543,7 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1639,7 +1650,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open interest of a contract trading pair
@@ -1650,14 +1661,16 @@ class weex extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractGetCapiV3MarketOpenInterest ($this->extend($request, $params)));
+            $response = Async\await($this->contractGetCapiV3MarketOpenInterest($this->extend($request, $params)));
             return $this->parse_open_interest($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -1681,7 +1694,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -1693,7 +1706,9 @@ class weex extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $symbolsLength = 0;
             if ($symbols !== null) {
@@ -1704,7 +1719,7 @@ class weex extends Exchange {
                 $market = $this->get_market_from_symbols($symbols);
                 $request['symbol'] = $this->safe_string($market, 'id');
             }
-            $response = Async\await($this->contractGetCapiV3MarketPremiumIndex ($this->extend($request, $params)));
+            $response = Async\await($this->contractGetCapiV3MarketPremiumIndex($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1721,7 +1736,7 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_funding_rates($response, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -1757,7 +1772,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
@@ -1774,7 +1789,9 @@ class weex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1786,9 +1803,9 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->contractGetCapiV3MarketFundingRate ($this->extend($request, $params)));
+            $response = Async\await($this->contractGetCapiV3MarketFundingRate($this->extend($request, $params)));
             return $this->parse_funding_rate_histories($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate_history($contract, ?array $market = null) {
@@ -1812,7 +1829,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -1854,7 +1871,7 @@ class weex extends Exchange {
                 //         "uid" => 8886281669
                 //     }
                 //
-                $response = Async\await($this->privateGetApiV3Account ($params));
+                $response = Async\await($this->privateGetApiV3Account($params));
             } else {
                 //
                 //     array(
@@ -1867,10 +1884,10 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = Async\await($this->contractPrivateGetCapiV3AccountBalance ($params));
+                $response = Async\await($this->contractPrivateGetCapiV3AccountBalance($params));
             }
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1891,7 +1908,7 @@ class weex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -1905,7 +1922,9 @@ class weex extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -1924,7 +1943,7 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('before', $request, $params);
-            $response = Async\await($this->privateGetApiV3AccountTransferRecords ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV3AccountTransferRecords($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1940,7 +1959,7 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_transfers($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1968,7 +1987,7 @@ class weex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -1987,17 +2006,19 @@ class weex extends Exchange {
              * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in $params
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['contract']) {
                 return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
             } else {
                 return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
             }
-        }) ();
+        })();
     }
 
-    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * helper method for creating spot orders
@@ -2014,10 +2035,12 @@ class weex extends Exchange {
              * @param {string} [$params->timeInForce] 'GTC', 'IOC', or 'FOK'
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostApiV3Order ($request));
+            $response = Async\await($this->privatePostApiV3Order($request));
             //
             //     {
             //         "symbol" => "DOGEUSDT",
@@ -2027,10 +2050,10 @@ class weex extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2052,7 +2075,7 @@ class weex extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * helper method for creating contract orders
@@ -2081,21 +2104,23 @@ class weex extends Exchange {
              * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
             $triggerPrice = $this->safe_string($request, 'triggerPrice');
             $response = null;
             if ($triggerPrice !== null) {
-                $response = Async\await($this->contractPrivatePostCapiV3AlgoOrder ($request));
+                $response = Async\await($this->contractPrivatePostCapiV3AlgoOrder($request));
             } else {
-                $response = Async\await($this->contractPrivatePostCapiV3Order ($request));
+                $response = Async\await($this->contractPrivatePostCapiV3Order($request));
             }
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2211,7 +2236,7 @@ class weex extends Exchange {
         return $this->safe_string($types, $triggerPriceType, $triggerPriceType);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -2227,7 +2252,9 @@ class weex extends Exchange {
              * @param {string} [$params->clientOrderId] *non-$trigger orders only* a unique $id for the $order
              * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2262,19 +2289,19 @@ class weex extends Exchange {
                 //         "status" => "CANCELED"
                 //     }
                 //
-                $response = Async\await($this->privateDeleteApiV3Order ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteApiV3Order($this->extend($request, $params)));
             } elseif ($trigger) {
-                $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOrder ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivateDeleteCapiV3Order ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateDeleteCapiV3Order($this->extend($request, $params)));
             }
             $order = $this->parse_order($response, $market);
             $order['status'] = 'canceled';
             return $order;
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -2289,7 +2316,9 @@ class weex extends Exchange {
              * @param {boolean} [$params->trigger] *swap only* true for cancelling $trigger orders (default is false)
              * @return Response from the exchange
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -2305,20 +2334,20 @@ class weex extends Exchange {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
                 }
-                $response = Async\await($this->privateDeleteApiV3OpenOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteApiV3OpenOrders($this->extend($request, $params)));
             } elseif ($trigger) {
-                $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOpenOrders ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivateDeleteCapiV3AllOpenOrders ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $params)));
             }
             $extendedParams = array(
                 'status' => 'canceled',
             );
             return $this->parse_orders($response, $market, null, null, $extendedParams);
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -2333,7 +2362,9 @@ class weex extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -2361,19 +2392,19 @@ class weex extends Exchange {
             }
             $response = null;
             if ($isSpot) {
-                $response = Async\await($this->privateDeleteApiV3OrderBatch ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteApiV3OrderBatch($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivateDeleteCapiV3BatchOrders ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateDeleteCapiV3BatchOrders($this->extend($request, $params)));
             }
             $ordersResponse = $this->safe_list($response, 'orderList', array());
             $extendedParams = array(
                 'status' => 'canceled',
             );
             return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
-        }) ();
+        })();
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -2388,7 +2419,9 @@ class weex extends Exchange {
              * @param {string} [$params->clientOrderId] *spot only* a unique $id for the order, used if $id is not provided
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2429,15 +2462,15 @@ class weex extends Exchange {
                 //         "isWorking" => true
                 //     }
                 //
-                $response = Async\await($this->privateGetApiV3Order ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV3Order($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivateGetCapiV3Order ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateGetCapiV3Order($this->extend($request, $params)));
             }
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -2454,7 +2487,9 @@ class weex extends Exchange {
              * @param {boolean} [$params->trigger] *swap only* whether to fetch $trigger orders (default is false)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2497,7 +2532,7 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = Async\await($this->privateGetApiV3OpenOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV3OpenOrders($this->extend($request, $params)));
             } else {
                 if ($since !== null) {
                     $request['startTime'] = $since;
@@ -2540,7 +2575,7 @@ class weex extends Exchange {
                     //         }
                     //     )
                     //
-                    $response = Async\await($this->contractPrivateGetCapiV3OpenAlgoOrders ($this->extend($request, $params)));
+                    $response = Async\await($this->contractPrivateGetCapiV3OpenAlgoOrders($this->extend($request, $params)));
                 } else {
                     //
                     //     array(
@@ -2566,17 +2601,17 @@ class weex extends Exchange {
                     //         }
                     //     )
                     //
-                    $response = Async\await($this->contractPrivateGetCapiV3OpenOrders ($this->extend($request, $params)));
+                    $response = Async\await($this->contractPrivateGetCapiV3OpenOrders($this->extend($request, $params)));
                 }
             }
             $extendedParams = array(
                 'status' => 'open',
             );
             return $this->parse_orders($response, $market, $since, $limit, $extendedParams);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -2592,7 +2627,9 @@ class weex extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2609,10 +2646,10 @@ class weex extends Exchange {
                 $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
             }
             return $this->filter_by($orders, 'status', 'closed');
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled $orders made by the user
@@ -2628,7 +2665,9 @@ class weex extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2645,10 +2684,10 @@ class weex extends Exchange {
                 $orders = Async\await($this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params));
             }
             return $this->filter_by($orders, 'status', 'canceled');
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple spot orders made by the user
@@ -2666,7 +2705,9 @@ class weex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
@@ -2684,10 +2725,10 @@ class weex extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = min ($limit, $maxLimit);
+                $request['limit'] = min($limit, $maxLimit);
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->privateGetApiV3AllOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV3AllOrders($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2709,10 +2750,10 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed and canceled orders made by the user
@@ -2728,7 +2769,9 @@ class weex extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2755,7 +2798,7 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = Async\await($this->contractPrivateGetCapiV3OrderHistory ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2781,7 +2824,7 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2982,7 +3025,7 @@ class weex extends Exchange {
         throw new InvalidOrder($feedback);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -2997,15 +3040,17 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => $id,
             );
             return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -3021,7 +3066,9 @@ class weex extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -3066,7 +3113,7 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = Async\await($this->privateGetApiV3MyTrades ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiV3MyTrades($this->extend($request, $params)));
             } else {
                 //
                 //     array(
@@ -3088,13 +3135,13 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = Async\await($this->contractPrivateGetCapiV3UserTrades ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params)));
             }
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -3112,7 +3159,9 @@ class weex extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
             $maxLimit = 100;
@@ -3140,7 +3189,7 @@ class weex extends Exchange {
                     $request['limit'] = $limit;
                 }
                 list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-                $contractResponse = Async\await($this->contractPrivatePostCapiV3AccountIncome ($this->extend($request, $params)));
+                $contractResponse = Async\await($this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params)));
                 $items = $this->safe_list($contractResponse, 'items', array());
             } elseif ($accountType === 'funding') {
                 if ($since !== null) {
@@ -3150,7 +3199,7 @@ class weex extends Exchange {
                     $request['pageSize'] = $limit;
                 }
                 list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-                $fundingResponse = Async\await($this->privatePostApiV3AccountFundingBills ($this->extend($request, $params)));
+                $fundingResponse = Async\await($this->privatePostApiV3AccountFundingBills($this->extend($request, $params)));
                 $items = $this->safe_list($fundingResponse, 'items', array());
             } else {
                 if ($since !== null) {
@@ -3160,10 +3209,10 @@ class weex extends Exchange {
                     $request['limit'] = $limit;
                 }
                 list($request, $params) = $this->handle_until_option('before', $request, $params);
-                $items = Async\await($this->privatePostApiV3AccountBills ($this->extend($request, $params)));
+                $items = Async\await($this->privatePostApiV3AccountBills($this->extend($request, $params)));
             }
             return $this->parse_ledger($items, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -3267,7 +3316,7 @@ class weex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -3278,14 +3327,16 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->contractPrivateGetCapiV3AccountPositionAllPosition ($params));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountPositionAllPosition($params));
             return $this->parse_positions($response, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
@@ -3298,10 +3349,10 @@ class weex extends Exchange {
              */
             $positions = Async\await($this->fetch_positions_for_symbol($symbol, $params));
             return $this->safe_dict($positions, 0);
-        }) ();
+        })();
     }
 
-    public function fetch_positions_for_symbol(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch open positions for a single $market
@@ -3313,14 +3364,16 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountPositionSinglePosition ($this->extend($request, $params)));
-            return $this->parse_positions($response, [ $market['symbol'] ]);
-        }) ();
+            $response = Async\await($this->contractPrivateGetCapiV3AccountPositionSinglePosition($this->extend($request, $params)));
+            return $this->parse_positions($response, array( $market['symbol'] ));
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -3442,7 +3495,7 @@ class weex extends Exchange {
         ));
     }
 
-    public function close_all_positions($params = array ()): PromiseInterface {
+    public function close_all_positions($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * closes all open positions for a market type
@@ -3452,8 +3505,10 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->contractPrivatePostCapiV3ClosePositions ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($params));
             //
             //     array(
             //         {
@@ -3465,10 +3520,10 @@ class weex extends Exchange {
             //     )
             //
             return $this->parse_positions($response);
-        }) ();
+        })();
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes open positions for a $market
@@ -3480,18 +3535,20 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivatePostCapiV3ClosePositions ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params)));
             $orders = $this->parse_orders($response, $market);
             return $this->safe_dict($orders, 0);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -3502,7 +3559,9 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['spot']) {
                 // spot markets return 0 for fees
@@ -3511,7 +3570,7 @@ class weex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountCommissionRate ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountCommissionRate($this->extend($request, $params)));
             //
             //     {
             //         "symbol" => "DOGEUSDT",
@@ -3520,7 +3579,7 @@ class weex extends Exchange {
             //     }
             //
             return $this->parse_trading_fee($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -3543,7 +3602,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches the margin mode of a specific $symbol
@@ -3554,12 +3613,14 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -3574,10 +3635,10 @@ class weex extends Exchange {
             //
             $marginMode = $this->safe_dict($response, 0, array());
             return $this->parse_margin_mode($marginMode, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches margin modes the $symbols, with $symbols=null all markets are returned
@@ -3588,11 +3649,13 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig ($params));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($params));
             return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
-        }) ();
+        })();
     }
 
     public function parse_margin_mode(array $marginMode, $market = null): array {
@@ -3613,7 +3676,7 @@ class weex extends Exchange {
         return $this->safe_string($marginTypes, $marginType, $marginType);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -3628,14 +3691,16 @@ class weex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
                 'marginType' => $this->encode_margin_mode($marginMode),
             );
-            return Async\await($this->contractPrivatePostCapiV3AccountMarginType ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
+        })();
     }
 
     public function encode_margin_mode(?string $marginMode) {
@@ -3650,7 +3715,7 @@ class weex extends Exchange {
         return $result;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -3661,18 +3726,20 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
             $marginMode = $this->safe_dict($response, 0, array());
             return $this->parse_leverage($marginMode, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_leverages(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the set leverage for all markets
@@ -3683,11 +3750,13 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig ($params));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($params));
             return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
-        }) ();
+        })();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3710,7 +3779,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3734,7 +3803,9 @@ class weex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -3755,11 +3826,11 @@ class weex extends Exchange {
                     $request['crossLeverage'] = $leverage;
                 }
             }
-            return Async\await($this->contractPrivatePostCapiV3AccountLeverage ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params)));
+        })();
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetchs the position mode, hedged or one way
@@ -3770,22 +3841,24 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an object detailing whether the $market is in hedged or one-way mode
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params)));
             $entry = $this->safe_dict($response, 0, array());
             $separatedType = $this->safe_string($entry, 'separatedType');
             return array(
                 'info' => $response,
                 'hedged' => ($separatedType === 'SEPARATED'),
             );
-        }) ();
+        })();
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a $market
@@ -3801,7 +3874,9 @@ class weex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setPositionMode', $params);
@@ -3814,13 +3889,15 @@ class weex extends Exchange {
                 'marginType' => $this->encode_margin_mode($marginMode),
                 'separatedType' => $separatedType,
             );
-            return Async\await($this->contractPrivatePostCapiV3AccountMarginType ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
+        })();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isolatedPositionId = $this->safe_string_n($params, array( 'positionId', 'id', 'isolatedPositionId' ));
             if ($isolatedPositionId === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionId parameter');
@@ -3833,12 +3910,12 @@ class weex extends Exchange {
                 'type' => $type,
             );
             $parsedType = ($type === 1) ? 'add' : 'reduce';
-            $response = Async\await($this->contractPrivatePostCapiV3AccountPositionMargin ($this->extend($request, $params)));
+            $response = Async\await($this->contractPrivatePostCapiV3AccountPositionMargin($this->extend($request, $params)));
             return $this->extend($this->parse_margin_modification($response, $market), array(
                 'amount' => $this->parse_number($amount),
                 'type' => $parsedType,
             ));
-        }) ();
+        })();
     }
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
@@ -3866,7 +3943,7 @@ class weex extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -3880,10 +3957,10 @@ class weex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 2, $params));
-        }) ();
+        })();
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -3897,10 +3974,10 @@ class weex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 1, $params));
-        }) ();
+        })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);

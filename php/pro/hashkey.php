@@ -6,11 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class hashkey extends \ccxt\async\hashkey {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -53,7 +52,7 @@ class hashkey extends \ccxt\async\hashkey {
         ));
     }
 
-    public function wath_public(array $market, string $topic, string $messageHash, $params = array ()) {
+    public function wath_public(array $market, string $topic, string $messageHash, $params = array()) {
         return Async\async(function () use ($market, $topic, $messageHash, $params) {
             $request = array(
                 'symbol' => $market['id'],
@@ -62,7 +61,7 @@ class hashkey extends \ccxt\async\hashkey {
             );
             $url = $this->urls['api']['ws']['public'];
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
     public function watch_private($messageHash) {
@@ -70,14 +69,14 @@ class hashkey extends \ccxt\async\hashkey {
             $listenKey = Async\await($this->authenticate());
             $url = $this->get_private_url($listenKey);
             return Async\await($this->watch($url, $messageHash, null, $messageHash));
-        }) ();
+        })();
     }
 
     public function get_private_url($listenKey) {
         return $this->urls['api']['ws']['private'] . '/' . $listenKey;
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -92,7 +91,9 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {bool} [$params->binary] true or false - default false
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -100,10 +101,10 @@ class hashkey extends \ccxt\async\hashkey {
             $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
             $ohlcv = Async\await($this->wath_public($market, $topic, $messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -144,17 +145,17 @@ class hashkey extends \ccxt\async\hashkey {
         $timeframe = $this->find_timeframe($klineType);
         if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
         $data = $this->safe_list($message, 'data', array());
         $stored = $this->ohlcvs[$symbol][$timeframe];
         for ($i = 0; $i < count($data); $i++) {
             $candle = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_ohlcv($candle, $market);
-            $stored->append ($parsed);
+            $stored->append($parsed);
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
@@ -180,7 +181,7 @@ class hashkey extends \ccxt\async\hashkey {
         );
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -192,13 +193,15 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {bool} [$params->binary] true or false - default false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $topic = 'realtimes';
             $messageHash = 'ticker:' . $symbol;
             return Async\await($this->wath_public($market, $topic, $messageHash, $params));
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -235,10 +238,10 @@ class hashkey extends \ccxt\async\hashkey {
         $symbol = $ticker['symbol'];
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($this->tickers[$symbol], $messageHash);
+        $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
@@ -252,17 +255,19 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {bool} [$params->binary] true or false - default false
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $topic = 'trade';
             $messageHash = 'trades:' . $symbol;
             $trades = Async\await($this->wath_public($market, $topic, $messageHash, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -295,7 +300,7 @@ class hashkey extends \ccxt\async\hashkey {
         $symbol = $market['symbol'];
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->trades[$symbol] = new ArrayCache ($limit);
+            $this->trades[$symbol] = new ArrayCache($limit);
         }
         $stored = $this->trades[$symbol];
         $data = $this->safe_list($message, 'data');
@@ -304,14 +309,14 @@ class hashkey extends \ccxt\async\hashkey {
             for ($i = 0; $i < count($data); $i++) {
                 $trade = $this->safe_dict($data, $i);
                 $parsed = $this->parse_ws_trade($trade, $market);
-                $stored->append ($parsed);
+                $stored->append($parsed);
             }
         }
         $messageHash = 'trades' . ':' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -321,16 +326,18 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $topic = 'depth';
             $messageHash = 'orderbook:' . $symbol;
             $orderbook = Async\await($this->wath_public($market, $topic, $messageHash, $params));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -351,12 +358,12 @@ class hashkey extends \ccxt\async\hashkey {
         //                     ...
         //                 ),
         //                 "a" => array(
-        //                     ["4085", "0.0074" ),
+        //                     ["4085", "0.0074" ],
         //                     ...
         //                 ),
         //                 "o" => 0
         //             }
-        //         ],
+        //         ),
         //         "f" => false,
         //         "sendTime" => 1722873144589,
         //         "channelId" => "2265aafffe68b588-00000001-0011510c-9e9ca710b1500854-551830bd",
@@ -374,13 +381,13 @@ class hashkey extends \ccxt\async\hashkey {
         $dataEntry = $this->safe_dict($data, 0);
         $timestamp = $this->safe_integer($dataEntry, 't');
         $snapshot = $this->parse_order_book($dataEntry, $symbol, $timestamp, 'b', 'a');
-        $orderbook->reset ($snapshot);
+        $orderbook->reset($snapshot);
         $orderbook['nonce'] = $this->safe_integer($message, 'id');
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -393,7 +400,9 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
@@ -401,10 +410,10 @@ class hashkey extends \ccxt\async\hashkey {
             }
             $orders = Async\await($this->watch_private($messageHash));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_order(Client $client, $message) {
@@ -445,16 +454,16 @@ class hashkey extends \ccxt\async\hashkey {
         //
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $parsed = $this->parse_ws_order($message);
         $orders = $this->orders;
-        $orders->append ($parsed);
+        $orders->append($parsed);
         $messageHash = 'orders';
-        $client->resolve ($orders, $messageHash);
+        $client->resolve($orders, $messageHash);
         $symbol = $parsed['symbol'];
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($orders, $symbolSpecificMessageHash);
+        $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
     public function parse_ws_order(array $order, ?array $market = null): array {
@@ -463,11 +472,11 @@ class hashkey extends \ccxt\async\hashkey {
         $timestamp = $this->safe_integer($order, 'O');
         $side = $this->safe_string_lower($order, 'S');
         $reduceOnly = null;
-        list($side, $reduceOnly) = $this->parseOrderSideAndReduceOnly ($side);
-        $type = $this->parseOrderType ($this->safe_string($order, 'o'));
+        list($side, $reduceOnly) = $this->parseOrderSideAndReduceOnly($side);
+        $type = $this->parseOrderType($this->safe_string($order, 'o'));
         $timeInForce = $this->safe_string($order, 'f');
         $postOnly = null;
-        list($type, $timeInForce, $postOnly) = $this->parseOrderTypeTimeInForceAndPostOnly ($type, $timeInForce);
+        list($type, $timeInForce, $postOnly) = $this->parseOrderTypeTimeInForceAndPostOnly($type, $timeInForce);
         if ($market['contract']) { // swap orders are always have $type 'LIMIT', thus we can not define the correct $type
             $type = null;
         }
@@ -504,7 +513,7 @@ class hashkey extends \ccxt\async\hashkey {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -517,7 +526,9 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
@@ -525,13 +536,13 @@ class hashkey extends \ccxt\async\hashkey {
             }
             $trades = Async\await($this->watch_private($messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function handle_my_trade(Client $client, $message, $subscription = array ()) {
+    public function handle_my_trade(Client $client, $message, $subscription = array()) {
         //
         //     {
         //         "e" => "ticketInfo",
@@ -550,17 +561,17 @@ class hashkey extends \ccxt\async\hashkey {
         //
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $tradesArray = $this->myTrades;
         $parsed = $this->parse_ws_trade($message);
-        $tradesArray->append ($parsed);
+        $tradesArray->append($parsed);
         $this->myTrades = $tradesArray;
         $messageHash = 'myTrades';
-        $client->resolve ($tradesArray, $messageHash);
+        $client->resolve($tradesArray, $messageHash);
         $symbol = $parsed['symbol'];
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($tradesArray, $symbolSpecificMessageHash);
+        $client->resolve($tradesArray, $symbolSpecificMessageHash);
     }
 
     public function parse_ws_trade($trade, ?array $market = null): array {
@@ -623,7 +634,7 @@ class hashkey extends \ccxt\async\hashkey {
         ), $market);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
@@ -636,7 +647,9 @@ class hashkey extends \ccxt\async\hashkey {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $listenKey = Async\await($this->authenticate());
             $symbols = $this->market_symbols($symbols);
             $messageHash = 'positions';
@@ -655,7 +668,7 @@ class hashkey extends \ccxt\async\hashkey {
                 return $positions;
             }
             return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_position(Client $client, $message) {
@@ -681,15 +694,15 @@ class hashkey extends \ccxt\async\hashkey {
         //     }
         //
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $positions = $this->positions;
         $parsed = $this->parse_ws_position($message);
-        $positions->append ($parsed);
+        $positions->append($parsed);
         $messageHash = 'positions';
-        $client->resolve ($parsed, $messageHash);
+        $client->resolve($parsed, $messageHash);
         $symbol = $parsed['symbol'];
-        $client->resolve ($parsed, $messageHash . ':' . $symbol);
+        $client->resolve($parsed, $messageHash . ':' . $symbol);
     }
 
     public function parse_ws_position($position, ?array $market = null): array {
@@ -728,7 +741,7 @@ class hashkey extends \ccxt\async\hashkey {
         ));
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -740,7 +753,9 @@ class hashkey extends \ccxt\async\hashkey {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $listenKey = Async\await($this->authenticate());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = 'spot';
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
             $messageHash = 'balance:' . $type;
@@ -752,10 +767,10 @@ class hashkey extends \ccxt\async\hashkey {
             list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
             list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
             if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
-                Async\await($client->future ($type . ':fetchBalanceSnapshot'));
+                Async\await($client->future($type . ':fetchBalanceSnapshot'));
             }
             return Async\await($this->watch($url, $messageHash, null, $messageHash));
-        }) ();
+        })();
     }
 
     public function set_balance_cache(Client $client, $type, $subscribeHash) {
@@ -767,7 +782,7 @@ class hashkey extends \ccxt\async\hashkey {
         if ($snapshot) {
             $messageHash = $type . ':' . 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
             }
         }
@@ -782,10 +797,10 @@ class hashkey extends \ccxt\async\hashkey {
             // don't remove the $future from the .futures cache
             if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
                 $future = $client->futures[$messageHash];
-                $future->resolve ();
-                $client->resolve ($this->balance[$type], 'balance:' . $type);
+                $future->resolve();
+                $client->resolve($this->balance[$type], 'balance:' . $type);
             }
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -824,16 +839,16 @@ class hashkey extends \ccxt\async\hashkey {
         $this->balance[$type][$code] = $account;
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $messageHash = 'balance:' . $type;
-        $client->resolve ($this->balance[$type], $messageHash);
+        $client->resolve($this->balance[$type], $messageHash);
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $listenKey = $this->safe_string($this->options, 'listenKey');
             if ($listenKey !== null) {
                 return $listenKey;
             }
-            $response = Async\await($this->privatePostApiV1UserDataStream ($params));
+            $response = Async\await($this->privatePostApiV1UserDataStream($params));
             //
             //    {
             //        "listenKey" => "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
@@ -844,10 +859,10 @@ class hashkey extends \ccxt\async\hashkey {
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             return $listenKey;
-        }) ();
+        })();
     }
 
-    public function keep_alive_listen_key($listenKey, $params = array ()) {
+    public function keep_alive_listen_key($listenKey, $params = array()) {
         return Async\async(function () use ($listenKey, $params) {
             if ($listenKey === null) {
                 return;
@@ -856,17 +871,17 @@ class hashkey extends \ccxt\async\hashkey {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->privatePutApiV1UserDataStream ($this->extend($request, $params)));
+                Async\await($this->privatePutApiV1UserDataStream($this->extend($request, $params)));
                 $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             } catch (Exception $error) {
                 $url = $this->get_private_url($listenKey);
                 $client = $this->client($url);
                 $this->options['listenKey'] = null;
-                $client->reject ($error);
+                $client->reject($error);
                 unset($this->clients[$url]);
             }
-        }) ();
+        })();
     }
 
     public function handle_message(Client $client, $message) {

@@ -49,8 +49,8 @@ interface CLIOptions {
     verbose?: boolean;
     debug?: boolean;
     poll?: boolean;
-    noSend?: boolean;
-    noLoadMarkets?: boolean;
+    send?: boolean;
+    loadMarkets?: boolean;
     details?: boolean;
     noTable?: boolean;
     table?: boolean;

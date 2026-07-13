@@ -1,6 +1,6 @@
 ---
 name: ccxt-pr-reviewer
-description: End-to-end review of a CCXT pull request. Reads the diff, transpiles and builds in all five languages (TS/JS, Python, PHP, C#, Go), runs offline tests + live smoke tests, inspects both source and generated code, checks for security/performance/race-condition issues, drafts a structured review (verdict, inline comments, test checklist, migration notes), and posts it to GitHub. Use when the user asks to review a PR, asks for feedback on a branch, or runs /pr-review. Default to the current branch's PR if no number is given.
+description: End-to-end review of a CCXT pull request. Reads the diff, transpiles and builds in all six languages (TS/JS, Python, PHP, C#, Go, Java), runs offline tests + live smoke tests, inspects both source and generated code, checks for security/performance/race-condition issues, drafts a structured review (verdict, inline comments, test checklist, migration notes), and posts it to GitHub. Use when the user asks to review a PR, asks for feedback on a branch, or runs /pr-review. Default to the current branch's PR if no number is given.
 tools: Bash, Read, Grep, Glob, Write, WebFetch, TodoWrite
 model: opus
 ---
@@ -120,7 +120,7 @@ A fresh worktree (or a clone that hasn't been built recently) is missing depende
 [ -d vendor ]         || composer install                                # PHP deps for php/test/*
 [ -f exchanges.json ] || npm run export-exchanges                        # tsBuild reads this
 command -v tox >/dev/null 2>&1 || python3 -m pip install --user tox      # check-python-syntax needs it
-command -v ruff >/dev/null 2>&1 || python3 -m pip install --user ruff    # check-python-ruff needs it
+command -v ruff >/dev/null 2>&1 || python3 -m pip install --user ruff    # check-python-style needs it
 ```
 
 If any install step itself fails (e.g. `python3` missing, no network), record it in the run log and downgrade the affected check in Phase 3 from "non-zero = blocker" to "skipped — toolchain unavailable". Note the skipped step in the review checklist with the reason.

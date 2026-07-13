@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\paradex as Exchange;
 
 class paradex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paradex',
@@ -428,7 +427,7 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -437,7 +436,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetSystemTime ($params);
+        $response = $this->publicGetSystemTime($params);
         //
         //     {
         //         "server_time" => "1681493415023"
@@ -446,7 +445,7 @@ class paradex extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -455,7 +454,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        $response = $this->publicGetSystemState ($params);
+        $response = $this->publicGetSystemState($params);
         //
         //     {
         //         "status" => "ok"
@@ -471,7 +470,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for paradex
          *
@@ -480,7 +479,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetMarkets($params);
         //
         //     {
         //         "results" => array(
@@ -712,7 +711,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -725,12 +724,14 @@ class paradex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchTradingFee() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetMarkets ($this->extend($request, $params));
+        $response = $this->publicGetMarkets($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -755,7 +756,7 @@ class paradex extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading $fees for multiple markets
          *
@@ -764,8 +765,10 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
-        $this->load_markets();
-        $response = $this->publicGetMarkets ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetMarkets($params);
         //
         //     {
         //         "results" => array(
@@ -795,7 +798,7 @@ class paradex extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -810,7 +813,9 @@ class paradex extends Exchange {
          * @param {string} [$params->price] "last", "mark", "index", default is "last"
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -839,7 +844,7 @@ class paradex extends Exchange {
                 $request['start_at'] = $until - $duration * 101 * 1000 + 1;
             }
         }
-        $response = $this->publicGetMarketsKlines ($this->extend($request, $params));
+        $response = $this->publicGetMarketsKlines($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -879,7 +884,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -889,12 +894,14 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array(
             'market' => 'ALL',
         );
-        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -920,7 +927,7 @@ class paradex extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -930,12 +937,14 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -1014,7 +1023,7 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1023,12 +1032,14 @@ class paradex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array( 'market' => $market['id'] );
-        $response = $this->publicGetOrderbookMarket ($this->extend($request, $params));
+        $response = $this->publicGetOrderbookMarket($this->extend($request, $params));
         //
         //     {
         //         "market" => "BTC-USD-PERP",
@@ -1057,7 +1068,7 @@ class paradex extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -1071,7 +1082,9 @@ class paradex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
@@ -1082,13 +1095,13 @@ class paradex extends Exchange {
             'market' => $market['id'],
         );
         if ($limit !== null) {
-            $request['page_size'] = min ($limit, 1000);
+            $request['page_size'] = min($limit, 1000);
         }
         if ($since !== null) {
             $request['start_at'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->publicGetTrades ($this->extend($request, $params));
+        $response = $this->publicGetTrades($this->extend($request, $params));
         //
         //     {
         //         "next" => "...",
@@ -1178,7 +1191,7 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * retrieves the open $interest of a contract trading pair
          *
@@ -1188,7 +1201,9 @@ class paradex extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/?id=open-$interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
@@ -1196,7 +1211,7 @@ class paradex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -1276,7 +1291,7 @@ class paradex extends Exchange {
         if ($cachedConfig !== null) {
             return $cachedConfig;
         }
-        $response = $this->publicGetSystemConfig ();
+        $response = $this->publicGetSystemConfig();
         //
         // {
         //     "starknet_gateway_url" => "https://potc-testnet-sepolia.starknet.io",
@@ -1354,7 +1369,7 @@ class paradex extends Exchange {
         return $account;
     }
 
-    public function onboarding($params = array ()) {
+    public function onboarding($params = array()) {
         $account = $this->retrieve_account();
         $req = array(
             'action' => 'Onboarding',
@@ -1370,11 +1385,11 @@ class paradex extends Exchange {
         $params['signature'] = $signature;
         $params['account'] = $account['address'];
         $params['public_key'] = $account['publicKey'];
-        $response = $this->privatePostOnboarding ($params);
+        $response = $this->privatePostOnboarding($params);
         return $response;
     }
 
-    public function authenticate_rest($params = array ()) {
+    public function authenticate_rest($params = array()) {
         $cachedToken = $this->safe_string($this->options, 'authToken');
         $now = $this->nonce();
         if ($cachedToken !== null) {
@@ -1409,7 +1424,7 @@ class paradex extends Exchange {
         $params['account'] = $account['address'];
         $params['timestamp'] = $req['timestamp'];
         $params['expiration'] = $req['expiration'];
-        $response = $this->privatePostAuth ($params);
+        $response = $this->privatePostAuth($params);
         //
         // {
         //     jwt_token => "ooooccxtooootoooootheoooomoonooooo"
@@ -1545,7 +1560,7 @@ class paradex extends Exchange {
         return Precise::string_mul($num, '100000000');
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
@@ -1669,7 +1684,7 @@ class paradex extends Exchange {
         return $request;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -1692,11 +1707,13 @@ class paradex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->sign_order_request($request);
-        $response = $this->privatePostOrders ($request);
+        $response = $this->privatePostOrders($request);
         //
         // {
         //     "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -1729,7 +1746,7 @@ class paradex extends Exchange {
         return $order;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit an open limit order or TPSL order
          *
@@ -1753,14 +1770,16 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->omit($request, array( 'instruction', 'client_id', 'flags' ));
         $request['order_id'] = $id;
         $request['id'] = $id;
         $request = $this->sign_order_request($request, true);
-        $response = $this->privatePutOrdersOrderId ($request);
+        $response = $this->privatePutOrdersOrderId($request);
         //
         //     {
         //         "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -1798,7 +1817,7 @@ class paradex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array ()): array {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders
          *
@@ -1809,7 +1828,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1824,7 +1845,7 @@ class paradex extends Exchange {
             $orderRequest = $this->sign_order_request($orderRequest);
             $ordersRequests[] = $orderRequest;
         }
-        $response = $this->privatePostOrdersBatch ($ordersRequests);
+        $response = $this->privatePostOrdersBatch($ordersRequests);
         //
         // {
         //     "errors" => array(
@@ -1859,7 +1880,7 @@ class paradex extends Exchange {
         return $parsedOrders;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1873,15 +1894,17 @@ class paradex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
-            $response = $this->privateDeleteOrdersByClientIdClientId ($this->extend($request, $params));
+            $response = $this->privateDeleteOrdersByClientIdClientId($this->extend($request, $params));
         } else {
             $request['order_id'] = $id;
-            $response = $this->privateDeleteOrdersOrderId ($this->extend($request, $params));
+            $response = $this->privateDeleteOrdersOrderId($this->extend($request, $params));
         }
         //
         // if success, no $response->..
@@ -1889,7 +1912,7 @@ class paradex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple $orders
          *
@@ -1902,7 +1925,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $hasOrderIds = ($ids !== null) && ((gettype($ids) === 'array' && array_keys($ids) === array_keys(array_keys($ids))));
@@ -1917,7 +1942,7 @@ class paradex extends Exchange {
         if ($hasClientOrderIds) {
             $request['client_order_ids'] = $clientOrderIds;
         }
-        $response = $this->privateDeleteOrdersBatch ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersBatch($this->extend($request, $params));
         //
         // {
         //     "results" => array(
@@ -1968,7 +1993,7 @@ class paradex extends Exchange {
         return $orders;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -1982,19 +2007,21 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->privateDeleteOrders ($this->extend($request, $params));
+        $response = $this->privateDeleteOrders($this->extend($request, $params));
         //
         // if success, no $response->..
         //
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2008,16 +2035,18 @@ class paradex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
-            $response = $this->privateGetOrdersByClientIdClientId ($this->extend($request, $params));
+            $response = $this->privateGetOrdersByClientIdClientId($this->extend($request, $params));
         } else {
             $request['order_id'] = $id;
-            $response = $this->privateGetOrdersOrderId ($this->extend($request, $params));
+            $response = $this->privateGetOrdersOrderId($this->extend($request, $params));
         }
         //
         //     {
@@ -2048,7 +2077,7 @@ class paradex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -2064,7 +2093,9 @@ class paradex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -2083,7 +2114,7 @@ class paradex extends Exchange {
             $request['page_size'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->privateGetOrdersHistory ($this->extend($request, $params));
+        $response = $this->privateGetOrdersHistory($this->extend($request, $params));
         //
         // {
         //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -2129,7 +2160,7 @@ class paradex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -2142,14 +2173,16 @@ class paradex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->privateGetOrders ($this->extend($request, $params));
+        $response = $this->privateGetOrders($this->extend($request, $params));
         //
         //  {
         //     "results" => array(
@@ -2186,7 +2219,7 @@ class paradex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2196,8 +2229,10 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
-        $response = $this->privateGetBalance ();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetBalance();
         //
         //     {
         //         "results" => array(
@@ -2226,7 +2261,7 @@ class paradex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -2241,7 +2276,9 @@ class paradex extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -2260,7 +2297,7 @@ class paradex extends Exchange {
             $request['start_at'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->privateGetFills ($this->extend($request, $params));
+        $response = $this->privateGetFills($this->extend($request, $params));
         //
         //     {
         //         "next" => null,
@@ -2291,7 +2328,7 @@ class paradex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -2302,13 +2339,15 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
-        $positions = $this->fetch_positions([ $market['symbol'] ], $params);
+        $positions = $this->fetch_positions(array( $market['symbol'] ), $params);
         return $this->safe_dict($positions, 0, array());
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2319,9 +2358,11 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->privateGetPositions ();
+        $response = $this->privateGetPositions();
         //
         //     {
         //         "results" => array(
@@ -2409,7 +2450,7 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves the users liquidated positions
          *
@@ -2423,7 +2464,9 @@ class paradex extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['from'] = $since;
@@ -2435,7 +2478,7 @@ class paradex extends Exchange {
             $market = $this->market($symbol);
         }
         list($request, $params) = $this->handle_until_option('to', $request, $params);
-        $response = $this->privateGetLiquidations ($this->extend($request, $params));
+        $response = $this->privateGetLiquidations($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -2472,7 +2515,7 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $deposits made to an account
          *
@@ -2487,7 +2530,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
@@ -2501,7 +2546,7 @@ class paradex extends Exchange {
             $request['start_at'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->privateGetTransfers ($this->extend($request, $params));
+        $response = $this->privateGetTransfers($this->extend($request, $params));
         //
         //     {
         //         "next" => null,
@@ -2534,7 +2579,7 @@ class paradex extends Exchange {
         return $this->parse_transactions($deposits, null, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -2549,7 +2594,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
@@ -2563,7 +2610,7 @@ class paradex extends Exchange {
             $request['start_at'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->privateGetTransfers ($this->extend($request, $params));
+        $response = $this->privateGetTransfers($this->extend($request, $params));
         //
         //     {
         //         "next" => null,
@@ -2596,7 +2643,7 @@ class paradex extends Exchange {
         return $this->parse_transactions($deposits, null, $since, $limit);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of transfers made on an account
          *
@@ -2611,7 +2658,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
         if ($paginate) {
@@ -2629,7 +2678,7 @@ class paradex extends Exchange {
             $request['start_at'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->privateGetTransfers ($this->extend($request, $params));
+        $response = $this->privateGetTransfers($this->extend($request, $params));
         //
         //     {
         //         "next" => null,
@@ -2760,7 +2809,7 @@ class paradex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of a specific $symbol
          *
@@ -2771,12 +2820,14 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->privateGetAccountMargin ($this->extend($request, $params));
+        $response = $this->privateGetAccountMargin($this->extend($request, $params));
         //
         // {
         //     "account" => "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -2804,7 +2855,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -2818,7 +2869,9 @@ class paradex extends Exchange {
          */
         $this->check_required_argument('setMarginMode', $symbol, 'symbol');
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $leverage = null;
         list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 1);
@@ -2827,10 +2880,10 @@ class paradex extends Exchange {
             'leverage' => $leverage,
             'margin_type' => $this->encode_margin_mode($marginMode),
         );
-        return $this->privatePostAccountMarginMarket ($this->extend($request, $params));
+        return $this->privatePostAccountMarginMarket($this->extend($request, $params));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -2841,12 +2894,14 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->privateGetAccountMargin ($this->extend($request, $params));
+        $response = $this->privateGetAccountMargin($this->extend($request, $params));
         //
         // {
         //     "account" => "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -2884,7 +2939,7 @@ class paradex extends Exchange {
         return $this->safe_string($modes, $mode, $mode);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -2898,7 +2953,9 @@ class paradex extends Exchange {
          */
         $this->check_required_argument('setLeverage', $symbol, 'symbol');
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
@@ -2907,10 +2964,10 @@ class paradex extends Exchange {
             'leverage' => $leverage,
             'margin_type' => $this->encode_margin_mode($marginMode),
         );
-        return $this->privatePostAccountMarginMarket ($this->extend($request, $params));
+        return $this->privatePostAccountMarginMarket($this->extend($request, $params));
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): array {
+    public function fetch_greeks(string $symbol, $params = array()): array {
         /**
          * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
@@ -2920,12 +2977,14 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$greeks-structure $greeks structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -2965,7 +3024,7 @@ class paradex extends Exchange {
         return $this->parse_greeks($greeks, $market);
     }
 
-    public function fetch_all_greeks(?array $symbols = null, $params = array ()): array {
+    public function fetch_all_greeks(?array $symbols = null, $params = array()): array {
         /**
          * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
@@ -2975,12 +3034,14 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $request = array(
             'market' => 'ALL',
         );
-        $response = $this->publicGetMarketsSummary ($this->extend($request, $params));
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -3080,7 +3141,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -3099,7 +3160,9 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
         }
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
@@ -3110,7 +3173,7 @@ class paradex extends Exchange {
             'market' => $market['id'],
         );
         if ($limit !== null) {
-            $request['page_size'] = min ($limit, 5000);
+            $request['page_size'] = min($limit, 5000);
         } else {
             $request['page_size'] = 100;
         }
@@ -3118,7 +3181,7 @@ class paradex extends Exchange {
             $request['start_at'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-        $response = $this->privateGetFundingPayments ($this->extend($request, $params));
+        $response = $this->privateGetFundingPayments($this->extend($request, $params));
         //
         // {
         //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3166,7 +3229,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding $rate prices
          *
@@ -3182,13 +3245,15 @@ class paradex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
         if ($limit !== null) {
-            $request['page_size'] = min ($limit, 5000); // api maximum 5000
+            $request['page_size'] = min($limit, 5000); // api maximum 5000
         } else {
             $request['page_size'] = 1000; // max is 5000
         }
@@ -3200,7 +3265,7 @@ class paradex extends Exchange {
             $params = $this->omit($params, 'until');
             $request['end_at'] = $until;
         }
-        $response = $this->publicGetFundingData ($this->extend($request, $params));
+        $response = $this->publicGetFundingData($this->extend($request, $params));
         //
         // {
         //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3236,7 +3301,7 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->version;
         if (mb_strpos($path, 'v2/') === 0) {
             $version = 'v2';

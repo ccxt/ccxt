@@ -3,6 +3,7 @@ import asTable from 'as-table';
 import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 import ccxt from '../../js/ccxt.js';
+// @ts-expect-error
 ansicolor.nice;
 const { noLocate } = ololog;
 const log = noLocate;

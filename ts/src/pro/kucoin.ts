@@ -5,7 +5,7 @@ import kucoinRest from '../kucoin.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,10 +23,12 @@ export default class kucoin extends kucoinRest {
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
                 'watchBidsAsks': true,
+                'watchFundingRate': true,
+                'watchMarkPrice': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchPosition': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchMyTrades': true,
                 'watchTickers': true,
                 'watchTicker': true,
@@ -35,11 +37,13 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'unWatchFundingRate': true,
+                'unWatchMarkPrice': true,
                 'unWatchTicker': true,
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchTrades': true,
-                'unWatchhTradesForSymbols': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 // only for pro (uta) accounts
@@ -276,8 +280,8 @@ export default class kucoin extends kucoinRest {
         return this.safeString (this.options, 'utaToken');
     }
 
-    async unSubscribe (url, messageHash, topic, subscriptionHash, params = {}, subscription: NullableDict = undefined) {
-        return await this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
+    unSubscribe (url, messageHash, topic, subscriptionHash, params = {}, subscription: NullableDict = undefined): Promise<any> {
+        return this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
     }
 
     async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription: NullableDict = undefined) {
@@ -334,7 +338,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         let messageHash = 'ticker:' + symbol;
@@ -370,7 +376,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const isFuturesMethod = market['contract'];
@@ -422,7 +430,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
@@ -499,7 +509,9 @@ export default class kucoin extends kucoinRest {
     }
 
     async watchUtaTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const messageHash = 'uta:ticker';
         const messageHashes: any[] = [];
@@ -653,6 +665,7 @@ export default class kucoin extends kucoinRest {
 
     handleUtaTicker (client: Client, message) {
         //
+        // watchTicker
         //     {
         //         "T": "ticker.SPOT",
         //         "P": "1774100940787520626",
@@ -670,6 +683,19 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
+        // watchMarkPrice
+        //     {
+        //         "T": "mark-price",
+        //         "P": "1782834987171570181",
+        //         "d": {
+        //             "s": "ETHUSDTM",
+        //             "mp": "1569.15",
+        //             "ip": "1569.87",
+        //             "oi": "50541824",
+        //             "ts": 1782834987000
+        //         }
+        //     }
+        //
         const data = this.safeDict (message, 'd', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
@@ -682,7 +708,10 @@ export default class kucoin extends kucoinRest {
     parseWsUtaTicker (ticker, market: Market = undefined) {
         const symbol = this.safeString (market, 'symbol');
         market = this.safeMarket (symbol, market);
-        const timestamp = this.safeIntegerProduct (ticker, 'M', 0.000001);
+        let timestamp = this.safeInteger (ticker, 'ts');
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct (ticker, 'M', 0.000001);
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -703,7 +732,8 @@ export default class kucoin extends kucoinRest {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'markPrice': undefined,
+            'markPrice': this.safeString (ticker, 'mp'),
+            'indexPrice': this.safeString (ticker, 'ip'),
             'info': ticker,
         }, market);
     }
@@ -719,7 +749,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = (firstMarket as Dict)['contract'];
@@ -737,7 +769,9 @@ export default class kucoin extends kucoinRest {
     }
 
     async watchMultiHelper (methodName, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const length = (symbols as string[]).length;
         if (length > 100) {
@@ -856,7 +890,9 @@ export default class kucoin extends kucoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const period = this.safeString (this.timeframes, timeframe, timeframe);
@@ -902,7 +938,9 @@ export default class kucoin extends kucoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         let uta = false;
@@ -1113,7 +1151,9 @@ export default class kucoin extends kucoinRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = (firstMarket as Dict)['contract'];
@@ -1152,7 +1192,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
@@ -1358,7 +1400,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         //
@@ -1406,16 +1448,19 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#unWatchOrderBook
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+     * @see https://www.kucoin.com/docs-new/3470221w0 // uta
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         let uta = false;
@@ -1458,7 +1503,7 @@ export default class kucoin extends kucoinRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const symbolsLength = symbols.length;
@@ -1470,7 +1515,9 @@ export default class kucoin extends kucoinRest {
                 throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100");
             }
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
@@ -1521,12 +1568,14 @@ export default class kucoin extends kucoinRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         const limit = this.safeInteger (params, 'limit');
         params = this.omit (params, 'limit');
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
@@ -1831,7 +1880,19 @@ export default class kucoin extends kucoinRest {
                 const subHash = subMessageHashes[i];
                 this.cleanUnsubscription (client, subHash, messageHash);
             }
-            this.cleanCache (subscription);
+            const topic = this.safeString (subscription, 'topic');
+            if (topic === 'fundingRate') {
+                // todo: add fundingRate topic to cleanCache
+                const symbols = this.safeList (subscription, 'symbols', []);
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    if (symbol in this.fundingRates) {
+                        delete this.fundingRates[symbol];
+                    }
+                }
+            } else {
+                this.cleanCache (subscription);
+            }
         }
     }
 
@@ -1879,7 +1940,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOrders', 'uta', uta);
         let market: Market = undefined;
@@ -2273,7 +2336,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'myTrades';
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2496,7 +2561,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'watchBalance', 'uta', uta);
         let defaultType = uta ? 'unified' : 'spot';
@@ -2737,7 +2804,9 @@ export default class kucoin extends kucoinRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchPosition() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = await this.negotiate (true);
         const market = this.market (symbol);
         const topic = '/contract/position:' + market['id'];
@@ -2770,7 +2839,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionAndParams (params, 'watchPositions', 'uta', uta);
         const tradeType = uta ? 'UNIFIED' : 'TRADE';
@@ -3099,6 +3170,160 @@ export default class kucoin extends kucoinRest {
         });
     }
 
+    /**
+     * @method
+     * @name kucoin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbol = this.safeSymbol (symbol);
+        const channel = 'funding-fee';
+        const messageHash = 'fundingRate:' + symbol;
+        return await this.subscribePublicUta (messageHash, channel, symbol, params);
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbol = this.safeSymbol (symbol);
+        const channel = 'funding-fee';
+        const subMessageHash = 'fundingRate:' + symbol;
+        const unSubMessageHash = 'unsubscribe:' + subMessageHash;
+        const subscription: Dict = {
+            'symbols': [ symbol ],
+            'topic': 'fundingRate',
+            'unsubscribe': true,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ unSubMessageHash ],
+        };
+        return await this.subscribePublicUta (unSubMessageHash, channel, symbol, params, subscription);
+    }
+
+    handleUtaFundingRate (client: Client, message) {
+        //
+        //     {
+        //         "T": "funding-fee",
+        //         "P": "1782831961172694254",
+        //         "d": {
+        //             "s": "ETHUSDTM",
+        //             "fr": "0.000035",
+        //             "ft": 1782806400000,
+        //             "nt": 1782835200000,
+        //             "gl": 28800000,
+        //             "fc": "0.00375",
+        //             "ff": "-0.00375"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'd', {});
+        const fundingRate = this.parseWsFundingRate (data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve (fundingRate, messageHash);
+    }
+
+    parseWsFundingRate (data, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "s": "ETHUSDTM",
+        //         "fr": "0.000035",
+        //         "ft": 1782806400000,
+        //         "nt": 1782835200000,
+        //         "gl": 28800000,
+        //         "fc": "0.00375",
+        //         "ff": "-0.00375"
+        //     }
+        //
+        const fundingTimestamp = this.safeInteger (data, 'ft');
+        const nextFundingTimestamp = this.safeInteger (data, 'nt');
+        const marketId = this.safeString (data, 's');
+        const granularity = this.safeString (data, 'gl');
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (data, 'fr'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval (granularity),
+        } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name kucoin#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbol = this.safeSymbol (symbol);
+        const channel = 'mark-price';
+        const messageHash = 'uta:ticker:' + symbol;
+        return await this.subscribePublicUta (messageHash, channel, symbol, params);
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchMarkPrice
+     * @description unWatches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbol = this.safeSymbol (symbol);
+        const channel = 'mark-price';
+        const subMessageHash = 'uta:ticker:' + symbol;
+        const unSubMessageHash = 'unsubscribe:' + subMessageHash;
+        const subscription: Dict = {
+            'symbols': [ symbol ],
+            'topic': 'ticker',
+            'unsubscribe': true,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ unSubMessageHash ],
+        };
+        return await this.subscribePublicUta (unSubMessageHash, channel, symbol, params, subscription);
+    }
+
     handleSubject (client: Client, message) {
         //
         //     {
@@ -3180,6 +3405,8 @@ export default class kucoin extends kucoinRest {
             'positionAll.UNIFIED': this.handleUtaPosition,
             'positionAll.FUTURES': this.handleUtaPosition,
             'balance.UNIFIED': this.handleUtaBalance,
+            'funding-fee': this.handleUtaFundingRate,
+            'mark-price': this.handleUtaTicker,
         };
         const method = this.safeValue (methods, (subject as string));
         if (method !== undefined) {

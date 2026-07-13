@@ -64,7 +64,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -82,7 +85,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true);
         object name = "instrument";
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -382,7 +388,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -399,7 +405,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true);
         object messageHashes = new List<object>() {};
         object subscriptionHashes = new List<object>() {};
@@ -494,7 +503,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object messageHash = "margin";
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -774,7 +786,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object subscriptionHash = "position";
         object messageHash = "positions";
@@ -956,6 +971,27 @@ public partial class bitmex : ccxt.bitmex
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parsePosition(rawPosition);
+            object side = this.safeString(position, "side");
+            if (isTrue(isEqual(side, null)))
+            {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                object symbol = this.safeString(position, "symbol");
+                object cachedBySide = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                object cachedSides = new List<object>(((IDictionary<string,object>)cachedBySide).Keys);
+                object sidesLength = getArrayLength(cachedSides);
+                if (isTrue(isEqual(sidesLength, 1)))
+                {
+                    side = getValue(cachedSides, 0);
+                    ((IDictionary<string,object>)position)["side"] = side;
+                }
+            }
+            if (isTrue(isEqual(side, null)))
+            {
+                continue;
+            }
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
@@ -989,7 +1025,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object name = "order";
         object subscriptionHash = name;
@@ -1215,7 +1254,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object name = "execution";
         object subscriptionHash = name;
@@ -1336,7 +1378,7 @@ public partial class bitmex : ccxt.bitmex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1352,7 +1394,7 @@ public partial class bitmex : ccxt.bitmex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1371,7 +1413,10 @@ public partial class bitmex : ccxt.bitmex
         {
             throw new ExchangeError ((string)add(this.id, " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -1407,7 +1452,10 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object table = "trade";
         object topics = new List<object>() {};
@@ -1452,7 +1500,10 @@ public partial class bitmex : ccxt.bitmex
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object table = add("tradeBin", this.safeString(this.timeframes, timeframe, timeframe));
@@ -1573,7 +1624,10 @@ public partial class bitmex : ccxt.bitmex
     public async virtual Task<object> watchHeartbeat(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object eventVar = "heartbeat";
         object url = getValue(getValue(this.urls, "api"), "ws");
         return await this.watch(url, eventVar);

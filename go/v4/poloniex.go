@@ -26,7 +26,7 @@ func (this *PoloniexCore) Describe() any {
 			"spot":                           true,
 			"margin":                         nil,
 			"swap":                           true,
-			"future":                         true,
+			"future":                         false,
 			"option":                         false,
 			"addMargin":                      true,
 			"cancelAllOrders":                true,
@@ -2023,7 +2023,7 @@ func (this *PoloniexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 		params = this.Omit(params, []any{"trigger", "stop"})
-		var response any = nil
+		var response any = []any{}
 		if IsTrue(!IsEqual(marketType, "spot")) {
 
 			raw := (<-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, params)))
@@ -2067,7 +2067,7 @@ func (this *PoloniexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			//                "qCcy": "USDT"
 			//            },
 			//
-			response = this.SafeList(raw, "data")
+			response = this.SafeList(raw, "data", []any{})
 		} else if IsTrue(isTrigger) {
 
 			response = (<-this.PrivateGetSmartorders(this.Extend(request, params)))
@@ -2250,7 +2250,7 @@ func (this *PoloniexCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		requestparamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var response any = nil
+		var response any = map[string]any{}
 		if IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) {
 
 			responseInitial := (<-this.SwapPrivatePostV3TradeOrder(this.Extend(request, params)))
@@ -2258,7 +2258,7 @@ func (this *PoloniexCore) CreateOrder(symbol any, typeVar any, side any, amount 
 			//
 			// {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
 			//
-			response = this.SafeDict(responseInitial, "data")
+			response = this.SafeDict(responseInitial, "data", map[string]any{})
 		} else if IsTrue(!IsEqual(triggerPrice, nil)) {
 
 			response = (<-this.PrivatePostSmartorders(this.Extend(request, params)))
@@ -2409,7 +2409,7 @@ func (this *PoloniexCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		requestparamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
-		var response any = nil
+		var response any = map[string]any{}
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 
 			response = (<-this.PrivatePutSmartordersId(this.Extend(request, params)))
@@ -2482,7 +2482,7 @@ func (this *PoloniexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			//        }
 			//    }
 			//
-			ch <- this.ParseOrder(this.SafeDict(raw, "data"))
+			ch <- this.ParseOrder(this.SafeDict(raw, "data", map[string]any{}))
 			return nil
 		}
 		var clientOrderId any = this.SafeValue(params, "clientOrderId")
@@ -2492,7 +2492,7 @@ func (this *PoloniexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		AddElementToObject(request, "id", id)
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 		params = this.Omit(params, []any{"clientOrderId", "trigger", "stop"})
-		var response any = nil
+		var response any = map[string]any{}
 		if IsTrue(isTrigger) {
 
 			response = (<-this.PrivateDeleteSmartordersId(this.Extend(request, params)))
@@ -2551,7 +2551,7 @@ func (this *PoloniexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			market = this.Market(symbol)
 			AddElementToObject(request, "symbols", []any{GetValue(market, "id")})
 		}
-		var response any = nil
+		var response any = []any{}
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -2574,7 +2574,7 @@ func (this *PoloniexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			//        ]
 			//    }
 			//
-			response = this.SafeList(raw, "data")
+			response = this.SafeList(raw, "data", []any{})
 
 			ch <- this.ParseOrders(response, market)
 			return nil
@@ -2657,7 +2657,7 @@ func (this *PoloniexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 		params = this.Omit(params, []any{"trigger", "stop"})
-		var response any = nil
+		var response any = map[string]any{}
 		if IsTrue(isTrigger) {
 
 			response = (<-this.PrivateGetSmartordersId(this.Extend(request, params)))
@@ -2981,7 +2981,7 @@ func (this *PoloniexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PoloniexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3659,7 +3659,8 @@ func (this *PoloniexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) 
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var depositWithdrawFee any = this.DepositWithdrawFee(map[string]any{})
-	AddElementToObject(GetValue(depositWithdrawFee, "info"), GetValue(currency, "code"), fee)
+	var currencyCode any = this.SafeString(currency, "code")
+	AddElementToObject(GetValue(depositWithdrawFee, "info"), currencyCode, fee)
 	var networkId any = this.SafeString(fee, "blockchain")
 	var withdrawFee any = this.SafeNumber(fee, "withdrawalFee")
 	var withdrawResult any = map[string]any{
@@ -3842,8 +3843,8 @@ func (this *PoloniexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes32278 := (<-this.LoadMarkets())
-		PanicOnError(retRes32278)
+		retRes32288 := (<-this.LoadMarkets())
+		PanicOnError(retRes32288)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
@@ -3894,8 +3895,8 @@ func (this *PoloniexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes32608 := (<-this.LoadMarkets())
-		PanicOnError(retRes32608)
+		retRes32618 := (<-this.LoadMarkets())
+		PanicOnError(retRes32618)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4092,8 +4093,8 @@ func (this *PoloniexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes34088 := (<-this.LoadMarkets())
-		PanicOnError(retRes34088)
+		retRes34098 := (<-this.LoadMarkets())
+		PanicOnError(retRes34098)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.SwapPrivateGetV3TradePositionOpens(params))
@@ -4222,8 +4223,8 @@ func (this *PoloniexCore) ModifyMarginHelper(symbol any, amount any, typeVar any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35238 := (<-this.LoadMarkets())
-		PanicOnError(retRes35238)
+		retRes35248 := (<-this.LoadMarkets())
+		PanicOnError(retRes35248)
 		var market any = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
 		var request any = map[string]any{
@@ -4300,9 +4301,9 @@ func (this *PoloniexCore) ReduceMargin(symbol any, amount any, optionalArgs ...a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes358515 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
-		PanicOnError(retRes358515)
-		ch <- retRes358515
+		retRes358615 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+		PanicOnError(retRes358615)
+		ch <- retRes358615
 		return nil
 
 	}()
@@ -4326,9 +4327,9 @@ func (this *PoloniexCore) AddMargin(symbol any, amount any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes359815 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes359815)
-		ch <- retRes359815
+		retRes359915 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes359915)
+		ch <- retRes359915
 		return nil
 
 	}()

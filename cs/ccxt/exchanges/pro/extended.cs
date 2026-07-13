@@ -52,12 +52,15 @@ public partial class extended : ccxt.extended
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
@@ -191,7 +194,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -221,7 +227,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         return await this.watchPrivate("balance", parameters);
     }
 
@@ -304,7 +313,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -369,7 +381,7 @@ public partial class extended : ccxt.extended
         {
             object trade = this.parseTrade(getValue(rawTrades, i));
             object symbol = this.safeString(trade, "symbol");
-            ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(stored, "append", new object[] {trade});
         }
         object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -404,7 +416,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object messageHash = "positions";
         if (isTrue(!isEqual(symbols, null)))
@@ -534,11 +549,11 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength((IList<object>)(rawOrders))); postFixIncrement(ref i))
         {
-            object order = this.parseOrder(getValue(rawOrders, i));
+            object order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
             object symbol = this.safeString(order, "symbol");
-            ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {order});
         }
         object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -571,7 +586,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("fundingRate:", symbol);
@@ -603,7 +621,7 @@ public partial class extended : ccxt.extended
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object fundingRate = this.parseWsFundingRate(data, null, message);
         object symbol = this.safeString(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         object messageHash = add("fundingRate:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
@@ -648,7 +666,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("markPrice:", symbol);
@@ -714,7 +735,10 @@ public partial class extended : ccxt.extended
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("trades:", symbol);
@@ -806,7 +830,10 @@ public partial class extended : ccxt.extended
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object price = this.safeString(parameters, "price");
@@ -874,14 +901,14 @@ public partial class extended : ccxt.extended
         object candleType = this.safeString(subscription, "candleType");
         object cacheKey = ((bool) isTrue((isEqual(candleType, "trades")))) ? timeframe : add(add(timeframe, ":"), candleType);
         object messageHash = this.safeString(subscription, "messageHash");
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), cacheKey);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, ((string)symbol), new Dictionary<string, object>() {});
+        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), ((string)cacheKey));
         if (isTrue(isEqual(stored, null)))
         {
             object defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             object limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)cacheKey] = stored;
+            ((IDictionary<string,object>)getValue(this.ohlcvs, ((string)symbol)))[(string)((string)cacheKey)] = stored;
         }
         object previousNonce = this.safeInteger(subscription, "nonce");
         object nonce = this.safeInteger(message, "seq");

@@ -124,7 +124,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
-                'index': True,
+                'index': False,
                 'reduceMargin': None,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -147,7 +147,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
+                'logo': 'https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -297,8 +297,10 @@ class bitmex(Exchange, ImplicitAPI):
             'options': {
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5,  # in seconds
-                'fetchOHLCVOpenTimestamp': True,
+                'recvWindow': 5000,
+                'fetchOHLCV': {
+                    'useOpenTimestamp': True,
+                },
                 'oldPrecision': False,
                 'networks': {
                     'BTC': 'btc',
@@ -842,7 +844,7 @@ class bitmex(Exchange, ImplicitAPI):
                 contractSize = Precise.string_abs(self.safe_string(market, 'multiplier'))
             expiryDatetime = self.safe_string_2(market, 'expiry', 'closingTimestamp')
             expiry = self.parse8601(expiryDatetime)
-            if expiry is not None:
+            if expiry is not None and future:
                 symbol = symbol + '-' + self.yymmdd(expiry)
         else:
             # for index/exotic markets, default to id
@@ -981,7 +983,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'currency': 'all',
         }
@@ -1044,9 +1047,10 @@ class bitmex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1113,7 +1117,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -1188,7 +1193,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -1387,7 +1393,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             # 'start': 123,
         }
@@ -1437,7 +1444,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'currency': 'all',
             # 'start': 123,
@@ -1550,7 +1558,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1571,7 +1580,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetInstrumentActiveAndIndices(params)
         # same response "fetchMarkets"
@@ -1658,7 +1668,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
@@ -1687,11 +1698,12 @@ class bitmex(Exchange, ImplicitAPI):
             params = self.omit(params, ['until'])
             request['endTime'] = self.iso8601(until)
         duration = self.parse_timeframe(timeframe) * 1000
-        fetchOHLCVOpenTimestamp = self.safe_bool(self.options, 'fetchOHLCVOpenTimestamp', True)
+        useOpenTimestamp = None
+        useOpenTimestamp, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             timestamp = since
-            if fetchOHLCVOpenTimestamp:
+            if useOpenTimestamp:
                 timestamp = self.sum(timestamp, duration)
             startTime = self.iso8601(timestamp)
             request['startTime'] = startTime  # starting date filter for results
@@ -1706,7 +1718,7 @@ class bitmex(Exchange, ImplicitAPI):
         #     ]
         #
         result = self.parse_ohlcvs(response, market, timeframe, since, limit)
-        if fetchOHLCVOpenTimestamp:
+        if useOpenTimestamp:
             # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             # we can emulate the open timestamp by shifting all the timestamps one place
             # so the previous close becomes the current open, and we drop the first candle
@@ -1958,7 +1970,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
@@ -2026,7 +2039,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
         capitalizeOrderType = orderType
@@ -2097,7 +2111,8 @@ class bitmex(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
         isTrailingAmountOrder = trailingAmount is not None
@@ -2153,7 +2168,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
         clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
         request = {}
@@ -2182,7 +2198,8 @@ class bitmex(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # return await self.cancel_order(ids, symbol, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
         clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
         request = {}
@@ -2204,7 +2221,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2262,7 +2280,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
@@ -2285,7 +2304,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         leverages = await self.fetch_positions(symbols, params)
         return self.parse_leverages(leverages, symbols, 'symbol')
 
@@ -2309,7 +2329,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetPosition(params)
         #
         #     [
@@ -2570,7 +2591,8 @@ class bitmex(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         qty = self.convert_from_real_amount(code, amount)
         networkCode = None
@@ -2615,7 +2637,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
         # same response "fetchMarkets"
         filteredResponse = []
@@ -2673,7 +2696,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param str [params.filter]: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol in self.currencies:
@@ -2749,7 +2773,8 @@ class bitmex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 0.01) or (leverage > 100):
             raise BadRequest(self.id + ' leverage should be between 0.01 and 100')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap' and market['type'] != 'future':
             raise BadSymbol(self.id + ' setLeverage() supports future and swap contracts only')
@@ -2775,7 +2800,8 @@ class bitmex(Exchange, ImplicitAPI):
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if (market['type'] != 'swap') and (market['type'] != 'future'):
             raise BadSymbol(self.id + ' setMarginMode() supports swap and future contracts only')
@@ -2797,7 +2823,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param str [params.network]: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
@@ -2891,7 +2918,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         assets = await self.publicGetWalletAssets(params)
         #
         #    [
@@ -2934,7 +2962,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         response = None
         response = await self.publicGetStats(self.extend(request, params))
@@ -3011,7 +3040,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
         if paginate:
@@ -3073,7 +3103,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an `auto de leverage structure <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         response = await self.privateGetPosition(params)
         #
@@ -3342,7 +3373,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param boolean [params.reverse]: if True, will sort results newest first, default value = False
         :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             # symbol string Instrument symbol. Send a bare series(e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
             # filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
@@ -3417,7 +3449,8 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3485,7 +3518,8 @@ class bitmex(Exchange, ImplicitAPI):
         if api == 'private' or (api == 'public' and isAuthenticated):
             self.check_required_credentials()
             auth = method + query
-            expires = self.safe_integer(self.options, 'api-expires')
+            apiExpires = self.safe_integer(self.options, 'api-expires')  # backwards compatibility
+            expires = self.safe_integer_product(self.options, 'recvWindow', 0.001, apiExpires)
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,

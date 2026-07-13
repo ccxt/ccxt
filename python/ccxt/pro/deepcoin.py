@@ -193,7 +193,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker' + '::' + market['symbol']
         return await self.watch_public(market, messageHash, '7', params)
@@ -208,7 +209,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker' + '::' + market['symbol']
         subscription = {
@@ -329,7 +331,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades' + '::' + market['symbol']
         trades = await self.watch_public(market, messageHash, '2', params)
@@ -347,7 +350,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades' + '::' + market['symbol']
         subscription = {
@@ -479,7 +483,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_dict(self.options, 'timeframes', {})
@@ -502,7 +507,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_dict(self.options, 'timeframes', {})
@@ -591,9 +597,10 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + '::' + market['symbol']
         suffix = '_0.1'
@@ -608,9 +615,10 @@ class deepcoin(ccxt.async_support.deepcoin):
 
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + '::' + market['symbol']
         suffix = '_0.1'
@@ -743,7 +751,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         messageHash = 'myTrades'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += '::' + symbol
@@ -814,7 +823,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         messageHash = 'orders'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += '::' + symbol
@@ -945,7 +955,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         listenKey = await self.authenticate()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'

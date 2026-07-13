@@ -158,7 +158,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketType = null;
         object subType = null;
@@ -208,7 +211,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object dataType = add(getValue(market, "id"), "@ticker");
         object subMessageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
@@ -393,7 +399,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object marketType = null;
@@ -457,7 +466,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object dataType = add(getValue(market, "id"), "@trade");
         object subMessageHash = this.getMessageHash("trade", getValue(market, "symbol"));
@@ -590,12 +602,15 @@ public partial class bingx : ccxt.bingx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketType = null;
         object subType = null;
@@ -657,12 +672,15 @@ public partial class bingx : ccxt.bingx
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object depth = this.safeInteger(options, "depth", 100);
@@ -958,7 +976,10 @@ public partial class bingx : ccxt.bingx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketType = null;
         object subType = null;
@@ -1025,7 +1046,10 @@ public partial class bingx : ccxt.bingx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object options = this.safeValue(this.options, getValue(market, "type"), new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
@@ -1055,7 +1079,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object type = null;
         object subType = null;
@@ -1084,7 +1111,7 @@ public partial class bingx : ccxt.bingx
         }
         object uuid = this.uuid();
         object baseUrl = null;
-        object request = new Dictionary<string, object>() {};
+        object request = null;
         if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(subType, "inverse")))
@@ -1130,7 +1157,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object type = null;
         object subType = null;
@@ -1202,7 +1232,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object type = null;
         object subType = null;
@@ -1219,7 +1252,7 @@ public partial class bingx : ccxt.bingx
         object swapMessageHash = "swap:balance";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
-        object request = new Dictionary<string, object>() {};
+        object request = null;
         object baseUrl = null;
         object uuid = this.uuid();
         if (isTrue(isEqual(type, "swap")))
@@ -1228,6 +1261,8 @@ public partial class bingx : ccxt.bingx
             {
                 throw new NotSupported ((string)add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
             }
+            // swap balance updates are pushed automatically over the listenKey connection,
+            // so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), ((string)subType));
         } else
         {
@@ -1310,7 +1345,10 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = null;
         object messageHash = "";

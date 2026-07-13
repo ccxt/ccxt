@@ -74,7 +74,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object ordersRequest = this.createOrdersRequest(orders, parameters);
         object wrapped = this.wrapAsPostAction(ordersRequest);
@@ -110,7 +113,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
@@ -148,7 +154,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
@@ -184,7 +193,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = this.cancelOrdersRequest(ids, symbol, parameters);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object wrapped = this.wrapAsPostAction(request);
@@ -233,12 +245,15 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
@@ -262,12 +277,15 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object subMessageHash = add("orderbook:", symbol);
@@ -343,7 +361,6 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -370,26 +387,23 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true);
         object messageHash = "tickers";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object channel = "webData2";
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", channel);
-        channel = ((IList<object>)channelparametersVariable)[0];
-        parameters = ((IList<object>)channelparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
-                { "type", channel },
-                { "user", "0x0000000000000000000000000000000000000000" },
+                { "type", "allMids" },
             } },
         };
         object defaultDex = this.safeString(parameters, "dex");
@@ -425,26 +439,23 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true);
         object subMessageHash = "tickers";
-        object channel = "webData2";
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "unWatchTickers", "channel", channel);
-        channel = ((IList<object>)channelparametersVariable)[0];
-        parameters = ((IList<object>)channelparametersVariable)[1];
         object messageHash = add("unsubscribe:", subMessageHash);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
-                { "type", channel },
-                { "user", "0x0000000000000000000000000000000000000000" },
+                { "type", "allMids" },
             } },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -469,7 +480,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         object userAddressResult = this.handlePublicAddress("watchMyTrades", parameters);
         userAddress = this.safeString(userAddressResult, 0);
         parameters = this.safeDict(userAddressResult, 1, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -506,7 +520,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             throw new NotSupported ((string)add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
@@ -544,113 +561,31 @@ public partial class hyperliquid : ccxt.hyperliquid
         //     }
         // }
         //
-        //     {
-        //         "channel": "webData2",
-        //         "data": {
-        //             "meta": {
-        //                 "universe": [
-        //                     {
-        //                         "szDecimals": 5,
-        //                         "name": "BTC",
-        //                         "maxLeverage": 50,
-        //                         "onlyIsolated": false
-        //                     },
-        //                     ...
-        //                 ],
-        //             },
-        //             "assetCtxs": [
-        //                 {
-        //                     "funding": "0.00003005",
-        //                     "openInterest": "2311.50778",
-        //                     "prevDayPx": "63475.0",
-        //                     "dayNtlVlm": "468043329.64289033",
-        //                     "premium": "0.00094264",
-        //                     "oraclePx": "64712.0",
-        //                     "markPx": "64774.0",
-        //                     "midPx": "64773.5",
-        //                     "impactPxs": [
-        //                         "64773.0",
-        //                         "64774.0"
-        //                     ]
-        //                 },
-        //                 ...
-        //             ],
-        //             "spotAssetCtxs": [
-        //                 {
-        //                     "prevDayPx": "0.20937",
-        //                     "dayNtlVlm": "11188888.61984999",
-        //                     "markPx": "0.19722",
-        //                     "midPx": "0.197145",
-        //                     "circulatingSupply": "598760557.12072003",
-        //                     "coin": "PURR/USDC"
-        //                 },
-        //                 ...
-        //             ],
-        //         }
-        //     }
-        //
         // handle hip3 mids
-        object channel = this.safeString(message, "channel");
-        if (isTrue(isEqual(channel, "allMids")))
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object mids = this.safeDict(data, "mids", new Dictionary<string, object>() {});
+        if (isTrue(!isEqual(mids, null)))
         {
-            object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-            object mids = this.safeDict(data, "mids", new Dictionary<string, object>() {});
-            if (isTrue(!isEqual(mids, null)))
+            object keys = new List<object>(((IDictionary<string,object>)mids).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object keys = new List<object>(((IDictionary<string,object>)mids).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                {
-                    object name = getValue(keys, i);
-                    object marketId = this.coinToMarketId(name);
-                    object market = this.safeMarket(marketId, null, null, "swap");
-                    object symbol = getValue(market, "symbol");
-                    object ticker = this.parseWsTicker(new Dictionary<string, object>() {
-                        { "price", this.safeNumber(mids, name) },
-                    }, market);
-                    ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-                }
-                object messageHash = "tickers";
-                object dexMessage = this.safeString(data, "dex");
-                if (isTrue(!isEqual(dexMessage, null)))
-                {
-                    messageHash = add(messageHash, add(":", dexMessage));
-                }
-                callDynamically(client as WebSocketClient, "resolve", new object[] {this.tickers, messageHash});
-                return true;
+                object name = getValue(keys, i);
+                object marketId = this.coinToMarketId(name);
+                object market = this.safeMarket(marketId, null, null, "swap");
+                object symbol = getValue(market, "symbol");
+                object ticker = this.parseWsTicker(new Dictionary<string, object>() {
+                    { "price", this.safeNumber(mids, name) },
+                }, market);
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
+            object messageHash = "tickers";
+            object dexMessage = this.safeString(data, "dex");
+            if (isTrue(!isEqual(dexMessage, null)))
+            {
+                messageHash = add(messageHash, add(":", dexMessage));
+            }
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.tickers, messageHash});
         }
-        // spot
-        object rawData = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object spotAssets = this.safeList(rawData, "spotAssetCtxs", new List<object>() {});
-        object parsedTickers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(spotAssets)); postFixIncrement(ref i))
-        {
-            object assetObject = getValue(spotAssets, i);
-            object coin = this.safeString(assetObject, "coin");
-            object marketId = this.coinToMarketId(coin);
-            object market = this.safeMarket(marketId, null, null, "spot");
-            object symbol = getValue(market, "symbol");
-            object ticker = this.parseWsTicker(assetObject, market);
-            ((IList<object>)parsedTickers).Add(ticker);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        }
-        // perpetuals
-        object meta = this.safeDict(rawData, "meta", new Dictionary<string, object>() {});
-        object universe = this.safeList(meta, "universe", new List<object>() {});
-        object assetCtxs = this.safeList(rawData, "assetCtxs", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
-        {
-            object data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
-            object coin = this.safeString(data, "name");
-            object marketId = this.coinToMarketId(coin);
-            object market = this.safeMarket(marketId, null, null, "swap");
-            object symbol = getValue(market, "symbol");
-            object ticker = this.parseWsTicker(data, market);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            ((IList<object>)parsedTickers).Add(ticker);
-        }
-        object tickers = this.indexBy(parsedTickers, "symbol");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "tickers"});
         return true;
     }
 
@@ -736,7 +671,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("trade:", symbol);
@@ -769,7 +707,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object subMessageHash = add("trade:", symbol);
@@ -917,7 +858,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -953,7 +897,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -1042,7 +989,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         object userAddressResult = this.handlePublicAddress("watchBalance", parameters);
         userAddress = this.safeString(userAddressResult, 0);
@@ -1096,7 +1046,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async virtual Task<object> unWatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object userAddress = null;
         object userAddressResult = this.handlePublicAddress("unWatchBalance", parameters);
@@ -1296,7 +1249,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         object userAddressResult = this.handlePublicAddress("watchPositions", parameters);
         userAddress = this.safeString(userAddressResult, 0);
@@ -1394,7 +1350,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isTrue((!isEqual(symbols, null))) && !isTrue(this.isEmpty(symbols))))
         {
             throw new NotSupported ((string)add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
@@ -1431,7 +1390,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         object userAddressResult = this.handlePublicAddress("watchOrders", parameters);
         userAddress = this.safeString(userAddressResult, 0);
@@ -1474,7 +1436,10 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             throw new NotSupported ((string)add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
@@ -1585,8 +1550,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (isTrue(isEqual(channel, "error")))
         {
             object ret_msg = this.safeString(message, "data", "");
-            object errorMsg = add(add(this.id, " "), ret_msg);
-            ((WebSocketClient)client).reject(errorMsg);
+            var error = new ExchangeError(add(add(this.id, " "), ret_msg));
+            ((WebSocketClient)client).reject(error);
             return true;
         }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -1600,14 +1565,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         object status = this.safeString(payload, "status");
         if (isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "ok"))))
         {
-            object errorMsg = add(add(this.id, " "), this.json(payload));
-            ((WebSocketClient)client).reject(errorMsg, id);
+            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
+            ((WebSocketClient)client).reject(error, id);
             return true;
         }
         object type = this.safeString(payload, "type");
         if (isTrue(isEqual(type, "error")))
         {
-            object error = add(add(this.id, " "), this.json(payload));
+            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
             ((WebSocketClient)client).reject(error, id);
             return true;
         }
@@ -1778,9 +1743,6 @@ public partial class hyperliquid : ccxt.hyperliquid
             } else if (isTrue(isEqual(type, "trades")))
             {
                 this.handleTradesUnsubscription(client as WebSocketClient, subscription);
-            } else if (isTrue(isEqual(type, "webData2")))
-            {
-                this.handleTickersUnsubscription(client as WebSocketClient, subscription);
             } else if (isTrue(isEqual(type, "candle")))
             {
                 this.handleOHLCVUnsubscription(client as WebSocketClient, subscription);
@@ -1828,7 +1790,6 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "candle", this.handleOHLCV },
             { "orderUpdates", this.handleOrder },
             { "userFills", this.handleMyTrades },
-            { "webData2", this.handleWsTickers },
             { "allMids", this.handleWsTickers },
             { "post", this.handleWsPost },
             { "subscriptionResponse", this.handleSubscriptionResponse },

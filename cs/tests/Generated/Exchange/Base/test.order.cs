@@ -48,8 +48,8 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "filled", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "remaining", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
-        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
-        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
+        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", ((string)exchange.safeString(entry, "remaining")));
+        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", ((string)exchange.safeString(entry, "filled")));
         if (!isTrue((inOp(skippedProperties, "trades"))))
         {
             object skippedNew = exchange.deepExtend(skippedProperties, new Dictionary<string, object>() {

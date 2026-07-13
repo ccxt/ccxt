@@ -142,7 +142,7 @@ class toobit(ccxt.async_support.toobit):
             'ticketInfo': self.handle_my_trade,
             'outboundContractPositionInfo': self.handle_positions,
         }
-        method = self.safe_value(methods, topic)
+        method = None if (topic is None) else self.safe_value(methods, topic)
         if method is not None:
             method(client, message)
         else:
@@ -150,14 +150,14 @@ class toobit(ccxt.async_support.toobit):
             for i in range(0, len(message)):
                 item = message[i]
                 event = self.safe_string(item, 'e')
-                method2 = self.safe_value(methods, event)
+                method2 = None if (event is None) else self.safe_value(methods, event)
                 if method2 is not None:
                     method2(client, item)
 
     def handle_incoming_pong(self, client: Client, pongTimestamp: Int):
         client.lastPong = pongTimestamp
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -169,7 +169,7 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -184,7 +184,8 @@ class toobit(ccxt.async_support.toobit):
         :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         subParams = []
@@ -280,7 +281,8 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
         messageHashes = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
@@ -383,7 +385,8 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -398,7 +401,8 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         subParams = []
@@ -473,7 +477,7 @@ class toobit(ccxt.async_support.toobit):
     def parse_ws_ticker(self, ticker, market=None):
         return self.parse_ticker(ticker, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -482,9 +486,9 @@ class toobit(ccxt.async_support.toobit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -495,9 +499,10 @@ class toobit(ccxt.async_support.toobit):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
@@ -622,7 +627,8 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -727,7 +733,8 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market_or_null(symbol)
         symbol = self.safe_string(market, 'symbol', symbol)
@@ -839,7 +846,8 @@ class toobit(ccxt.async_support.toobit):
         :param boolean [params.unifiedMargin]: use unified margin account
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market_or_null(symbol)
         symbol = self.safe_string(market, 'symbol', symbol)
@@ -911,7 +919,8 @@ class toobit(ccxt.async_support.toobit):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         messageHash = ''
         if not self.is_empty(symbols):

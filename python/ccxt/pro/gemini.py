@@ -32,7 +32,6 @@ class gemini(ccxt.async_support.gemini):
                 'watchOrderBookForSymbols': True,
                 'watchOHLCV': True,
             },
-            'hostname': 'api.gemini.com',
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',
@@ -55,7 +54,8 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades:' + market['symbol']
         marketId = market['id']
@@ -264,7 +264,8 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
@@ -347,9 +348,10 @@ class gemini(ccxt.async_support.gemini):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         marketId = market['id']
@@ -400,12 +402,12 @@ class gemini(ccxt.async_support.gemini):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbook = await self.helper_for_watch_multiple_construct('orderbook', symbols, params)
         return orderbook.limit()
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -415,7 +417,7 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
+        return self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
 
     def handle_bids_asks_for_multidata(self, client: Client, rawBidAskChanges, timestamp: Int, nonce: Int):
         #
@@ -477,7 +479,8 @@ class gemini(ccxt.async_support.gemini):
         client.resolve(bidsAsksDict, messageHash)
 
     async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: List[str] = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbols is None:
             raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
         symbols = self.market_symbols(symbols, None, False, True, True)
@@ -600,7 +603,8 @@ class gemini(ccxt.async_support.gemini):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         authParams = {
             'url': url,
         }

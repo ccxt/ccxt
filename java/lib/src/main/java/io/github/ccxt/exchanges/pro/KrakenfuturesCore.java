@@ -73,7 +73,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @ignore
      * @method
      * @description authenticates the user to access private web socket channels
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
      * @returns {object} response from exchange
      */
     public java.util.concurrent.CompletableFuture<Object> authenticate(Object... optionalArgs)
@@ -110,11 +110,11 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
@@ -146,7 +146,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -191,7 +194,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -211,7 +217,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -222,7 +228,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, symbol);
@@ -234,7 +243,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -246,7 +255,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object ticker = (this.watchMultiHelper("ticker", "ticker", symbols, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -263,7 +275,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
     /**
      * @method
      * @name krakenfutures#watchBidsAsks
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -292,7 +304,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -315,7 +327,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
     /**
      * @method
      * @name krakenfutures#watchTradesForSymbols
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
      * @description get the list of most recent trades for a list of symbols
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -347,11 +359,11 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by krakenfutures watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -368,7 +380,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
     /**
      * @method
      * @name krakenfutures#watchPositions
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_position
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -385,7 +397,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "";
             symbols = this.marketSymbols(symbols);
             if (!Helpers.isTrue(this.isEmpty(symbols)))
@@ -528,8 +543,8 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders_verbose
      * @param {string} symbol not used by krakenfutures watchOrders
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
@@ -545,7 +560,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "open_orders";
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -567,7 +585,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/fills
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -583,7 +601,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "fills";
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -605,7 +626,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @method
      * @name krakenfutures#watchBalance
      * @description watches information on the user's account balance
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
      * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
@@ -616,7 +637,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "balances";
             Object messageHash = name;
             Object account = null;
@@ -1736,7 +1760,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object subscriptionArgs = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             // symbols are required
             symbols = this.marketSymbols(symbols, null, false, true, false);
@@ -1872,7 +1899,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         /**
          * @ignore
          * @method
-         * @see https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-sign-challenge-challenge
+         * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
          */
         //
         //    {

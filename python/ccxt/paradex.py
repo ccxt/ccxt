@@ -727,7 +727,8 @@ class paradex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTradingFee() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -765,7 +766,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetMarkets(params)
         #
         #     {
@@ -809,7 +811,8 @@ class paradex(Exchange, ImplicitAPI):
         :param str [params.price]: "last", "mark", "index", default is "last"
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -882,7 +885,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
             'market': 'ALL',
@@ -922,7 +926,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1012,9 +1017,10 @@ class paradex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {'market': market['id']}
         response = self.publicGetOrderbookMarket(self.extend(request, params))
@@ -1058,7 +1064,8 @@ class paradex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
@@ -1169,7 +1176,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
@@ -1635,7 +1643,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request = self.sign_order_request(request)
@@ -1693,7 +1702,8 @@ class paradex(Exchange, ImplicitAPI):
         if price is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request = self.omit(request, ['instruction', 'client_id', 'flags'])
@@ -1748,7 +1758,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1809,7 +1820,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
@@ -1837,7 +1849,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         hasOrderIds = (ids is not None) and (isinstance(ids, list))
@@ -1910,7 +1923,8 @@ class paradex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1935,7 +1949,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -1990,7 +2005,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -2062,7 +2078,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2114,7 +2131,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetBalance()
         #
         #     {
@@ -2156,7 +2174,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -2211,7 +2230,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         positions = self.fetch_positions([market['symbol']], params)
         return self.safe_dict(positions, 0, {})
@@ -2227,7 +2247,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.privateGetPositions()
         #
@@ -2328,7 +2349,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if since is not None:
             request['from'] = since
@@ -2388,7 +2410,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -2444,7 +2467,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
@@ -2500,7 +2524,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
@@ -2651,7 +2676,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -2696,7 +2722,8 @@ class paradex(Exchange, ImplicitAPI):
         """
         self.check_required_argument('setMarginMode', symbol, 'symbol')
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         leverage = None
         leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 1)
@@ -2718,7 +2745,8 @@ class paradex(Exchange, ImplicitAPI):
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -2772,7 +2800,8 @@ class paradex(Exchange, ImplicitAPI):
         """
         self.check_required_argument('setLeverage', symbol, 'symbol')
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
@@ -2793,7 +2822,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -2847,7 +2877,8 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         request = {
             'market': 'ALL',
@@ -2968,7 +2999,8 @@ class paradex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         self.authenticate_rest()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
@@ -3045,7 +3077,8 @@ class paradex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],

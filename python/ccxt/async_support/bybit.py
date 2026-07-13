@@ -140,6 +140,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -240,6 +241,7 @@ class bybit(Exchange, ImplicitAPI):
                         'derivatives/v3/public/insurance': 1,
                         # v5
                         'v5/announcements/index': 5,  # 10/s = 1000 / (20 * 5)
+                        'v5/system/status': 5,
                         # market
                         'v5/market/time': 5,
                         'v5/market/kline': 5,
@@ -248,6 +250,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/market/premium-index-price-kline': 5,
                         'v5/market/instruments-info': 5,
                         'v5/market/orderbook': 5,
+                        'v5/market/rpi_orderbook': 5,
+                        'v5/market/full_orderbook': 5,
                         'v5/market/tickers': 5,
                         'v5/market/funding/history': 5,
                         'v5/market/recent-trade': 5,
@@ -256,7 +260,12 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/market/insurance': 5,
                         'v5/market/risk-limit': 5,
                         'v5/market/delivery-price': 5,
+                        'v5/market/new-delivery-price': 5,
                         'v5/market/account-ratio': 5,
+                        'v5/market/index-price-components': 5,
+                        'v5/market/price-limit': 5,
+                        'v5/market/adlAlert': 5,
+                        'v5/market/fee-group-info': 5,
                         # spot leverage token
                         'v5/spot-lever-token/info': 5,
                         'v5/spot-lever-token/reference': 5,
@@ -352,7 +361,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/list': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/execution/list': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/position/closed-pnl': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/get-closed-positions': 5,
                         'v5/position/move-history': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/symbol-info': 5,
                         # pre-upgrade
                         'v5/pre-upgrade/order/history': 5,
                         'v5/pre-upgrade/execution/list': 5,
@@ -365,22 +376,31 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/borrow-history': 1,
                         'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
+                        'v5/account/option-asset-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
                         'v5/account/transaction-log': 1.66,  # 30/s = 50 / 30
-                        'v5/account/contract-transaction-log': 1,
+                        'v5/account/contract-transaction-log': 1,  # deprecated
+                        'v5/account/query-dcp-info': 5,
+                        'v5/account/user-setting-config': 5,
+                        'v5/account/pay-info': 5,
+                        'v5/account/trade-info-for-analysis': 5,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         'v5/account/withdrawal': 5,
                         # asset
+                        'v5/asset/asset-overview': 5,
                         'v5/asset/exchange/query-coin-list': 0.5,  # 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query': 0.5,  # 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/query-convert-history': 0.5,  # 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/fundinghistory': 5,
+                        'v5/asset/portfolio-margin': 5,
+                        'v5/asset/total-members-assets': 5,
                         'v5/asset/delivery-record': 5,
                         'v5/asset/settlement-record': 5,
-                        'v5/asset/transfer/query-asset-info': 50,  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-asset-info': 50,  # deprecated, 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-account-coins-balance': 25,  # 2/s => cost = 50 / 2 = 25
                         'v5/asset/transfer/query-account-coin-balance': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-transfer-coin-list': 50,  # 1/s => cost = 50 / 1 = 50
@@ -398,6 +418,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
+                        'v5/asset/covert/small-balance-list': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/covert/small-balance-history': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/asset/convert/small-balance-list': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/asset/convert/small-balance-history': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/fiat/query-coin-list': 5,
@@ -413,8 +435,11 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
                         'v5/user/submembers': 5,
+                        'v5/user/escrow_sub_members': 5,
+                        'v5/user/invitation/referrals': 5,
                         # affilate
                         'v5/affiliate/aff-user-list': 5,
+                        'v5/affiliate/affiliate-sub-list': 5,
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
@@ -423,6 +448,11 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-margin-trade/max-borrowable': 5,
                         'v5/spot-margin-trade/position-tiers': 5,
                         'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/currency-data': 5,
+                        'v5/spot-margin-trade/fixedborrow-contract-info': 5,
+                        'v5/spot-margin-trade/fixedborrow-order-info': 5,
+                        'v5/spot-margin-trade/fixedborrow-order-quote': 5,
+                        'v5/spot-margin-trade/liability': 5,
                         'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-margin-trade/get-auto-repay-mode': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
@@ -451,14 +481,17 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/crypto-loan-fixed/repayment-history': 10,  # 5/s => cost = 50 / 5 = 10
                         # institutional lending
                         'v5/ins-loan/product-infos': 5,
+                        'v5/ins-loan/ensure-tokens': 5,  # deprecated
                         'v5/ins-loan/ensure-tokens-convert': 5,
                         'v5/ins-loan/loan-order': 5,
                         'v5/ins-loan/repaid-history': 5,
+                        'v5/ins-loan/ltv': 5,  # deprecated
                         'v5/ins-loan/ltv-convert': 5,
+                        'v5/ins-loan/coin-delta-amount': 5,
                         # c2c lending
-                        'v5/lending/info': 5,
-                        'v5/lending/history-order': 5,
-                        'v5/lending/account': 5,
+                        'v5/lending/info': 5,  # deprecated
+                        'v5/lending/history-order': 5,  # deprecated
+                        'v5/lending/account': 5,  # deprecated
                         # broker
                         'v5/broker/earning-record': 5,  # deprecated
                         'v5/broker/earnings-info': 5,
@@ -543,12 +576,13 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/order/amend-batch': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel-batch': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/order/disconnected-cancel-all': 5,
+                        'v5/order/pre-check': 5,
                         # position
                         'v5/position/set-leverage': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated': 5,
-                        'v5/position/set-tpsl-mode': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-isolated': 5,  # deprecated
+                        'v5/position/set-tpsl-mode': 5,  # deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-mode': 5,
-                        'v5/position/set-risk-limit': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/set-risk-limit': 5,  # deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/trading-stop': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin': 5,
                         'v5/position/add-margin': 5,
@@ -565,13 +599,15 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
                         'v5/account/set-limit-px-action': 5,
+                        'v5/account/set-delta-mode': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
                         'v5/asset/transfer/inter-transfer': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/save-transfer-sub-member': 150,  # 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/save-transfer-sub-member': 150,  # deprecated, 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
+                        'v5/asset/travel-rule/deposit/submit': 5,
                         'v5/asset/withdraw/create': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/covert/get-quote': 10,  # 5/s => cost = 50 / 5 = 10
@@ -586,6 +622,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/update-sub-api': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-api': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-sub-api': 10,  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/agreement': 10,  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-demo-member': 10,  # 5/s => cost = 50 / 5 = 10
                         # spot leverage token
                         'v5/spot-lever-token/purchase': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-lever-token/redeem': 2.5,  # 20/s => cost = 50 / 20 = 2.5
@@ -593,6 +631,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-margin-trade/switch-mode': 5,
                         'v5/spot-margin-trade/set-leverage': 5,
                         'v5/spot-margin-trade/set-auto-repay-mode': 5,
+                        'v5/spot-margin-trade/fixedborrow': 5,
+                        'v5/spot-margin-trade/fixedborrow-renew': 5,
                         'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
@@ -617,9 +657,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/ins-loan/association-uid': 5,
                         'v5/ins-loan/repay-loan': 5,
                         # c2c lending
-                        'v5/lending/purchase': 5,
-                        'v5/lending/redeem': 5,
-                        'v5/lending/redeem-cancel': 5,
+                        'v5/lending/purchase': 5,  # deprecated
+                        'v5/lending/redeem': 5,  # deprecated
+                        'v5/lending/redeem-cancel': 5,  # deprecated
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
                         # demo trading
@@ -1104,16 +1144,20 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': False,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
+                    'loadAllOptions': False,  # load all possible option markets, adds signficant load time
+                    'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
-                'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
+                },
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
@@ -1122,8 +1166,6 @@ class bybit(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'loadAllOptions': False,  # load all possible option markets, adds signficant load time
-                'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1630,6 +1672,65 @@ class bybit(Exchange, ImplicitAPI):
             return self.cost_to_precision(symbol, cost)
         return cost
 
+    async def fetch_status(self, params={}) -> dict:
+        """
+        the latest known information on the availability of the exchange API
+
+        https://bybit-exchange.github.io/docs/v5/system-status
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+        """
+        response = await self.publicGetV5SystemStatus(params)
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "id": "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+        #                     "title": "t01",
+        #                     "state": "completed",
+        #                     "begin": "1751012688000",
+        #                     "end": "1751012760000",
+        #                     "href": "",
+        #                     "serviceTypes": [1, 2, 3, 4, 5],
+        #                     "product": [1, 2, 3, 4],
+        #                     "uidSuffix": [],
+        #                     "maintainType": 3,
+        #                     "env": 2
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1751858399649
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        list = self.safe_list(result, 'list', [])
+        status = 'ok'
+        eta = None
+        url = None
+        for i in range(0, len(list)):
+            event = list[i]
+            state = self.safe_string(event, 'state')
+            if state == 'ongoing':
+                status = 'maintenance'
+                eta = self.safe_integer(event, 'end')
+                url = self.safe_string(event, 'href')
+                break
+            elif state == 'scheduled':
+                eta = self.safe_integer(event, 'begin')
+                url = self.safe_string(event, 'href')
+        return {
+            'status': status,
+            'updated': None,
+            'eta': eta,
+            'url': url,
+            'info': response,
+        }
+
     async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -1817,7 +1918,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'category': 'spot',
         }
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response: dict
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
@@ -1932,7 +2033,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.extend(params, {})
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response = None
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(params)
@@ -2115,7 +2216,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'category': 'option',
         }
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response: dict
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
@@ -2123,7 +2224,8 @@ class bybit(Exchange, ImplicitAPI):
             response = await self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
-        if self.options['loadAllOptions']:
+        loadAllOptions = self.handle_option('fetchMarkets', 'loadAllOptions')
+        if loadAllOptions:
             request['limit'] = 1000
             paginationCursor = self.safe_string(data, 'nextPageCursor')
             if paginationCursor is not None:
@@ -2195,7 +2297,8 @@ class bybit(Exchange, ImplicitAPI):
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
             isInverse = base == settle
-            if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
+            loadExpiredOptions = self.handle_option('fetchMarkets', 'loadExpiredOptions')
+            if isActive or loadAllOptions or loadExpiredOptions:
                 result.append(self.safe_market_structure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
@@ -2381,7 +2484,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTicker() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2447,7 +2551,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         code = self.safe_string_n(params, ['code', 'currency', 'baseCoin'])
         market = None
         parsedSymbols = None
@@ -2590,7 +2695,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
@@ -2744,7 +2850,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         request = {}
         if symbols is not None:
@@ -2821,7 +2928,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -3131,7 +3239,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3181,11 +3290,12 @@ class bybit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3408,7 +3518,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.type]: wallet type, ['spot', 'swap', 'funding']
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -3811,7 +3922,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -3831,7 +3943,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         types = await self.is_unified_enabled()
         enableUnifiedAccount = types[1]
         if not enableUnifiedAccount:
@@ -3880,7 +3993,8 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.tradingStopEndpoint]: whether to enforce using the tradingStop(https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         parts = await self.is_unified_enabled()
         enableUnifiedAccount = parts[1]
@@ -4167,7 +4281,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accounts = await self.is_unified_enabled()
         isUta = accounts[1]
         ordersRequests = []
@@ -4332,7 +4447,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.tpTriggerby]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         market = self.market(symbol)
@@ -4367,7 +4483,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
@@ -4479,7 +4596,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         requestExtended = self.cancel_order_request(id, symbol, params)
         response = await self.privatePostV5OrderCancel(requestExtended)
@@ -4512,7 +4630,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         types = await self.is_unified_enabled()
         enableUnifiedAccount = types[1]
@@ -4590,7 +4709,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.product]: OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
         :returns dict: the api result
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'timeWindow': self.parse_to_int(timeout / 1000),
         }
@@ -4622,7 +4742,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         types = await self.is_unified_enabled()
         enableUnifiedAccount = types[1]
         if not enableUnifiedAccount:
@@ -4710,7 +4831,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.settleCoin]: Settle coin. Supports linear, inverse & option
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         market = None
@@ -4780,7 +4902,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if market['spot']:
             raise NotSupported(self.id + ' fetchOrder() is not supported for spot markets')
@@ -4809,7 +4932,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params.acknowledged]: to suppress the warning, set to True
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         if not isUnifiedAccount:
@@ -4930,7 +5054,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -5028,7 +5153,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'orderId': id,
         }
@@ -5060,7 +5186,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'orderId': id,
         }
@@ -5093,7 +5220,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
         if paginate:
@@ -5206,7 +5334,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'orderStatus': 'Filled',
         }
@@ -5231,7 +5360,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'orderStatus': 'Cancelled',
         }
@@ -5257,7 +5387,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
@@ -5387,7 +5518,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -5482,7 +5614,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -5530,7 +5663,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
@@ -5553,7 +5687,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.cursor]: used for pagination
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -5617,7 +5752,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
@@ -5793,7 +5929,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
@@ -6070,7 +6207,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType')
         if accountType is None:
             accountType = 'UTA' if isUta else 'SPOT'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {
@@ -6113,7 +6251,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchPosition() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -6187,7 +6326,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
         if paginate:
@@ -6517,7 +6657,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         position = await self.fetch_position(symbol, params)
         return self.parse_leverage(position, market)
@@ -6546,7 +6687,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.leverage]: the rate of leverage, is required if setting trade mode(symbol)
         :returns dict: response from the exchange
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         market = None
@@ -6632,7 +6774,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -6666,7 +6809,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -6702,7 +6846,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         return response
 
     async def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         subType = 'linear' if market['linear'] else 'inverse'
         category = self.safe_string(params, 'category', subType)
@@ -6765,7 +6910,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.category]: "linear" or "inverse"
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
@@ -6827,7 +6973,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if timeframe == '1m':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
             params = self.omit(params, 'paginate')
@@ -6874,7 +7021,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -6943,7 +7091,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         response = await self.privateGetV5SpotCrossMarginTradeAccount(self.extend(request, params))
         #
@@ -6989,7 +7138,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -7062,7 +7212,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.transferId]: UUID, which is unique across the platform
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         transferId = self.safe_string(params, 'transferId', self.uuid())
         accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
@@ -7115,7 +7266,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
@@ -7167,7 +7319,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -7200,7 +7353,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -7298,7 +7452,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
 
     async def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -7345,7 +7500,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         market = self.market(symbol)
@@ -7384,7 +7540,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -7425,7 +7582,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_option_and_params(params, 'fetchTradingFees', 'type', 'future')
         if type == 'spot':
@@ -7518,7 +7676,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetV5AssetCoinQueryInfo(params)
         #
         #     {
@@ -7568,7 +7727,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :returns dict[]: a list of [settlement history objects]
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -7621,7 +7781,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :returns dict[]: a list of [settlement history objects]
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -7741,7 +7902,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param int [params.period]: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
         :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/?id=volatility-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'category': 'option',
@@ -7795,7 +7957,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -7862,7 +8025,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.baseCoin]: the baseCoin of the symbol, default is BTC
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         baseCoin = self.safe_string(params, 'baseCoin', 'BTC')
         request = {
@@ -7989,7 +8153,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyLiquidations', 'paginate')
         if paginate:
@@ -8102,7 +8267,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         })
 
     async def get_leverage_tiers_paginated(self, symbol: Str = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -8140,7 +8306,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         symbol = None
         if symbols is not None:
@@ -8229,7 +8396,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
@@ -8319,7 +8487,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'category': 'option',
@@ -8381,7 +8550,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'category': 'option',
@@ -8498,7 +8668,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: 'linear' or 'inverse'
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         subType = None
         symbolsLength = 0
@@ -8569,7 +8740,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: an associative dictionary of currencies
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -8665,7 +8837,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -8719,7 +8892,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'quoteTxId': id,
         }
@@ -8751,7 +8925,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -8812,7 +8987,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -8921,7 +9097,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/?id=long-short-ratio-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         type = None
         type, params = self.get_bybit_type('fetchLongShortRatioHistory', market, params)
@@ -8993,7 +9170,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchPositionsADLRank() requires a symbols argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         request = {}
@@ -9122,7 +9300,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetV5AccountInfo(params)
         #

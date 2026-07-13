@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\btcmarkets as Exchange;
 
 class btcmarkets extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcmarkets',
@@ -295,8 +294,10 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        $this->load_markets();
+    public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -308,11 +309,11 @@ class btcmarkets extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->$method ($this->extend($request, $params));
+        $response = $this->$method($this->extend($request, $params));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals
          *
@@ -327,7 +328,7 @@ class btcmarkets extends Exchange {
         return $this->fetch_transactions_with_method('privateGetTransfers', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -342,7 +343,7 @@ class btcmarkets extends Exchange {
         return $this->fetch_transactions_with_method('privateGetDeposits', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -480,7 +481,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for btcmarkets
          *
@@ -489,7 +490,7 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetMarkets($params);
         //
         //     array(
         //         {
@@ -576,7 +577,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -585,7 +586,7 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetTime ($params);
+        $response = $this->publicGetTime($params);
         //
         //     {
         //         "timestamp" => "2019-09-01T18:34:27.045000Z"
@@ -608,7 +609,7 @@ class btcmarkets extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -617,8 +618,10 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = $this->privateGetAccountsMeBalances ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetAccountsMeBalances($params);
         return $this->parse_balance($response);
     }
 
@@ -643,7 +646,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -656,7 +659,9 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
@@ -671,20 +676,20 @@ class btcmarkets extends Exchange {
             $request['from'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 200); // default is 10, max 200
+            $request['limit'] = min($limit, 200); // default is 10, max 200
         }
-        $response = $this->publicGetMarketsMarketIdCandles ($this->extend($request, $params));
+        $response = $this->publicGetMarketsMarketIdCandles($this->extend($request, $params));
         //
-        //     [
+        //     array(
         //         ["2020-09-12T18:30:00.000000Z","14409.45","14409.45","14403.91","14403.91","0.01571701"],
         //         ["2020-09-12T18:21:00.000000Z","14409.45","14409.45","14409.45","14409.45","0.0035"],
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
-        //     ]
+        //     )
         //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -693,28 +698,30 @@ class btcmarkets extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
         );
-        $response = $this->publicGetMarketsMarketIdOrderbook ($this->extend($request, $params));
+        $response = $this->publicGetMarketsMarketIdOrderbook($this->extend($request, $params));
         //
         //     {
         //         "marketId":"BTC-AUD",
         //         "snapshotId":1599936148941000,
-        //         "asks":[
+        //         "asks":array(
         //             ["14459.45","0.00456475"],
         //             ["14463.56","2"],
         //             ["14470.91","0.98"],
-        //         ],
-        //         "bids":[
+        //         ),
+        //         "bids":array(
         //             ["14421.01","0.52"],
         //             ["14421","0.75"],
         //             ["14418","0.3521"],
-        //         ]
+        //         )
         //     }
         //
         $timestamp = $this->safe_integer_product($response, 'snapshotId', 0.001);
@@ -774,7 +781,7 @@ class btcmarkets extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -784,12 +791,14 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
         );
-        $response = $this->publicGetMarketsMarketIdTicker ($this->extend($request, $params));
+        $response = $this->publicGetMarketsMarketIdTicker($this->extend($request, $params));
         //
         //     {
         //         "marketId":"BAT-AUD",
@@ -808,13 +817,15 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker_2(string $symbol, $params = array ()) {
-        $this->load_markets();
+    public function fetch_ticker_2(string $symbol, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
-        $response = $this->publicGetMarketsMarketIdTicker ($this->extend($request, $params));
+        $response = $this->publicGetMarketsMarketIdTicker($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -885,7 +896,7 @@ class btcmarkets extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -897,13 +908,15 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             // 'since' => 59868345231,
             'marketId' => $market['id'],
         );
-        $response = $this->publicGetMarketsMarketIdTrades ($this->extend($request, $params));
+        $response = $this->publicGetMarketsMarketIdTrades($this->extend($request, $params));
         //
         //     array(
         //         array("id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"),
@@ -914,7 +927,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -929,7 +942,9 @@ class btcmarkets extends Exchange {
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
@@ -989,7 +1004,7 @@ class btcmarkets extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         }
         $params = $this->omit($params, 'clientOrderId');
-        $response = $this->privatePostOrders ($this->extend($request, $params));
+        $response = $this->privatePostOrders($this->extend($request, $params));
         //
         //     {
         //         "orderId" => "7524",
@@ -1012,7 +1027,7 @@ class btcmarkets extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple $orders
          *
@@ -1023,7 +1038,9 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $numericIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             // $numericIds[$i] = intval($ids[$i]);
@@ -1032,7 +1049,7 @@ class btcmarkets extends Exchange {
         $request = array(
             'ids' => $numericIds,
         );
-        $response = $this->privateDeleteBatchordersIds ($this->extend($request, $params));
+        $response = $this->privateDeleteBatchordersIds($this->extend($request, $params));
         //
         //    {
         //       "cancelOrders" => array(
@@ -1057,7 +1074,7 @@ class btcmarkets extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1068,11 +1085,13 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateDeleteOrdersId ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersId($this->extend($request, $params));
         //
         //    {
         //        "orderId" => "7524",
@@ -1082,7 +1101,7 @@ class btcmarkets extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
         /**
          * calculates the presumptive fee that would be charged for an order
          * @param {string} $symbol unified $market $symbol
@@ -1195,7 +1214,7 @@ class btcmarkets extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1206,15 +1225,17 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrdersId ($this->extend($request, $params));
+        $response = $this->privateGetOrdersId($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -1226,7 +1247,9 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'status' => 'all',
         );
@@ -1241,11 +1264,11 @@ class btcmarkets extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrders ($this->extend($request, $params));
+        $response = $this->privateGetOrders($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1261,7 +1284,7 @@ class btcmarkets extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -1277,7 +1300,7 @@ class btcmarkets extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -1289,7 +1312,9 @@ class btcmarkets extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1302,7 +1327,7 @@ class btcmarkets extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTrades ($this->extend($request, $params));
+        $response = $this->privateGetTrades($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1333,7 +1358,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1347,7 +1372,9 @@ class btcmarkets extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'assetName' => $currency['id'],
@@ -1360,7 +1387,7 @@ class btcmarkets extends Exchange {
         if ($tag !== null) {
             $request['toAddress'] = $address . '?dt=' . $tag;
         }
-        $response = $this->privatePostWithdrawals ($this->extend($request, $params));
+        $response = $this->privatePostWithdrawals($this->extend($request, $params));
         //
         //      {
         //          "id" => "4126657",
@@ -1384,7 +1411,7 @@ class btcmarkets extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, ?string $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($api === 'private') {

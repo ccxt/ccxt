@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\binance as Exchange;
 
 class binance extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
@@ -777,14 +776,15 @@ class binance extends Exchange {
                         'order' => 1,
                         'openOrder' => 1,
                         'openOrders' => array( 'cost' => 1, 'noSymbol' => 5 ),
-                        'allOrders' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'openAlgoOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'allOrders' => 5,
                         'balance' => 1,
                         'account' => 5,
                         'positionMargin/history' => 1,
                         'positionRisk' => 1,
-                        'userTrades' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'userTrades' => 5,
                         'income' => 20,
-                        'leverageBracket' => 1,
+                        'leverageBracket' => array( 'cost' => 2, 'noSymbol' => 2 ),
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
                         'commissionRate' => 20,
@@ -800,6 +800,7 @@ class binance extends Exchange {
                     'post' => array(
                         'positionSide/dual' => 1,
                         'order' => 4,
+                        'algoOrder' => 1,
                         'batchOrders' => 5,
                         'countdownCancelAll' => 10,
                         'leverage' => 1,
@@ -814,6 +815,7 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         'order' => 1,
+                        'algoOrder' => 1,
                         'allOpenOrders' => 1,
                         'batchOrders' => 5,
                         'listenKey' => 1,
@@ -1311,7 +1313,7 @@ class binance extends Exchange {
             // exchange-specific options
             'options' => array(
                 'sandboxMode' => false,
-                'fetchMargins' => true,
+                'fetchMargins' => true, // todo => reorganize
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot', // allows CORS in browsers
@@ -1319,24 +1321,34 @@ class binance extends Exchange {
                         'inverse', // allows CORS in browsers
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ),
+                    'loadAllOptions' => false,
                 ),
-                'loadAllOptions' => false,
-                'fetchCurrencies' => true, // this is a private call and it requires API keys
+                'fetchCurrencies' => true, // this is a private call and it requires API keys // todo => reorganize
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod' => 'papiPostRepayLoan', // papiPostMarginRepayDebt
-                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'createOrder' => array(
+                    'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'warnOnSTPForInverse' => true,
+                    'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                ),
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType' => null, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
-                'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                'fetchOpenOrders' => array(
+                    'warnWithoutSymbol' => true,
+                ),
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
-                'throwMarginModeAlreadySet' => false,
-                'fetchPositions' => 'positionRisk', // or 'account' or 'option'
+                'setMarginMode' => array(
+                    'throwMarginModeAlreadySet' => true,
+                ),
+                'fetchPositions' => array(
+                    'method' => 'positionRisk', // or 'account' or 'option'
+                ),
                 'recvWindow' => 10 * 1000, // 10 sec
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
@@ -1344,7 +1356,6 @@ class binance extends Exchange {
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit' => 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 ),
-                'quoteOrderQty' => true, // whether market orders support amounts in quote currency
                 'broker' => array(
                     'spot' => 'x-TKT5PX2F',
                     'margin' => 'x-TKT5PX2F',
@@ -1390,7 +1401,6 @@ class binance extends Exchange {
                     'XRP' => 'XRP',
                     'EOS' => 'EOS',
                     'DOGE' => 'DOGE',
-                    'SPL' => 'SOL', // temporarily keep support for SPL (old name)
                     'SOL' => 'SOL', // we shouldn't rename SOL
                     'SONIC' => 'SONIC',
                     // 'FIAT' => 'FIAT_MONEY', // not unified atm
@@ -2930,7 +2940,7 @@ class binance extends Exchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -2949,16 +2959,16 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTime', null, $params);
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetTime ($query);
+            $response = $this->fapiPublicGetTime($query);
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetTime ($query);
+            $response = $this->dapiPublicGetTime($query);
         } else {
-            $response = $this->publicGetTime ($query);
+            $response = $this->publicGetTime($query);
         }
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -2988,10 +2998,10 @@ class binance extends Exchange {
         if ($this->safe_bool($this->options, 'enableDemoTrading', false)) {
             return array();
         }
-        $promises = array( $this->sapiGetCapitalConfigGetall ($params) );
+        $promises = array( $this->sapiGetCapitalConfigGetall($params) );
         $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
         if ($fetchMargins) {
-            $promises[] = $this->sapiGetMarginAllPairs ($params);
+            $promises[] = $this->sapiGetMarginAllPairs($params);
         }
         $results = $promises;
         $responseCurrencies = $results[0];
@@ -3031,7 +3041,7 @@ class binance extends Exchange {
         //        "storage" => "0",
         //        "isLegalMoney" => false,
         //        "trading" => true,
-        //        "networkList" => [
+        //        "networkList" => array(
         //            array(
         //                "network" => "BSC",
         //                "coin" => "LINK",
@@ -3108,7 +3118,7 @@ class binance extends Exchange {
         //                "busy" => false,
         //                "country" => "AE,BINANCE_BAHRAIN_BSC"
         //            }
-        //        ]
+        //        )
         //    }
         //
         //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under $network $entry
@@ -3199,7 +3209,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for binance
          *
@@ -3223,8 +3233,7 @@ class binance extends Exchange {
             // for backward-compatibility
             $rawFetchMarkets = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
         }
-        // handle $loadAllOptions option
-        $loadAllOptions = $this->safe_bool($this->options, 'loadAllOptions', false);
+        $loadAllOptions = $this->handle_option('fetchMarkets', 'loadAllOptions', false);
         if ($loadAllOptions) {
             if (!$this->in_array('option', $rawFetchMarkets)) {
                 $rawFetchMarkets[] = 'option';
@@ -3245,17 +3254,17 @@ class binance extends Exchange {
         for ($i = 0; $i < count($fetchMarkets); $i++) {
             $marketType = $fetchMarkets[$i];
             if ($marketType === 'spot') {
-                $promisesRaw[] = $this->publicGetExchangeInfo ($params);
+                $promisesRaw[] = $this->publicGetExchangeInfo($params);
                 if ($fetchMargins && $this->check_required_credentials(false) && !$isDemoEnv) {
-                    $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
-                    $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
+                    $promisesRaw[] = $this->sapiGetMarginAllPairs($params);
+                    $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs($params);
                 }
             } elseif ($marketType === 'linear') {
-                $promisesRaw[] = $this->fapiPublicGetExchangeInfo ($params);
+                $promisesRaw[] = $this->fapiPublicGetExchangeInfo($params);
             } elseif ($marketType === 'inverse') {
-                $promisesRaw[] = $this->dapiPublicGetExchangeInfo ($params);
+                $promisesRaw[] = $this->dapiPublicGetExchangeInfo($params);
             } elseif ($marketType === 'option') {
-                $promisesRaw[] = $this->eapiPublicGetExchangeInfo ($params);
+                $promisesRaw[] = $this->eapiPublicGetExchangeInfo($params);
             } else {
                 throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
             }
@@ -3292,7 +3301,7 @@ class binance extends Exchange {
         //             array("rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":200000)
         //         ),
         //         "exchangeFilters":array(),
-        //         "symbols":[
+        //         "symbols":array(
         //             array(
         //                 "symbol":"ETHBTC",
         //                 "status":"TRADING",
@@ -3321,7 +3330,7 @@ class binance extends Exchange {
         //                 ),
         //                 "permissions":["SPOT","MARGIN"]}
         //             ),
-        //         ],
+        //         ),
         //     }
         //
         // cross & isolated pairs response:
@@ -3360,7 +3369,7 @@ class binance extends Exchange {
         //                 "quantityPrecision":3,
         //                 "baseAssetPrecision":8,
         //                 "quotePrecision":8,
-        //                 "filters":[
+        //                 "filters":array(
         //                     array("minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"),
         //                     array("stepSize":"0.001","filterType":"LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("stepSize":"0.001","filterType":"MARKET_LOT_SIZE","maxQty":"1000","minQty":"0.001"),
@@ -3370,7 +3379,7 @@ class binance extends Exchange {
         //                 "orderTypes":["LIMIT","MARKET","STOP"],
         //                 "timeInForce":["GTC","IOC","FOK","GTX"]
         //             }
-        //         ]
+        //         )
         //     }
         //
         // delivery/coin-margined (dapi)
@@ -3402,7 +3411,7 @@ class binance extends Exchange {
         //                 "baseAssetPrecision" => 8,
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
-        //                 "filters" => [
+        //                 "filters" => array(
         //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
         //                     array("stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("stepSize":"0","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
@@ -3440,7 +3449,7 @@ class binance extends Exchange {
         //                 "orderTypes" => ["LIMIT","MARKET","STOP","STOP_MARKET","TAKE_PROFIT","TAKE_PROFIT_MARKET","TRAILING_STOP_MARKET"],
         //                 "timeInForce" => ["GTC","IOC","FOK","GTX"]
         //             }
-        //         ]
+        //         )
         //     }
         //
         // options (eapi)
@@ -3812,7 +3821,7 @@ class binance extends Exchange {
         return $isolated ? $result : $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -3833,7 +3842,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] 'linear' or 'inverse'
          * @return {array} a ~@link https://docs.ccxt.com/?$id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $subType = null;
@@ -3853,20 +3864,20 @@ class binance extends Exchange {
                 $type = 'inverse';
             }
             $isPortfolioMargin = true;
-            $response = $this->papiGetBalance ($this->extend($request, $query));
+            $response = $this->papiGetBalance($this->extend($request, $query));
         } elseif ($this->is_linear($type, $subType)) {
             $type = 'linear';
             $useV2 = null;
             list($useV2, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'useV2', false);
             $params = $this->extend($request, $query);
             if (!$useV2) {
-                $response = $this->fapiPrivateV3GetAccount ($params);
+                $response = $this->fapiPrivateV3GetAccount($params);
             } else {
-                $response = $this->fapiPrivateV2GetAccount ($params);
+                $response = $this->fapiPrivateV2GetAccount($params);
             }
         } elseif ($this->is_inverse($type, $subType)) {
             $type = 'inverse';
-            $response = $this->dapiPrivateGetAccount ($this->extend($request, $query));
+            $response = $this->dapiPrivateGetAccount($this->extend($request, $query));
         } elseif ($marginMode === 'isolated') {
             $paramSymbols = $this->safe_list($params, 'symbols');
             $query = $this->omit($query, 'symbols');
@@ -3884,15 +3895,15 @@ class binance extends Exchange {
                 }
                 $request['symbols'] = $symbols;
             }
-            $response = $this->sapiGetMarginIsolatedAccount ($this->extend($request, $query));
+            $response = $this->sapiGetMarginIsolatedAccount($this->extend($request, $query));
         } elseif (($type === 'margin') || ($marginMode === 'cross')) {
-            $response = $this->sapiGetMarginAccount ($this->extend($request, $query));
+            $response = $this->sapiGetMarginAccount($this->extend($request, $query));
         } elseif ($type === 'savings') {
-            $response = $this->sapiGetLendingUnionAccount ($this->extend($request, $query));
+            $response = $this->sapiGetLendingUnionAccount($this->extend($request, $query));
         } elseif ($type === 'funding') {
-            $response = $this->sapiPostAssetGetFundingAsset ($this->extend($request, $query));
+            $response = $this->sapiPostAssetGetFundingAsset($this->extend($request, $query));
         } else {
-            $response = $this->privateGetAccount ($this->extend($request, $query));
+            $response = $this->privateGetAccount($this->extend($request, $query));
         }
         //
         // spot
@@ -4077,7 +4088,7 @@ class binance extends Exchange {
         return $this->parse_balance_custom($response, $type, $marginMode, $isPortfolioMargin);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -4091,9 +4102,11 @@ class binance extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->rpi] *future only* set to true to use the RPI endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4103,21 +4116,21 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPublicGetDepth ($this->extend($request, $params));
+            $response = $this->eapiPublicGetDepth($this->extend($request, $params));
         } elseif ($market['linear']) {
             $rpi = $this->safe_value($params, 'rpi', false);
             $params = $this->omit($params, 'rpi');
             if ($rpi) {
                 // $rpi $limit only supports 1000
                 $request['limit'] = 1000;
-                $response = $this->fapiPublicGetRpiDepth ($this->extend($request, $params));
+                $response = $this->fapiPublicGetRpiDepth($this->extend($request, $params));
             } else {
-                $response = $this->fapiPublicGetDepth ($this->extend($request, $params));
+                $response = $this->fapiPublicGetDepth($this->extend($request, $params));
             }
         } elseif ($market['inverse']) {
-            $response = $this->dapiPublicGetDepth ($this->extend($request, $params));
+            $response = $this->dapiPublicGetDepth($this->extend($request, $params));
         } else {
-            $response = $this->publicGetDepth ($this->extend($request, $params));
+            $response = $this->publicGetDepth($this->extend($request, $params));
         }
         //
         // future
@@ -4126,31 +4139,31 @@ class binance extends Exchange {
         //         "lastUpdateId":333598053905,
         //         "E":1618631511986,
         //         "T":1618631511964,
-        //         "bids":[
+        //         "bids":array(
         //             ["2493.56","20.189"],
         //             ["2493.54","1.000"],
         //             ["2493.51","0.005"]
-        //         ],
-        //         "asks":[
+        //         ),
+        //         "asks":array(
         //             ["2493.57","0.877"],
         //             ["2493.62","0.063"],
         //             ["2493.71","12.054"],
-        //         ]
+        //         )
         //     }
         //
         // options (eapi)
         //
         //     {
-        //         "bids" => [
+        //         "bids" => array(
         //             ["108.7","16.08"],
         //             ["106","21.29"],
         //             ["82.4","0.02"]
-        //         ],
-        //         "asks" => [
+        //         ),
+        //         "asks" => array(
         //             ["111.4","19.52"],
         //             ["119.9","17.6"],
         //             ["141.2","31"]
-        //         ],
+        //         ),
         //         "T" => 1676771382078,
         //         "u" => 1015939
         //     }
@@ -4349,7 +4362,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -4358,7 +4371,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
-        $response = $this->sapiGetSystemStatus ($params);
+        $response = $this->sapiGetSystemStatus($params);
         //
         //     {
         //         "status" => 0,              // 0 => normal，1：system maintenance
@@ -4375,7 +4388,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -4390,25 +4403,27 @@ class binance extends Exchange {
          * @param {boolean} [$params->rolling] (spot only) default false, if true, uses the $rolling 24 hour ticker endpoint /api/v3/ticker
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPublicGetTicker ($this->extend($request, $params));
+            $response = $this->eapiPublicGetTicker($this->extend($request, $params));
         } elseif ($market['linear']) {
-            $response = $this->fapiPublicGetTicker24hr ($this->extend($request, $params));
+            $response = $this->fapiPublicGetTicker24hr($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiPublicGetTicker24hr ($this->extend($request, $params));
+            $response = $this->dapiPublicGetTicker24hr($this->extend($request, $params));
         } else {
             $rolling = $this->safe_bool($params, 'rolling', false);
             $params = $this->omit($params, 'rolling');
             if ($rolling) {
-                $response = $this->publicGetTicker ($this->extend($request, $params));
+                $response = $this->publicGetTicker($this->extend($request, $params));
             } else {
-                $response = $this->publicGetTicker24hr ($this->extend($request, $params));
+                $response = $this->publicGetTicker24hr($this->extend($request, $params));
             }
         }
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -4418,7 +4433,7 @@ class binance extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -4431,7 +4446,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
@@ -4440,22 +4457,22 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetTickerBookTicker ($params);
+            $response = $this->fapiPublicGetTickerBookTicker($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetTickerBookTicker ($params);
+            $response = $this->dapiPublicGetTickerBookTicker($params);
         } elseif ($type === 'spot') {
             $request = array();
             if ($symbols !== null) {
                 $request['symbols'] = $this->json($this->market_ids($symbols));
             }
-            $response = $this->publicGetTickerBookTicker ($this->extend($request, $params));
+            $response = $this->publicGetTickerBookTicker($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchBidsAsks() does not support ' . $type . ' markets yet');
         }
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array()) {
         /**
          * fetches the last price for multiple markets
          *
@@ -4468,7 +4485,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of lastprices structures
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
@@ -4477,7 +4496,7 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicV2GetTickerPrice ($params);
+            $response = $this->fapiPublicV2GetTickerPrice($params);
             //
             //     array(
             //         array(
@@ -4489,7 +4508,7 @@ class binance extends Exchange {
             //     )
             //
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetTickerPrice ($params);
+            $response = $this->dapiPublicGetTickerPrice($params);
             //
             //     array(
             //         {
@@ -4501,7 +4520,7 @@ class binance extends Exchange {
             //     )
             //
         } elseif ($type === 'spot') {
-            $response = $this->publicGetTickerPrice ($params);
+            $response = $this->publicGetTickerPrice($params);
             //
             //     array(
             //         array(
@@ -4558,7 +4577,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
@@ -4573,7 +4592,9 @@ class binance extends Exchange {
          * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
@@ -4582,9 +4603,9 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetTicker24hr ($params);
+            $response = $this->fapiPublicGetTicker24hr($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetTicker24hr ($params);
+            $response = $this->dapiPublicGetTicker24hr($params);
         } elseif ($type === 'spot') {
             $rolling = $this->safe_bool($params, 'rolling', false);
             $params = $this->omit($params, 'rolling');
@@ -4593,7 +4614,7 @@ class binance extends Exchange {
                 $request = array(
                     'symbols' => $this->json($this->market_ids($symbols)),
                 );
-                $response = $this->publicGetTicker ($this->extend($request, $params));
+                $response = $this->publicGetTicker($this->extend($request, $params));
                 // parseTicker is not able to handle marketType for spot-$rolling ticker fields, so we need custom parsing
                 return $this->parse_tickers_for_rolling($response, $symbols);
             } else {
@@ -4601,10 +4622,10 @@ class binance extends Exchange {
                 if ($symbols !== null) {
                     $request['symbols'] = $this->json($this->market_ids($symbols));
                 }
-                $response = $this->publicGetTicker24hr ($this->extend($request, $params));
+                $response = $this->publicGetTicker24hr($this->extend($request, $params));
             }
         } elseif ($type === 'option') {
-            $response = $this->eapiPublicGetTicker ($params);
+            $response = $this->eapiPublicGetTicker($params);
         } else {
             throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets yet');
         }
@@ -4623,7 +4644,7 @@ class binance extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function fetch_mark_price(string $symbol, $params = array ()): array {
+    public function fetch_mark_price(string $symbol, $params = array()): array {
         /**
          * fetches mark price for the $market
          *
@@ -4635,7 +4656,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrice', $market, $params, 'swap');
@@ -4646,9 +4669,9 @@ class binance extends Exchange {
         );
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetPremiumIndex ($this->extend($request, $params));
+            $response = $this->fapiPublicGetPremiumIndex($this->extend($request, $params));
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetPremiumIndex ($this->extend($request, $params));
+            $response = $this->dapiPublicGetPremiumIndex($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchMarkPrice() does not support ' . $type . ' markets yet');
         }
@@ -4658,7 +4681,7 @@ class binance extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
+    public function fetch_mark_prices(?array $symbols = null, $params = array()): array {
         /**
          * fetches mark prices for multiple markets
          *
@@ -4670,7 +4693,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
@@ -4679,9 +4704,9 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetPremiumIndex ($params);
+            $response = $this->fapiPublicGetPremiumIndex($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetPremiumIndex ($params);
+            $response = $this->dapiPublicGetPremiumIndex($params);
         } else {
             throw new NotSupported($this->id . ' fetchMarkPrices() does not support ' . $type . ' markets yet');
         }
@@ -4752,7 +4777,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -4777,7 +4802,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
@@ -4794,7 +4821,7 @@ class binance extends Exchange {
         if ($since !== null && $until !== null && $limit === null) {
             $limit = $maxLimit;
         }
-        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
+        $limit = ($limit === null) ? $defaultLimit : min($limit, $maxLimit);
         $request = array(
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
@@ -4819,7 +4846,7 @@ class binance extends Exchange {
                     $duration = $this->parse_timeframe($timeframe);
                     $endTime = $this->sum($since, $limit * $duration * 1000 - 1);
                     $now = $this->milliseconds();
-                    $request['endTime'] = min ($now, $endTime);
+                    $request['endTime'] = min($now, $endTime);
                 }
             }
         }
@@ -4828,38 +4855,38 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPublicGetKlines ($this->extend($request, $params));
+            $response = $this->eapiPublicGetKlines($this->extend($request, $params));
         } elseif ($price === 'mark') {
             if ($market['inverse']) {
-                $response = $this->dapiPublicGetMarkPriceKlines ($this->extend($request, $params));
+                $response = $this->dapiPublicGetMarkPriceKlines($this->extend($request, $params));
             } else {
-                $response = $this->fapiPublicGetMarkPriceKlines ($this->extend($request, $params));
+                $response = $this->fapiPublicGetMarkPriceKlines($this->extend($request, $params));
             }
         } elseif ($price === 'index') {
             if ($market['inverse']) {
-                $response = $this->dapiPublicGetIndexPriceKlines ($this->extend($request, $params));
+                $response = $this->dapiPublicGetIndexPriceKlines($this->extend($request, $params));
             } else {
-                $response = $this->fapiPublicGetIndexPriceKlines ($this->extend($request, $params));
+                $response = $this->fapiPublicGetIndexPriceKlines($this->extend($request, $params));
             }
         } elseif ($price === 'premiumIndex') {
             if ($market['inverse']) {
-                $response = $this->dapiPublicGetPremiumIndexKlines ($this->extend($request, $params));
+                $response = $this->dapiPublicGetPremiumIndexKlines($this->extend($request, $params));
             } else {
-                $response = $this->fapiPublicGetPremiumIndexKlines ($this->extend($request, $params));
+                $response = $this->fapiPublicGetPremiumIndexKlines($this->extend($request, $params));
             }
         } elseif ($market['linear']) {
-            $response = $this->fapiPublicGetKlines ($this->extend($request, $params));
+            $response = $this->fapiPublicGetKlines($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiPublicGetKlines ($this->extend($request, $params));
+            $response = $this->dapiPublicGetKlines($this->extend($request, $params));
         } else {
-            $response = $this->publicGetKlines ($this->extend($request, $params));
+            $response = $this->publicGetKlines($this->extend($request, $params));
         }
         //
-        //     [
+        //     array(
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
-        //     ]
+        //     )
         //
         // options (eapi)
         //
@@ -5152,7 +5179,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * Default fetchTradesMethod
@@ -5184,7 +5211,9 @@ class binance extends Exchange {
          * @param {int} [$params->fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
@@ -5216,18 +5245,45 @@ class binance extends Exchange {
             $isFutureOrSwap = ($market['swap'] || $market['future']);
             $isHistoricalEndpoint = ($method !== null) && (mb_strpos($method, 'GetHistoricalTrades') !== false);
             $maxLimitForContractHistorical = $isHistoricalEndpoint ? 500 : 1000;
-            $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
+            $request['limit'] = $isFutureOrSwap ? min($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
         }
         $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
+        if ($method === null) {
+            if ($market['option']) {
+                $method = 'eapiPublicGetTrades';
+            } elseif ($market['linear']) {
+                $method = 'fapiPublicGetAggTrades';
+            } elseif ($market['inverse']) {
+                $method = 'dapiPublicGetAggTrades';
+            } else {
+                $method = 'publicGetAggTrades';
+            }
+        }
         $response = null;
-        if ($market['option'] || $method === 'eapiPublicGetTrades') {
-            $response = $this->eapiPublicGetTrades ($this->extend($request, $params));
-        } elseif ($market['linear'] || $method === 'fapiPublicGetAggTrades') {
-            $response = $this->fapiPublicGetAggTrades ($this->extend($request, $params));
-        } elseif ($market['inverse'] || $method === 'dapiPublicGetAggTrades') {
-            $response = $this->dapiPublicGetAggTrades ($this->extend($request, $params));
+        if ($method === 'publicGetAggTrades') {
+            $response = $this->publicGetAggTrades($this->extend($request, $params));
+        } elseif ($method === 'publicGetTrades') {
+            $response = $this->publicGetTrades($this->extend($request, $params));
+        } elseif ($method === 'publicGetHistoricalTrades') {
+            $response = $this->publicGetHistoricalTrades($this->extend($request, $params));
+        } elseif ($method === 'fapiPublicGetAggTrades') {
+            $response = $this->fapiPublicGetAggTrades($this->extend($request, $params));
+        } elseif ($method === 'fapiPublicGetTrades') {
+            $response = $this->fapiPublicGetTrades($this->extend($request, $params));
+        } elseif ($method === 'fapiPublicGetHistoricalTrades') {
+            $response = $this->fapiPublicGetHistoricalTrades($this->extend($request, $params));
+        } elseif ($method === 'dapiPublicGetAggTrades') {
+            $response = $this->dapiPublicGetAggTrades($this->extend($request, $params));
+        } elseif ($method === 'dapiPublicGetTrades') {
+            $response = $this->dapiPublicGetTrades($this->extend($request, $params));
+        } elseif ($method === 'dapiPublicGetHistoricalTrades') {
+            $response = $this->dapiPublicGetHistoricalTrades($this->extend($request, $params));
+        } elseif ($method === 'eapiPublicGetTrades') {
+            $response = $this->eapiPublicGetTrades($this->extend($request, $params));
+        } elseif ($method === 'eapiPublicGetHistoricalTrades') {
+            $response = $this->eapiPublicGetHistoricalTrades($this->extend($request, $params));
         } else {
-            $response = $this->publicGetAggTrades ($this->extend($request, $params));
+            throw new NotSupported($this->id . ' fetchTrades() does not support this method');
         }
         //
         // Caveats:
@@ -5298,7 +5354,7 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function edit_spot_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * edit a trade order
@@ -5315,13 +5371,15 @@ class binance extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $market['type'] . ' orders');
         }
         $payload = $this->edit_spot_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-        $response = $this->privatePostOrderCancelReplace ($payload);
+        $response = $this->privatePostOrderCancelReplace($payload);
         //
         // spot
         //
@@ -5365,7 +5423,7 @@ class binance extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_spot_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request for editSpotOrder
@@ -5425,7 +5483,7 @@ class binance extends Exchange {
         $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
+            $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
             if ($quoteOrderQty) {
                 $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                 $precision = $market['precision']['price'];
@@ -5468,7 +5526,7 @@ class binance extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $request['timeInForce'] = $this->handle_option('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if ($triggerPriceIsRequired) {
             if ($triggerPrice === null) {
@@ -5490,7 +5548,11 @@ class binance extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_contract_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_contract_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
+            // moved here from editContractOrder for warning in case of calling editOrderWs() without $price argument for swap orders
+            throw new ArgumentsRequired($this->id . ' editOrder() and editOrderWs() require a $price argument for swap orders');
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
@@ -5512,7 +5574,7 @@ class binance extends Exchange {
         return $request;
     }
 
-    public function edit_contract_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * edit a trade order
          *
@@ -5531,28 +5593,25 @@ class binance extends Exchange {
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
-        if ($market['linear'] || $isPortfolioMargin) {
-            if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
-                throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
-            }
-        }
         $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['linear']) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPutUmOrder ($this->extend($request, $params));
+                $response = $this->papiPutUmOrder($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivatePutOrder ($this->extend($request, $params));
+                $response = $this->fapiPrivatePutOrder($this->extend($request, $params));
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPutCmOrder ($this->extend($request, $params));
+                $response = $this->papiPutCmOrder($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivatePutOrder ($this->extend($request, $params));
+                $response = $this->dapiPrivatePutOrder($this->extend($request, $params));
             }
         }
         //
@@ -5585,7 +5644,7 @@ class binance extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit a trade order
          *
@@ -5602,7 +5661,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['option']) {
             throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders');
@@ -5614,7 +5675,7 @@ class binance extends Exchange {
         }
     }
 
-    public function edit_orders(array $orders, $params = array ()) {
+    public function edit_orders(array $orders, $params = array()) {
         /**
          * edit a list of trade $orders
          *
@@ -5625,7 +5686,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -5657,9 +5720,9 @@ class binance extends Exchange {
         );
         $request = $this->extend($request, $params);
         if ($market['linear']) {
-            $response = $this->fapiPrivatePutBatchOrders ($request);
+            $response = $this->fapiPrivatePutBatchOrders($request);
         } elseif ($market['inverse']) {
-            $response = $this->dapiPrivatePutBatchOrders ($request);
+            $response = $this->dapiPrivatePutBatchOrders($request);
         }
         //
         //   array(
@@ -6342,7 +6405,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * *contract only* create a list of trade $orders
          *
@@ -6354,7 +6417,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -6380,11 +6445,11 @@ class binance extends Exchange {
         );
         $request = $this->extend($request, $params);
         if ($market['linear']) {
-            $response = $this->fapiPrivatePostBatchOrders ($request);
+            $response = $this->fapiPrivatePostBatchOrders($request);
         } elseif ($market['option']) {
-            $response = $this->eapiPrivatePostBatchOrders ($request);
+            $response = $this->eapiPrivatePostBatchOrders($request);
         } else {
-            $response = $this->dapiPrivatePostBatchOrders ($request);
+            $response = $this->dapiPrivatePostBatchOrders($request);
         }
         //
         //   array(
@@ -6423,7 +6488,7 @@ class binance extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -6465,7 +6530,9 @@ class binance extends Exchange {
          * @param {string} [$params->clientOrderId] the clientOrderId of the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         // don't handle/omit $params here, omitting happens inside createOrderRequest
         $marketType = $this->safe_string($params, 'type', $market['type']);
@@ -6489,55 +6556,60 @@ class binance extends Exchange {
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivatePostOrder ($request);
+            $response = $this->eapiPrivatePostOrder($request);
         } elseif ($sor) {
             if ($test) {
-                $response = $this->privatePostSorOrderTest ($request);
+                $response = $this->privatePostSorOrderTest($request);
             } else {
-                $response = $this->privatePostSorOrder ($request);
+                $response = $this->privatePostSorOrder($request);
             }
         } elseif ($market['linear']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiPostUmConditionalOrder ($request);
+                    $response = $this->papiPostUmConditionalOrder($request);
                 } else {
-                    $response = $this->papiPostUmOrder ($request);
+                    $response = $this->papiPostUmOrder($request);
                 }
             } else {
                 if ($isConditional) {
                     $request['algoType'] = 'CONDITIONAL';
-                    $response = $this->fapiPrivatePostAlgoOrder ($request);
+                    $response = $this->fapiPrivatePostAlgoOrder($request);
                 } else {
-                    $response = $this->fapiPrivatePostOrder ($request);
+                    $response = $this->fapiPrivatePostOrder($request);
                 }
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiPostCmConditionalOrder ($request);
+                    $response = $this->papiPostCmConditionalOrder($request);
                 } else {
-                    $response = $this->papiPostCmOrder ($request);
+                    $response = $this->papiPostCmOrder($request);
                 }
             } else {
-                $response = $this->dapiPrivatePostOrder ($request);
+                if ($isConditional) {
+                    $request['algoType'] = 'CONDITIONAL';
+                    $response = $this->dapiPrivatePostAlgoOrder($request);
+                } else {
+                    $response = $this->dapiPrivatePostOrder($request);
+                }
             }
         } elseif ($marketType === 'margin' || $marginMode !== null || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPostMarginOrder ($request);
+                $response = $this->papiPostMarginOrder($request);
             } else {
-                $response = $this->sapiPostMarginOrder ($request);
+                $response = $this->sapiPostMarginOrder($request);
             }
         } else {
             if ($test) {
-                $response = $this->privatePostOrderTest ($request);
+                $response = $this->privatePostOrderTest($request);
             } else {
-                $response = $this->privatePostOrder ($request);
+                $response = $this->privatePostOrder($request);
             }
         }
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build the $request
@@ -6731,7 +6803,7 @@ class binance extends Exchange {
         //
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
+                $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
@@ -6819,7 +6891,7 @@ class binance extends Exchange {
                 }
             }
             if ($stopPrice !== null) {
-                if ($market['linear'] && $market['swap'] && !$isPortfolioMargin) {
+                if ($market['swap'] && !$isPortfolioMargin) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 } else {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -6827,7 +6899,7 @@ class binance extends Exchange {
             }
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->safe_string($this->options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $request['timeInForce'] = $this->handle_option('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!$isPortfolioMargin && $market['contract'] && $postOnly) {
             $request['timeInForce'] = 'GTX';
@@ -6848,9 +6920,11 @@ class binance extends Exchange {
         $selfTradePrevention = null;
         list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
-            if ($market['spot']) {
-                $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            $warnOnStpForInverse = $this->handle_option('createOrder', 'warnOnSTPForInverse');
+            if ($market['inverse'] && $warnOnStpForInverse) {
+                throw new NotSupported($this->id . ' createOrder() $selfTradePrevention is not supported for inverse markets. $selfTradePrevention for inverse markets is taken from linear $market-> To disable this warning set the .options["createOrder"]["warnOnSTPForInverse"] to false.');
             }
+            $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         $icebergAmount = $this->safe_number($params, 'icebergAmount');
@@ -6863,7 +6937,7 @@ class binance extends Exchange {
         return $this->extend($request, $requestParams);
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         /**
          * create a $market order by providing the $symbol, $side and $cost
          *
@@ -6875,7 +6949,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
@@ -6886,7 +6962,7 @@ class binance extends Exchange {
         return $this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -6897,7 +6973,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -6908,7 +6986,7 @@ class binance extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params));
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a $market sell order by providing the $symbol and $cost
          *
@@ -6919,7 +6997,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
@@ -6928,7 +7008,7 @@ class binance extends Exchange {
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -6952,7 +7032,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -6981,39 +7063,39 @@ class binance extends Exchange {
         $params = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ));
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivateGetOrder ($this->extend($request, $params));
+            $response = $this->eapiPrivateGetOrder($this->extend($request, $params));
         } elseif ($market['linear']) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmOrder ($this->extend($request, $params));
+                $response = $this->papiGetUmOrder($this->extend($request, $params));
             } else {
                 if ($isConditional) {
-                    $response = $this->fapiPrivateGetAlgoOrder ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetAlgoOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->fapiPrivateGetOrder ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetOrder($this->extend($request, $params));
                 }
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmOrder ($this->extend($request, $params));
+                $response = $this->papiGetCmOrder($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivateGetOrder ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetOrder($this->extend($request, $params));
             }
         } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetMarginOrder ($this->extend($request, $params));
+                $response = $this->papiGetMarginOrder($this->extend($request, $params));
             } else {
                 if ($marginMode === 'isolated') {
                     $request['isIsolated'] = true;
                 }
-                $response = $this->sapiGetMarginOrder ($this->extend($request, $params));
+                $response = $this->sapiGetMarginOrder($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetOrder ($this->extend($request, $params));
+            $response = $this->privateGetOrder($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -7042,7 +7124,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -7069,41 +7153,41 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivateGetHistoryOrders ($this->extend($request, $params));
+            $response = $this->eapiPrivateGetHistoryOrders($this->extend($request, $params));
         } elseif ($market['linear']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiGetUmConditionalAllOrders ($this->extend($request, $params));
+                    $response = $this->papiGetUmConditionalAllOrders($this->extend($request, $params));
                 } else {
-                    $response = $this->papiGetUmAllOrders ($this->extend($request, $params));
+                    $response = $this->papiGetUmAllOrders($this->extend($request, $params));
                 }
             } else {
                 if ($isConditional) {
-                    $response = $this->fapiPrivateGetAllAlgoOrders ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetAllAlgoOrders($this->extend($request, $params));
                 } else {
-                    $response = $this->fapiPrivateGetAllOrders ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetAllOrders($this->extend($request, $params));
                 }
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiGetCmConditionalAllOrders ($this->extend($request, $params));
+                    $response = $this->papiGetCmConditionalAllOrders($this->extend($request, $params));
                 } else {
-                    $response = $this->papiGetCmAllOrders ($this->extend($request, $params));
+                    $response = $this->papiGetCmAllOrders($this->extend($request, $params));
                 }
             } else {
-                $response = $this->dapiPrivateGetAllOrders ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetAllOrders($this->extend($request, $params));
             }
         } else {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetMarginAllOrders ($this->extend($request, $params));
+                $response = $this->papiGetMarginAllOrders($this->extend($request, $params));
             } elseif ($type === 'margin' || $marginMode !== null) {
                 if ($marginMode === 'isolated') {
                     $request['isIsolated'] = true;
                 }
-                $response = $this->sapiGetMarginAllOrders ($this->extend($request, $params));
+                $response = $this->sapiGetMarginAllOrders($this->extend($request, $params));
             } else {
-                $response = $this->privateGetAllOrders ($this->extend($request, $params));
+                $response = $this->privateGetAllOrders($this->extend($request, $params));
             }
         }
         //
@@ -7289,7 +7373,7 @@ class binance extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -7314,7 +7398,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $type = null;
         $request = array();
@@ -7329,11 +7415,15 @@ class binance extends Exchange {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
             $type = $this->safe_string($params, 'type', $marketType);
-        } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with $symbol argument. To acknowledge this warning, set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
-            $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
+            $warnWithoutSymbol = $this->safe_bool($this->options['fetchOpenOrders'], 'warnWithoutSymbol');
+            $optValue = $this->safe_bool($this->options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
+            if ($optValue || ($optValue === null && $warnWithoutSymbol)) {
+                throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with $symbol argument. To acknowledge this warning, set ' . $this->id . '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
+            } else {
+                $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+                $type = $this->safe_string($params, 'type', $defaultType);
+            }
         }
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
@@ -7346,34 +7436,38 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->eapiPrivateGetOpenOrders ($this->extend($request, $params));
+            $response = $this->eapiPrivateGetOpenOrders($this->extend($request, $params));
         } elseif ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiGetUmConditionalOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiGetUmConditionalOpenOrders($this->extend($request, $params));
                 } else {
-                    $response = $this->papiGetUmOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiGetUmOpenOrders($this->extend($request, $params));
                 }
             } else {
                 if ($isConditional) {
-                    $response = $this->fapiPrivateGetOpenAlgoOrders ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetOpenAlgoOrders($this->extend($request, $params));
                 } else {
-                    $response = $this->fapiPrivateGetOpenOrders ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetOpenOrders($this->extend($request, $params));
                 }
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiGetCmConditionalOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiGetCmConditionalOpenOrders($this->extend($request, $params));
                 } else {
-                    $response = $this->papiGetCmOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiGetCmOpenOrders($this->extend($request, $params));
                 }
             } else {
-                $response = $this->dapiPrivateGetOpenOrders ($this->extend($request, $params));
+                if ($isConditional) {
+                    $response = $this->dapiPrivateGetOpenAlgoOrders($this->extend($request, $params));
+                } else {
+                    $response = $this->dapiPrivateGetOpenOrders($this->extend($request, $params));
+                }
             }
         } elseif ($type === 'margin' || $marginMode !== null || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetMarginOpenOrders ($this->extend($request, $params));
+                $response = $this->papiGetMarginOpenOrders($this->extend($request, $params));
             } else {
                 if ($marginMode === 'isolated') {
                     $request['isIsolated'] = true;
@@ -7381,15 +7475,15 @@ class binance extends Exchange {
                         throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for isolated markets');
                     }
                 }
-                $response = $this->sapiGetMarginOpenOrders ($this->extend($request, $params));
+                $response = $this->sapiGetMarginOpenOrders($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetOpenOrders ($this->extend($request, $params));
+            $response = $this->privateGetOpenOrders($this->extend($request, $params));
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetch an open order by the $id
          *
@@ -7410,7 +7504,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -7426,22 +7522,22 @@ class binance extends Exchange {
         if ($market['linear']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiGetUmConditionalOpenOrder ($this->extend($request, $params));
+                    $response = $this->papiGetUmConditionalOpenOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->papiGetUmOpenOrder ($this->extend($request, $params));
+                    $response = $this->papiGetUmOpenOrder($this->extend($request, $params));
                 }
             } else {
-                $response = $this->fapiPrivateGetOpenOrder ($this->extend($request, $params));
+                $response = $this->fapiPrivateGetOpenOrder($this->extend($request, $params));
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiGetCmConditionalOpenOrder ($this->extend($request, $params));
+                    $response = $this->papiGetCmConditionalOpenOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->papiGetCmOpenOrder ($this->extend($request, $params));
+                    $response = $this->papiGetCmOpenOrder($this->extend($request, $params));
                 }
             } else {
-                $response = $this->dapiPrivateGetOpenOrder ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetOpenOrder($this->extend($request, $params));
             }
         } else {
             if ($market['option']) {
@@ -7601,7 +7697,7 @@ class binance extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -7632,7 +7728,7 @@ class binance extends Exchange {
         return $this->filter_by_since_limit($filteredOrders, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -7663,7 +7759,7 @@ class binance extends Exchange {
         return $this->filter_by_since_limit($filteredOrders, $since, $limit);
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -7697,7 +7793,7 @@ class binance extends Exchange {
         return $this->filter_by_since_limit($sortedOrders, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -7723,7 +7819,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -7739,7 +7837,7 @@ class binance extends Exchange {
         if ($clientOrderId !== null) {
             if ($market['option']) {
                 $request['clientOrderId'] = $clientOrderId;
-            } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+            } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
                 $request['clientAlgoId'] = $clientOrderId;
             } else {
                 if ($isPortfolioMargin && $isConditional) {
@@ -7751,7 +7849,7 @@ class binance extends Exchange {
         } else {
             if ($isPortfolioMargin && $isConditional) {
                 $request['strategyId'] = $id;
-            } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+            } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
                 $request['algoId'] = $id;
             } else {
                 $request['orderId'] = $id;
@@ -7760,47 +7858,51 @@ class binance extends Exchange {
         $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ));
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivateDeleteOrder ($this->extend($request, $params));
+            $response = $this->eapiPrivateDeleteOrder($this->extend($request, $params));
         } elseif ($market['linear']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiDeleteUmConditionalOrder ($this->extend($request, $params));
+                    $response = $this->papiDeleteUmConditionalOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->papiDeleteUmOrder ($this->extend($request, $params));
+                    $response = $this->papiDeleteUmOrder($this->extend($request, $params));
                 }
             } else {
                 if ($isConditional) {
-                    $response = $this->fapiPrivateDeleteAlgoOrder ($this->extend($request, $params));
+                    $response = $this->fapiPrivateDeleteAlgoOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->fapiPrivateDeleteOrder ($this->extend($request, $params));
+                    $response = $this->fapiPrivateDeleteOrder($this->extend($request, $params));
                 }
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiDeleteCmConditionalOrder ($this->extend($request, $params));
+                    $response = $this->papiDeleteCmConditionalOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->papiDeleteCmOrder ($this->extend($request, $params));
+                    $response = $this->papiDeleteCmOrder($this->extend($request, $params));
                 }
             } else {
-                $response = $this->dapiPrivateDeleteOrder ($this->extend($request, $params));
+                if ($isConditional) {
+                    $response = $this->dapiPrivateDeleteAlgoOrder($this->extend($request, $params));
+                } else {
+                    $response = $this->dapiPrivateDeleteOrder($this->extend($request, $params));
+                }
             }
         } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
-                $response = $this->papiDeleteMarginOrder ($this->extend($request, $params));
+                $response = $this->papiDeleteMarginOrder($this->extend($request, $params));
             } else {
                 if ($marginMode === 'isolated') {
                     $request['isIsolated'] = true;
                 }
-                $response = $this->sapiDeleteMarginOrder ($this->extend($request, $params));
+                $response = $this->sapiDeleteMarginOrder($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateDeleteOrder ($this->extend($request, $params));
+            $response = $this->privateDeleteOrder($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -7826,7 +7928,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -7840,7 +7944,7 @@ class binance extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPrivateDeleteAllOpenOrders ($this->extend($request, $params));
+            $response = $this->eapiPrivateDeleteAllOpenOrders($this->extend($request, $params));
             //
             //    {
             //        "code" => 0,
@@ -7850,7 +7954,7 @@ class binance extends Exchange {
         } elseif ($market['linear']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiDeleteUmConditionalAllOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiDeleteUmConditionalAllOpenOrders($this->extend($request, $params));
                     //
                     //    {
                     //        "code" => "200",
@@ -7858,7 +7962,7 @@ class binance extends Exchange {
                     //    }
                     //
                 } else {
-                    $response = $this->papiDeleteUmAllOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiDeleteUmAllOpenOrders($this->extend($request, $params));
                     //
                     //    {
                     //        "code" => 200,
@@ -7868,7 +7972,7 @@ class binance extends Exchange {
                 }
             } else {
                 if ($isConditional) {
-                    $response = $this->fapiPrivateDeleteAlgoOpenOrders ($this->extend($request, $params));
+                    $response = $this->fapiPrivateDeleteAlgoOpenOrders($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 200,
@@ -7876,7 +7980,7 @@ class binance extends Exchange {
                     //     }
                     //
                 } else {
-                    $response = $this->fapiPrivateDeleteAllOpenOrders ($this->extend($request, $params));
+                    $response = $this->fapiPrivateDeleteAllOpenOrders($this->extend($request, $params));
                     //
                     //    {
                     //        "code" => 200,
@@ -7888,7 +7992,7 @@ class binance extends Exchange {
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
                 if ($isConditional) {
-                    $response = $this->papiDeleteCmConditionalAllOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiDeleteCmConditionalAllOpenOrders($this->extend($request, $params));
                     //
                     //    {
                     //        "code" => "200",
@@ -7896,7 +8000,7 @@ class binance extends Exchange {
                     //    }
                     //
                 } else {
-                    $response = $this->papiDeleteCmAllOpenOrders ($this->extend($request, $params));
+                    $response = $this->papiDeleteCmAllOpenOrders($this->extend($request, $params));
                     //
                     //    {
                     //        "code" => 200,
@@ -7905,7 +8009,7 @@ class binance extends Exchange {
                     //
                 }
             } else {
-                $response = $this->dapiPrivateDeleteAllOpenOrders ($this->extend($request, $params));
+                $response = $this->dapiPrivateDeleteAllOpenOrders($this->extend($request, $params));
                 //
                 //    {
                 //        "code" => 200,
@@ -7915,12 +8019,12 @@ class binance extends Exchange {
             }
         } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
             if ($isPortfolioMargin) {
-                $response = $this->papiDeleteMarginAllOpenOrders ($this->extend($request, $params));
+                $response = $this->papiDeleteMarginAllOpenOrders($this->extend($request, $params));
             } else {
                 if ($marginMode === 'isolated') {
                     $request['isIsolated'] = true;
                 }
-                $response = $this->sapiDeleteMarginOpenOrders ($this->extend($request, $params));
+                $response = $this->sapiDeleteMarginOpenOrders($this->extend($request, $params));
                 //
                 //    array(
                 //        array(
@@ -7945,7 +8049,7 @@ class binance extends Exchange {
                 //
             }
         } else {
-            $response = $this->privateDeleteOpenOrders ($this->extend($request, $params));
+            $response = $this->privateDeleteOpenOrders($this->extend($request, $params));
             //
             //    array(
             //        {
@@ -7978,7 +8082,7 @@ class binance extends Exchange {
         }
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple orders
          *
@@ -7998,7 +8102,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new BadRequest($this->id . ' cancelOrders is only supported for swap markets.');
@@ -8016,9 +8122,9 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['linear']) {
-            $response = $this->fapiPrivateDeleteBatchOrders ($this->extend($request, $params));
+            $response = $this->fapiPrivateDeleteBatchOrders($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiPrivateDeleteBatchOrders ($this->extend($request, $params));
+            $response = $this->dapiPrivateDeleteBatchOrders($this->extend($request, $params));
         }
         //
         //    array(
@@ -8058,7 +8164,7 @@ class binance extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all the trades made from a single order
          *
@@ -8077,7 +8183,9 @@ class binance extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
@@ -8090,7 +8198,7 @@ class binance extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -8111,7 +8219,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -8138,7 +8248,7 @@ class binance extends Exchange {
             if (($currentTimestamp - $startTime) >= $oneWeek) {
                 if (($endTime === null) && $this->safe_bool($market, 'linear')) {
                     $endTime = $this->sum($startTime, $oneWeek);
-                    $endTime = min ($endTime, $currentTimestamp);
+                    $endTime = min($endTime, $currentTimestamp);
                 }
             }
         }
@@ -8148,13 +8258,13 @@ class binance extends Exchange {
         }
         if ($limit !== null) {
             if (($type === 'option') || $this->safe_bool($market, 'contract')) {
-                $limit = min ($limit, 1000); // above 1000, returns error
+                $limit = min($limit, 1000); // above 1000, returns error
             }
             $request['limit'] = $limit;
         }
         $response = null;
         if ($type === 'option') {
-            $response = $this->eapiPrivateGetUserTrades ($this->extend($request, $params));
+            $response = $this->eapiPrivateGetUserTrades($this->extend($request, $params));
         } else {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -8164,26 +8274,26 @@ class binance extends Exchange {
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if ($type === 'spot' || $type === 'margin') {
                 if ($isPortfolioMargin) {
-                    $response = $this->papiGetMarginMyTrades ($this->extend($request, $params));
+                    $response = $this->papiGetMarginMyTrades($this->extend($request, $params));
                 } elseif (($type === 'margin') || ($marginMode !== null)) {
                     if ($marginMode === 'isolated') {
                         $request['isIsolated'] = true;
                     }
-                    $response = $this->sapiGetMarginMyTrades ($this->extend($request, $params));
+                    $response = $this->sapiGetMarginMyTrades($this->extend($request, $params));
                 } else {
-                    $response = $this->privateGetMyTrades ($this->extend($request, $params));
+                    $response = $this->privateGetMyTrades($this->extend($request, $params));
                 }
             } elseif ($this->safe_bool($market, 'linear')) {
                 if ($isPortfolioMargin) {
-                    $response = $this->papiGetUmUserTrades ($this->extend($request, $params));
+                    $response = $this->papiGetUmUserTrades($this->extend($request, $params));
                 } else {
-                    $response = $this->fapiPrivateGetUserTrades ($this->extend($request, $params));
+                    $response = $this->fapiPrivateGetUserTrades($this->extend($request, $params));
                 }
             } elseif ($this->safe_bool($market, 'inverse')) {
                 if ($isPortfolioMargin) {
-                    $response = $this->papiGetCmUserTrades ($this->extend($request, $params));
+                    $response = $this->papiGetCmUserTrades($this->extend($request, $params));
                 } else {
-                    $response = $this->dapiPrivateGetUserTrades ($this->extend($request, $params));
+                    $response = $this->dapiPrivateGetUserTrades($this->extend($request, $params));
                 }
             }
         }
@@ -8319,7 +8429,7 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_dust_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_dust_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all dust $trades made by the user
          *
@@ -8338,7 +8448,9 @@ class binance extends Exchange {
         // The corresponding $trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -8349,7 +8461,7 @@ class binance extends Exchange {
         if ($accountType !== null) {
             $request['accountType'] = $accountType;
         }
-        $response = $this->sapiGetAssetDribblet ($this->extend($request, $params));
+        $response = $this->sapiGetAssetDribblet($this->extend($request, $params));
         //     {
         //       "total" => "4",
         //       "userAssetDribblets" => array(
@@ -8465,7 +8577,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -8481,7 +8593,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
@@ -8506,7 +8620,7 @@ class binance extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $raw = $this->sapiGetFiatOrders ($this->extend($request, $params));
+            $raw = $this->sapiGetFiatOrders($this->extend($request, $params));
             $response = $this->safe_list($raw, 'data', array());
             //     {
             //       "code" => "000000",
@@ -8537,14 +8651,14 @@ class binance extends Exchange {
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 $endTime = $this->sum($since, 7776000000);
                 if ($until !== null) {
-                    $endTime = min ($endTime, $until);
+                    $endTime = min($endTime, $until);
                 }
                 $request['endTime'] = $endTime;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->sapiGetCapitalDepositHisrec ($this->extend($request, $params));
+            $response = $this->sapiGetCapitalDepositHisrec($this->extend($request, $params));
             //     array(
             //       array(
             //         "amount" => "0.01844487",
@@ -8578,7 +8692,7 @@ class binance extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
@@ -8594,7 +8708,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
@@ -8619,7 +8735,7 @@ class binance extends Exchange {
             if ($since !== null) {
                 $request['beginTime'] = $since;
             }
-            $raw = $this->sapiGetFiatOrders ($this->extend($request, $params));
+            $raw = $this->sapiGetFiatOrders($this->extend($request, $params));
             $response = $this->safe_list($raw, 'data', array());
             //     {
             //       "code" => "000000",
@@ -8664,7 +8780,7 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->sapiGetCapitalWithdrawHistory ($this->extend($request, $params));
+            $response = $this->sapiGetCapitalWithdrawHistory($this->extend($request, $params));
             //     array(
             //       array(
             //         "id" => "69e53ad305124b96b43668ceab158a18",
@@ -9021,7 +9137,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -9036,7 +9152,9 @@ class binance extends Exchange {
          * @param {string} [$params->symbol] the unified $symbol, required for isolated margin transfers
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -9114,7 +9232,7 @@ class binance extends Exchange {
                 $request['type'] = $fromId . '_' . $toId;
             }
         }
-        $response = $this->sapiPostAssetTransfer ($this->extend($request, $params));
+        $response = $this->sapiPostAssetTransfer($this->extend($request, $params));
         //
         //     {
         //         "tranId":13526853623
@@ -9123,7 +9241,7 @@ class binance extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of $internal transfers made on an account
          *
@@ -9138,7 +9256,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->internal] default false, when true will fetch pay trade history
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $internal = $this->safe_bool($params, 'internal');
         $params = $this->omit($params, 'internal');
         $paginate = false;
@@ -9188,12 +9308,12 @@ class binance extends Exchange {
         }
         $response = null;
         if ($internal) {
-            $response = $this->sapiGetPayTransactions ($this->extend($request, $params));
+            $response = $this->sapiGetPayTransactions($this->extend($request, $params));
             //
             // {
             //     "code" => "000000",
             //     "message" => "success",
-            //     "data" => [
+            //     "data" => array(
             //     {
             //         "orderType" => "C2C", // Enum：PAY(C2B Merchant Acquiring Payment), PAY_REFUND(C2B Merchant Acquiring Payment,refund), C2C(C2C Transfer Payment),CRYPTO_BOX(Crypto box), CRYPTO_BOX_RF(Crypto Box, refund), C2C_HOLDING(Transfer to new Binance user), C2C_HOLDING_RF(Transfer to new Binance user,refund), PAYOUT(B2C Disbursement Payment), REMITTANCE（Send cash)
             //         "transactionId" => "M_P_71505104267788288",
@@ -9242,12 +9362,12 @@ class binance extends Exchange {
             //                 )
             //             }
             //       }
-            //    ],
+            //    ),
             //    "success" => true
             // }
             //
         } else {
-            $response = $this->sapiGetAssetTransfer ($this->extend($request, $params));
+            $response = $this->sapiGetAssetTransfer($this->extend($request, $params));
             //
             //     {
             //         "total" => 3,
@@ -9268,7 +9388,7 @@ class binance extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
@@ -9279,7 +9399,9 @@ class binance extends Exchange {
          * @param {string} [$params->network] network for fetch deposit address
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -9291,7 +9413,7 @@ class binance extends Exchange {
             $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         // has support for the 'network' parameter
-        $response = $this->sapiGetCapitalDepositAddress ($this->extend($request, $params));
+        $response = $this->sapiGetCapitalDepositAddress($this->extend($request, $params));
         //
         //     {
         //         "currency" => "XRP",
@@ -9338,7 +9460,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
@@ -9349,10 +9471,12 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~
          */
-        $this->load_markets();
-        $response = $this->sapiGetCapitalConfigGetall ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->sapiGetCapitalConfigGetall($params);
         //
-        //  [
+        //  array(
         //     {
         //       "coin" => "BAT",
         //       "depositAllEnable" => true,
@@ -9367,7 +9491,7 @@ class binance extends Exchange {
         //       "storage" => "0",
         //       "isLegalMoney" => false,
         //       "trading" => true,
-        //       "networkList" => [
+        //       "networkList" => array(
         //         array(
         //           "network" => "BNB",
         //           "coin" => "BAT",
@@ -9428,9 +9552,9 @@ class binance extends Exchange {
         //           "minConfirm" => "12",
         //           "unLockConfirm" => "0"
         //         }
-        //       ]
+        //       )
         //     }
-        //  ]
+        //  )
         //
         $withdrawFees = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -9454,7 +9578,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         /**
          * fetch deposit and withdraw fees
          *
@@ -9464,10 +9588,12 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->sapiGetCapitalConfigGetall ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->sapiGetCapitalConfigGetall($params);
         //
-        //    [
+        //    array(
         //        {
         //            "coin" => "BAT",
         //            "depositAllEnable" => true,
@@ -9482,7 +9608,7 @@ class binance extends Exchange {
         //            "storage" => "0",
         //            "isLegalMoney" => false,
         //            "trading" => true,
-        //            "networkList" => [
+        //            "networkList" => array(
         //                array(
         //                    "network" => "BNB",
         //                    "coin" => "BAT",
@@ -9504,9 +9630,9 @@ class binance extends Exchange {
         //                    "unLockConfirm" => "0"
         //                ),
         //                ...
-        //            ]
+        //            )
         //        }
-        //    ]
+        //    )
         //
         return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
     }
@@ -9527,7 +9653,7 @@ class binance extends Exchange {
         //        "storage" => "0",
         //        "isLegalMoney" => false,
         //        "trading" => true,
-        //        "networkList" => [
+        //        "networkList" => array(
         //            array(
         //                "network" => "BNB",
         //                "coin" => "BAT",
@@ -9549,7 +9675,7 @@ class binance extends Exchange {
         //                "unLockConfirm" => "0"
         //            ),
         //            ...
-        //        ]
+        //        )
         //    }
         //
         $code = $this->safe_string($currency, 'code');
@@ -9581,7 +9707,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -9596,7 +9722,9 @@ class binance extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -9613,7 +9741,7 @@ class binance extends Exchange {
             $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         $request['amount'] = $this->currency_to_precision($currency['code'], $amount, $networkCode);
-        $response = $this->sapiPostCapitalWithdrawApply ($this->extend($request, $params));
+        $response = $this->sapiPostCapitalWithdrawApply($this->extend($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
         return $this->parse_transaction($response, $currency);
     }
@@ -9648,7 +9776,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
@@ -9664,7 +9792,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $type = $market['type'];
         $subType = null;
@@ -9679,18 +9809,18 @@ class binance extends Exchange {
         $response = null;
         if ($isLinear) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmCommissionRate ($this->extend($request, $params));
+                $response = $this->papiGetUmCommissionRate($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivateGetCommissionRate ($this->extend($request, $params));
+                $response = $this->fapiPrivateGetCommissionRate($this->extend($request, $params));
             }
         } elseif ($isInverse) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmCommissionRate ($this->extend($request, $params));
+                $response = $this->papiGetCmCommissionRate($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivateGetCommissionRate ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetCommissionRate($this->extend($request, $params));
             }
         } else {
-            $response = $this->sapiGetAssetTradeFee ($this->extend($request, $params));
+            $response = $this->sapiGetAssetTradeFee($this->extend($request, $params));
         }
         //
         // spot
@@ -9718,7 +9848,7 @@ class binance extends Exchange {
         return $this->parse_trading_fee($data, $market);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
@@ -9731,7 +9861,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         $subType = null;
@@ -9741,11 +9873,11 @@ class binance extends Exchange {
         $isInverse = $this->is_inverse($type, $subType);
         $response = null;
         if ($isSpotOrMargin) {
-            $response = $this->sapiGetAssetTradeFee ($params);
+            $response = $this->sapiGetAssetTradeFee($params);
         } elseif ($isLinear) {
-            $response = $this->fapiPrivateGetAccountConfig ($params);
+            $response = $this->fapiPrivateGetAccountConfig($params);
         } elseif ($isInverse) {
-            $response = $this->dapiPrivateGetAccount ($params);
+            $response = $this->dapiPrivateGetAccount($params);
         }
         //
         // sapi / spot
@@ -9895,7 +10027,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function futures_transfer(string $code, $amount, $type, $params = array ()) {
+    public function futures_transfer(string $code, $amount, $type, $params = array()) {
         /**
          * @ignore
          * transfer between futures account
@@ -9912,14 +10044,16 @@ class binance extends Exchange {
         if (($type < 1) || ($type > 4)) {
             throw new ArgumentsRequired($this->id . ' $type must be between 1 and 4');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
             'amount' => $amount,
             'type' => $type,
         );
-        $response = $this->sapiPostFuturesTransfer ($this->extend($request, $params));
+        $response = $this->sapiPostFuturesTransfer($this->extend($request, $params));
         //
         //   {
         //       "tranId" => 100000001
@@ -9928,7 +10062,7 @@ class binance extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -9939,16 +10073,18 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $response = null;
         if ($market['linear']) {
-            $response = $this->fapiPublicGetPremiumIndex ($this->extend($request, $params));
+            $response = $this->fapiPublicGetPremiumIndex($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiPublicGetPremiumIndex ($this->extend($request, $params));
+            $response = $this->dapiPublicGetPremiumIndex($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchFundingRate() supports linear and inverse contracts only');
         }
@@ -9970,7 +10106,7 @@ class binance extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -9986,7 +10122,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
@@ -10018,9 +10156,9 @@ class binance extends Exchange {
         }
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetFundingRate ($this->extend($request, $params));
+            $response = $this->fapiPublicGetFundingRate($this->extend($request, $params));
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetFundingRate ($this->extend($request, $params));
+            $response = $this->dapiPublicGetFundingRate($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported for ' . $type . ' markets');
         }
@@ -10052,7 +10190,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate for multiple markets
          *
@@ -10064,7 +10202,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -10073,9 +10213,9 @@ class binance extends Exchange {
         $query = $this->omit($params, 'type');
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetPremiumIndex ($query);
+            $response = $this->fapiPublicGetPremiumIndex($query);
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetPremiumIndex ($query);
+            $response = $this->dapiPublicGetPremiumIndex($query);
         } else {
             throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
         }
@@ -10392,7 +10532,7 @@ class binance extends Exchange {
             $pricePrecisionPlusOne = $pricePrecision + 1;
             $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
             // round half up
-            $rounder = new Precise ('5e-' . $pricePrecisionPlusOneString);
+            $rounder = new Precise('5e-' . $pricePrecisionPlusOneString);
             $rounderString = (string) $rounder;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
@@ -10671,8 +10811,10 @@ class binance extends Exchange {
         ));
     }
 
-    public function load_leverage_brackets($reload = false, $params = array ()) {
-        $this->load_markets();
+    public function load_leverage_brackets($reload = false, $params = array()) {
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets');
@@ -10687,15 +10829,15 @@ class binance extends Exchange {
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = $this->papiGetUmLeverageBracket ($query);
+                    $response = $this->papiGetUmLeverageBracket($query);
                 } else {
-                    $response = $this->fapiPrivateGetLeverageBracket ($query);
+                    $response = $this->fapiPrivateGetLeverageBracket($query);
                 }
             } elseif ($this->is_inverse($type, $subType)) {
                 if ($isPortfolioMargin) {
-                    $response = $this->papiGetCmLeverageBracket ($query);
+                    $response = $this->papiGetCmLeverageBracket($query);
                 } else {
-                    $response = $this->dapiPrivateV2GetLeverageBracket ($query);
+                    $response = $this->dapiPrivateV2GetLeverageBracket($query);
                 }
             } else {
                 throw new NotSupported($this->id . ' loadLeverageBrackets() supports linear and inverse contracts only');
@@ -10719,7 +10861,7 @@ class binance extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          *
@@ -10734,7 +10876,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         $subType = null;
@@ -10744,15 +10888,15 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmLeverageBracket ($params);
+                $response = $this->papiGetUmLeverageBracket($params);
             } else {
-                $response = $this->fapiPrivateGetLeverageBracket ($params);
+                $response = $this->fapiPrivateGetLeverageBracket($params);
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmLeverageBracket ($params);
+                $response = $this->papiGetCmLeverageBracket($params);
             } else {
-                $response = $this->dapiPrivateV2GetLeverageBracket ($params);
+                $response = $this->dapiPrivateV2GetLeverageBracket($params);
             }
         } else {
             throw new NotSupported($this->id . ' fetchLeverageTiers() supports linear and inverse contracts only');
@@ -10840,7 +10984,7 @@ class binance extends Exchange {
         return $tiers;
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -10850,7 +10994,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['option']) {
             throw new NotSupported($this->id . ' fetchPosition() supports option markets only');
@@ -10858,7 +11004,7 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->eapiPrivateGetPosition ($this->extend($request, $params));
+        $response = $this->eapiPrivateGetPosition($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -10885,7 +11031,7 @@ class binance extends Exchange {
         return $this->parse_option_position($response[0], $market);
     }
 
-    public function fetch_option_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_option_positions(?array $symbols = null, $params = array()) {
         /**
          * fetch data on open options positions
          *
@@ -10895,7 +11041,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array();
         $market = null;
@@ -10913,7 +11061,7 @@ class binance extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->eapiPrivateGetPosition ($this->extend($request, $params));
+        $response = $this->eapiPrivateGetPosition($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -11002,7 +11150,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -11020,12 +11168,15 @@ class binance extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $defaultMethod = null;
-        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method');
+        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method'); // check if there is a key in $options|$params
         if ($defaultMethod === null) {
+            // check if .options['fetchPositions'] dict exist at all
             $options = $this->safe_dict($this->options, 'fetchPositions');
             if ($options === null) {
+                // if null, for backward compatibility, check if it is a string
                 $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
             } else {
+                // if it is a dict, then it doesn't seem to have any 'method', so set default value
                 $defaultMethod = 'positionRisk';
             }
         }
@@ -11040,7 +11191,7 @@ class binance extends Exchange {
         }
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()) {
         /**
          * @ignore
          * fetch account positions
@@ -11064,7 +11215,9 @@ class binance extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires an array argument for symbols');
             }
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_leverage_brackets(false, $params);
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -11076,14 +11229,14 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiV2GetUmAccount ($params);
+                $response = $this->papiV2GetUmAccount($params);
             } else {
                 $useV2 = null;
                 list($useV2, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'useV2', false);
                 if (!$useV2) {
-                    $response = $this->fapiPrivateV3GetAccount ($params);
+                    $response = $this->fapiPrivateV3GetAccount($params);
                 } else {
-                    $response = $this->fapiPrivateV2GetAccount ($params);
+                    $response = $this->fapiPrivateV2GetAccount($params);
                 }
                 //
                 //    {
@@ -11154,9 +11307,9 @@ class binance extends Exchange {
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmAccount ($params);
+                $response = $this->papiGetCmAccount($params);
             } else {
-                $response = $this->dapiPrivateGetAccount ($params);
+                $response = $this->dapiPrivateGetAccount($params);
             }
         } else {
             throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
@@ -11168,7 +11321,7 @@ class binance extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_positions_risk(?array $symbols = null, $params = array ()) {
+    public function fetch_positions_risk(?array $symbols = null, $params = array()) {
         /**
          * @ignore
          * fetch positions risk
@@ -11191,7 +11344,9 @@ class binance extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_leverage_brackets(false, $params);
         $request = array();
         $defaultType = 'future';
@@ -11205,15 +11360,15 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmPositionRisk ($this->extend($request, $params));
+                $response = $this->papiGetUmPositionRisk($this->extend($request, $params));
             } else {
                 $useV2 = null;
                 list($useV2, $params) = $this->handle_option_and_params($params, 'fetchPositionsRisk', 'useV2', false);
                 $params = $this->extend($request, $params);
                 if (!$useV2) {
-                    $response = $this->fapiPrivateV3GetPositionRisk ($params);
+                    $response = $this->fapiPrivateV3GetPositionRisk($params);
                 } else {
-                    $response = $this->fapiPrivateV2GetPositionRisk ($params);
+                    $response = $this->fapiPrivateV2GetPositionRisk($params);
                 }
                 //
                 // array(
@@ -11244,9 +11399,9 @@ class binance extends Exchange {
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmPositionRisk ($this->extend($request, $params));
+                $response = $this->papiGetCmPositionRisk($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivateGetPositionRisk ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetPositionRisk($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' fetchPositionsRisk() supports linear and inverse contracts only');
@@ -11344,7 +11499,7 @@ class binance extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -11362,7 +11517,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array(
             'incomeType' => 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
@@ -11391,15 +11548,15 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmIncome ($this->extend($request, $params));
+                $response = $this->papiGetUmIncome($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivateGetIncome ($this->extend($request, $params));
+                $response = $this->fapiPrivateGetIncome($this->extend($request, $params));
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmIncome ($this->extend($request, $params));
+                $response = $this->papiGetCmIncome($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivateGetIncome ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetIncome($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
@@ -11407,7 +11564,7 @@ class binance extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -11430,7 +11587,9 @@ class binance extends Exchange {
         if (($leverage < 1) || ($leverage > 125)) {
             throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -11441,15 +11600,15 @@ class binance extends Exchange {
         $response = null;
         if ($market['linear']) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPostUmLeverage ($this->extend($request, $params));
+                $response = $this->papiPostUmLeverage($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivatePostLeverage ($this->extend($request, $params));
+                $response = $this->fapiPrivatePostLeverage($this->extend($request, $params));
             }
         } elseif ($market['inverse']) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPostCmLeverage ($this->extend($request, $params));
+                $response = $this->papiPostCmLeverage($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivatePostLeverage ($this->extend($request, $params));
+                $response = $this->dapiPrivatePostLeverage($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' setLeverage() supports linear and inverse contracts only');
@@ -11457,7 +11616,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -11486,7 +11645,9 @@ class binance extends Exchange {
         if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSSED')) {
             throw new BadRequest($this->id . ' $marginMode must be either isolated or cross');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -11495,9 +11656,9 @@ class binance extends Exchange {
         $response = null;
         try {
             if ($market['linear']) {
-                $response = $this->fapiPrivatePostMarginType ($this->extend($request, $params));
+                $response = $this->fapiPrivatePostMarginType($this->extend($request, $params));
             } elseif ($market['inverse']) {
-                $response = $this->dapiPrivatePostMarginType ($this->extend($request, $params));
+                $response = $this->dapiPrivatePostMarginType($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
             }
@@ -11508,7 +11669,7 @@ class binance extends Exchange {
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
             if ($e instanceof MarginModeAlreadySet) {
-                $throwMarginModeAlreadySet = $this->safe_bool($this->options, 'throwMarginModeAlreadySet', false);
+                $throwMarginModeAlreadySet = $this->handle_option('setMarginMode', 'throwMarginModeAlreadySet', false);
                 if ($throwMarginModeAlreadySet) {
                     throw $e;
                 } else {
@@ -11521,7 +11682,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
          * set $hedged to true or false for a $market
          *
@@ -11559,15 +11720,15 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPostCmPositionSideDual ($this->extend($request, $params));
+                $response = $this->papiPostCmPositionSideDual($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivatePostPositionSideDual ($this->extend($request, $params));
+                $response = $this->dapiPrivatePostPositionSideDual($this->extend($request, $params));
             }
         } elseif ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiPostUmPositionSideDual ($this->extend($request, $params));
+                $response = $this->papiPostUmPositionSideDual($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivatePostPositionSideDual ($this->extend($request, $params));
+                $response = $this->fapiPrivatePostPositionSideDual($this->extend($request, $params));
             }
         } else {
             throw new BadRequest($this->id . ' setPositionMode() supports linear and inverse contracts only');
@@ -11581,7 +11742,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverages(?array $symbols = null, $params = array()): array {
         /**
          * fetch the set leverage for all markets
          *
@@ -11596,7 +11757,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_leverage_brackets(false, $params);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchLeverages', null, $params);
@@ -11607,15 +11770,15 @@ class binance extends Exchange {
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmAccount ($params);
+                $response = $this->papiGetUmAccount($params);
             } else {
-                $response = $this->fapiPrivateGetSymbolConfig ($params);
+                $response = $this->fapiPrivateGetSymbolConfig($params);
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmAccount ($params);
+                $response = $this->papiGetCmAccount($params);
             } else {
-                $response = $this->dapiPrivateGetAccount ($params);
+                $response = $this->dapiPrivateGetAccount($params);
             }
         } else {
             throw new NotSupported($this->id . ' fetchLeverages() supports linear and inverse contracts only');
@@ -11659,7 +11822,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical settlement records
          *
@@ -11671,7 +11834,9 @@ class binance extends Exchange {
          * @param {array} [$params] exchange specific $params
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = ($symbol === null) ? null : $this->market($symbol);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
@@ -11689,7 +11854,7 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->eapiPublicGetExerciseHistory ($this->extend($request, $params));
+        $response = $this->eapiPublicGetExerciseHistory($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -11706,7 +11871,7 @@ class binance extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical settlement records of the user
          *
@@ -11718,7 +11883,9 @@ class binance extends Exchange {
          * @param {array} [$params] exchange specific $params
          * @return {array[]} a list of [settlement history objects]
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = ($symbol === null) ? null : $this->market($symbol);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
@@ -11736,7 +11903,7 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->eapiPrivateGetExerciseRecord ($this->extend($request, $params));
+        $response = $this->eapiPrivateGetExerciseRecord($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -11846,7 +12013,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()): array {
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -11857,7 +12024,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchLedgerEntry', null, $params);
         if ($type !== 'option') {
@@ -11869,7 +12038,7 @@ class binance extends Exchange {
             'recordId' => $id,
             'currency' => $currency['id'],
         );
-        $response = $this->eapiPrivateGetBill ($this->extend($request, $params));
+        $response = $this->eapiPrivateGetBill($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -11885,7 +12054,7 @@ class binance extends Exchange {
         return $this->parse_ledger_entry($first, $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -11905,7 +12074,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
         if ($paginate) {
@@ -11937,18 +12108,18 @@ class binance extends Exchange {
         if ($type === 'option') {
             $this->check_required_argument('fetchLedger', $code, 'code');
             $request['currency'] = $currency['id'];
-            $response = $this->eapiPrivateGetBill ($this->extend($request, $params));
+            $response = $this->eapiPrivateGetBill($this->extend($request, $params));
         } elseif ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmIncome ($this->extend($request, $params));
+                $response = $this->papiGetUmIncome($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivateGetIncome ($this->extend($request, $params));
+                $response = $this->fapiPrivateGetIncome($this->extend($request, $params));
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmIncome ($this->extend($request, $params));
+                $response = $this->papiGetCmIncome($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivateGetIncome ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetIncome($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' fetchLedger() supports contract wallets only');
@@ -12103,7 +12274,7 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
@@ -12354,7 +12525,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin', $config)) && !(is_array($params) && array_key_exists('coin', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
@@ -12374,7 +12545,7 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if ($api === 'private') {
@@ -12383,7 +12554,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array()) {
         // used to modify isolated positions
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         if ($defaultType === 'spot') {
@@ -12393,7 +12564,9 @@ class binance extends Exchange {
         if (($type === 'margin') || ($type === 'spot')) {
             throw new NotSupported($this->id . ' add / reduce margin only supported with $type future or delivery');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
@@ -12405,10 +12578,10 @@ class binance extends Exchange {
         $code = null;
         if ($market['linear']) {
             $code = $market['quote'];
-            $response = $this->fapiPrivatePostPositionMargin ($this->extend($request, $params));
+            $response = $this->fapiPrivatePostPositionMargin($this->extend($request, $params));
         } else {
             $code = $market['base'];
-            $response = $this->dapiPrivatePostPositionMargin ($this->extend($request, $params));
+            $response = $this->dapiPrivatePostPositionMargin($this->extend($request, $params));
         }
         //
         //     {
@@ -12468,7 +12641,7 @@ class binance extends Exchange {
         );
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * remove margin from a position
          *
@@ -12483,7 +12656,7 @@ class binance extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -12498,7 +12671,7 @@ class binance extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function fetch_cross_borrow_rate(string $code, $params = array ()): array {
+    public function fetch_cross_borrow_rate(string $code, $params = array()): array {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
          *
@@ -12508,13 +12681,15 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-$rate-structure borrow $rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
             // 'vipLevel' => $this->safe_integer($params, 'vipLevel'),
         );
-        $response = $this->sapiGetMarginInterestRateHistory ($this->extend($request, $params));
+        $response = $this->sapiGetMarginInterestRateHistory($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -12529,7 +12704,7 @@ class binance extends Exchange {
         return $this->parse_borrow_rate($rate);
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): array {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array()): array {
         /**
          * fetch the rate of interest to borrow a currency for margin trading
          *
@@ -12549,7 +12724,7 @@ class binance extends Exchange {
         return $this->safe_dict($borrowRates, $symbol);
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()): array {
+    public function fetch_isolated_borrow_rates($params = array()): array {
         /**
          * fetch the borrow interest rates of all currencies
          *
@@ -12562,7 +12737,9 @@ class binance extends Exchange {
          * @param {array} [$params->vipLevel] user's current specific margin data will be returned if viplevel is omitted
          * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $symbol = $this->safe_string($params, 'symbol');
         $params = $this->omit($params, 'symbol');
@@ -12570,7 +12747,7 @@ class binance extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->sapiGetMarginIsolatedMarginData ($this->extend($request, $params));
+        $response = $this->sapiGetMarginIsolatedMarginData($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -12595,7 +12772,7 @@ class binance extends Exchange {
         return $this->parse_isolated_borrow_rates($response);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          *
@@ -12607,7 +12784,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($limit === null) {
             $limit = 93;
         } elseif ($limit > 93) {
@@ -12623,9 +12802,9 @@ class binance extends Exchange {
             $request['startTime'] = $since;
             $endTime = $this->sum($since, $limit * 86400000) - 1; // required when startTime is further than 93 days in the past
             $now = $this->milliseconds();
-            $request['endTime'] = min ($endTime, $now); // cannot have an $endTime later than current time
+            $request['endTime'] = min($endTime, $now); // cannot have an $endTime later than current time
         }
-        $response = $this->sapiGetMarginInterestRateHistory ($this->extend($request, $params));
+        $response = $this->sapiGetMarginInterestRateHistory($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -12698,7 +12877,7 @@ class binance extends Exchange {
         );
     }
 
-    public function create_gift_code(string $code, $amount, $params = array ()) {
+    public function create_gift_code(string $code, $amount, $params = array()) {
         /**
          * create gift $code
          *
@@ -12709,14 +12888,16 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} The gift $code $id, $code, $currency and $amount
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         // ensure you have enough token in your funding account before calling this $code
         $request = array(
             'token' => $currency['id'],
             'amount' => $amount,
         );
-        $response = $this->sapiPostGiftcardCreateCode ($this->extend($request, $params));
+        $response = $this->sapiPostGiftcardCreateCode($this->extend($request, $params));
         //
         //     {
         //         "code" => "000000",
@@ -12737,7 +12918,7 @@ class binance extends Exchange {
         );
     }
 
-    public function redeem_gift_code($giftcardCode, $params = array ()) {
+    public function redeem_gift_code($giftcardCode, $params = array()) {
         /**
          * redeem gift code
          *
@@ -12750,7 +12931,7 @@ class binance extends Exchange {
         $request = array(
             'code' => $giftcardCode,
         );
-        $response = $this->sapiPostGiftcardRedeemCode ($this->extend($request, $params));
+        $response = $this->sapiPostGiftcardRedeemCode($this->extend($request, $params));
         //
         //     {
         //         "code" => "000000",
@@ -12765,7 +12946,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function verify_gift_code(string $id, $params = array ()) {
+    public function verify_gift_code(string $id, $params = array()) {
         /**
          * verify gift code
          *
@@ -12778,7 +12959,7 @@ class binance extends Exchange {
         $request = array(
             'referenceNo' => $id,
         );
-        $response = $this->sapiGetGiftcardVerify ($this->extend($request, $params));
+        $response = $this->sapiGetGiftcardVerify($this->extend($request, $params));
         //
         //     {
         //         "code" => "000000",
@@ -12790,7 +12971,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          *
@@ -12805,7 +12986,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the borrow $interest in a portfolio margin account
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
         $request = array();
@@ -12823,13 +13006,13 @@ class binance extends Exchange {
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = null;
         if ($isPortfolioMargin) {
-            $response = $this->papiGetMarginMarginInterestHistory ($this->extend($request, $params));
+            $response = $this->papiGetMarginMarginInterestHistory($this->extend($request, $params));
         } else {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['isolatedSymbol'] = $market['id'];
             }
-            $response = $this->sapiGetMarginInterestHistory ($this->extend($request, $params));
+            $response = $this->sapiGetMarginInterestHistory($this->extend($request, $params));
         }
         //
         // spot margin
@@ -12889,7 +13072,7 @@ class binance extends Exchange {
         );
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+    public function repay_cross_margin(string $code, $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -12905,7 +13088,9 @@ class binance extends Exchange {
          * @param {string} [$params->specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -12918,7 +13103,7 @@ class binance extends Exchange {
             $method = null;
             list($method, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
             if ($method === 'papiPostMarginRepayDebt') {
-                $response = $this->papiPostMarginRepayDebt ($this->extend($request, $params));
+                $response = $this->papiPostMarginRepayDebt($this->extend($request, $params));
                 //
                 //     {
                 //         "asset" => "USDC",
@@ -12929,7 +13114,7 @@ class binance extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->papiPostRepayLoan ($this->extend($request, $params));
+                $response = $this->papiPostRepayLoan($this->extend($request, $params));
                 //
                 //     {
                 //         "tranId" => 108988250265,
@@ -12940,7 +13125,7 @@ class binance extends Exchange {
         } else {
             $request['isIsolated'] = 'FALSE';
             $request['type'] = 'REPAY';
-            $response = $this->sapiPostMarginBorrowRepay ($this->extend($request, $params));
+            $response = $this->sapiPostMarginBorrowRepay($this->extend($request, $params));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -12951,7 +13136,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -12963,7 +13148,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $market = $this->market($symbol);
         $request = array(
@@ -12973,7 +13160,7 @@ class binance extends Exchange {
             'isIsolated' => 'TRUE',
             'type' => 'REPAY',
         );
-        $response = $this->sapiPostMarginBorrowRepay ($this->extend($request, $params));
+        $response = $this->sapiPostMarginBorrowRepay($this->extend($request, $params));
         //
         //     {
         //         "tranId" => 108988250265,
@@ -12983,7 +13170,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
         /**
          * create a loan to borrow margin
          *
@@ -12996,7 +13183,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -13006,11 +13195,11 @@ class binance extends Exchange {
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
         if ($isPortfolioMargin) {
-            $response = $this->papiPostMarginLoan ($this->extend($request, $params));
+            $response = $this->papiPostMarginLoan($this->extend($request, $params));
         } else {
             $request['isIsolated'] = 'FALSE';
             $request['type'] = 'BORROW';
-            $response = $this->sapiPostMarginBorrowRepay ($this->extend($request, $params));
+            $response = $this->sapiPostMarginBorrowRepay($this->extend($request, $params));
         }
         //
         //     {
@@ -13021,7 +13210,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         /**
          * create a loan to borrow margin
          *
@@ -13033,7 +13222,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $market = $this->market($symbol);
         $request = array(
@@ -13043,7 +13234,7 @@ class binance extends Exchange {
             'isIsolated' => 'TRUE',
             'type' => 'BORROW',
         );
-        $response = $this->sapiPostMarginBorrowRepay ($this->extend($request, $params));
+        $response = $this->sapiPostMarginBorrowRepay($this->extend($request, $params));
         //
         //     {
         //         "tranId" => 108988250265,
@@ -13083,7 +13274,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * Retrieves the open interest history of a currency
          *
@@ -13102,7 +13293,9 @@ class binance extends Exchange {
         if ($timeframe === '1m') {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
         if ($paginate) {
@@ -13137,9 +13330,9 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['inverse']) {
-            $response = $this->dapiDataGetOpenInterestHist ($this->extend($request, $params));
+            $response = $this->dapiDataGetOpenInterestHist($this->extend($request, $params));
         } else {
-            $response = $this->fapiDataGetOpenInterestHist ($this->extend($request, $params));
+            $response = $this->fapiDataGetOpenInterestHist($this->extend($request, $params));
         }
         //
         //  array(
@@ -13155,7 +13348,7 @@ class binance extends Exchange {
         return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -13167,7 +13360,9 @@ class binance extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         if ($market['option']) {
@@ -13181,11 +13376,11 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['option']) {
-            $response = $this->eapiPublicGetOpenInterest ($this->extend($request, $params));
+            $response = $this->eapiPublicGetOpenInterest($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiPublicGetOpenInterest ($this->extend($request, $params));
+            $response = $this->dapiPublicGetOpenInterest($this->extend($request, $params));
         } else {
-            $response = $this->fapiPublicGetOpenInterest ($this->extend($request, $params));
+            $response = $this->fapiPublicGetOpenInterest($this->extend($request, $params));
         }
         //
         // futures (fapi)
@@ -13251,7 +13446,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves the users liquidated positions
          *
@@ -13272,7 +13467,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyLiquidations', 'paginate');
         if ($paginate) {
@@ -13312,21 +13509,21 @@ class binance extends Exchange {
         $response = null;
         if ($type === 'spot') {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetMarginForceOrders ($this->extend($request, $params));
+                $response = $this->papiGetMarginForceOrders($this->extend($request, $params));
             } else {
-                $response = $this->sapiGetMarginForceLiquidationRec ($this->extend($request, $params));
+                $response = $this->sapiGetMarginForceLiquidationRec($this->extend($request, $params));
             }
         } elseif ($subType === 'linear') {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmForceOrders ($this->extend($request, $params));
+                $response = $this->papiGetUmForceOrders($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivateGetForceOrders ($this->extend($request, $params));
+                $response = $this->fapiPrivateGetForceOrders($this->extend($request, $params));
             }
         } elseif ($subType === 'inverse') {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmForceOrders ($this->extend($request, $params));
+                $response = $this->papiGetCmForceOrders($this->extend($request, $params));
             } else {
-                $response = $this->dapiPrivateGetForceOrders ($this->extend($request, $params));
+                $response = $this->dapiPrivateGetForceOrders($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type') . ' markets');
@@ -13497,7 +13694,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): array {
+    public function fetch_greeks(string $symbol, $params = array()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
@@ -13507,12 +13704,14 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->eapiPublicGetMark ($this->extend($request, $params));
+        $response = $this->eapiPublicGetMark($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -13533,7 +13732,7 @@ class binance extends Exchange {
         return $this->parse_greeks($response[0], $market);
     }
 
-    public function fetch_all_greeks(?array $symbols = null, $params = array ()): array {
+    public function fetch_all_greeks(?array $symbols = null, $params = array()): array {
         /**
          * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
@@ -13543,7 +13742,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $request = array();
         $market = null;
@@ -13554,7 +13755,7 @@ class binance extends Exchange {
                 $request['symbol'] = $market['id'];
             }
         }
-        $response = $this->eapiPublicGetMark ($this->extend($request, $params));
+        $response = $this->eapiPublicGetMark($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -13616,7 +13817,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
+    public function fetch_trading_limits(?array $symbols = null, $params = array()) {
         // this method should not be called directly, use loadTradingLimits () instead
         $markets = $this->fetch_markets();
         $tradingLimits = array();
@@ -13630,7 +13831,7 @@ class binance extends Exchange {
         return $tradingLimits;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *
@@ -13649,12 +13850,12 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
         $response = null;
-        if ($subType === 'linear') {
-            $response = $this->fapiPrivateGetPositionSideDual ($params);
-        } elseif ($subType === 'inverse') {
-            $response = $this->dapiPrivateGetPositionSideDual ($params);
+        // we still have two working endpoints but positionMode is common for linear and inverse markets
+        // thus we do not throw an error if the $subType is not specified and default to linear for now
+        if ($subType === 'inverse') {
+            $response = $this->dapiPrivateGetPositionSideDual($params);
         } else {
-            throw new BadRequest($this->id . ' fetchPositionMode requires either a $symbol argument or $params["subType"]');
+            $response = $this->fapiPrivateGetPositionSideDual($params);
         }
         //
         //    {
@@ -13668,7 +13869,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): array {
         /**
          * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
          *
@@ -13681,7 +13882,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
@@ -13691,7 +13894,7 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
         $response = null;
         if ($subType === 'linear') {
-            $response = $this->fapiPrivateGetSymbolConfig ($params);
+            $response = $this->fapiPrivateGetSymbolConfig($params);
             //
             // array(
             //     {
@@ -13704,7 +13907,7 @@ class binance extends Exchange {
             // )
             //
         } elseif ($subType === 'inverse') {
-            $response = $this->dapiPrivateGetAccount ($params);
+            $response = $this->dapiPrivateGetAccount($params);
             //
             //    {
             //        feeTier => '0',
@@ -13763,7 +13966,7 @@ class binance extends Exchange {
         return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of a specific $symbol
          *
@@ -13775,7 +13978,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
@@ -13784,7 +13989,7 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = $this->fapiPrivateGetSymbolConfig ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetSymbolConfig($this->extend($request, $params));
             //
             // array(
             //     {
@@ -13824,7 +14029,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): array {
+    public function fetch_option(string $symbol, $params = array()): array {
         /**
          * fetches option data that is commonly found in an option $chain
          *
@@ -13834,12 +14039,14 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=option-$chain-structure option $chain structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->eapiPublicGetTicker ($this->extend($request, $params));
+        $response = $this->eapiPublicGetTicker($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -13914,7 +14121,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array ()): array {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): array {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *
@@ -13929,7 +14136,9 @@ class binance extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest change to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a $symbol argument');
         }
@@ -13953,9 +14162,9 @@ class binance extends Exchange {
         }
         $response = null;
         if ($market['linear']) {
-            $response = $this->fapiPrivateGetPositionMarginHistory ($this->extend($request, $params));
+            $response = $this->fapiPrivateGetPositionMarginHistory($this->extend($request, $params));
         } elseif ($market['inverse']) {
-            $response = $this->dapiPrivateGetPositionMarginHistory ($this->extend($request, $params));
+            $response = $this->dapiPrivateGetPositionMarginHistory($this->extend($request, $params));
         } else {
             throw new BadRequest($this->id . ' fetchMarginAdjustmentHistory () is not supported for markets of $type ' . $market['type']);
         }
@@ -13978,7 +14187,7 @@ class binance extends Exchange {
         return $this->filter_by_symbol_since_limit($modifications, $symbol, $since, $limit);
     }
 
-    public function fetch_convert_currencies($params = array ()): array {
+    public function fetch_convert_currencies($params = array()): array {
         /**
          * fetches all available currencies that can be converted
          *
@@ -13987,8 +14196,10 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $this->load_markets();
-        $response = $this->sapiGetConvertAssetInfo ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->sapiGetConvertAssetInfo($params);
         //
         //     array(
         //         array(
@@ -14034,7 +14245,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array()): array {
         /**
          * fetch a quote for converting from one currency to another
          *
@@ -14050,13 +14261,15 @@ class binance extends Exchange {
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' fetchConvertQuote() requires an $amount argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'fromAsset' => $fromCode,
             'toAsset' => $toCode,
             'fromAmount' => $amount,
         );
-        $response = $this->sapiPostConvertGetQuote ($this->extend($request, $params));
+        $response = $this->sapiPostConvertGetQuote($this->extend($request, $params));
         //
         //     {
         //         "quoteId":"12415572564",
@@ -14072,7 +14285,7 @@ class binance extends Exchange {
         return $this->parse_conversion($response, $fromCurrency, $toCurrency);
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array()): array {
         /**
          * convert from one currency to another
          *
@@ -14085,7 +14298,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $response = null;
         if (($fromCode === 'BUSD') || ($toCode === 'BUSD')) {
@@ -14096,7 +14311,7 @@ class binance extends Exchange {
             $request['asset'] = $fromCode;
             $request['targetAsset'] = $toCode;
             $request['amount'] = $amount;
-            $response = $this->sapiPostAssetConvertTransfer ($this->extend($request, $params));
+            $response = $this->sapiPostAssetConvertTransfer($this->extend($request, $params));
             //
             //     {
             //         "tranId" => 118263407119,
@@ -14105,7 +14320,7 @@ class binance extends Exchange {
             //
         } else {
             $request['quoteId'] = $id;
-            $response = $this->sapiPostConvertAcceptQuote ($this->extend($request, $params));
+            $response = $this->sapiPostConvertAcceptQuote($this->extend($request, $params));
             //
             //     {
             //         "orderId":"933256278426274426",
@@ -14119,7 +14334,7 @@ class binance extends Exchange {
         return $this->parse_conversion($response, $fromCurrency, $toCurrency);
     }
 
-    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch the $data for a conversion trade
          *
@@ -14130,7 +14345,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $response = null;
         if ($code === 'BUSD') {
@@ -14143,7 +14360,7 @@ class binance extends Exchange {
             $request['tranId'] = $id;
             $request['startTime'] = $now - $msInDay;
             $request['endTime'] = $now;
-            $response = $this->sapiGetAssetConvertTransferQueryByPage ($this->extend($request, $params));
+            $response = $this->sapiGetAssetConvertTransferQueryByPage($this->extend($request, $params));
             //
             //     {
             //         "total" => 3,
@@ -14164,7 +14381,7 @@ class binance extends Exchange {
             //
         } else {
             $request['orderId'] = $id;
-            $response = $this->sapiGetConvertOrderStatus ($this->extend($request, $params));
+            $response = $this->sapiGetConvertOrderStatus($this->extend($request, $params));
             //
             //     {
             //         "orderId":933256278426274426,
@@ -14197,7 +14414,7 @@ class binance extends Exchange {
         return $this->parse_conversion($data, $fromCurrency, $toCurrency);
     }
 
-    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the users history of conversion trades
          *
@@ -14210,7 +14427,9 @@ class binance extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $msInThirtyDays = 2592000000;
         $now = $this->milliseconds();
@@ -14239,7 +14458,7 @@ class binance extends Exchange {
             $fromCurrencyKey = 'deductedAsset';
             $toCurrencyKey = 'targetAsset';
             $responseQuery = 'rows';
-            $response = $this->sapiGetAssetConvertTransferQueryByPage ($this->extend($request, $params));
+            $response = $this->sapiGetAssetConvertTransferQueryByPage($this->extend($request, $params));
             //
             //     {
             //         "total" => 3,
@@ -14268,7 +14487,7 @@ class binance extends Exchange {
             $fromCurrencyKey = 'fromAsset';
             $toCurrencyKey = 'toAsset';
             $responseQuery = 'list';
-            $response = $this->sapiGetConvertTradeFlow ($this->extend($request, $params));
+            $response = $this->sapiGetConvertTradeFlow($this->extend($request, $params));
             //
             //     {
             //         "list" => array(
@@ -14386,7 +14605,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_funding_intervals(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_intervals(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate interval for multiple markets
          *
@@ -14398,7 +14617,9 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
@@ -14409,9 +14630,9 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetFundingInfo ($params);
+            $response = $this->fapiPublicGetFundingInfo($params);
         } elseif ($this->is_inverse($type, $subType)) {
-            $response = $this->dapiPublicGetFundingInfo ($params);
+            $response = $this->dapiPublicGetFundingInfo($params);
         } else {
             throw new NotSupported($this->id . ' fetchFundingIntervals() supports linear and inverse swap contracts only');
         }
@@ -14429,7 +14650,7 @@ class binance extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches the long short ratio history for a unified $market $symbol
          *
@@ -14444,7 +14665,9 @@ class binance extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest ratio to fetch
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=long-short-ratio-structure long short ratio structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($timeframe === null) {
             $timeframe = '1d';
@@ -14464,7 +14687,7 @@ class binance extends Exchange {
         $response = null;
         if ($subType === 'linear') {
             $request['symbol'] = $market['id'];
-            $response = $this->fapiDataGetGlobalLongShortAccountRatio ($this->extend($request, $params));
+            $response = $this->fapiDataGetGlobalLongShortAccountRatio($this->extend($request, $params));
             //
             //     array(
             //         array(
@@ -14478,7 +14701,7 @@ class binance extends Exchange {
             //
         } elseif ($subType === 'inverse') {
             $request['pair'] = $market['info']['pair'];
-            $response = $this->dapiDataGetGlobalLongShortAccountRatio ($this->extend($request, $params));
+            $response = $this->dapiDataGetGlobalLongShortAccountRatio($this->extend($request, $params));
             //
             //     array(
             //         array(
@@ -14530,7 +14753,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_adl_rank(string $symbol, $params = array ()): array {
+    public function fetch_adl_rank(string $symbol, $params = array()): array {
         /**
          * fetches the auto deleveraging rank and risk percentage for a $symbol
          *
@@ -14540,7 +14763,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -14549,7 +14774,7 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchADLRank', $market, $params);
         $response = null;
         if ($subType === 'linear') {
-            $response = $this->fapiPublicGetSymbolAdlRisk ($this->extend($request, $params));
+            $response = $this->fapiPublicGetSymbolAdlRisk($this->extend($request, $params));
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -14563,7 +14788,7 @@ class binance extends Exchange {
         return $this->parse_adl_rank($response, $market);
     }
 
-    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array()): array {
         /**
          * fetches the auto deleveraging rank and risk percentage for a list of $symbols that have open positions
          *
@@ -14577,7 +14802,9 @@ class binance extends Exchange {
          * @param {boolean} [$params->portfolioMargin] set to true for the portfolio margin account
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $subType = null;
@@ -14587,15 +14814,15 @@ class binance extends Exchange {
         $response = null;
         if ($subType === 'linear') {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetUmAdlQuantile ($params);
+                $response = $this->papiGetUmAdlQuantile($params);
             } else {
-                $response = $this->fapiPrivateGetAdlQuantile ($params);
+                $response = $this->fapiPrivateGetAdlQuantile($params);
             }
         } elseif ($subType === 'inverse') {
             if ($isPortfolioMargin) {
-                $response = $this->papiGetCmAdlQuantile ($params);
+                $response = $this->papiGetCmAdlQuantile($params);
             } else {
-                $response = $this->dapiPrivateGetAdlQuantile ($params);
+                $response = $this->dapiPrivateGetAdlQuantile($params);
             }
         } else {
             throw new BadRequest($this->id . ' fetchPositionsADLRank() supports linear and inverse subTypes only');

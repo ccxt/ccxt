@@ -47,7 +47,10 @@ public partial class dydx : ccxt.dydx
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("trade:", getValue(market, "symbol"));
@@ -76,7 +79,10 @@ public partial class dydx : ccxt.dydx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("trade:", getValue(market, "symbol"));
@@ -173,12 +179,15 @@ public partial class dydx : ccxt.dydx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("orderbook:", getValue(market, "symbol"));
@@ -198,12 +207,15 @@ public partial class dydx : ccxt.dydx
      * @see https://docs.dydx.xyz/indexer-client/websockets#orders
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("orderbook:", getValue(market, "symbol"));
@@ -290,7 +302,10 @@ public partial class dydx : ccxt.dydx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("ohlcv:", getValue(market, "symbol"));
@@ -323,7 +338,10 @@ public partial class dydx : ccxt.dydx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("ohlcv:", getValue(market, "symbol"));

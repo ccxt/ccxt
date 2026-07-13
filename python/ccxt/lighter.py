@@ -32,7 +32,7 @@ class lighter(Exchange, ImplicitAPI):
             'quoteJsonNumbers': False,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -148,7 +148,7 @@ class lighter(Exchange, ImplicitAPI):
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
+                'logo': 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -844,7 +844,8 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.orderExpiry]: orderExpiry
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'createOrder', 'accountIndex', 'account_index')
         params['accountIndex'] = accountIndex
@@ -911,7 +912,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'editOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -943,10 +945,11 @@ class lighter(Exchange, ImplicitAPI):
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
-            'integrator_account_index': self.options['integratorAccountIndex'],
-            'integrator_taker_fee': self.options['integratorTakerFee'],
-            'integrator_maker_fee': self.options['integratorMakerFee'],
         }
+        if self.safe_bool(self.options, 'builderFee', True):
+            signRaw['integrator_account_index'] = self.options['integratorAccountIndex']
+            signRaw['integrator_taker_fee'] = self.options['integratorTakerFee']
+            signRaw['integrator_maker_fee'] = self.options['integratorMakerFee']
         txType, txInfo = self.lighter_sign_modify_order(signer, self.extend(signRaw, params))
         request = {
             'tx_type': txType,
@@ -1244,11 +1247,12 @@ class lighter(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market_id': market['id'],
@@ -1398,7 +1402,8 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTicker() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market_id': market['id'],
@@ -1464,7 +1469,8 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetOrderBookDetails(params)
         spotTickers = self.safe_list(response, 'spot_order_book_details', [])
@@ -1514,7 +1520,8 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['until'])
@@ -1611,7 +1618,8 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetFundingRates(self.extend(params))
         #
         #     {
@@ -1646,7 +1654,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot', 'swap', default is 'swap'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchBalance', 'accountIndex', 'account_index')
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
@@ -1752,7 +1761,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.value]: fetch balance value, account index or l1 address
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchPositions', 'accountIndex', 'account_index')
         request = {
@@ -1891,7 +1901,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.value]: fetch balance value, account index or l1 address
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=accounts-structure>` indexed by the account type
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchAccounts', 'accountIndex', 'account_index')
         request = {
@@ -1982,7 +1993,8 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchOpenOrders', 'accountIndex', 'account_index')
         apiKeyIndex = None
@@ -2056,7 +2068,8 @@ class lighter(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchClosedOrders', 'accountIndex', 'account_index')
         apiKeyIndex = None
@@ -2302,7 +2315,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.memo]: hex encoding memo
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'transfer', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -2358,7 +2372,8 @@ class lighter(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
@@ -2457,7 +2472,8 @@ class lighter(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -2525,7 +2541,8 @@ class lighter(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
         accountIndex, params = self.handle_account_index(params, 'fetchWithdrawals', 'accountIndex', 'account_index')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'account_index': accountIndex,
         }
@@ -2637,7 +2654,8 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.routeType]: wallet type, 0: perp, 1: spot, default is 0
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'withdraw', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -2686,7 +2704,8 @@ class lighter(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest trade to fetch
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -2856,7 +2875,8 @@ class lighter(Exchange, ImplicitAPI):
         return self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)
 
     def modify_leverage_and_margin_mode(self, leverage: int, marginMode: str, symbol: Str = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated')
         apiKeyIndex = None
@@ -2895,7 +2915,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index')
         if symbol is None:
@@ -2938,7 +2959,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -2969,7 +2991,8 @@ class lighter(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if (timeout < 300000) or (timeout > 1296000000):
             raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days.')
         apiKeyIndex = None
@@ -3031,7 +3054,8 @@ class lighter(Exchange, ImplicitAPI):
         :param str [params.apiKeyIndex]: api key index
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'setMargin', 'apiKeyIndex', 'api_key_index')
         direction = self.safe_integer(params, 'direction')  # 1 increase margin 0 decrease margin

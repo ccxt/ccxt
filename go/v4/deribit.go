@@ -758,9 +758,11 @@ func (this *DeribitCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7318 := (<-this.LoadMarkets())
-		PanicOnError(retRes7318)
+			retRes73212 := (<-this.LoadMarkets())
+			PanicOnError(retRes73212)
+		}
 
 		response := (<-this.PrivateGetGetSubaccounts(params))
 		PanicOnError(response)
@@ -1125,9 +1127,11 @@ func (this *DeribitCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10668 := (<-this.LoadMarkets())
-		PanicOnError(retRes10668)
+			retRes106912 := (<-this.LoadMarkets())
+			PanicOnError(retRes106912)
+		}
 		var code any = this.SafeString(params, "code")
 		params = this.Omit(params, "code")
 		var request any = map[string]any{}
@@ -1211,9 +1215,11 @@ func (this *DeribitCore) CreateDepositAddress(code any, optionalArgs ...any) <-c
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11368 := (<-this.LoadMarkets())
-		PanicOnError(retRes11368)
+			retRes114112 := (<-this.LoadMarkets())
+			PanicOnError(retRes114112)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -1266,9 +1272,11 @@ func (this *DeribitCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11768 := (<-this.LoadMarkets())
-		PanicOnError(retRes11768)
+			retRes118312 := (<-this.LoadMarkets())
+			PanicOnError(retRes118312)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -1405,9 +1413,11 @@ func (this *DeribitCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12998 := (<-this.LoadMarkets())
-		PanicOnError(retRes12998)
+			retRes130812 := (<-this.LoadMarkets())
+			PanicOnError(retRes130812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -1471,9 +1481,11 @@ func (this *DeribitCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13488 := (<-this.LoadMarkets())
-		PanicOnError(retRes13488)
+			retRes135912 := (<-this.LoadMarkets())
+			PanicOnError(retRes135912)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var code any = this.SafeString2(params, "code", "currency")
 		var typeVar any = nil
@@ -1585,18 +1597,20 @@ func (this *DeribitCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14418 := (<-this.LoadMarkets())
-		PanicOnError(retRes14418)
+			retRes145412 := (<-this.LoadMarkets())
+			PanicOnError(retRes145412)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes144519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
-			PanicOnError(retRes144519)
-			ch <- retRes144519
+			retRes145919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
+			PanicOnError(retRes145919)
+			ch <- retRes145919
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1773,9 +1787,11 @@ func (this *DeribitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16038 := (<-this.LoadMarkets())
-		PanicOnError(retRes16038)
+			retRes161812 := (<-this.LoadMarkets())
+			PanicOnError(retRes161812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -1852,9 +1868,11 @@ func (this *DeribitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16658 := (<-this.LoadMarkets())
-		PanicOnError(retRes16658)
+			retRes168212 := (<-this.LoadMarkets())
+			PanicOnError(retRes168212)
+		}
 		var code any = this.CodeFromOptions("fetchTradingFees", params)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1978,7 +1996,7 @@ func (this *DeribitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *DeribitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1989,9 +2007,11 @@ func (this *DeribitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17858 := (<-this.LoadMarkets())
-		PanicOnError(retRes17858)
+			retRes180412 := (<-this.LoadMarkets())
+			PanicOnError(retRes180412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -2198,9 +2218,11 @@ func (this *DeribitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19798 := (<-this.LoadMarkets())
-		PanicOnError(retRes19798)
+			retRes200012 := (<-this.LoadMarkets())
+			PanicOnError(retRes200012)
+		}
 		var request any = map[string]any{
 			"order_id": id,
 		}
@@ -2273,9 +2295,11 @@ func (this *DeribitCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20378 := (<-this.LoadMarkets())
-		PanicOnError(retRes20378)
+			retRes206012 := (<-this.LoadMarkets())
+			PanicOnError(retRes206012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -2459,9 +2483,11 @@ func (this *DeribitCore) EditOrder(id any, symbol any, typeVar any, side any, op
 		if IsTrue(IsEqual(amount, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an amount argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22128 := (<-this.LoadMarkets())
-		PanicOnError(retRes22128)
+			retRes223712 := (<-this.LoadMarkets())
+			PanicOnError(retRes223712)
+		}
 		var request any = map[string]any{
 			"order_id": id,
 			"amount":   this.AmountToPrecision(symbol, amount),
@@ -2509,9 +2535,11 @@ func (this *DeribitCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22508 := (<-this.LoadMarkets())
-		PanicOnError(retRes22508)
+			retRes227712 := (<-this.LoadMarkets())
+			PanicOnError(retRes227712)
+		}
 		var request any = map[string]any{
 			"order_id": id,
 		}
@@ -2546,9 +2574,11 @@ func (this *DeribitCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22708 := (<-this.LoadMarkets())
-		PanicOnError(retRes22708)
+			retRes229912 := (<-this.LoadMarkets())
+			PanicOnError(retRes229912)
+		}
 		var request any = map[string]any{}
 		var response any = nil
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -2607,9 +2637,11 @@ func (this *DeribitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23108 := (<-this.LoadMarkets())
-		PanicOnError(retRes23108)
+			retRes234112 := (<-this.LoadMarkets())
+			PanicOnError(retRes234112)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		var response any = nil
@@ -2661,9 +2693,11 @@ func (this *DeribitCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23418 := (<-this.LoadMarkets())
-		PanicOnError(retRes23418)
+			retRes237412 := (<-this.LoadMarkets())
+			PanicOnError(retRes237412)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		var response any = nil
@@ -2720,9 +2754,11 @@ func (this *DeribitCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23778 := (<-this.LoadMarkets())
-		PanicOnError(retRes23778)
+			retRes241212 := (<-this.LoadMarkets())
+			PanicOnError(retRes241212)
+		}
 		var request any = map[string]any{
 			"order_id": id,
 		}
@@ -2798,9 +2834,11 @@ func (this *DeribitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24348 := (<-this.LoadMarkets())
-		PanicOnError(retRes24348)
+			retRes247112 := (<-this.LoadMarkets())
+			PanicOnError(retRes247112)
+		}
 		var request any = map[string]any{
 			"include_old": true,
 		}
@@ -2907,9 +2945,11 @@ func (this *DeribitCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires a currency code argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25168 := (<-this.LoadMarkets())
-		PanicOnError(retRes25168)
+			retRes255512 := (<-this.LoadMarkets())
+			PanicOnError(retRes255512)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -2977,9 +3017,11 @@ func (this *DeribitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchWithdrawals() requires a currency code argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25658 := (<-this.LoadMarkets())
-		PanicOnError(retRes25658)
+			retRes260612 := (<-this.LoadMarkets())
+			PanicOnError(retRes260612)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -3187,9 +3229,11 @@ func (this *DeribitCore) FetchPosition(symbol any, optionalArgs ...any) <-chan a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27598 := (<-this.LoadMarkets())
-		PanicOnError(retRes27598)
+			retRes280212 := (<-this.LoadMarkets())
+			PanicOnError(retRes280212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -3253,9 +3297,11 @@ func (this *DeribitCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28088 := (<-this.LoadMarkets())
-		PanicOnError(retRes28088)
+			retRes285312 := (<-this.LoadMarkets())
+			PanicOnError(retRes285312)
+		}
 		var code any = this.SafeString(params, "currency")
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3320,9 +3366,11 @@ func (this *DeribitCore) FetchVolatilityHistory(code any, optionalArgs ...any) <
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28608 := (<-this.LoadMarkets())
-		PanicOnError(retRes28608)
+			retRes290712 := (<-this.LoadMarkets())
+			PanicOnError(retRes290712)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -3408,9 +3456,11 @@ func (this *DeribitCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a currency code argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29288 := (<-this.LoadMarkets())
-		PanicOnError(retRes29288)
+			retRes297712 := (<-this.LoadMarkets())
+			PanicOnError(retRes297712)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -3484,9 +3534,11 @@ func (this *DeribitCore) Transfer(code any, amount any, fromAccount any, toAccou
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29898 := (<-this.LoadMarkets())
-		PanicOnError(retRes29898)
+			retRes304012 := (<-this.LoadMarkets())
+			PanicOnError(retRes304012)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"amount":      amount,
@@ -3550,7 +3602,7 @@ func (this *DeribitCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp any = this.SafeTimestamp(transfer, "created_timestamp")
+	var timestamp any = this.SafeInteger(transfer, "created_timestamp")
 	var status any = this.SafeString(transfer, "state")
 	var account any = this.SafeString(transfer, "other_side")
 	var direction any = this.SafeString(transfer, "direction")
@@ -3602,9 +3654,11 @@ func (this *DeribitCore) Withdraw(code any, amount any, address any, optionalArg
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30868 := (<-this.LoadMarkets())
-		PanicOnError(retRes30868)
+			retRes313912 := (<-this.LoadMarkets())
+			PanicOnError(retRes313912)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -3671,9 +3725,11 @@ func (this *DeribitCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan an
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31398 := (<-this.LoadMarkets())
-		PanicOnError(retRes31398)
+			retRes319412 := (<-this.LoadMarkets())
+			PanicOnError(retRes319412)
+		}
 
 		response := (<-this.PublicGetGetCurrencies(params))
 		PanicOnError(response)
@@ -3726,9 +3782,11 @@ func (this *DeribitCore) FetchFundingRate(symbol any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31798 := (<-this.LoadMarkets())
-		PanicOnError(retRes31798)
+			retRes323612 := (<-this.LoadMarkets())
+			PanicOnError(retRes323612)
+		}
 		var market any = this.Market(symbol)
 		var time any = this.Milliseconds()
 		var request any = map[string]any{
@@ -3783,9 +3841,11 @@ func (this *DeribitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32158 := (<-this.LoadMarkets())
-		PanicOnError(retRes32158)
+			retRes327412 := (<-this.LoadMarkets())
+			PanicOnError(retRes327412)
+		}
 		var market any = this.Market(symbol)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -3795,12 +3855,12 @@ func (this *DeribitCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any
 		var eachItemDuration any = "1h"
 		if IsTrue(paginate) {
 
-			retRes322319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, this.Extend(params, map[string]any{
+			retRes328319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, this.Extend(params, map[string]any{
 				"isDeribitPaginationCall": true,
 			}), maxEntriesPerRequest))
-			PanicOnError(retRes322319)
+			PanicOnError(retRes328319)
 			// fix for: https://github.com/ccxt/ccxt/issues/25040
-			ch <- retRes322319
+			ch <- retRes328319
 			return nil
 		}
 		var duration any = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
@@ -3928,18 +3988,20 @@ func (this *DeribitCore) FetchLiquidations(symbol any, optionalArgs ...any) <-ch
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33328 := (<-this.LoadMarkets())
-		PanicOnError(retRes33328)
+			retRes339312 := (<-this.LoadMarkets())
+			PanicOnError(retRes339312)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes333619 := (<-this.FetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
-			PanicOnError(retRes333619)
-			ch <- retRes333619
+			retRes339819 := (<-this.FetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
+			PanicOnError(retRes339819)
+			ch <- retRes339819
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -4036,9 +4098,11 @@ func (this *DeribitCore) FetchMyLiquidations(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyLiquidations() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34148 := (<-this.LoadMarkets())
-		PanicOnError(retRes34148)
+			retRes347712 := (<-this.LoadMarkets())
+			PanicOnError(retRes347712)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchMyLiquidations() does not support "), GetValue(market, "type")), " markets")))
@@ -4134,9 +4198,11 @@ func (this *DeribitCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34968 := (<-this.LoadMarkets())
-		PanicOnError(retRes34968)
+			retRes356112 := (<-this.LoadMarkets())
+			PanicOnError(retRes356112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -4283,9 +4349,11 @@ func (this *DeribitCore) FetchOption(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36298 := (<-this.LoadMarkets())
-		PanicOnError(retRes36298)
+			retRes369612 := (<-this.LoadMarkets())
+			PanicOnError(retRes369612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
@@ -4351,9 +4419,11 @@ func (this *DeribitCore) FetchOptionChain(code any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36828 := (<-this.LoadMarkets())
-		PanicOnError(retRes36828)
+			retRes375112 := (<-this.LoadMarkets())
+			PanicOnError(retRes375112)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -4472,9 +4542,11 @@ func (this *DeribitCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37858 := (<-this.LoadMarkets())
-		PanicOnError(retRes37858)
+			retRes385612 := (<-this.LoadMarkets())
+			PanicOnError(retRes385612)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))

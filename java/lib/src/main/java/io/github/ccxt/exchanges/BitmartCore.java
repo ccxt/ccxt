@@ -116,7 +116,7 @@ public class BitmartCore extends BitmartApi
             }} );
             put( "hostname", "bitmart.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14" );
+                put( "logo", "https://github.com/user-attachments/assets/3741e8c0-83a8-4504-ae68-32b00e3c27ee" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://api-cloud.{hostname}" );
                     put( "swap", "https://api-cloud-v2.{hostname}" );
@@ -630,7 +630,9 @@ public class BitmartCore extends BitmartApi
                     put( "spot", "spot" );
                     put( "swap", "swap" );
                 }} );
-                put( "createMarketBuyOrderRequiresPrice", true );
+                put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createMarketBuyOrderRequiresPrice", true );
+                }} );
                 put( "brokerId", "CCXTxBitmart000" );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{
@@ -860,7 +862,7 @@ public class BitmartCore extends BitmartApi
             {
                 type = "contract";
             }
-            Object service = this.safeDict(servicesByType, type);
+            Object service = this.safeDict(servicesByType, ((String)type));
             Object status = null;
             Object eta = null;
             if (Helpers.isTrue(!Helpers.isEqual(service, null)))
@@ -1204,10 +1206,10 @@ public class BitmartCore extends BitmartApi
                 Object fullId = this.safeString(currency, "currency");
                 Object currencyId = fullId;
                 Object networkId = this.safeString(currency, "network");
-                Object isNtf = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(fullId, "NFT"), 0));
+                Object isNtf = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)fullId), "NFT"), 0));
                 if (!Helpers.isTrue(isNtf))
                 {
-                    Object parts = Helpers.split(fullId, "-");
+                    Object parts = Helpers.split(((String)fullId), "-");
                     currencyId = this.safeString(parts, 0);
                     Object second = this.safeString(parts, 1);
                     if (Helpers.isTrue(!Helpers.isEqual(second, null)))
@@ -1275,9 +1277,9 @@ public class BitmartCore extends BitmartApi
     {
         if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
         {
-            networkCode = this.defaultNetworkCode(currencyCode); // use default network code if not provided
+            networkCode = this.defaultNetworkCode(((String)currencyCode)); // use default network code if not provided
         }
-        Object currency = this.currency(currencyCode);
+        Object currency = this.currency(((String)currencyCode));
         Object id = Helpers.GetValue(currency, "id");
         Object idFromNetwork = null;
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -1285,7 +1287,7 @@ public class BitmartCore extends BitmartApi
         if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
         {
             // network code is not provided and there is no default network code
-            Object network = this.safeDict(networks, currencyCode); // trying to find network that has the same code as currency
+            Object network = this.safeDict(networks, ((String)currencyCode)); // trying to find network that has the same code as currency
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
                 // use the first network in the networks list if there is no network code with the same code as currency
@@ -1330,7 +1332,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object network = null;
             var networkparametersVariable = this.handleNetworkCodeAndParams(parameters);
@@ -1407,7 +1412,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object network = null;
             var networkparametersVariable = this.handleNetworkCodeAndParams(parameters);
             network = ((java.util.List<Object>) networkparametersVariable).get(0);
@@ -1633,7 +1641,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
@@ -1683,14 +1694,17 @@ public class BitmartCore extends BitmartApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object type = null;
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbol = this.safeString(symbols, 0);
-                market = this.market(symbol);
+                market = this.market(((String)symbol));
             }
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -1747,7 +1761,7 @@ public class BitmartCore extends BitmartApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1756,7 +1770,10 @@ public class BitmartCore extends BitmartApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1967,7 +1984,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -2081,7 +2101,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2220,7 +2243,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2360,7 +2386,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -2451,7 +2480,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
@@ -2616,7 +2648,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -2772,9 +2807,9 @@ public class BitmartCore extends BitmartApi
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
             put( "side", BitmartCore.this.parseOrderSide(BitmartCore.this.safeString(finalOrder, "side")) );
-            put( "price", BitmartCore.this.omitZero(finalPriceString) );
+            put( "price", BitmartCore.this.omitZero(((String)finalPriceString)) );
             put( "triggerPrice", trailingActivationPrice );
-            put( "amount", BitmartCore.this.omitZero(BitmartCore.this.safeString(finalOrder, "size")) );
+            put( "amount", BitmartCore.this.omitZero(((String)BitmartCore.this.safeString(finalOrder, "size"))) );
             put( "cost", BitmartCore.this.safeString2(finalOrder, "filled_notional", "filledNotional") );
             put( "average", BitmartCore.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("price_avg", "priceAvg", "deal_avg_price"))) );
             put( "filled", BitmartCore.this.safeStringN(finalOrder, new java.util.ArrayList<Object>(java.util.Arrays.asList("filled_size", "filledSize", "deal_size"))) );
@@ -2839,7 +2874,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -2892,7 +2930,10 @@ public class BitmartCore extends BitmartApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object result = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = this.safeString(result, 0);
@@ -2977,7 +3018,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object symbol = null;
             Object market = null;
@@ -2985,7 +3029,7 @@ public class BitmartCore extends BitmartApi
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object marketId = this.safeString(rawOrder, "symbol");
-                market = this.market(marketId);
+                market = this.market(((String)marketId));
                 if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " createOrders() supports spot orders only")) ;
@@ -3005,7 +3049,7 @@ public class BitmartCore extends BitmartApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+                Object orderRequest = this.createSpotOrderRequest(((String)marketId), ((String)type), side, amount, price, orderParams);
                 orderRequest = this.omit(orderRequest, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol"))); // not needed because it goes in the outter object
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -3099,7 +3143,7 @@ public class BitmartCore extends BitmartApi
         }};
         if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
         {
-            Helpers.addElementToObject(request, "size", Helpers.parseInt(this.amountToPrecision(symbol, amount)));
+            Helpers.addElementToObject(request, "size", Helpers.parseInt(((String)this.amountToPrecision(symbol, amount))));
         }
         Object timeInForce = this.safeString(parameters, "timeInForce");
         Object mode = this.safeInteger(parameters, "mode"); // only for swap
@@ -3337,7 +3381,7 @@ public class BitmartCore extends BitmartApi
                 {
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && Helpers.isTrue((Helpers.isEqual(notional, null)))))
                     {
-                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument or in the \"notional\" extra parameter (the exchange-specific behaviour)")) ;
+                        throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice to false in options[\"createOrder\"] or in params and pass the cost to spend in the amount argument or in the \"notional\" extra parameter (the exchange-specific behaviour)")) ;
                     } else
                     {
                         Object amountString = this.numberToString(amount);
@@ -3348,7 +3392,7 @@ public class BitmartCore extends BitmartApi
                 {
                     notional = ((Helpers.isTrue((Helpers.isEqual(notional, null))))) ? this.numberToString(amount) : notional;
                 }
-                Helpers.addElementToObject(request, "notional", this.decimalToPrecision(notional, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode));
+                Helpers.addElementToObject(request, "notional", this.decimalToPrecision(((String)notional), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode));
             } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
             {
                 Helpers.addElementToObject(request, "size", this.amountToPrecision(symbol, amount));
@@ -3401,7 +3445,10 @@ public class BitmartCore extends BitmartApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3533,7 +3580,10 @@ public class BitmartCore extends BitmartApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -3614,7 +3664,10 @@ public class BitmartCore extends BitmartApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3693,7 +3746,10 @@ public class BitmartCore extends BitmartApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrdersByStatus() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -3785,7 +3841,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3954,7 +4013,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -4073,7 +4135,10 @@ public class BitmartCore extends BitmartApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object market = null;
@@ -4205,7 +4270,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object network = null;
             var networkparametersVariable = this.handleNetworkCodeAndParams(parameters);
@@ -4260,9 +4328,9 @@ public class BitmartCore extends BitmartApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object currencyId = this.safeString(depositAddress, "currency");
         Object network = this.safeString2(depositAddress, "chain", "network");
-        if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(currencyId, "NFT"), 0)))
+        if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(((String)currencyId), "NFT"), 0)))
         {
-            Object parts = Helpers.split(currencyId, "-");
+            Object parts = Helpers.split(((String)currencyId), "-");
             currencyId = this.safeString(parts, 0);
             Object secondPart = this.safeString(parts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(secondPart, null)))
@@ -4308,7 +4376,10 @@ public class BitmartCore extends BitmartApi
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object network = null;
             var networkparametersVariable = this.handleNetworkCodeAndParams(parameters);
@@ -4357,7 +4428,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 1000; // max 1000
@@ -4432,7 +4506,10 @@ public class BitmartCore extends BitmartApi
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -4508,7 +4585,10 @@ public class BitmartCore extends BitmartApi
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -4577,7 +4657,7 @@ public class BitmartCore extends BitmartApi
             put( "4", "canceled" );
             put( "5", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -4693,7 +4773,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4739,7 +4822,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4810,7 +4896,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4915,7 +5004,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privateGetSpotV1MarginIsolatedPairs(parameters)).join();
             //
             //     {
@@ -4977,7 +5069,10 @@ public class BitmartCore extends BitmartApi
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object amountToPrecision = this.currencyToPrecision(code, amount);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -5058,7 +5153,7 @@ public class BitmartCore extends BitmartApi
             put( "OK", "ok" );
             put( "FINISHED", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransferToAccount(Object type)
@@ -5143,7 +5238,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 10;
@@ -5228,7 +5326,10 @@ public class BitmartCore extends BitmartApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchBorrowInterest() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5318,7 +5419,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
@@ -5397,7 +5501,10 @@ public class BitmartCore extends BitmartApi
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             this.checkRequiredArgument("setLeverage", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("isolated", "cross")));
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -5429,7 +5536,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -5485,7 +5595,10 @@ public class BitmartCore extends BitmartApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5602,7 +5715,10 @@ public class BitmartCore extends BitmartApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5661,14 +5777,17 @@ public class BitmartCore extends BitmartApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object symbolsLength = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbolsLength = Helpers.getArrayLength(symbols);
                 Object first = this.safeString(symbols, 0);
-                market = this.market(first);
+                market = this.market(((String)first));
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
@@ -5812,7 +5931,10 @@ public class BitmartCore extends BitmartApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -5946,7 +6068,10 @@ public class BitmartCore extends BitmartApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -6059,7 +6184,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -6210,7 +6338,10 @@ public class BitmartCore extends BitmartApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -6297,7 +6428,10 @@ public class BitmartCore extends BitmartApi
             Object note = Helpers.getArg(optionalArgs, 0, null);
             Object networkCode = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object codes = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -6362,7 +6496,10 @@ public class BitmartCore extends BitmartApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object positionMode = null;
             if (Helpers.isTrue(hedged))
             {
@@ -6510,7 +6647,7 @@ public class BitmartCore extends BitmartApi
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
         Object message = this.safeString(response, "message");
-        Object messageLower = ((String)message).toLowerCase();
+        Object messageLower = ((String)((String)message)).toLowerCase();
         Object isErrorMessage = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, null))) && Helpers.isTrue((!Helpers.isEqual(messageLower, "ok")))) && Helpers.isTrue((!Helpers.isEqual(messageLower, "success")));
         Object errorCode = this.safeString(response, "code");
         Object isErrorCode = Helpers.isTrue((!Helpers.isEqual(errorCode, null))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "1000")));

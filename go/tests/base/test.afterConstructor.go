@@ -198,6 +198,9 @@ func HelperTestProperties() {
 		"XBT":   "BTC",
 		"BCHSV": "BSV",
 	})
+	// fetch history
+	var fetchHistoryCache any = exchange.GetFetchCache()
+	assert(ccxt.IsEqual(ccxt.GetArrayLength(fetchHistoryCache), 0), "fetchHistoryCache should be an empty array")
 }
 func TestAfterConstructor() {
 	// here should be added all needed tests

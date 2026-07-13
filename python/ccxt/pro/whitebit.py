@@ -79,7 +79,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_value(self.options, 'timeframes', {})
@@ -146,9 +147,10 @@ class whitebit(ccxt.async_support.whitebit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 10  # max 100
@@ -248,7 +250,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         method = 'market_subscribe'
@@ -266,7 +269,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         method = 'market_subscribe'
         url = self.urls['api']['ws']
@@ -344,7 +348,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trades' + ':' + symbol
@@ -410,7 +415,8 @@ class whitebit(ccxt.async_support.whitebit):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -506,7 +512,8 @@ class whitebit(ccxt.async_support.whitebit):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -669,7 +676,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'wallet:'
@@ -730,7 +738,8 @@ class whitebit(ccxt.async_support.whitebit):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_multiple_subscription(self, messageHash, method, symbol, isNested=False, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         id = self.nonce()
         client = self.safe_value(self.clients, url)

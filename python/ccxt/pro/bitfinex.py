@@ -54,7 +54,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         })
 
     async def subscribe(self, channel, symbol, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
         url = self.urls['api']['ws']['public']
@@ -78,7 +79,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         return result
 
     async def un_subscribe(self, channel, topic, symbol, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
         url = self.urls['api']['ws']['public']
@@ -103,7 +105,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
     async def subscribe_private(self, messageHash):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         return await self.watch(url, messageHash, None, 1)
@@ -118,7 +121,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -145,7 +149,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns bool: True if successfully unsubscribed, False otherwise
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -264,14 +269,14 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}):
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unWatches the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_subscribe('trades', 'trades', symbol, params)
+        return self.un_subscribe('trades', 'trades', symbol, params)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -282,7 +287,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrade'
         if symbol is not None:
             market = self.market(symbol)
@@ -292,23 +298,23 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.subscribe('ticker', symbol, params)
+        return self.subscribe('ticker', symbol, params)
 
-    async def un_watch_ticker(self, symbol: str, params={}):
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_subscribe('ticker', 'ticker', symbol, params)
+        return self.un_subscribe('ticker', 'ticker', symbol, params)
 
     def handle_my_trade(self, client: Client, message, subscription={}):
         #
@@ -584,7 +590,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if limit is not None:
             if (limit != 25) and (limit != 100):
@@ -741,7 +747,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         balanceType = self.safe_string(params, 'wallet', 'exchange')  # exchange, margin
         params = self.omit(params, 'wallet')
         messageHash = 'balance:' + balanceType
@@ -975,7 +982,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         if symbol is not None:
             market = self.market(symbol)

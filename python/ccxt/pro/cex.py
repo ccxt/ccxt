@@ -139,7 +139,8 @@ class cex(ccxt.async_support.cex):
         if currentSymbol is not None and currentSymbol != symbol:
             raise ArgumentsRequired(self.id + ' : self exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance')
         self.options['watchTrades']['symbol'] = symbol
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
@@ -248,7 +249,8 @@ class cex(ccxt.async_support.cex):
         :param str [params.method]: public or private
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
@@ -284,7 +286,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         url = self.urls['api']['ws']
         messageHash = 'tickers'
@@ -315,7 +318,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = self.request_id()
@@ -421,7 +425,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']
         messageHash = self.request_id()
@@ -445,7 +450,8 @@ class cex(ccxt.async_support.cex):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
         market = self.market(symbol)
@@ -481,7 +487,8 @@ class cex(ccxt.async_support.cex):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
         market = self.market(symbol)
@@ -885,14 +892,15 @@ class cex(ccxt.async_support.cex):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://cex.io/websocket-api#orderbook-subscribe
+        https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -1019,7 +1027,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ohlcv:' + symbol
@@ -1157,7 +1166,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = None
         if symbol is not None:
@@ -1189,7 +1199,8 @@ class cex(ccxt.async_support.cex):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrdersWs requires a symbol.')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         url = self.urls['api']['ws']
@@ -1222,7 +1233,8 @@ class cex(ccxt.async_support.cex):
         """
         if price is None:
             raise BadRequest(self.id + ' createOrderWs requires a price argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         url = self.urls['api']['ws']
@@ -1260,7 +1272,8 @@ class cex(ccxt.async_support.cex):
             raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         data = self.extend({
@@ -1291,7 +1304,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = None
         if symbol is not None:
@@ -1322,7 +1336,8 @@ class cex(ccxt.async_support.cex):
         """
         if symbol is not None:
             raise BadRequest(self.id + ' cancelOrderWs does not allow filtering by symbol')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         messageHash = self.request_id()
         data = self.extend({

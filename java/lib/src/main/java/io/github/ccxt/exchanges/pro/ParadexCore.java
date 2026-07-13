@@ -128,7 +128,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "trades.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -201,7 +204,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -210,7 +213,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -310,7 +316,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object channel = "markets_summary";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -344,7 +353,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object channel = "markets_summary";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -400,7 +412,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object messageHash = "orders";
             Object channel = "orders.";
@@ -536,7 +551,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object channel = "funding_data";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -570,7 +588,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object channel = "funding_data";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");

@@ -68,7 +68,10 @@ public partial class coinbase : ccxt.coinbase
     public async virtual Task<object> subscribe(object name, object isPrivate, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = name;
         object productIds = new List<object>() {};
@@ -110,7 +113,10 @@ public partial class coinbase : ccxt.coinbase
      */
     public async virtual Task<object> unSubscribe(object topic, object name, object isPrivate, object symbol = null)
     {
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
         {
             throw new ExchangeError ((string)add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
@@ -173,7 +179,10 @@ public partial class coinbase : ccxt.coinbase
     public async virtual Task<object> subscribeMultiple(object name, object isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object productIds = new List<object>() {};
         object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false);
@@ -218,7 +227,10 @@ public partial class coinbase : ccxt.coinbase
             throw new ExchangeError ((string)add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
         ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object productIds = new List<object>() {};
         object watchMessageHashes = new List<object>() {};
         object unWatchMessageHashes = new List<object>() {};
@@ -301,7 +313,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "ticker";
         return await this.subscribe(name, false, symbol, parameters);
     }
@@ -318,7 +333,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "ticker";
         return await this.unSubscribe("ticker", name, false, symbol);
     }
@@ -335,7 +353,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;
@@ -364,7 +385,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;
@@ -554,7 +578,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object name = "market_trades";
         object trades = await this.subscribe(name, false, symbol, parameters);
@@ -577,7 +604,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "market_trades";
         return await this.unSubscribe("trades", name, false, symbol);
     }
@@ -596,7 +626,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "market_trades";
         object trades = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
@@ -620,7 +653,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "market_trades";
         return await this.unSubscribeMultiple("trades", name, false, symbols, parameters);
     }
@@ -639,7 +675,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "user";
         object orders = await this.subscribe(name, true, symbol, parameters);
         if (isTrue(this.newUpdates))
@@ -661,7 +700,10 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "user";
         return await this.unSubscribe("orders", name, true, this.symbol(symbol));
     }
@@ -674,12 +716,15 @@ public partial class coinbase : ccxt.coinbase
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "level2";
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -694,12 +739,15 @@ public partial class coinbase : ccxt.coinbase
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object name = "level2";
         return await this.unSubscribe("orderbook", name, false, symbol);
@@ -713,12 +761,15 @@ public partial class coinbase : ccxt.coinbase
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "level2";
         object orderbook = await this.subscribeMultiple(name, false, symbols, parameters);
         return (orderbook as IOrderBook).limit();

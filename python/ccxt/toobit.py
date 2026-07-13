@@ -94,7 +94,7 @@ class toobit(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e',
+                'logo': 'https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
@@ -608,8 +608,9 @@ class toobit(Exchange, ImplicitAPI):
         for i in range(0, len(coins)):
             coin = coins[i]
             parsed = self.parse_currency(coin)
-            code = parsed['code']
-            result[code] = parsed
+            if parsed is not None:
+                code = parsed['code']
+                result[code] = parsed
         return result
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
@@ -816,12 +817,13 @@ class toobit(Exchange, ImplicitAPI):
         for i in range(0, len(all)):
             market = all[i]
             parsed = self.parse_market(market)
-            result.append(parsed)
+            if parsed is not None:
+                result.append(parsed)
         return result
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol')
-        baseId = self.safe_string(market, 'baseAsset')
+        baseId = self.safe_string(market, 'baseAsset', '')
         quoteId = self.safe_string(market, 'quoteAsset')
         baseParts = baseId.split('-')
         baseIdClean = baseParts[0]
@@ -901,9 +903,10 @@ class toobit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -954,7 +957,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1080,7 +1084,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1094,7 +1099,7 @@ class toobit(Exchange, ImplicitAPI):
             request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response = []
         endpoint = None
         endpoint, params = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
         if endpoint == 'index':
@@ -1187,16 +1192,18 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         type = None
         market = None
         request = {}
         if symbols is not None:
             symbol = self.safe_string(symbols, 0)
-            market = self.market(symbol)
+            if symbol is not None:
+                market = self.market(symbol)
             length = len(symbols)
-            if length == 1:
+            if (length == 1) and (market is not None):
                 request['symbol'] = market['id']
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
@@ -1261,7 +1268,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of lastprices structures
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
@@ -1303,7 +1311,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
@@ -1355,7 +1364,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
@@ -1414,11 +1424,14 @@ class toobit(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1458,7 +1471,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpointinvalid
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = None
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -1527,10 +1541,11 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
-        response = None
+        response = {}
         if market['spot']:
             request, params = self.create_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostApiV1SpotOrder(self.extend(request, params))
@@ -1564,6 +1579,8 @@ class toobit(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         id = market['id']
         request = {
             'symbol': id,
@@ -1756,6 +1773,8 @@ class toobit(Exchange, ImplicitAPI):
             'CANCELED': 'canceled',
             'REJECTED': 'canceled',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
@@ -1764,6 +1783,8 @@ class toobit(Exchange, ImplicitAPI):
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1789,7 +1810,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params, 'none')
         if marketType == 'none':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"')
-        response = None
+        response = {}
         if marketType == 'spot':
             response = self.privateDeleteApiV1SpotOrder(self.extend(request, params))
         else:
@@ -1811,7 +1832,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1850,7 +1872,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         idsString = ','.join(ids)
         request = {
             'ids': idsString,
@@ -1903,12 +1926,13 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderId': id,
         }
         market = self.market(symbol)
-        response = None
+        response = {}
         if market['spot']:
             response = self.privateGetApiV1SpotOrder(self.extend(request, params))
         else:
@@ -1956,7 +1980,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1966,7 +1991,7 @@ class toobit(Exchange, ImplicitAPI):
             request['limit'] = limit
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        response = None
+        response = []
         if marketType == 'spot':
             response = self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
             #
@@ -2012,7 +2037,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -2025,7 +2051,7 @@ class toobit(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        response = None
+        response = []
         if marketType == 'spot':
             response = self.privateGetApiV1SpotTradeOrders(request)
             #
@@ -2072,7 +2098,8 @@ class toobit(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2083,7 +2110,7 @@ class toobit(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        response = None
+        response = []
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
         else:
@@ -2135,7 +2162,8 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if since is not None:
             request['startTime'] = since
@@ -2146,7 +2174,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request, params = self.handle_until_option('endTime', request, params)
-        response = None
+        response = []
         if marketType == 'spot':
             response = self.privateGetApiV1AccountTrades(self.extend(request, params))
             #
@@ -2211,7 +2239,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
@@ -2264,7 +2293,8 @@ class toobit(Exchange, ImplicitAPI):
         :param int [params.until]: end time in ms
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {}
         if code is not None:
@@ -2307,7 +2337,7 @@ class toobit(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'created')
         after = self.safe_number(item, 'total')
-        amountRaw = self.safe_string(item, 'change')
+        amountRaw = self.safe_string(item, 'change', '')
         amount = self.parse_number(Precise.string_abs(amountRaw))
         direction = 'in'
         if amountRaw.startswith('-'):
@@ -2346,7 +2376,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = None
         marketType = None
         market = None
@@ -2419,7 +2450,8 @@ class toobit(Exchange, ImplicitAPI):
         return self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
     def fetch_deposits_or_withdrawals_helper(self, type, code, since, limit, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {}
         if code is not None:
@@ -2430,7 +2462,7 @@ class toobit(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
             request['limit'] = limit
-        response = None
+        response = []
         if type == 'deposits':
             response = self.privateGetApiV1AccountDepositOrders(self.extend(request, params))
             #
@@ -2573,6 +2605,8 @@ class toobit(Exchange, ImplicitAPI):
             '11': 'failed',
             '3': 'ok',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2585,7 +2619,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -2637,7 +2672,8 @@ class toobit(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' withdraw() : param["network"] is required')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -2673,7 +2709,8 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
@@ -2701,7 +2738,8 @@ class toobit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2723,7 +2761,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2764,7 +2803,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbols is not None:

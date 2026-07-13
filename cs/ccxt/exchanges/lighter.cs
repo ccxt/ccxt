@@ -19,7 +19,7 @@ public partial class lighter : Exchange
             { "quoteJsonNumbers", false },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
                 { "future", false },
@@ -135,7 +135,7 @@ public partial class lighter : Exchange
             } },
             { "hostname", "zklighter.elliot.ai" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0" },
+                { "logo", "https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b" },
                 { "api", new Dictionary<string, object>() {
                     { "root", "https://mainnet.{hostname}" },
                     { "public", "https://mainnet.{hostname}" },
@@ -1023,7 +1023,10 @@ public partial class lighter : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "createOrder", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -1112,7 +1115,10 @@ public partial class lighter : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object apiKeyIndex = null;
         var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "editOrder", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
@@ -1151,10 +1157,13 @@ public partial class lighter : Exchange
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
-            { "integrator_account_index", getValue(this.options, "integratorAccountIndex") },
-            { "integrator_taker_fee", getValue(this.options, "integratorTakerFee") },
-            { "integrator_maker_fee", getValue(this.options, "integratorMakerFee") },
         };
+        if (isTrue(this.safeBool(this.options, "builderFee", true)))
+        {
+            ((IDictionary<string,object>)signRaw)["integrator_account_index"] = getValue(this.options, "integratorAccountIndex");
+            ((IDictionary<string,object>)signRaw)["integrator_taker_fee"] = getValue(this.options, "integratorTakerFee");
+            ((IDictionary<string,object>)signRaw)["integrator_maker_fee"] = getValue(this.options, "integratorMakerFee");
+        }
         var txTypetxInfoVariable = this.lighterSignModifyOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
@@ -1478,7 +1487,7 @@ public partial class lighter : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1487,7 +1496,10 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrderBook() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market_id", getValue(market, "id") },
@@ -1646,7 +1658,10 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTicker() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market_id", getValue(market, "id") },
@@ -1715,7 +1730,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetOrderBookDetails(parameters);
         object spotTickers = this.safeList(response, "spot_order_book_details", new List<object>() {});
@@ -1766,7 +1784,10 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1878,7 +1899,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetFundingRates(this.extend(parameters));
         //
         //     {
@@ -1920,7 +1944,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchBalance", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2043,7 +2070,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchPositions", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2201,7 +2231,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchAccounts", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2301,7 +2334,10 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchOpenOrders", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2384,7 +2420,10 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchClosedOrders", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -2676,7 +2715,10 @@ public partial class lighter : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object apiKeyIndex = null;
         var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "transfer", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
@@ -2747,7 +2789,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2863,7 +2908,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2956,7 +3004,10 @@ public partial class lighter : Exchange
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchWithdrawals", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "account_index", accountIndex },
         };
@@ -3086,7 +3137,10 @@ public partial class lighter : Exchange
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object apiKeyIndex = null;
         var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "withdraw", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
@@ -3148,7 +3202,10 @@ public partial class lighter : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3372,7 +3429,10 @@ public partial class lighter : Exchange
     public async virtual Task<object> modifyLeverageAndMarginMode(object leverage, object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isTrue((!isEqual(marginMode, "cross"))) && isTrue((!isEqual(marginMode, "isolated")))))
         {
             throw new BadRequest ((string)add(this.id, " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")) ;
@@ -3426,7 +3486,10 @@ public partial class lighter : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object apiKeyIndex = null;
         var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
@@ -3486,7 +3549,10 @@ public partial class lighter : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object apiKeyIndex = null;
         var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelAllOrders", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
@@ -3528,7 +3594,10 @@ public partial class lighter : Exchange
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isTrue((isLessThan(timeout, 300000))) || isTrue((isGreaterThan(timeout, 1296000000)))))
         {
             throw new BadRequest ((string)add(this.id, " timeout should be between 5 minutes and 15 days.")) ;
@@ -3613,7 +3682,10 @@ public partial class lighter : Exchange
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object apiKeyIndex = null;
         var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "setMargin", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];

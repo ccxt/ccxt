@@ -5,8 +5,6 @@ import { hex as base16,  base64 } from '@scure/base';
 import { type CHash, utf8ToBytes } from '@noble/hashes/utils.js';
 import type { ECDSA as CurveFn } from '@noble/curves/abstract/weierstrass.js';
 import type { EdDSA as CurveFnEDDSA } from '@noble/curves/abstract/edwards.js';
-import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
-import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { numberToBytesLE, hexToBytes } from '@noble/curves/utils.js';
@@ -33,6 +31,67 @@ const supportedCurve = {
     '1.2.840.10045.3.1.7': P256,
 }
 
+/*  ----- minimal PEM / DER helpers (replace the vendored jsencrypt asn1js) ----- */
+
+// strip the PEM armor (-----BEGIN/END ...-----) and base64-decode the body to DER bytes
+function pemToDer (pem: string): Uint8Array {
+    const body = pem
+        .replace (/-----BEGIN [^-]+-----/g, '')
+        .replace (/-----END [^-]+-----/g, '')
+        .replace (/\s+/g, '');
+    return base64.decode (body);
+}
+
+// read a definite-form DER length, returns [ length, nextOffset ]
+function readDerLength (bytes: Uint8Array, offset: number): [number, number] {
+    let length = bytes[offset];
+    offset += 1;
+    if (length & 0x80) {
+        const numBytes = length & 0x7f;
+        length = 0;
+        for (let i = 0; i < numBytes; i++) {
+            length = (length * 256) + bytes[offset];
+            offset += 1;
+        }
+    }
+    return [ length, offset ];
+}
+
+// parse a DER buffer into a flat list of its top-level TLV elements
+function parseDerElements (bytes: Uint8Array): { tag: number, content: Uint8Array }[] {
+    const elements = [];
+    let offset = 0;
+    while (offset < bytes.length) {
+        const tag = bytes[offset];
+        offset += 1;
+        const result = readDerLength (bytes, offset);
+        const length = result[0];
+        offset = result[1];
+        const content = bytes.slice (offset, offset + length);
+        elements.push ({ 'tag': tag, 'content': content });
+        offset += length;
+    }
+    return elements;
+}
+
+// decode an OID's content bytes into a dotted-decimal string
+function decodeOid (bytes: Uint8Array): string {
+    const values = [];
+    const first = bytes[0];
+    values.push (Math.floor (first / 40));
+    values.push (first % 40);
+    let value = 0;
+    for (let i = 1; i < bytes.length; i++) {
+        const b = bytes[i];
+        value = (value * 128) + (b & 0x7f);
+        if ((b & 0x80) === 0) {
+            values.push (value);
+            value = 0;
+        }
+    }
+    return values.join ('.');
+}
+
 /*  .............................................   */
 
 const hash = (request: Input, hash: CHash, digest: Digest = 'hex') => {
@@ -49,28 +108,30 @@ const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'
 
 /*  .............................................   */
 
-function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null, fixedLength = false) {
+function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash | null = null, fixedLength = false) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
     }
     if (typeof secret === 'string' && secret.length > 64) {
         // decode pem key
         if (secret.startsWith ('-----BEGIN EC PRIVATE KEY-----')) {
-            const der = Base64.unarmor (secret);
-            let asn1 = ASN1.decode(der);
-            if (asn1.sub.length === 4) {
-                // ECPrivateKey ::= SEQUENCE {
-                //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-                //     privateKey     OCTET STRING,
-                //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
-                //     publicKey  [1] BIT STRING OPTIONAL
-                // }
-                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
-                    const oid = asn1.sub[2].sub[0].content (undefined);
-                    if (supportedCurve[oid as string] === undefined) throw new Error('Unsupported curve');
-                    curve = supportedCurve[oid as string];
+            const der = pemToDer (secret);
+            const top = parseDerElements (der);
+            // ECPrivateKey ::= SEQUENCE {
+            //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+            //     privateKey     OCTET STRING,
+            //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+            //     publicKey  [1] BIT STRING OPTIONAL
+            // }
+            const fields = parseDerElements (top[0].content);
+            if (fields.length === 4) {
+                const params = fields[2];
+                if (params !== undefined && params.tag === 0xA0 && params.content.length > 0) {
+                    const oid = decodeOid (parseDerElements (params.content)[0].content);
+                    if (supportedCurve[oid] === undefined) throw new Error ('Unsupported curve');
+                    curve = supportedCurve[oid];
                 }
-                secret = asn1.sub[1].getHexStringValue()
+                secret = base16.encode (fields[1].content);
             } else {
                 // maybe return false
                 throw new Error('Unsupported key format');
@@ -109,16 +170,16 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
 }
 
 function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
-    let privateKey = undefined;
+    let privateKey: Uint8Array | undefined = undefined;
     if (secret.length === 32) {
       // ed25519 secret is 32 bytes
       privateKey = utf8Bytes (secret)
     } else if (typeof secret === 'string') {
       // secret is the base64 pem encoded key
       // we get the last 32 bytes
-      privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
+      privateKey = new Uint8Array (pemToDer (secret).slice (16))
     }
-    const signature = curve.sign (hexBytes (request), privateKey)
+    const signature = curve.sign (hexBytes (request), privateKey as Uint8Array)
     return base64.encode (signature)
 }
 
@@ -153,6 +214,7 @@ export {
     crc32,
     ecdsa,
     eddsa,
+    pemToDer,
 };
 
 /*  ------------------------------------------------------------------------ */

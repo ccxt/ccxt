@@ -203,7 +203,9 @@ public partial class alpaca : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultExchange", "CBSE" },
                 { "exchanges", new List<object>() {"CBSE", "FTX", "GNSS", "ERSX"} },
-                { "defaultTimeInForce", "gtc" },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "timeInForce", "gtc" },
+                } },
                 { "clientOrderId", "ccxt_{id}" },
             } },
             { "features", new Dictionary<string, object>() {
@@ -329,8 +331,8 @@ public partial class alpaca : Exchange
         //
         object timestamp = this.safeString(response, "timestamp");
         object localTime = slice(timestamp, 0, 23);
-        object jetlagStrStart = subtract(((string)timestamp).Length, 6);
-        object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
+        object jetlagStrStart = subtract(getArrayLength(timestamp), 6);
+        object jetlagStrEnd = subtract(getArrayLength(timestamp), 3);
         object jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
         return iso;
@@ -486,7 +488,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
@@ -566,7 +571,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object id = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
@@ -637,7 +645,10 @@ public partial class alpaca : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
@@ -752,7 +763,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
         return this.safeDict(tickers, symbol);
@@ -775,7 +789,10 @@ public partial class alpaca : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires a symbols argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object loc = this.safeString(parameters, "loc", "us");
         object ids = this.marketIds(symbols);
@@ -904,7 +921,10 @@ public partial class alpaca : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object req = new Dictionary<string, object>() {
             { "cost", cost },
         };
@@ -924,7 +944,10 @@ public partial class alpaca : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object req = new Dictionary<string, object>() {
             { "cost", cost },
         };
@@ -944,7 +967,10 @@ public partial class alpaca : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object req = new Dictionary<string, object>() {
             { "cost", cost },
         };
@@ -969,7 +995,10 @@ public partial class alpaca : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object id = getValue(market, "id");
         object request = new Dictionary<string, object>() {
@@ -1004,8 +1033,11 @@ public partial class alpaca : Exchange
         {
             ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
         }
-        object defaultTIF = this.safeString(this.options, "defaultTimeInForce");
-        ((IDictionary<string,object>)request)["time_in_force"] = this.safeString(parameters, "timeInForce", defaultTIF);
+        object defaultTIF = null;
+        var defaultTIFparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+        defaultTIF = ((IList<object>)defaultTIFparametersVariable)[0];
+        parameters = ((IList<object>)defaultTIFparametersVariable)[1];
+        ((IDictionary<string,object>)request)["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -1087,7 +1119,10 @@ public partial class alpaca : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.traderPrivateDeleteV2Orders(parameters);
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -1113,7 +1148,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1138,7 +1176,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "status", "all" },
         };
@@ -1268,7 +1309,10 @@ public partial class alpaca : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1292,7 +1336,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
         }
         object timeInForce = null;
-        var timeInForceparametersVariable = this.handleOptionAndParams2(parameters, "editOrder", "timeInForce", "defaultTimeInForce");
+        var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
         timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
         if (isTrue(!isEqual(timeInForce, null)))
@@ -1432,7 +1476,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {
             { "activity_type", "FILL" },
@@ -1557,7 +1604,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
@@ -1615,7 +1665,10 @@ public partial class alpaca : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         if (isTrue(tag))
         {
@@ -1649,7 +1702,10 @@ public partial class alpaca : Exchange
 
     public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -1823,7 +1879,10 @@ public partial class alpaca : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.traderPrivateGetV2Account(parameters);
         //
         //     {

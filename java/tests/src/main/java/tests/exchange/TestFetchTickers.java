@@ -43,7 +43,13 @@ public class TestFetchTickers extends BaseTest {
         {
             // todo: symbol check here
             Object ticker = Helpers.GetValue(values, i);
-            TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+            try
+            {
+                TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+            } catch(Exception ex)
+            {
+                (TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker)).join();
+            }
         }
         return response;
         });

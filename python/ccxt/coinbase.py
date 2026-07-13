@@ -398,6 +398,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'CGLD': 'CELO',
             },
             'options': {
+                'mica': True,
                 'usePrivate': False,
                 'brokerId': 'ccxt',
                 'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
@@ -570,7 +571,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.fetch_accounts_v2(params)
 
     def fetch_accounts_v2(self, params={}) -> List[Account]:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
         if paginate:
@@ -636,7 +638,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.parse_accounts(data, params)
 
     def fetch_accounts_v3(self, params={}) -> List[Account]:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
         if paginate:
@@ -864,7 +867,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         sells = self.v2PrivateGetAccountsAccountIdSells(self.extend(request, query))
         return self.parse_trades(sells['data'], None, since, limit)
@@ -884,7 +888,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         buys = self.v2PrivateGetAccountsAccountIdBuys(self.extend(request, query))
         return self.parse_trades(buys['data'], None, since, limit)
@@ -892,7 +897,8 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
         request = None
         request, params = self.prepare_account_request_with_currency_code(code, limit, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response['data'], None, since, limit)
 
@@ -950,7 +956,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
         return self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False)
 
@@ -1349,8 +1356,8 @@ class coinbase(Exchange, ImplicitAPI):
                         'type': 'spot',
                         'spot': True,
                         'margin': False,
-                        'swap': False,
-                        'future': False,
+                        'swap': True,
+                        'future': True,
                         'option': False,
                         'active': None,
                         'contract': False,
@@ -1990,7 +1997,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.fetch_tickers_v2(symbols, params)
 
     def fetch_tickers_v2(self, symbols: Strings = None, params={}) -> Tickers:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
             # 'currency': 'USD',
@@ -2023,7 +2031,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_tickers_v3(self, symbols: Strings = None, params={}) -> Tickers:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
@@ -2105,7 +2114,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.fetch_ticker_v2(symbol, params)
 
     def fetch_ticker_v2(self, symbol: str, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],
@@ -2133,7 +2143,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.parse_ticker(bidAskLast, market)
 
     def fetch_ticker_v3(self, symbol: str, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -2362,7 +2373,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.limit]: default 250, maximum number of accounts to return
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         response = None
         isV3 = self.safe_bool(params, 'v3', False)
@@ -2465,7 +2477,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
@@ -2818,7 +2831,8 @@ class coinbase(Exchange, ImplicitAPI):
         }, currency)
 
     def find_account_id(self, code, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts(False, params)
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
@@ -2864,7 +2878,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -2901,7 +2916,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param float [params.reduceOnly]: set to True for closing a position or use closePosition
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         id = self.safe_string(self.options, 'brokerId', 'ccxt')
         request = {
@@ -3271,7 +3287,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orders = self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0, {})
 
@@ -3286,7 +3303,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3328,7 +3346,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'order_id': id,
@@ -3366,7 +3385,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3430,7 +3450,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -3501,7 +3522,8 @@ class coinbase(Exchange, ImplicitAPI):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3584,7 +3606,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
@@ -3605,7 +3628,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
@@ -3643,7 +3667,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the candles
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         maxLimit = 300
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         paginate = False
@@ -3731,7 +3756,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the trades
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -3786,7 +3812,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -3848,9 +3875,10 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -3899,7 +3927,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
@@ -3947,7 +3976,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'type': 'send',
@@ -4034,7 +4064,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = None
         request, params = self.prepare_account_request_with_currency_code(currency['code'], None, params)
@@ -4188,7 +4219,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.accountId]: the id of the account to deposit into
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
@@ -4257,7 +4289,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.accountId]: the id of the account that the funds were deposited into
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
@@ -4320,7 +4353,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `deposit id structures <https://docs.ccxt.com/?id=deposit-id-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v3PrivateGetBrokeragePaymentMethods(params)
         #
         #     {
@@ -4354,7 +4388,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `deposit id structure <https://docs.ccxt.com/?id=deposit-id-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'payment_method_id': id,
         }
@@ -4410,7 +4445,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.trade_incentive_metadata.code_val]: the code value of the incentive
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'from_account': fromCode,
             'to_account': toCode,
@@ -4433,7 +4469,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'trade_id': id,
             'from_account': fromCode,
@@ -4455,7 +4492,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param strng params['toCode']: the unified currency code that was converted into
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchConvertTrade() requires a code argument')
         toCode = self.safe_string(params, 'toCode')
@@ -4505,7 +4543,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param float [params.size]: the size of the position to close, optional
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         params = self.omit(params, 'clientOrderId')
@@ -4531,7 +4570,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.portfolio]: the portfolio UUID to fetch positions for
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
@@ -4566,7 +4606,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.portfolio]: *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         response = None
         if market['future']:
@@ -4735,7 +4776,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap'
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         isSpot = (type == 'spot')
@@ -4794,7 +4836,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param Dict [params]: Extra parameters specific to the exchange API endpoint
         :returns any[]: An account structure <https://docs.ccxt.com/?id=account-structure>
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'portfolio_uuid': portfolioUuid,
         }
@@ -5047,7 +5090,8 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.accountId]: account ID to fetch deposit addresses for
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by currency code
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = self.prepare_account_request(None, params)
         response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
         data = self.safe_list(response, 'data', [])

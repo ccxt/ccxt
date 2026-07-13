@@ -205,10 +205,7 @@ Der Inhalt des Repositorys ist wie folgt strukturiert:
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
-/python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
-/python/setup.cfg          # wheels config file for the Python package
-/python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /examples/                 # self-explanatory
 /examples/js               # ...
@@ -216,14 +213,15 @@ Der Inhalt des Repositorys ist wie folgt strukturiert:
 /examples/py               # ...
 /java/examples/            # Java examples (Gradle module)
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/package.json              # npm package file, also used in setup.py for version single-sourcing
+/package.json              # npm package file, version single-sourced into pyproject.toml and other files via `npm run vss`
+/pyproject.toml            # metadata and build config (pip/setuptools) for the ccxt package in Python
 /run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```
 
 ### Mehrsprachige Unterstützung
 
-Die CCXT-Bibliothek ist in mehreren verschiedenen Sprachen verfügbar (TypeScript, JavaScript, Python, PHP, C#, Go und Java). Wir ermutigen Entwickler, *portablen* Code zu schreiben, damit ein einsprachiger Benutzer den Code in anderen Sprachen lesen und leicht verstehen kann. Dies fördert die Akzeptanz der Bibliothek. Das Hauptziel ist es, eine verallgemeinerte, vereinheitlichte, konsistente und robuste Schnittstelle zu so vielen bestehenden Kryptowährungsbörsen wie möglich bereitzustellen.
+Die CCXT-Bibliothek ist in mehreren verschiedenen Sprachen verfügbar (TypeScript, JavaScript, Python, PHP, C#, Go and Java). Wir ermutigen Entwickler, *portablen* Code zu schreiben, damit ein einsprachiger Benutzer den Code in anderen Sprachen lesen und leicht verstehen kann. Dies fördert die Akzeptanz der Bibliothek. Das Hauptziel ist es, eine verallgemeinerte, vereinheitlichte, konsistente und robuste Schnittstelle zu so vielen bestehenden Kryptowährungsbörsen wie möglich bereitzustellen.
 
 Zunächst wurden alle sprachspezifischen Versionen parallel, aber getrennt voneinander entwickelt. Als es jedoch zu schwierig wurde, den Code zwischen allen unterstützten Sprachen konsistent zu halten und zu pflegen, haben wir uns entschieden, zu einem Prozess zu wechseln, den wir *Quelle/Generiert* nennen. Es gibt nun eine einzige Quellversion in einer Sprache, nämlich TypeScript. Andere sprachspezifische Versionen werden syntaktisch automatisch aus der Quellversion abgeleitet (transpiliert, generiert). Das bedeutet jedoch nicht, dass Sie ein TS- oder JS-Programmierer sein müssen, um beizutragen. Das Portabilitätsprinzip ermöglicht es Python- und PHP-Entwicklern, sich ebenfalls effektiv an der Entwicklung der Quellversion zu beteiligen.
 

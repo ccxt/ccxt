@@ -10,7 +10,6 @@ async function testFetchTransfers(exchange, skippedProperties, code) {
     const method = 'fetchTransfers';
     const transfers = await exchange.fetchTransfers(code);
     testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
-    const now = exchange.milliseconds();
     for (let i = 0; i < transfers.length; i++) {
         testTransfer(exchange, skippedProperties, method, transfers[i], code);
     }

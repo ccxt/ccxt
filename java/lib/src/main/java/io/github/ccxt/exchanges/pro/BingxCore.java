@@ -177,7 +177,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object marketType = null;
             Object subType = null;
@@ -232,7 +235,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@ticker");
             Object subMessageHash = this.getMessageHash("ticker", Helpers.GetValue(market, "symbol"));
@@ -429,7 +435,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketType = null;
@@ -498,7 +507,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             Object subMessageHash = this.getMessageHash("trade", Helpers.GetValue(market, "symbol"));
@@ -633,7 +645,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -642,7 +654,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object marketType = null;
             Object subType = null;
@@ -708,7 +723,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -716,7 +731,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object depth = this.safeInteger(options, "depth", 100);
@@ -1020,7 +1038,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object marketType = null;
             Object subType = null;
@@ -1093,7 +1114,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object options = this.safeValue(this.options, Helpers.GetValue(market, "type"), new java.util.HashMap<String, Object>() {{}});
             Object timeframes = this.safeValue(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -1131,7 +1155,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object type = null;
             Object subType = null;
@@ -1160,7 +1187,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             Object uuid = this.uuid();
             Object baseUrl = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -1214,7 +1241,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object type = null;
             Object subType = null;
@@ -1291,7 +1321,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object type = null;
             Object subType = null;
@@ -1308,7 +1341,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object swapMessageHash = "swap:balance";
             Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             Object subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object request = null;
             Object baseUrl = null;
             Object uuid = this.uuid();
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
@@ -1317,6 +1350,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
                 }
+                // swap balance updates are pushed automatically over the listenKey connection,
+                // so we must not send a subscription message (an empty one is rejected with 80014)
                 baseUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), ((String)subType));
             } else
             {
@@ -1416,7 +1451,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = null;
             Object messageHash = "";

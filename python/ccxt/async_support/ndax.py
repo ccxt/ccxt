@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -114,8 +114,9 @@ class ndax(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -173,6 +174,7 @@ class ndax(Exchange, ImplicitAPI):
                         'Activate2FA': 1,
                         'Authenticate2FA': 1,
                         'AuthenticateUser': 1,
+                        'EnableXP2FA': 1,
                         'GetL2Snapshot': 1,
                         'GetLevel1': 1,
                         'GetValidate2FARequiredEndpoints': 1,
@@ -182,9 +184,15 @@ class ndax(Exchange, ImplicitAPI):
                         'GetProducts': 1,
                         'GetInstrument': 1,
                         'GetInstruments': 1,
+                        'GetEarliestTickTime': 1,
                         'Ping': 1,
+                        'assets': 1,
+                        'orderbook': 1,
+                        'ticker': 1,
+                        'summary': 1,
                         'trades': 1,  # undocumented
                         'GetLastTrades': 1,  # undocumented
+                        'ConfirmWithdraw': 1,
                         'SubscribeLevel1': 1,
                         'SubscribeLevel2': 1,
                         'SubscribeTicker': 1,
@@ -240,10 +248,14 @@ class ndax(Exchange, ImplicitAPI):
                         'GetWithdrawTemplate': 1,
                         'GetWithdrawTemplateTypes': 1,
                         'GetWithdrawTicket': 1,
+                        'GetWithdrawTicketAttachment': 1,
                         'GetWithdrawTickets': 1,
+                        'GetDepositTicketAttachment': 1,
                     },
                     'post': {
                         'AddUserAffiliateTag': 1,
+                        'AddDepositTicketAttachment': 1,
+                        'AddWithdrawTicketAttachment': 1,
                         'CancelUserReport': 1,
                         'RegisterNewDevice': 1,
                         'SubscribeAccountEvents': 1,
@@ -397,6 +409,30 @@ class ndax(Exchange, ImplicitAPI):
             },
         })
 
+    async def fetch_status(self, params={}) -> dict:
+        """
+        the latest known information on the availability of the exchange API
+
+        https://apidoc.ndax.io/#ping
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
+        """
+        response = await self.publicGetPing(params)
+        #
+        #     {
+        #         "msg":"PONG"
+        #     }
+        #
+        message = self.safe_string(response, 'msg')
+        return {
+            'status': 'ok' if (message == 'PONG') else 'error',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     async def sign_in(self, params={}):
         """
         sign in, must be called prior to using other authenticated methods
@@ -451,7 +487,7 @@ class ndax(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://apidoc.ndax.io/#getproduct
+        https://apidoc.ndax.io/#getproducts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -637,7 +673,7 @@ class ndax(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
+    def parse_order_book(self, orderbook, symbol, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
         nonce = None
         result = {
             'symbol': symbol,
@@ -653,12 +689,14 @@ class ndax(Exchange, ImplicitAPI):
                 timestamp = self.safe_integer(level, 2)
             else:
                 newTimestamp = self.safe_integer(level, 2)
-                timestamp = max(timestamp, newTimestamp)
+                if newTimestamp is not None:
+                    timestamp = max(timestamp, newTimestamp)
             if nonce is None:
                 nonce = self.safe_integer(level, 0)
             else:
                 newNonce = self.safe_integer(level, 0)
-                nonce = max(nonce, newNonce)
+                if newNonce is not None:
+                    nonce = max(nonce, newNonce)
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
@@ -680,10 +718,11 @@ class ndax(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         limit = 100 if (limit is None) else limit  # default 100
         request = {
@@ -749,25 +788,41 @@ class ndax(Exchange, ImplicitAPI):
         #         "Rolling24HrPxChangePercent":0,
         #     }
         #
+        # fetchTickers
+        #
+        #     {
+        #         "trading_pairs":"BTC_CAD",
+        #         "last_price":75925.37,
+        #         "lowest_ask":75926.63,
+        #         "highest_bid":66.435340000000000000000000000,
+        #         "base_volume":75774.93,
+        #         "quote_volume":5112197.7830825000000000000000,
+        #         "price_change_percent_24h":-5.3894893561980828521107542600,
+        #         "highest_price_24h":79813.51,
+        #         "lowest_price_24h":73700.01
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'TimeStamp')
         marketId = self.safe_string(ticker, 'InstrumentId')
-        market = self.safe_market(marketId, market)
+        if marketId is None:
+            marketId = self.safe_string(ticker, 'trading_pairs')
+        market = self.safe_market(marketId, market, '_')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string(ticker, 'LastTradedPx')
-        percentage = self.safe_string(ticker, 'Rolling24HrPxChangePercent')
+        last = self.safe_string_2(ticker, 'LastTradedPx', 'last_price')
+        percentage = self.safe_string_2(ticker, 'Rolling24HrPxChangePercent', 'price_change_percent_24h')
         change = self.safe_string(ticker, 'Rolling24HrPxChange')
         open = self.safe_string(ticker, 'SessionOpen')
-        baseVolume = self.safe_string(ticker, 'Rolling24HrVolume')
-        quoteVolume = self.safe_string(ticker, 'Rolling24HrNotional')
+        baseVolume = self.safe_string_2(ticker, 'Rolling24HrVolume', 'base_volume')
+        quoteVolume = self.safe_string_2(ticker, 'Rolling24HrNotional', 'quote_volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'SessionHigh'),
-            'low': self.safe_string(ticker, 'SessionLow'),
-            'bid': self.safe_string(ticker, 'BestBid'),
+            'high': self.safe_string_2(ticker, 'SessionHigh', 'highest_price_24h'),
+            'low': self.safe_string_2(ticker, 'SessionLow', 'lowest_price_24h'),
+            'bid': self.safe_string_2(ticker, 'BestBid', 'highest_bid'),
             'bidVolume': None,  # self.safe_number(ticker, 'BidQty'), always shows 0
-            'ask': self.safe_string(ticker, 'BestOffer'),
+            'ask': self.safe_string_2(ticker, 'BestOffer', 'lowest_ask'),
             'askVolume': None,  # self.safe_number(ticker, 'AskQty'), always shows 0
             'vwap': None,
             'open': open,
@@ -782,6 +837,38 @@ class ndax(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://apidoc.ndax.io/#cmc-summary
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.publicGetSummary(params)
+        #
+        #     [
+        #         {
+        #             "trading_pairs":"BTC_CAD",
+        #             "last_price":75925.37,
+        #             "lowest_ask":75926.63,
+        #             "highest_bid":66.435340000000000000000000000,
+        #             "base_volume":75774.93,
+        #             "quote_volume":5112197.7830825000000000000000,
+        #             "price_change_percent_24h":-5.3894893561980828521107542600,
+        #             "highest_price_24h":79813.51,
+        #             "lowest_price_24h":73700.01
+        #         }
+        #     ]
+        #
+        tickers = self.parse_tickers(response)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
+
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -793,7 +880,8 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'omsId': omsId,
@@ -869,7 +957,8 @@ class ndax(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'omsId': omsId,
@@ -1016,7 +1105,7 @@ class ndax(Exchange, ImplicitAPI):
         side = None
         orderId = None
         takerOrMaker = None
-        fee = None
+        fee = {}
         type = None
         if isinstance(trade, list):
             priceString = self.safe_string(trade, 3)
@@ -1073,7 +1162,8 @@ class ndax(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'omsId': omsId,
@@ -1133,7 +1223,7 @@ class ndax(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
-            if currencyId in self.currencies_by_id:
+            if (currencyId is not None) and (currencyId in self.currencies_by_id):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balance, 'Amount')
@@ -1151,12 +1241,13 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
         defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId')
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         if accountId is None:
-            accountId = int(self.accounts[0]['id'])
+            accountId = self.parse_to_int(self.accounts[0]['id'])
         params = self.omit(params, ['accountId', 'AccountId'])
         request = {
             'omsId': omsId,
@@ -1281,9 +1372,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1325,6 +1417,8 @@ class ndax(Exchange, ImplicitAPI):
             'Expired': 'expired',
             'FullyExecuted': 'closed',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -1438,9 +1532,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         clientOrderId = self.safe_integer_2(params, 'ClientOrderId', 'clientOrderId')
         orderType = self.safe_integer(self.options['orderTypes'], self.capitalize(type))
@@ -1453,8 +1548,9 @@ class ndax(Exchange, ImplicitAPI):
         params = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice'])
         market = self.market(symbol)
         orderSide = 0 if (side == 'buy') else 1
+        amountString = self.amount_to_precision(symbol, amount)
         request = {
-            'InstrumentId': int(market['id']),
+            'InstrumentId': self.parse_to_int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
             'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1466,7 +1562,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'OrderIdOCO': 0,  # The order ID if One Cancels the Other.
             # 'UseDisplayQuantity': False,  # If you enter a Limit order with a reserve, you must set UseDisplayQuantity to True
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': float(self.amount_to_precision(symbol, amount)),
+            'Quantity': None if (amountString is None) else float(amountString),
             'OrderType': orderType,  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3,  # 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': float(self.price_to_precision(symbol, price)),
@@ -1489,18 +1585,34 @@ class ndax(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        cancels an open order and places a new order
+
+        https://apidoc.ndax.io/#cancelreplaceorder
+
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         clientOrderId = self.safe_integer_2(params, 'ClientOrderId', 'clientOrderId')
         params = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId'])
         market = self.market(symbol)
         orderSide = 0 if (side == 'buy') else 1
+        amountString = self.amount_to_precision(symbol, amount)
         request = {
             'OrderIdToReplace': int(id),
-            'InstrumentId': int(market['id']),
+            'InstrumentId': self.parse_to_int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
             'TimeInForce': 1,  # 0 Unknown, 1 GTC by default, 2 OPG execute to opening price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1512,7 +1624,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'OrderIdOCO': 0,  # The order ID if One Cancels the Other.
             # 'UseDisplayQuantity': False,  # If you enter a Limit order with a reserve, you must set UseDisplayQuantity to True
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': float(self.amount_to_precision(symbol, amount)),
+            'Quantity': None if (amountString is None) else float(amountString),
             'OrderType': self.safe_integer(self.options['orderTypes'], self.capitalize(type)),  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3,  # 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': float(self.price_to_precision(symbol, price)),
@@ -1546,9 +1658,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1629,9 +1742,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1669,9 +1783,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        # defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        # defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         # accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         # params = self.omit(params, ['accountId', 'AccountId'])
         market = None
@@ -1707,9 +1822,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         market = None
@@ -1785,9 +1901,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1876,9 +1993,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         market = None
@@ -1954,9 +2072,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        # defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        # defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         # accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         # params = self.omit(params, ['accountId', 'AccountId'])
         market = None
@@ -2030,9 +2149,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         currency = self.currency(code)
@@ -2072,10 +2192,10 @@ class ndax(Exchange, ImplicitAPI):
         #         "DepositInfo":"[\"r3e95RwVsLH7yCbnMfyh7SA8FdwUJCB4S2?memo=241452010\"]"
         #     }
         #
-        depositInfoString = self.safe_string(depositAddress, 'DepositInfo')
+        depositInfoString = self.safe_string(depositAddress, 'DepositInfo', '[]')
         depositInfo = json.loads(depositInfoString)
         depositInfoLength = len(depositInfo)
-        lastString = self.safe_string(depositInfo, depositInfoLength - 1)
+        lastString = self.safe_string(depositInfo, depositInfoLength - 1, '')
         parts = lastString.split('?memo=')
         address = self.safe_string(parts, 0)
         tag = self.safe_string(parts, 1)
@@ -2116,9 +2236,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         currency = None
@@ -2174,9 +2295,10 @@ class ndax(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         currency = None
@@ -2213,7 +2335,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type=None):
+    def parse_transaction_status_by_type(self, status: Str = None, type: Str = None):
         statusesByType = {
             'deposit': {
                 'New': 'pending',  # new ticket awaiting operator review
@@ -2258,7 +2380,9 @@ class ndax(Exchange, ImplicitAPI):
                 'Confirmed2Fa': 'pending',  # user has confirmed withdraw via 2-factor authentication.
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = {} if (type is None) else self.safe_value(statusesByType, type, {})
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2330,7 +2454,7 @@ class ndax(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(templateForm, 'TimeSubmitted')
         feeCost = self.safe_number(transaction, 'FeeAmount')
         transactionStatus = self.safe_string(transaction, 'TicketStatus')
-        fee = None
+        fee = {}
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         return {
@@ -2375,9 +2499,10 @@ class ndax(Exchange, ImplicitAPI):
             raise AuthenticationError(self.id + ' withdraw() requires exchange.twofa credentials')
         self.check_address(address)
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         params = self.omit(params, ['accountId', 'AccountId'])
         currency = self.currency(code)

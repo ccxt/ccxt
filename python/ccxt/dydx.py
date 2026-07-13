@@ -133,7 +133,7 @@ class dydx(Exchange, ImplicitAPI):
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
@@ -238,7 +238,7 @@ class dydx(Exchange, ImplicitAPI):
                 'privateKey': False,
             },
             'options': {
-                'mnemonic': None,  # specify mnemonic, copy secret phrase from UI
+                'privateKey': None,  # specify a hex-encoded secp256k1 private key
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': False,
@@ -577,7 +577,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        retrieves data on all markets for hyperliquid
+        retrieves data on all markets for dydx
 
         https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
 
@@ -660,7 +660,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+        https://docs.dydx.xyz/indexer-client/http#get-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -668,7 +668,8 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -735,7 +736,8 @@ class dydx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -789,7 +791,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -935,7 +938,8 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderId': id,
         }
@@ -960,7 +964,8 @@ class dydx(Exchange, ImplicitAPI):
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
         subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1125,7 +1130,8 @@ class dydx(Exchange, ImplicitAPI):
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchPositions', params)
         subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1202,11 +1208,11 @@ class dydx(Exchange, ImplicitAPI):
         credentials = self.safe_dict(self.options, 'dydxCredentials')
         if credentials is not None:
             return credentials
-        entropy = self.safe_string(self.options, 'mnemonic')
-        if entropy is None:
+        privateKey = self.safe_string(self.options, 'privateKey')
+        if privateKey is None:
             signature = self.sign_onboarding_action()
-            entropy = self.hash_message(self.base16_to_binary(signature['r'] + signature['s']))
-        credentials = self.retrieve_dydx_credentials(entropy)
+            privateKey = self.hash_message(self.base16_to_binary(signature['r'] + signature['s']))
+        credentials = self.retrieve_dydx_credentials(privateKey)
         credentials['privateKey'] = self.binary_to_base16(credentials['privateKey'])
         credentials['publicKey'] = self.binary_to_base16(credentials['publicKey'])
         self.options['dydxCredentials'] = credentials
@@ -1414,7 +1420,8 @@ class dydx(Exchange, ImplicitAPI):
         :param float [params.goodTillBlockTimeInSeconds]: expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         credentials = self.retrieve_credentials()
         account = self.fetch_dydx_account()
         lastBlockHeight = self.fetch_latest_block_height()
@@ -1471,7 +1478,8 @@ class dydx(Exchange, ImplicitAPI):
         params = self.omit(params, ['trigger', 'stop'])
         if not isTrigger and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId', id)
         if clientOrderId is None:
@@ -1554,7 +1562,8 @@ class dydx(Exchange, ImplicitAPI):
         :param int [params.subAccountId]: sub account id, default is 0
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
         if not clientOrderIds:
@@ -1618,9 +1627,10 @@ class dydx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1719,7 +1729,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1783,7 +1794,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         if code != 'USDC':
             raise NotSupported(self.id + ' transfer() only support USDC')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
@@ -1912,7 +1924,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1987,7 +2000,8 @@ class dydx(Exchange, ImplicitAPI):
         """
         if code != 'USDC':
             raise NotSupported(self.id + ' withdraw() only support USDC')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         subaccountId = self.safe_integer(params, 'subaccountId')
         if subaccountId is None:
@@ -2048,7 +2062,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2070,7 +2085,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2092,7 +2108,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.subAccountNumber]: sub account number
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2222,7 +2239,8 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         userAddress = None
         userAddress, params = self.handle_public_address('fetchAccounts', params)
         subaccountNumber = None

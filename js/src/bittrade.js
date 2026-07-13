@@ -87,7 +87,7 @@ export default class bittrade extends Exchange {
                 '1y': '1year',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
@@ -381,14 +381,26 @@ export default class bittrade extends Exchange {
                     'ALGO': 'algo',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates': {
+                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                },
+                'fetchOpenOrders': {
+                    'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                },
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                    'method': 'privatePostOrderOrdersPlace',
+                },
+                'fetchMarkets': {
+                    'method': 'publicGetCommonSymbols',
+                },
+                'fetchBalance': {
+                    'method': 'privateGetAccountAccountsIdBalance',
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'language': 'en-US',
+                'fetchCurrencies': {
+                    'language': 'en-US',
+                },
                 'broker': {
                     'id': 'AA03022abc',
                 },
@@ -425,7 +437,9 @@ export default class bittrade extends Exchange {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -496,7 +510,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.options['fetchMarketsMethod'];
+        const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
         const response = await this[method](params);
         //
         //    {
@@ -697,10 +711,12 @@ export default class bittrade extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -749,7 +765,9 @@ export default class bittrade extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -790,7 +808,9 @@ export default class bittrade extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
         const tickers = this.safeValue(response, 'data', []);
@@ -901,7 +921,9 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -919,7 +941,9 @@ export default class bittrade extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -947,7 +971,9 @@ export default class bittrade extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = 1000, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1026,7 +1052,9 @@ export default class bittrade extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1059,7 +1087,9 @@ export default class bittrade extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountAccounts(params);
         return response['data'];
     }
@@ -1072,7 +1102,7 @@ export default class bittrade extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         const request = {
-            'language': this.options['language'],
+            'language': this.handleOption('fetchCurrencies', 'language', 'en-US'),
         };
         const response = await this.publicGetSettingsCurrencys(this.extend(request, params));
         //
@@ -1192,9 +1222,11 @@ export default class bittrade extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
-        const method = this.options['fetchBalanceMethod'];
+        const method = this.handleOption('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         const request = {
             'id': this.accounts[0]['id'],
         };
@@ -1202,7 +1234,9 @@ export default class bittrade extends Exchange {
         return this.parseBalance(response);
     }
     async fetchOrdersByStates(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'states': states,
         };
@@ -1211,7 +1245,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
         const response = await this[method](this.extend(request, params));
         //
         //     { "status":   "ok",
@@ -1242,7 +1276,9 @@ export default class bittrade extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1274,7 +1310,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString(this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
+        const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
         return await this[method](symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1297,7 +1333,9 @@ export default class bittrade extends Exchange {
         return await this.fetchOrdersByStates('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
     async fetchOpenOrdersV2(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1451,7 +1489,9 @@ export default class bittrade extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1472,7 +1512,9 @@ export default class bittrade extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         const market = this.market(symbol);
         const request = {
@@ -1582,7 +1624,9 @@ export default class bittrade extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeValue2(params, 'clientOrderIds', 'client-order-ids');
         params = this.omit(params, ['clientOrderIds', 'client-order-ids']);
         const request = {};
@@ -1694,7 +1738,9 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
         // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
@@ -1767,7 +1813,9 @@ export default class bittrade extends Exchange {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1800,7 +1848,9 @@ export default class bittrade extends Exchange {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1935,7 +1985,9 @@ export default class bittrade extends Exchange {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
