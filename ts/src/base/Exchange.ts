@@ -4923,7 +4923,7 @@ export class BaseExchange {
         return trade as Trade;
     }
 
-    createCcxtTradeId (timestamp: Int = undefined, side: OrderSide = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
+    createCcxtTradeId (timestamp: Int = undefined, side: OrderSide = undefined, amount = undefined, price = undefined, takerOrMaker = undefined): Str {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         let id = undefined;
         if (timestamp !== undefined) {
