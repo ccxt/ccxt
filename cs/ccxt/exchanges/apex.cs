@@ -1015,15 +1015,15 @@ public partial class apex : Exchange
         //  }
         //  ]
         //
-        object marketId = this.safeStringN(trade, new List<object>() {"s", "symbol"});
+        object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
-        object id = this.safeStringN(trade, new List<object>() {"i", "id"});
+        object id = this.safeString2(trade, "i", "id");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
-        object priceString = this.safeStringN(trade, new List<object>() {"p", "price"});
-        object amountString = this.safeStringN(trade, new List<object>() {"v", "size"});
-        object side = this.safeStringLowerN(trade, new List<object>() {"S", "side"});
-        object type = this.safeStringN(trade, new List<object>() {"type"});
-        object fee = this.safeStringN(trade, new List<object>() {"fee"});
+        object priceString = this.safeString2(trade, "p", "price");
+        object amountString = this.safeString2(trade, "v", "size");
+        object side = this.safeStringLower2(trade, "S", "side");
+        object type = this.safeString(trade, "type");
+        object fee = this.safeString(trade, "fee");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1678,7 +1678,7 @@ public partial class apex : Exchange
         object toAccount = this.safeString(transfer, "toAccount");
         return new Dictionary<string, object>() {
             { "info", transfer },
-            { "id", this.safeStringN(transfer, new List<object>() {"transferId", "id"}) },
+            { "id", this.safeString2(transfer, "transferId", "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -2100,7 +2100,7 @@ public partial class apex : Exchange
         object quantity = this.safeString(position, "size");
         object timestamp = this.safeInteger(position, "updatedTime");
         object leverage = 20;
-        object customInitialMarginRate = this.safeStringN(position, new List<object>() {"customInitialMarginRate", "customImr"}, "0");
+        object customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
         if (isTrue(!isEqual(this.precisionFromString(customInitialMarginRate), 0)))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));

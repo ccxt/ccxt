@@ -8268,7 +8268,7 @@ public partial class bybit : Exchange
         //
         object timestamp = this.safeInteger(response, "time");
         object transfer = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object statusRaw = this.safeStringN(response, new List<object>() {"retCode", "retMsg"});
+        object statusRaw = this.safeString2(response, "retCode", "retMsg");
         object status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), new Dictionary<string, object>() {
             { "timestamp", timestamp },
