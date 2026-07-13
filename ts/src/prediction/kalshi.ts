@@ -1771,8 +1771,15 @@ export default class kalshi extends Exchange {
         }
         const mkt = this.safeOutcome (outcomeKey, market as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const action = this.safeString (order, 'action');
-        const side = (action === 'buy') ? 'buy' : 'sell';
+        // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
+        // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
+        const action = this.safeStringLower (order, 'action');
+        let side = undefined;
+        if (action === 'buy') {
+            side = 'buy';
+        } else if (action === 'sell') {
+            side = 'sell';
+        }
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         const labelIsNo = (this.safeStringUpper (mkt, 'label') === 'NO');
@@ -1974,14 +1981,16 @@ export default class kalshi extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        let outcomeObj = undefined;
         if (outcome !== undefined) {
-            await this.loadOutcome (outcome);
+            outcomeObj = await this.loadOutcome (outcome);
         }
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        const order = this.parsePredictionOrder (this.safeDict (response, 'order', response));
-        // the delete response carries no id/status - backfill the requested id and the outcome
+        // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
+        // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
+        const order = this.parsePredictionOrder (this.safeDict (response, 'order', response), outcomeObj);
         if (order['id'] === undefined) {
             order['id'] = id;
         }
@@ -2017,13 +2026,18 @@ export default class kalshi extends Exchange {
         const restingOrdersLength = restingOrders.length;
         const canceledOrders = [];
         for (let i = 0; i < restingOrdersLength; i++) {
-            const orderId = this.safeString (restingOrders[i], 'order_id');
+            const restingOrder = restingOrders[i];
+            const orderId = this.safeString (restingOrder, 'order_id');
             if (orderId !== undefined) {
-                const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': orderId }, params));
-                canceledOrders.push (this.safeDict (response, 'order', response));
+                await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': orderId }, params));
+                // the DELETE body is minimal — parse the already-fetched resting order instead, which
+                // carries the true side/outcome/price/count, then mark it canceled
+                const parsed = this.parsePredictionOrder (restingOrder);
+                parsed['status'] = 'canceled';
+                canceledOrders.push (parsed);
             }
         }
-        return this.parsePredictionOrders (canceledOrders);
+        return canceledOrders;
     }
 
     /**
