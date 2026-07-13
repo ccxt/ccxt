@@ -1,6 +1,6 @@
 Every endpoint in `bitflyer`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitflyer) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetGetmarketsUsa`); the snake_case alias (`public_get_getmarkets_usa`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetGetmarketsUsa`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetGetmarketsUsa`); the snake_case alias (`public_get_getmarkets_usa`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetGetmarketsUsa`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 

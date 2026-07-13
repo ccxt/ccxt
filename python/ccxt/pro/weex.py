@@ -213,7 +213,7 @@ class weex(ccxt.async_support.weex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -224,7 +224,7 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers([symbol], params)
+        return self.un_watch_tickers([symbol], params)
 
     async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
         """
@@ -345,7 +345,7 @@ class weex(ccxt.async_support.weex):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -358,7 +358,7 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -395,7 +395,7 @@ class weex(ccxt.async_support.weex):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unsubscribes from the trades channel
 
@@ -406,9 +406,7 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """

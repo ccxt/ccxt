@@ -64,8 +64,8 @@ class apex extends apex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -197,8 +197,8 @@ class apex extends apex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method

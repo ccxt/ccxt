@@ -124,7 +124,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTicker");
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, symbol);
@@ -179,7 +182,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -242,7 +248,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -297,7 +306,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchMarkPrice");
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object tickers = (this.watchMarkPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, symbol);
@@ -346,7 +358,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -410,7 +425,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -556,7 +574,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -614,7 +635,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -763,7 +787,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
@@ -821,7 +848,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
@@ -1126,7 +1156,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
@@ -1183,7 +1216,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
@@ -1288,7 +1324,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object result = (this.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
@@ -1340,7 +1379,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             Object methodName = null;
             var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
@@ -1407,7 +1449,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             Object methodName = null;
             var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
@@ -1618,7 +1663,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -1791,7 +1839,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = "swap";
             (this.authenticate(type, parameters)).join();
             Object url = this.getPrivateUrl(type);
@@ -2030,7 +2081,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2082,7 +2136,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {

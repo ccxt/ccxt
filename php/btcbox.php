@@ -148,7 +148,6 @@ class btcbox extends Exchange {
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 3,
                 ),
-                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
             ),
             'features' => array(
                 'spot' => array(

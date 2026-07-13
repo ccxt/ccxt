@@ -877,9 +877,14 @@ class backpack extends Exchange {
         $low = $this->safe_string($ticker, 'low');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
-        $percentage = $this->safe_string($ticker, 'priceChangePercent');
+        $percentage = null;
+        $percentageNumber = $this->safe_float($ticker, 'priceChangePercent');
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if ($percentageNumber !== null) {
+            $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
+        }
         $change = $this->safe_string($ticker, 'priceChange');
-        return $this->safe_ticker(array(
+        $parsedTicker = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -903,6 +908,7 @@ class backpack extends Exchange {
             'indexPrice' => null,
             'info' => $ticker,
         ), $market);
+        return $parsedTicker;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {

@@ -186,11 +186,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async watchFundingRate(symbol, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.subscribe('RISK', [symbol], params);
+    watchFundingRate(symbol, params = {}) {
+        return this.subscribe('RISK', [symbol], params);
     }
     /**
      * @method
@@ -525,8 +522,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -621,8 +618,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -634,11 +631,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.subscribeMultiple('LEVEL2', symbols, params);
+    watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        return this.subscribeMultiple('LEVEL2', symbols, params);
     }
     handleOrderBook(client, message) {
         //

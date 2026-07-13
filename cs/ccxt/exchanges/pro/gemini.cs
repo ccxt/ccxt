@@ -1005,7 +1005,7 @@ public partial class gemini : ccxt.gemini
         this.checkRequiredCredentials();
         object startIndex = getArrayLength(getValue(getValue(this.urls, "api"), "ws"));
         object urlParamsIndex = getIndexOf(url, "?");
-        object urlLength = ((string)url).Length;
+        object urlLength = getArrayLength(url);
         object endIndex = ((bool) isTrue((isGreaterThanOrEqual(urlParamsIndex, 0)))) ? urlParamsIndex : urlLength;
         object request = slice(url, startIndex, endIndex);
         object payload = new Dictionary<string, object>() {

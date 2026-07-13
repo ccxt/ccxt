@@ -443,8 +443,8 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        return await this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
+    watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
     handleBidsAsksForMultidata (client: Client, rawBidAskChanges, timestamp: Int, nonce: Int) {

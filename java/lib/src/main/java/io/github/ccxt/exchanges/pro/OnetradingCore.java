@@ -166,7 +166,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = "MARKET_TICKER";
@@ -199,7 +202,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -313,7 +319,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -366,7 +375,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("book:", symbol);
@@ -506,7 +518,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1163,7 +1178,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
