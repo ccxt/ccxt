@@ -1594,7 +1594,7 @@ export default class apex extends Exchange {
         const toAccount = this.safeString (transfer, 'toAccount');
         return {
             'info': transfer,
-            'id': this.safeStringN (transfer, [ 'transferId', 'id' ]),
+            'id': this.safeString2 (transfer, 'transferId', 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
