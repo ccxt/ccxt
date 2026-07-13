@@ -1513,7 +1513,7 @@ class bingx extends bingx$1["default"] {
             amount = Precise["default"].stringMul(volume, contractSize);
         }
         return this.safeTrade({
-            'id': this.safeStringN(trade, ['id', 't']),
+            'id': this.safeString2(trade, 'id', 't'),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
