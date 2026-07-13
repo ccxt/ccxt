@@ -942,7 +942,7 @@ fmt.Println(exchange.LastJsonResponse)
 
 ## Prediction Markets
 
-CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) in a dedicated `go/v4/prediction` package. They use the same unified API, but prices are quoted **0–1** (USDC per outcome share) and the tradeable unit is an **outcome** (e.g. a market's YES/NO token), not a regular market symbol.
+CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid, Binance (Web3 Wallet prediction — all endpoints signed, needs apiKey/secret)) in a dedicated `go/v4/prediction` package. They use the same unified API, but prices are quoted **0–1** (USDC per outcome share) and the tradeable unit is an **outcome** (e.g. a market's YES/NO token), not a regular market symbol.
 
 ```go
 import (

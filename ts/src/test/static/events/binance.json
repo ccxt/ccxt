@@ -1,0 +1,249 @@
+[
+    {
+        "id": "4229564",
+        "slug": "btc-price-1h-up-or-down",
+        "event": "BTC_PRICE_1H_UP_DOWN",
+        "title": "BTC Price 1h Up or Down?",
+        "description": "Resolves YES if BTC spot price is higher than the starting price at resolution time.",
+        "markets": [
+            {
+                "id": "5567895",
+                "market": "BTC_PRICE_1H_UP_DOWN_UP",
+                "base": "USDT",
+                "quote": "USDT",
+                "settle": null,
+                "baseId": "5567895",
+                "quoteId": "USDT",
+                "settleId": null,
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 1748134800000,
+                "expiryDatetime": "2025-05-25T01:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "taker": 0.02,
+                "maker": 0.02,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": null,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1.5,
+                        "max": null
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "112233",
+                        "outcomeId": "112233",
+                        "outcome": "BTC_PRICE_1H_UP_DOWN_UP:YES",
+                        "market": "BTC_PRICE_1H_UP_DOWN_UP",
+                        "label": "YES",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "tokenId": "112233",
+                            "marketId": "5567895",
+                            "marketTopicId": "4229564",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "btc-price-1h-up-or-down",
+                            "marketTitle": "UP",
+                            "outcomeLabel": "YES",
+                            "index": "0",
+                            "price": "0.52",
+                            "chance": "0.52",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1200",
+                            "conditionId": "0xabc123",
+                            "externalId": "ext_001"
+                        }
+                    },
+                    {
+                        "id": "112234",
+                        "outcomeId": "112234",
+                        "outcome": "BTC_PRICE_1H_UP_DOWN_UP:NO",
+                        "market": "BTC_PRICE_1H_UP_DOWN_UP",
+                        "label": "NO",
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "tokenId": "112234",
+                            "marketId": "5567895",
+                            "marketTopicId": "4229564",
+                            "vendor": "PREDICT_FUN",
+                            "chainId": "56",
+                            "slug": "btc-price-1h-up-or-down",
+                            "marketTitle": "UP",
+                            "outcomeLabel": "NO",
+                            "index": "1",
+                            "price": "0.48",
+                            "chance": "0.48",
+                            "collateral": "USDT",
+                            "feeRateBps": "200",
+                            "slippageBps": "1200",
+                            "conditionId": "0xabc123",
+                            "externalId": "ext_001"
+                        }
+                    }
+                ],
+                "info": {
+                    "marketId": 5567895,
+                    "externalId": "ext_001",
+                    "title": "UP",
+                    "question": "Will BTC go UP?",
+                    "description": "Resolves YES if BTC price increases.",
+                    "conditionId": "0xabc123",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "tradeVolume": "90000.00",
+                    "liquidity": 25000,
+                    "decimalPrecision": 2,
+                    "outcomes": [
+                        {
+                            "name": "YES",
+                            "price": "0.52",
+                            "chance": "0.52",
+                            "index": 0,
+                            "tokenId": "112233"
+                        },
+                        {
+                            "name": "NO",
+                            "price": "0.48",
+                            "chance": "0.48",
+                            "index": 1,
+                            "tokenId": "112234"
+                        }
+                    ],
+                    "marketTopicId": "4229564",
+                    "vendor": "PREDICT_FUN",
+                    "slug": "btc-price-1h-up-or-down",
+                    "volume": 90000
+                },
+                "created": 1748100000000
+            }
+        ],
+        "active": true,
+        "volume": 158234.56,
+        "liquidity": 45000,
+        "url": null,
+        "image": "https://cdn.example.com/prediction/btc-1h.png",
+        "created": 1748100000000,
+        "createdDatetime": "2025-05-24T15:20:00.000Z",
+        "end": 1748134800000,
+        "endDatetime": "2025-05-25T01:00:00.000Z",
+        "category": "CRYPTO_UP_DOWN",
+        "resolved": null,
+        "info": {
+            "marketTopicId": 4229564,
+            "vendor": "PREDICT_FUN",
+            "chainId": "56",
+            "slug": "btc-price-1h-up-or-down",
+            "title": "BTC Price 1h Up or Down?",
+            "question": "Will BTC price go UP in the next 1 hour?",
+            "description": "Resolves YES if BTC spot price is higher than the starting price at resolution time.",
+            "imageUrl": "https://cdn.example.com/prediction/btc-1h.png",
+            "topicType": "FLAT",
+            "chartType": "CRYPTO_UP_DOWN",
+            "symbol": "BTCUSDT",
+            "variantData": {
+                "type": "CRYPTO_UP_DOWN",
+                "startPrice": "67890.12",
+                "endPrice": null,
+                "priceFeedId": "0xpricefeedid123",
+                "priceFeedProvider": "BINANCE",
+                "priceFeedSymbol": "BTCUSDT"
+            },
+            "participantCount": 3420,
+            "collateral": "USDT",
+            "feeRateBps": 200,
+            "slippageBps": 1200,
+            "isYieldBearing": false,
+            "tradeVolume": "158234.56",
+            "liquidity": "45000.00",
+            "publishedAt": 1748100000000,
+            "startDate": 1748131200000,
+            "endDate": 1748134800000,
+            "status": "REGISTERED",
+            "timeline": [
+                {
+                    "marketTopicId": 4229560,
+                    "startDate": 1748127600000,
+                    "endDate": 1748131200000
+                }
+            ],
+            "markets": [
+                {
+                    "marketId": 5567895,
+                    "externalId": "ext_001",
+                    "title": "UP",
+                    "question": "Will BTC go UP?",
+                    "description": "Resolves YES if BTC price increases.",
+                    "conditionId": "0xabc123",
+                    "status": "REGISTERED",
+                    "tradingStatus": "OPEN",
+                    "tradeVolume": "90000.00",
+                    "liquidity": "25000.00",
+                    "decimalPrecision": 2,
+                    "outcomes": [
+                        {
+                            "name": "YES",
+                            "price": "0.52",
+                            "chance": "0.52",
+                            "index": 0,
+                            "tokenId": "112233"
+                        },
+                        {
+                            "name": "NO",
+                            "price": "0.48",
+                            "chance": "0.48",
+                            "index": 1,
+                            "tokenId": "112234"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]

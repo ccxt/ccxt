@@ -4704,7 +4704,7 @@ The exchanges' private APIs will usually allow the following types of interactio
 
 ## Prediction Markets
 
-CCXT also supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, and Hyperliquid prediction markets) through a dedicated `prediction` namespace. They implement the same unified API as regular crypto exchanges, with prices quoted between 0 and 1 USDC per outcome share, and trade **outcomes** (a market's YES/NO tokens) instead of regular symbols.
+CCXT also supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid, and Binance Web3 Wallet prediction markets) through a dedicated `prediction` namespace. They implement the same unified API as regular crypto exchanges, with prices quoted between 0 and 1 USDC per outcome share, and trade **outcomes** (a market's YES/NO tokens) instead of regular symbols.
 
 See the dedicated **[Prediction Markets guide](Prediction-Markets.md)** for the namespace, the events → markets → outcomes data model, and `fetchEvents` / `fetchEvent` usage.
 

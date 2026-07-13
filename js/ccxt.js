@@ -224,6 +224,7 @@ import whitebitPro from './src/pro/whitebit.js';
 import wooPro from './src/pro/woo.js';
 import woofiproPro from './src/pro/woofipro.js';
 import xtPro from './src/pro/xt.js';
+import binancePrediction from './src/prediction/binance.js';
 import hyperliquidPrediction from './src/prediction/hyperliquid.js';
 import kalshiPrediction from './src/prediction/kalshi.js';
 import limitlessPrediction from './src/prediction/limitless.js';
@@ -427,6 +428,7 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const prediction = {
+    'binance': binancePrediction,
     'hyperliquid': hyperliquidPrediction,
     'kalshi': kalshiPrediction,
     'limitless': limitlessPrediction,

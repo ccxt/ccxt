@@ -1,0 +1,27 @@
+import { implicitReturnType } from '../../base/types.js';
+import { default as _Exchange } from '../../base/PredictionExchange.js';
+interface Exchange {
+    sapiPrivateGetCategoryList(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetMarketList(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetMarketSearch(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetMarketDetail(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetOrderBook(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetOrderBookLastTradePrice(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetWalletList(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetBalancePaymentOptions(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetQuotaLimitStatus(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetPnlPortfolio(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetPnlQuery(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetPositionList(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetPositionFilter(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetPositionToken(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetPositionSettledHistory(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetOrderList(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateGetOrderHistory(params?: {}): Promise<implicitReturnType>;
+    sapiPrivatePostTradeGetQuote(params?: {}): Promise<implicitReturnType>;
+    sapiPrivatePostTradePlaceOrderBundle(params?: {}): Promise<implicitReturnType>;
+    sapiPrivatePostTradeBatchCancel(params?: {}): Promise<implicitReturnType>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

@@ -1,0 +1,87 @@
+{
+    "exchange": "binance",
+    "asyncOnly": true,
+    "skipKeys": [
+        "timestamp",
+        "signature",
+        "recvWindow"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for a yes outcome resolves the market last trade price",
+                "method": "fetchTicker",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book/last-trade-price?timestamp=1748131900000&marketId=5567895&signature=b90b2ed9149450ed7963feeb7220da12031fb5e33079f70f8c934452937f8413",
+                "input": [
+                    "BTC_PRICE_1H_UP_DOWN_UP:YES"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers dedupes both sides of one market into a single request",
+                "method": "fetchTickers",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book/last-trade-price?timestamp=1748131900000&marketId=5567895&signature=b90b2ed9149450ed7963feeb7220da12031fb5e33079f70f8c934452937f8413",
+                "input": [
+                    [
+                        "BTC_PRICE_1H_UP_DOWN_UP:YES",
+                        "BTC_PRICE_1H_UP_DOWN_UP:NO"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook sends vendor, marketId and tokenId",
+                "method": "fetchOrderBook",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/order-book?timestamp=1748131900000&vendor=PREDICT_FUN&marketId=5567895&tokenId=112233&signature=e8b9b729c8d2780f371fb5ee7626e8fd922209950e64d6ebcbda7c856509f7a3",
+                "input": [
+                    "BTC_PRICE_1H_UP_DOWN_UP:YES"
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents with a query resolves through the semantic search endpoint",
+                "method": "fetchEvents",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/search?timestamp=1748131900000&query=bitcoin&topK=25&signature=1325c6c77c3365a48e86b6a1224c67bc876f55ed2785a5477b231541d62f05bf",
+                "input": [
+                    {
+                        "query": "bitcoin"
+                    }
+                ]
+            },
+            {
+                "description": "fetchEvents scoped by l1Category pages the market listing",
+                "method": "fetchEvents",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/list?timestamp=1748131900000&offset=0&limit=25&l1Category=crypto&signature=d85d1b3100157381891f58e97e8bfa9bedf57b3a45b8aa5ac60d27283d6ab475",
+                "input": [
+                    {
+                        "l1Category": "crypto"
+                    }
+                ]
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "fetchEvent fetches the market topic detail by id",
+                "method": "fetchEvent",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/detail?timestamp=1748131900000&marketTopicId=4229564&signature=bc08d4b3433c74eed95aeda76422bba0140dbd8a8f77c604dc1874215b87c68a",
+                "input": [
+                    "4229564"
+                ]
+            }
+        ],
+        "fetchOutcome": [
+            {
+                "description": "an uncached handle resolves through the search endpoint with a query derived from its words",
+                "method": "fetchOutcome",
+                "url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/market/search?timestamp=1748131900000&query=bitcoin&topK=10&signature=7621177d650976ddb76074c0c64f1f06ca707f57e3d01db05fafad0a16dff910",
+                "input": [
+                    "BITCOIN:YES"
+                ]
+            }
+        ]
+    }
+}
