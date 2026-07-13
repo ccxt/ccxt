@@ -365,11 +365,11 @@ func (this *Exchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any)
 }
 
 func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
-	res := SafeStringN(obj, keys, nil)
-	if res != "" && res != nil {
-		return strings.ToUpper(res.(string))
+	value := SafeStringN(obj, keys, nil)
+	if value == nil {
+		return defaultValue
 	}
-	return defaultValue
+	return strings.ToUpper(value.(string))
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
@@ -659,7 +659,7 @@ func (this *Exchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any)
 }
 
 func SafeStringLowerN(obj any, keys []any, defaultValue any) any {
-	value := SafeStringN(obj, keys, defaultValue)
+	value := SafeStringN(obj, keys, nil)
 	if value == nil {
 		return defaultValue
 	}
