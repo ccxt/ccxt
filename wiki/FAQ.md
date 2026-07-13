@@ -518,8 +518,6 @@ exchange = ccxt.prediction.kalshi({
 })
 ```
 
-Note: kalshi lists tens of thousands of markets, so CCXT does not bulk-load them all by default (`exchange.options['loadAllOutcomes']` is `false` there) — outcome handles are resolved on demand, one request per outcome, and cached. Public market data works without any credentials.
-
 ### How to use the Prediction Exchange Hyperliquid?
 
 Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
