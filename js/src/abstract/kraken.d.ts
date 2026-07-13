@@ -10,12 +10,12 @@ interface Exchange {
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
     publicGetOHLC(params?: {}): Promise<implicitReturnType>;
     publicGetDepth(params?: {}): Promise<implicitReturnType>;
+    publicGetLevel3(params?: {}): Promise<implicitReturnType>;
     publicGetGroupedBook(params?: {}): Promise<implicitReturnType>;
     publicGetTrades(params?: {}): Promise<implicitReturnType>;
     publicGetSpread(params?: {}): Promise<implicitReturnType>;
     publicGetPreTrade(params?: {}): Promise<implicitReturnType>;
     publicGetPostTrade(params?: {}): Promise<implicitReturnType>;
-    privatePostLevel3(params?: {}): Promise<implicitReturnType>;
     privatePostBalance(params?: {}): Promise<implicitReturnType>;
     privatePostBalanceEx(params?: {}): Promise<implicitReturnType>;
     privatePostCreditLines(params?: {}): Promise<implicitReturnType>;

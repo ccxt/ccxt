@@ -590,7 +590,7 @@ func (this *BitsoCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		catalogues := (<-this.CallDynamically("publicGetCatalogues", params))
+		catalogues := (<-this.PublicGetCatalogues(params))
 		PanicOnError(catalogues)
 		//
 		//     {

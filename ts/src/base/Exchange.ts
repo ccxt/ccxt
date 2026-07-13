@@ -184,7 +184,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export default class Exchange {
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.64';
+    static ccxtVersion = '4.5.65';
 
     options: Dict;
 
