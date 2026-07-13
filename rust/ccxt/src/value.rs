@@ -272,12 +272,47 @@ impl Value {
     pub fn is_dictionary(&self, value: Value) -> Value {
         Value::Bool(matches!(value, Value::Dict(_)))
     }
-    /// `exchange.networkCodeToId(code, currency)` — stub that just
-    /// echoes the code back. Real impl lives on `Exchange`; the test
-    /// transpiles call sites with `exchange: Value`.
-    pub fn network_code_to_id(&self, code: Value, _args: &[Value]) -> Value { code }
-    /// `exchange.networkIdToCode(args)` — stub passthrough.
-    pub fn network_id_to_code(&self, _args: &[Value]) -> Value { Value::Null }
+    /// Lifts this snapshot's `options` + `currencies` onto a throwaway base
+    /// `Exchange` so the *transpiled* conversion methods can run against it.
+    /// The afterConstruct test transpiles its call sites with `exchange:
+    /// Value`, so these methods have to exist on `Value` — but the logic
+    /// must stay in the transpiled base, not be duplicated here.
+    #[cfg(feature = "transpiled-base")]
+    fn snapshot_as_exchange(&self) -> crate::exchange::Exchange {
+        let mut ex = crate::exchange::Exchange::new(None);
+        ex.options = crate::runtime::get_value(self, &Value::Str("options".to_string()));
+        ex.currencies = crate::runtime::get_value(self, &Value::Str("currencies".to_string()));
+        ex
+    }
+
+    /// `exchange.networkCodeToId(code, currency)` on a snapshot `Value` —
+    /// delegates to the transpiled `Exchange::network_code_to_id`.
+    pub fn network_code_to_id(&self, code: Value, args: &[Value]) -> Value {
+        #[cfg(feature = "transpiled-base")]
+        {
+            let currency = args.first().cloned().unwrap_or(Value::Null);
+            return self.snapshot_as_exchange().network_code_to_id(code, &[currency]);
+        }
+        #[cfg(not(feature = "transpiled-base"))]
+        {
+            let _ = args;
+            code
+        }
+    }
+
+    /// `exchange.networkIdToCode(networkId, currency)` on a snapshot `Value`
+    /// — delegates to the transpiled `Exchange::network_id_to_code`.
+    pub fn network_id_to_code(&self, args: &[Value]) -> Value {
+        #[cfg(feature = "transpiled-base")]
+        {
+            return self.snapshot_as_exchange().network_id_to_code(args);
+        }
+        #[cfg(not(feature = "transpiled-base"))]
+        {
+            let _ = args;
+            Value::Null
+        }
+    }
     /// `side.storeArray(delta)` — insert/update/delete by price (or
     /// by id for the indexed variant). Defined here (rather than next
     /// to `store`) so that derived exchange code which calls
