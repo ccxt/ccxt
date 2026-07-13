@@ -51,6 +51,7 @@ export default class nado extends nadoRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'requestId': 0,
             },
             'urls': {
                 'api': {
@@ -67,6 +68,12 @@ export default class nado extends nadoRest {
                 },
             },
         });
+    }
+
+    requestId (): Int {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
     }
 
     /**
@@ -766,13 +773,23 @@ export default class nado extends nadoRest {
         const request: Dict = {
             'method': 'subscribe',
             'stream': this.deepExtend (stream, params),
-            'id': this.nonce (),
+            'id': this.requestId (),
         };
+        const subscribeHash = 'subscribe:' + this.json (request['stream']);
         const subscription = {
             'streamType': streamType,
             'symbol': this.safeString (market, 'symbol'),
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        const client = this.client (url);
+        const clientSubscription = this.safeValue (client.subscriptions, subscribeHash);
+        if (clientSubscription === undefined) {
+            const id = this.safeString (request, 'id');
+            client.subscriptions['subscription:' + id] = {
+                'subscribeHash': subscribeHash,
+            };
+            this.watchMultiple (url, [ subscribeHash ], request, [ subscribeHash ], subscription);
+        }
+        return await this.watch (url, messageHash);
     }
 
     async watchPrivate (streamType, stream, messageHash: string, params = {}) {
@@ -782,7 +799,7 @@ export default class nado extends nadoRest {
         if (clientSubscription !== undefined) {
             return await this.watch (url, messageHash);
         }
-        const id = this.nonce ();
+        const id = this.requestId ();
         const subscribeHash = 'subscribe:' + messageHash;
         const request: Dict = {
             'method': 'subscribe',
@@ -801,7 +818,7 @@ export default class nado extends nadoRest {
 
     async unWatchPrivate (stream, messageHash: string, params = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
-        const id = this.nonce ();
+        const id = this.requestId ();
         const unsubscribeHash = 'unsubscribe:' + messageHash;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -837,7 +854,7 @@ export default class nado extends nadoRest {
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'authenticate', 'recvWindow', 5000);
         let subaccount = undefined;
         [ subaccount, params ] = this.handleOptionAndParams (params, 'authenticate', 'subaccount', 'default');
-        const id = this.nonce ();
+        const id = this.requestId ();
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const expiration = this.sum (this.milliseconds (), recvWindow);
         const tx = {
@@ -901,18 +918,21 @@ export default class nado extends nadoRest {
             const clientSubscription = this.safeValue (client.subscriptions, messageHash);
             if (clientSubscription === undefined) {
                 const market = markets[i];
-                const id = this.nonce ();
-                const subscribeHash = 'subscribe:' + messageHash;
+                const id = this.requestId ();
                 const requestParams = (subscriptionParams === undefined) ? params : subscriptionParams[i];
                 const request = this.createPublicSubscriptionRequest ('subscribe', streamType, market, id, requestParams);
-                const subscription = {
-                    'streamType': streamType,
-                    'symbol': this.safeString (market, 'symbol'),
-                };
-                client.subscriptions['subscription:' + this.numberToString (id)] = {
-                    'subscribeHash': subscribeHash,
-                };
-                this.watchMultiple (url, [ subscribeHash ], request, [ messageHash ], subscription);
+                const subscribeHash = 'subscribe:' + this.json (request['stream']);
+                const streamSubscription = this.safeValue (client.subscriptions, subscribeHash);
+                if (streamSubscription === undefined) {
+                    const subscription = {
+                        'streamType': streamType,
+                        'symbol': this.safeString (market, 'symbol'),
+                    };
+                    client.subscriptions['subscription:' + this.numberToString (id)] = {
+                        'subscribeHash': subscribeHash,
+                    };
+                    this.watchMultiple (url, [ subscribeHash ], request, [ subscribeHash ], subscription);
+                }
             }
         }
         return await this.watchMultiple (url, messageHashes, undefined, messageHashes);
@@ -920,7 +940,7 @@ export default class nado extends nadoRest {
 
     async unWatchPublic (streamType, market, messageHash: string, params = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
-        const id = this.nonce ();
+        const id = this.requestId ();
         const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, market, id, params);
         const subscription = {
             'id': id,
@@ -941,7 +961,7 @@ export default class nado extends nadoRest {
         const results = [];
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
-            const id = this.nonce ();
+            const id = this.requestId ();
             const unsubscribeHash = 'unsubscribe:' + messageHash;
             const requestParams = (subscriptionParams === undefined) ? params : subscriptionParams[i];
             const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, markets[i], id, requestParams);
@@ -1351,16 +1371,21 @@ export default class nado extends nadoRest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const bbo = this.safeDict (bbos, marketId, {});
-            const ticker = this.safeTicker ({
-                'symbol': market['symbol'],
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'ask': this.parseX18 (this.safeString (bbo, 'ask')),
-                'bid': this.parseX18 (this.safeString (bbo, 'bid')),
-                'info': bbo,
-            }, market);
-            const symbol = market['symbol'];
-            result[symbol] = ticker;
+            const bid = this.safeString (bbo, 'bid');
+            const ask = this.safeString (bbo, 'ask');
+            const maxPrice = '170141183460469231731687303715884105727';
+            if (Precise.stringGt (bid, '0') && Precise.stringGt (ask, '0') && !Precise.stringEquals (bid, maxPrice) && !Precise.stringEquals (ask, maxPrice)) {
+                const ticker = this.safeTicker ({
+                    'symbol': market['symbol'],
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'ask': this.parseX18 (ask),
+                    'bid': this.parseX18 (bid),
+                    'info': bbo,
+                }, market);
+                const symbol = market['symbol'];
+                result[symbol] = ticker;
+            }
         }
         return result;
     }
@@ -1378,18 +1403,6 @@ export default class nado extends nadoRest {
         }
         client.resolve (tickers, 'bidask');
         client.resolve (tickers, 'ticker');
-    }
-
-    parseWsOrderBookDeltas (deltas) {
-        const result = [];
-        for (let i = 0; i < deltas.length; i++) {
-            const delta = deltas[i];
-            result.push ([
-                this.parseX18 (this.safeString (delta, 0)),
-                this.parseX18 (this.safeString (delta, 1)),
-            ]);
-        }
-        return result;
     }
 
     handleDelta (bookside, delta) {
@@ -1419,8 +1432,8 @@ export default class nado extends nadoRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        const asks = this.parseWsOrderBookDeltas (this.safeList (message, 'asks', []));
-        const bids = this.parseWsOrderBookDeltas (this.safeList (message, 'bids', []));
+        const asks = this.safeList (message, 'asks', []);
+        const bids = this.safeList (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
         this.handleDeltas (orderbook['bids'], bids);
         const timestamp = this.parseWsTimestamp (message, 'max_timestamp');
@@ -1522,7 +1535,7 @@ export default class nado extends nadoRest {
     ping (client: Client) {
         return {
             'method': 'ping',
-            'id': this.nonce (),
+            'id': this.requestId (),
             'client_time': this.numberToString (this.milliseconds ()),
         };
     }
@@ -1549,10 +1562,13 @@ export default class nado extends nadoRest {
         if ((error === undefined) && (status !== 'failure')) {
             return false;
         }
-        const feedback = this.id + ' ' + this.json (message);
+        const feedback = new ExchangeError (this.id + ' ' + this.json (message));
         const id = this.safeString (message, 'id');
-        if ((id !== undefined) && (id in client.futures)) {
-            client.reject (feedback, id);
+        const subscription = this.safeDict (client.subscriptions, 'subscription:' + id);
+        if (subscription !== undefined) {
+            const subscribeHash = this.safeString (subscription, 'subscribeHash');
+            delete client.subscriptions['subscription:' + id];
+            client.reject (feedback, subscribeHash);
         } else {
             client.reject (feedback);
         }
