@@ -1,4 +1,4 @@
-package examples
+package prediction
 
 // Prediction markets example
 //

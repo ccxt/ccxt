@@ -18,8 +18,8 @@
 //
 // Usage:
 //   KALSHI_APIKEY=... KALSHI_PRIVATEKEY="$(cat rsa_key.pem)" \
-//   npx tsx examples/ts/prediction-kalshi-end-to-end.ts
-import ccxt from '../../js/ccxt.js';
+//   npx tsx examples/ts/prediction/prediction-kalshi-end-to-end.ts
+import ccxt from '../../../js/ccxt.js';
 const MAX_NOTIONAL_USD = 25; // hard cap per trade
 const ORDER_SIZE_CONTRACTS = 1; // 1 contract @ 0.02 = 0.02 USD notional
 async function main() {

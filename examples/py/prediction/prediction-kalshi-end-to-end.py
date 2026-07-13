@@ -8,13 +8,13 @@
 #
 # Usage:
 #   KALSHI_APIKEY=... KALSHI_PRIVATEKEY="$(cat key.pem)" \
-#   python3 examples/py/prediction-kalshi-end-to-end.py
+#   python3 examples/py/prediction/prediction-kalshi-end-to-end.py
 
 import asyncio
 import os
 import sys
 
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.append(root + '/python')
 
 from ccxt.prediction.kalshi import kalshi  # noqa: E402

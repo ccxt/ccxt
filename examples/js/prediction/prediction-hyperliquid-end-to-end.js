@@ -13,8 +13,8 @@
 // Usage (testnet is the default; set HYPERLIQUID_SANDBOX=false for mainnet — the wallet must
 // be funded/onboarded on whichever network you choose):
 //   HYPERLIQUID_WALLETADDRESS=0x... HYPERLIQUID_PRIVATEKEY=0x... \
-//   npx tsx examples/ts/prediction-hyperliquid-end-to-end.ts
-import ccxt from '../../js/ccxt.js';
+//   npx tsx examples/ts/prediction/prediction-hyperliquid-end-to-end.ts
+import ccxt from '../../../js/ccxt.js';
 const MAX_NOTIONAL_USD = 25; // hard cap per trade
 const ORDER_SIZE_SHARES = 220; // 220 * 0.05 = 11 USD notional, under the cap
 async function main() {

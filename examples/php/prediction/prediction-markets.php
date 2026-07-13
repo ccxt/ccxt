@@ -5,7 +5,7 @@
 // \ccxt\prediction namespace, extending PredictionExchange (events/outcomes
 // helpers) on top of the ReactPHP \ccxt\async\Exchange.
 
-include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
+include dirname(dirname(dirname(dirname(__FILE__)))) . '/ccxt.php';
 date_default_timezone_set('UTC');
 
 use function React\Async\await;

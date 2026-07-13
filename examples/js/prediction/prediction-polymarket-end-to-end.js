@@ -8,8 +8,8 @@
 //
 // Usage:
 //   polymarket_privateKey=0x... polymarket_walletAddress=0x... \
-//   npx tsx examples/ts/prediction-polymarket-end-to-end.ts
-import ccxt from '../../js/ccxt.js';
+//   npx tsx examples/ts/prediction/prediction-polymarket-end-to-end.ts
+import ccxt from '../../../js/ccxt.js';
 const MAX_NOTIONAL_USD = 25; // hard cap per trade
 const ORDER_SIZE_SHARES = 5; // polymarket minimum order size
 async function main() {

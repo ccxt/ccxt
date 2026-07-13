@@ -18,8 +18,8 @@
 // it is applied client-side, so every exchange supports the same options uniformly.
 //
 // Usage:
-//   npx tsx examples/ts/prediction-fetch-events-options.ts
-import ccxt from '../../js/ccxt.js';
+//   npx tsx examples/ts/prediction/prediction-fetch-events-options.ts
+import ccxt from '../../../js/ccxt.js';
 function summarize(events, n = 3) {
     const titles = [];
     for (let i = 0; i < Math.min(n, events.length); i++) {

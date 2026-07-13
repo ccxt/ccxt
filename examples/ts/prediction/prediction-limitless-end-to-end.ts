@@ -20,9 +20,9 @@
 //
 // Usage:
 //   LIMITLESS_APIKEY=... LIMITLESS_SECRET=... LIMITLESS_PRIVATEKEY=0x... \
-//   npx tsx examples/ts/prediction-limitless-end-to-end.ts
+//   npx tsx examples/ts/prediction/prediction-limitless-end-to-end.ts
 
-import ccxt from '../../js/ccxt.js';
+import ccxt from '../../../js/ccxt.js';
 
 const MAX_NOTIONAL_USD = 25;     // hard cap per trade
 const ORDER_SIZE_SHARES = 110;   // 110 * 0.05 = 5.5 USD notional, above the ~100-share minimum
