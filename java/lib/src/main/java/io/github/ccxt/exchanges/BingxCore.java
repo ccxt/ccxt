@@ -1629,7 +1629,7 @@ public class BingxCore extends BingxApi
         final Object finalTakeOrMaker = takeOrMaker;
         final Object finalAmount = amount;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
-            put( "id", BingxCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "t"))) );
+            put( "id", BingxCore.this.safeString2(trade, "id", "t") );
             put( "info", trade );
             put( "timestamp", finalTime );
             put( "datetime", BingxCore.this.iso8601(finalTime) );
