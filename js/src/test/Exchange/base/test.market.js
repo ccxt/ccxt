@@ -118,8 +118,8 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertLess(exchange, skippedProperties, method, market, 'taker', '100');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'maker', '-100');
     testSharedMethods.assertLess(exchange, skippedProperties, method, market, 'maker', '100');
-    // validate type
-    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other'];
+    // validate type ('prediction' for prediction-market exchanges)
+    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other'];
     testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'type', validTypes);
     // validate subTypes
     const validSubTypes = ['linear', 'inverse', 'quanto', undefined];
@@ -152,7 +152,12 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'margin', [false, undefined]);
     }
     // check mutually exclusive fields
-    if (spot) {
+    const isPrediction = (market['type'] === 'prediction');
+    if (isPrediction) {
+        // prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert(!spot && !contract && !future && !swap && !option, 'for prediction market, none of spot/contract/future/swap/option should be set' + logText);
+    }
+    else if (spot) {
         assert(!contract && linear === undefined && inverse === undefined && !option && !swap && !future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + logText);
     }
     else {
@@ -265,8 +270,9 @@ function testMarket(exchange, skippedProperties, method, market) {
             }
         }
     }
-    // check currencies
-    if (!isInactiveMarket) {
+    // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if (!isInactiveMarket && !isPrediction) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);

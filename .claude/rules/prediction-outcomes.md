@@ -61,26 +61,33 @@ before `applyEventFetchParams` — see the `omit (params, ['tags'])` in kalshi/l
 The unscoped top-N browse remains available explicitly via `fetchMarkets()`/`loadMarkets()` (capped,
 volume-ordered where the venue supports it).
 
-## kalshi `fetchOutcome` override — the by-id template
+## kalshi `fetchOutcome` override — the by-id + scoped-search template
+
+An override must handle BOTH input forms and never throw before trying the base fallback:
 
 ```ts
 async fetchOutcome (outcomeSymbol: string): Promise<any> {
-    // .length INLINE on strings: the standalone `const n = str.length;` statement transpiles
-    // to php count() (the array hint) and TypeErrors at runtime; inline emits strlen()
-    const suffix = outcomeSymbol.slice (outcomeSymbol.length - 3);
-    const isNo = (suffix === '-NO');
-    const baseTicker = isNo ? outcomeSymbol.slice (0, outcomeSymbol.length - 3) : outcomeSymbol;
-    const response = await this.kalshiPublicGetMarketsTicker ({ 'ticker': baseTicker });
-    const parsed = this.parseMarket (this.safeDict (response, 'market', response));
-    if (this.markets === undefined) { this.markets = this.createSafeDictionary (); }
-    this.markets[parsed['symbol']] = parsed;                          // accumulate into markets, then…
-    this.indexMarketOutcomes (parsed);                                // …index just this market
-    return this.outcome (outcomeSymbol);
+    // keep the indexOf comparison INLINE and `< 0`: the php transpiler only rewrites the
+    // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
+    // never satisfies `< 0` and id-form inputs take the wrong branch
+    if (outcomeSymbol.indexOf (':') < 0) {
+        // id-form (a kalshi ticker, or ticker + '-NO'): fetch the single market by ticker,
+        // merge into this.markets + indexMarketOutcomes (parsed), return this.outcome (...).
+        // on BadSymbol (unknown ticker) fall THROUGH to super instead of throwing
+    } else {
+        // handle-form (EVENT_MARKET:LABEL): sending it as a ticker is a guaranteed 404.
+        // kalshi handles start with the series ticker (handles are shortenSlug(event_ticker)
+        // + '_' + market slug; series tickers are single alnum segments), so resolve via
+        // fetchEvents ({ 'series_ticker': firstToken }) and re-check hasOutcome (...)
+    }
+    return await super.fetchOutcome (outcomeSymbol);   // free-text search + guidance-rich BadSymbol
 }
 ```
 An override's single fetch **must cache** (merge the market into `this.markets` + index it), so a repeat
-lookup is a hit. polymarket's override resolves bare CLOB token ids via `gamma /markets?clob_token_ids=`
-and falls back to `super.fetchOutcome` (the search path) for handle-shaped symbols.
+lookup is a hit — and **must fall back to `super.fetchOutcome`** on a miss (that is what makes
+`createOrder ('SOME_HANDLE:YES')` work on a cold cache; see ts/src/prediction/kalshi.ts for the full
+implementation). polymarket's override resolves bare CLOB token ids via `gamma /markets?clob_token_ids=`
+and falls back the same way for handle-shaped symbols.
 
 ## Cross-language / transpiler gotchas
 

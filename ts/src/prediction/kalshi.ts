@@ -316,40 +316,77 @@ export default class kalshi extends Exchange {
      * @method
      * @name kalshi#fetchOutcome
      * @description resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
-     * thousands of markets, so a cache miss fetches just the requested market by ticker and merges
-     * it into the cache (the same outcome lookups loadOutcomes builds), so repeat lookups are free
-     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+     * thousands of markets, so an id-form miss fetches just the requested market by ticker, and a
+     * handle-form miss resolves through the series-scoped events listing (a handle's first token is
+     * its series ticker); both merge into the cache so repeat lookups are free
+     * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
      * @returns {object} the resolved outcome object
      */
     async fetchOutcome (outcomeSymbol: string): Promise<any> {
-        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-        // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
-        // the python transpiler — this form emits strlen()/len() correctly in both
-        const symbolLength = this.parseToInt (outcomeSymbol.length);
-        const suffix = outcomeSymbol.slice (symbolLength - 3);
-        const isNo = (suffix === '-NO');
-        const baseTicker = isNo ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
-        let response = undefined;
-        try {
-            response = await this.kalshiPublicGetMarketsTicker ({ 'ticker': baseTicker });
-        } catch (e) {
-            // an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
-            // which handleErrors maps to BadSymbol. surface a clear hint; let network failures propagate.
-            if (e instanceof BadSymbol) {
-                throw new BadSymbol (this.id + ' could not resolve outcome ' + outcomeSymbol + ' — pass an outcomeId, or call fetchEvents ()/loadOutcomes () first');
+        // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
+        // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
+        // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
+        // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
+        // never satisfies `< 0` and id-form inputs take the wrong branch
+        if (outcomeSymbol.indexOf (':') < 0) {
+            // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
+            // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
+            // the python transpiler — this form emits strlen()/len() correctly in both
+            const symbolLength = this.parseToInt (outcomeSymbol.length);
+            const suffix = outcomeSymbol.slice (symbolLength - 3);
+            const isNo = (suffix === '-NO');
+            const baseTicker = isNo ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
+            let response = undefined;
+            try {
+                response = await this.kalshiPublicGetMarketsTicker ({ 'ticker': baseTicker });
+            } catch (e) {
+                // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
+                // fall through to the search-driven base resolution; let network failures propagate
+                if (!(e instanceof BadSymbol)) {
+                    throw e;
+                }
+                response = undefined;
             }
-            throw e;
+            if (response !== undefined) {
+                const rawMarket = this.safeDict (response, 'market', response);
+                const parsed = this.parseMarket (rawMarket);
+                if (this.markets === undefined) {
+                    this.markets = this.createSafeDictionary ();
+                }
+                this.markets[parsed['symbol']] = parsed;
+                // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+                // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
+                this.indexMarketOutcomes (parsed);
+                return this.outcome (outcomeSymbol);
+            }
+        } else {
+            // handle-form: handles are shortenSlug(event_ticker) + '_' + <market slug> and kalshi
+            // series tickers are single alphanumeric segments, so the handle's first '_' token is
+            // its series ticker — fetch that series' open events (server-side filter, one page in
+            // the common case) and re-check the cache for the exact handle
+            const handleParts = outcomeSymbol.split (':');
+            const marketPart = this.safeString (handleParts, 0, '');
+            const parts = marketPart.split ('_');
+            const seriesTicker = this.safeString (parts, 0);
+            if ((seriesTicker !== undefined) && (seriesTicker !== '')) {
+                try {
+                    await this.fetchEvents ({ 'series_ticker': seriesTicker });
+                } catch (e) {
+                    // an unknown series is a plain miss — the free-text fallback below still runs;
+                    // let network failures propagate
+                    if (!(e instanceof BadSymbol)) {
+                        throw e;
+                    }
+                }
+                if (this.hasOutcome (outcomeSymbol)) {
+                    return this.safeOutcome (outcomeSymbol);
+                }
+            }
         }
-        const rawMarket = this.safeDict (response, 'market', response);
-        const parsed = this.parseMarket (rawMarket);
-        if (this.markets === undefined) {
-            this.markets = this.createSafeDictionary ();
-        }
-        this.markets[parsed['symbol']] = parsed;
-        // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
-        // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
-        this.indexMarketOutcomes (parsed);
-        return this.outcome (outcomeSymbol);
+        // free-text fallback: the base derives a search query from the handle's words, resolves it
+        // through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
+        // on a genuine miss
+        return await super.fetchOutcome (outcomeSymbol);
     }
 
     /**

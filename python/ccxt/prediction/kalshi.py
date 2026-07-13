@@ -206,10 +206,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 'maxFetchEventsResults': 100,      # default cap on events actually fetched when the caller gives no limit
                 'maxEventPagesPerSeries': 20,      # safety cap on /events pages fetched per resolved series
                 'defaultEventStatus': 'open',  # 'open' | 'closed' | 'settled'
-                # kalshi has tens of thousands of markets. False(default) = resolve each outcome on
-                # demand(~1s per market, cached) so hot paths are cheap; set True to bulk-load every
-                # outcome once up front(a multi-second listing scan) and make every later lookup a hit
-                'loadAllOutcomes': False,
+                # venue-specific fetchEvents scope params accepted by requireEventQuery in
+                # addition to the unified query/queries/tags/eventId/slug
+                'eventScopeParams': ['category', 'series_ticker'],
             },
         })
 
@@ -301,33 +300,118 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
  @ignore
         resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
- thousands of markets, so a cache miss fetches just the requested market by ticker and merges
- it into the cache(the same outcome lookups loadOutcomes builds), so repeat lookups are free
-        :param str outcomeSymbol: an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix
+ thousands of markets, so an id-form miss fetches just the requested market by ticker, and a
+ handle-form miss resolves through the series-scoped events listing(a handle's first token is
+ its series ticker); both merge into the cache so repeat lookups are free
+        :param str outcomeSymbol: an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
         :returns dict: the resolved outcome object
         """
-        symbolLength = len(outcomeSymbol)
-        suffix = outcomeSymbol[symbolLength - 3:]
-        isNo = (suffix == '-NO')
-        baseTicker = outcomeSymbol[0:symbolLength - 3] if isNo else outcomeSymbol
-        response = None
-        try:
-            response = await self.kalshiPublicGetMarketsTicker({'ticker': baseTicker})
-        except Exception as e:
-            # an unknown ticker — or a unified handle passed on a cold cache — returns 'not_found',
-            # which handleErrors maps to BadSymbol. surface a clear hint; network failures propagate.
-            if isinstance(e, BadSymbol):
-                raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + ' — pass an outcomeId, or call fetchEvents()/loadOutcomes() first')
-            raise e
-        rawMarket = self.safe_dict(response, 'market', response)
-        parsed = self.parse_market(rawMarket)
+        # a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
+        # sending a unified handle(EVENT_MARKET:LABEL) ticker is a guaranteed 404.
+        # the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
+        # inline form to mb_strpos's `== False`; assigned to a variable first, absence(False)
+        # never satisfies `< 0` and id-form inputs take the wrong branch
+        if outcomeSymbol.find(':') < 0:
+            # parseToInt-wrapped .length: the bare `n = len(str);` statement is the php
+            # transpiler's ARRAY hint(count()), and len(`)` inline inside slice() args breaks
+            # the python transpiler — self form emits strlen()/len() correctly in both
+            symbolLength = self.parse_to_int(len(outcomeSymbol))
+            suffix = outcomeSymbol[symbolLength - 3:]
+            isNo = (suffix == '-NO')
+            baseTicker = outcomeSymbol[0:symbolLength - 3] if isNo else outcomeSymbol
+            response = None
+            try:
+                response = await self.kalshiPublicGetMarketsTicker({'ticker': baseTicker})
+            except Exception as e:
+                # an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
+                # fall through to the search-driven base resolution; network failures propagate
+                if not (isinstance(e, BadSymbol)):
+                    raise e
+                response = None
+            if response is not None:
+                rawMarket = self.safe_dict(response, 'market', response)
+                parsed = self.parse_market(rawMarket)
+                if self.markets is None:
+                    self.markets = self.create_safe_dictionary()
+                self.markets[parsed['symbol']] = parsed
+                # index only the market just fetched, not a full O(markets x outcomes) rebuild of the
+                # whole cache — on-demand fetchOutcome(loadAllOutcomes False) is the hot path here
+                self.index_market_outcomes(parsed)
+                return self.outcome(outcomeSymbol)
+        else:
+            # handle-form: handles are shortenSlug(event_ticker) + '_' + <market slug> and kalshi
+            # series tickers are single alphanumeric segments, so the handle's first '_' token is
+            # its series ticker — fetch that series' open events(server-side filter, one page in
+            # the common case) and re-check the cache for the exact handle
+            handleParts = outcomeSymbol.split(':')
+            marketPart = self.safe_string(handleParts, 0, '')
+            parts = marketPart.split('_')
+            seriesTicker = self.safe_string(parts, 0)
+            if (seriesTicker is not None) and (seriesTicker != ''):
+                try:
+                    await self.fetch_events({'series_ticker': seriesTicker})
+                except Exception as e:
+                    # an unknown series is a plain miss — the free-text fallback below still runs
+                    # network failures propagate
+                    if not (isinstance(e, BadSymbol)):
+                        raise e
+                if self.has_outcome(outcomeSymbol):
+                    return self.safe_outcome(outcomeSymbol)
+        # free-text fallback: the base derives a search query from the handle's words, resolves it
+        # through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
+        # on a genuine miss
+        return await super(kalshi, self).fetch_outcome(outcomeSymbol)
+
+    async def fetch_outcomes(self, outcomeSymbols: List[str]) -> Any:
+        """
+ @ignore
+        resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter(100 per request); anything left unresolved(handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
+
+        https://docs.kalshi.com/api-reference/market/get-markets
+
+        :param str[] outcomeSymbols: kalshi tickers(optionally with a '-NO' suffix) or outcome handles
+        :returns dict: the outcome cache
+        """
+        tickers = []
+        seen = {}
+        for i in range(0, len(outcomeSymbols)):
+            outcomeSymbol = outcomeSymbols[i]
+            if outcomeSymbol.find(':') >= 0:
+                continue
+            # parseToInt-wrapped .length — see the fetchOutcome comment(php count()/python slice traps)
+            symbolLength = self.parse_to_int(len(outcomeSymbol))
+            suffix = outcomeSymbol[symbolLength - 3:]
+            baseTicker = outcomeSymbol[0:symbolLength - 3] if (suffix == '-NO') else outcomeSymbol
+            if not (baseTicker in seen):
+                seen[baseTicker] = True
+                tickers.append(baseTicker)
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
-        self.markets[parsed['symbol']] = parsed
-        # index only the market just fetched, not a full O(markets x outcomes) rebuild of the
-        # whole cache — on-demand fetchOutcome(loadAllOutcomes False) is the hot path here
-        self.index_market_outcomes(parsed)
-        return self.outcome(outcomeSymbol)
+        chunkSize = self.safe_integer(self.options, 'fetchOutcomesBatchSize', 100)
+        tickersLength = len(tickers)
+        startIndex = 0
+        while(startIndex < tickersLength):
+            endIndex = self.sum(startIndex, chunkSize)
+            if endIndex > tickersLength:
+                endIndex = tickersLength
+            chunk = []
+            for i in range(startIndex, endIndex):
+                chunk.append(tickers[i])
+            request = {
+                'tickers': ','.join(chunk),
+                'limit': chunkSize,
+            }
+            response = await self.kalshiPublicGetMarkets(request)
+            rawMarkets = self.safe_list(response, 'markets', [])
+            for i in range(0, len(rawMarkets)):
+                parsed = self.parse_market(rawMarkets[i])
+                self.markets[parsed['symbol']] = parsed
+                self.index_market_outcomes(parsed)
+            startIndex = self.sum(startIndex, chunkSize)
+        for i in range(0, len(outcomeSymbols)):
+            if not self.has_outcome(outcomeSymbols[i]):
+                await self.fetch_outcome(outcomeSymbols[i])
+        return self.outcomes
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         # kalshi returns {"error": {"code": "...", ...}} with a 4xx; map known codes to ccxt
@@ -813,24 +897,21 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
         """
-        fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
+        fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint(100 per request)
 
         https://docs.kalshi.com/api-reference/market/get-markets
 
-        :param str[] [outcomes]: unified outcomes, fetches tickers for all loaded outcomes when omitted
+        :param str[] outcomes: unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
         """
+        if outcomes is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+        # batch-resolve the uncached outcomes(one markets request per 100 tickers)
+        await self.load_outcomes(outcomes)
         targets = []
-        if outcomes is not None:
-            for i in range(0, len(outcomes)):
-                await self.load_outcome(outcomes[i])
-                targets.append(outcomes[i])
-        else:
-            await self.load_outcomes()
-            allKeys = list(self.outcomes.keys())
-            for i in range(0, len(allKeys)):
-                targets.append(allKeys[i])
+        for i in range(0, len(outcomes)):
+            targets.append(outcomes[i])
         # group requested outcomes by their market ticker, yes and no outcomes share one market
         outcomesByTicker = {}
         tickers = []
@@ -1049,6 +1130,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             previousPrice = self.safe_number(priceObj, 'previous_dollars')
             if (openPrice is not None) or (previousPrice is not None):
                 usableCandles.append(candle)
+        # kalshi candles carry only the period-END timestamp; thread the candle duration through so
+        # parseOHLCV can stamp each candle at its OPEN(the CCXT convention)
+        self.options['ohlcvCandleDurationSeconds'] = tf
         return self.parse_ohlcvs(usableCandles, outcomeObj, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1091,8 +1175,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
         price = self.safe_dict(ohlcv, 'price', {})
         # no-trade periods carry only previous_dollars(last trade price) → flat candle
         previous = self.safe_number(price, 'previous_dollars')
+        # the raw candle exposes only the period END(`end_period_ts`); subtract the candle duration
+        # threaded in from fetchOHLCV to stamp the candle at its OPEN(CCXT convention)
+        endTimestamp = self.safe_timestamp(ohlcv, 'end_period_ts')
+        durationSeconds = self.safe_integer(self.options, 'ohlcvCandleDurationSeconds', 0)
+        timestamp = endTimestamp
+        if endTimestamp is not None:
+            timestamp = endTimestamp - durationSeconds * 1000
         return [
-            self.safe_timestamp(ohlcv, 'end_period_ts'),
+            timestamp,
             self.safe_number(price, 'open_dollars', previous),
             self.safe_number(price, 'high_dollars', previous),
             self.safe_number(price, 'low_dollars', previous),
@@ -1196,8 +1287,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         request = {}
         outcomeObj = None
         if outcome is not None:
@@ -1332,10 +1421,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if outcomes is not None:
             outcomesLength = len(outcomes)
         if outcomesLength > 0:
-            for i in range(0, len(outcomes)):
-                await self.load_outcome(outcomes[i])
-        else:
-            await self.load_outcomes()
+            await self.load_outcomes(outcomes)
+        # no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
+        # labels resolve cache-only via safeOutcome(raw tickers when the cache is cold)
         response = await self.kalshiPrivateGetPortfolioPositions(params)
         positions = self.safe_list(response, 'market_positions', [])
         # filter by the requested outcomes' market tickers — a kalshi position is per market
@@ -1373,8 +1461,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -1511,8 +1597,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         request = {'status': 'resting'}
         outcomeObj = None
         if outcome is not None:
@@ -1536,8 +1620,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         if outcome is not None:
             await self.load_outcome(outcome)
-        else:
-            await self.load_outcomes()
         # no status filter — the endpoint returns every order; pass params.status to narrow
         request = {}
         outcomeObj = None
@@ -1607,8 +1689,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
             outcomeKey = ticker + '-NO'
         mkt = self.safe_outcome(outcomeKey, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        action = self.safe_string(order, 'action')
-        side = 'buy' if (action == 'buy') else 'sell'
+        # never invent a side: a minimal response(e.g. a DELETE/cancel body) omits `action`,
+        # and defaulting to 'sell' misreports a canceled buy. leave it None when absent.
+        action = self.safe_string_lower(order, 'action')
+        side = None
+        if action == 'buy':
+            side = 'buy'
+        elif action == 'sell':
+            side = 'sell'
         # price in the outcome's own leg: V2 returns *_price_dollars(already dollars),
         # legacy returned yes_price/no_price in cents
         labelIsNo = (self.safe_string_upper(mkt, 'label') == 'NO')
@@ -1734,10 +1822,20 @@ class kalshi(PredictionExchange, ImplicitAPI):
         order['side'] = side
         order['amount'] = amount
         order['price'] = price
+        # the minimal create response reports fills/remaining_count(not the *_fp keys
+        # parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
+        # otherwise a fully-filled order would return status 'closed' with filled 0
+        remainingCount = self.safe_number(response, 'remaining_count')
+        filledCount = self.safe_number(response, 'fill_count')
+        if filledCount is not None:
+            order['filled'] = filledCount
+        elif (remainingCount is not None) and (amount is not None):
+            order['filled'] = amount - remainingCount
+        if remainingCount is not None:
+            order['remaining'] = remainingCount
         if order['status'] is None:
-            remaining = self.safe_number(response, 'remaining_count')
             resolvedStatus = 'open'
-            if (remaining is not None) and (remaining == 0):
+            if (remainingCount is not None) and (remainingCount == 0):
                 resolvedStatus = 'closed'
             order['status'] = resolvedStatus
         return order
@@ -1780,13 +1878,15 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
+        outcomeObj = None
         if outcome is not None:
-            await self.load_outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
         # v2 cancel: DELETE /portfolio/events/orders/{order_id}(the /portfolio/orders/{id}
         # and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
-        order = self.parse_prediction_order(self.safe_dict(response, 'order', response))
-        # the del response carries no id/status - backfill the requested id and the outcome
+        # the del response is minimal(no ticker/action/id/status): pass the resolved outcome so
+        # the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
+        order = self.parse_prediction_order(self.safe_dict(response, 'order', response), outcomeObj)
         if order['id'] is None:
             order['id'] = id
         if order['status'] is None:
@@ -1817,11 +1917,16 @@ class kalshi(PredictionExchange, ImplicitAPI):
         restingOrdersLength = len(restingOrders)
         canceledOrders = []
         for i in range(0, restingOrdersLength):
-            orderId = self.safe_string(restingOrders[i], 'order_id')
+            restingOrder = restingOrders[i]
+            orderId = self.safe_string(restingOrder, 'order_id')
             if orderId is not None:
-                response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': orderId}, params))
-                canceledOrders.append(self.safe_dict(response, 'order', response))
-        return self.parse_prediction_orders(canceledOrders)
+                await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': orderId}, params))
+                # the DELETE body is minimal — parse the already-fetched resting order instead, which
+                # carries the True side/outcome/price/count, then mark it canceled
+                parsed = self.parse_prediction_order(restingOrder)
+                parsed['status'] = 'canceled'
+                canceledOrders.append(parsed)
+        return canceledOrders
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """

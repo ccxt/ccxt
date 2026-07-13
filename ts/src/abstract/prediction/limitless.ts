@@ -11,6 +11,7 @@ import { default as _Exchange } from '../../base/PredictionExchange.js';
 interface Exchange {
     limitlessPublicGetMarketsActive (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsActiveCategoryId (params?: {}): Promise<implicitReturnType>;
+    limitlessPublicGetCategories (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsAddressOrSlug (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsCategoriesCount (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsActiveSlugs (params?: {}): Promise<implicitReturnType>;

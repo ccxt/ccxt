@@ -6,11 +6,12 @@
 
 // ----------------------------------------------------------------------------
 import { BaseExchange } from './Exchange.js';
+import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
 // ----------------------------------------------------------------------------
 /**
  * @class PredictionExchange
- * @augments Exchange
+ * @augments BaseExchange
  * @description Base class for prediction-market exchanges. It carries the
  * prediction-specific state (events / outcomes) and helpers, and re-declares the
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
@@ -95,7 +96,9 @@ export default class PredictionExchange extends BaseExchange {
     }
     requireEventQuery(params = {}) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-        // entire exchange. require one of query / queries / tags / eventId / slug
+        // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
+        // venue-specific scope params an exchange declares in options['eventScopeParams']
+        // (e.g. kalshi's category / series_ticker)
         const query = this.safeString(params, 'query');
         const queries = this.safeList(params, 'queries', []);
         const tags = this.safeList(params, 'tags', []);
@@ -103,10 +106,20 @@ export default class PredictionExchange extends BaseExchange {
         const slug = this.safeString(params, 'slug');
         const queriesLength = queries.length;
         const tagsLength = tags.length;
-        if ((query === undefined) && (queriesLength === 0) && (tagsLength === 0) && (eventId === undefined) && (slug === undefined)) {
-            throw new ArgumentsRequired(this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search');
+        if ((query !== undefined) || (queriesLength > 0) || (tagsLength > 0) || (eventId !== undefined) || (slug !== undefined)) {
+            return undefined;
         }
-        return undefined;
+        const extraScopeParams = this.safeList(this.options, 'eventScopeParams', []);
+        const extraScopeParamsLength = extraScopeParams.length;
+        let extraNames = '';
+        for (let i = 0; i < extraScopeParamsLength; i++) {
+            const scopeKey = extraScopeParams[i];
+            if (scopeKey in params) {
+                return undefined;
+            }
+            extraNames = extraNames + ', ' + scopeKey;
+        }
+        throw new ArgumentsRequired(this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }
     applyEventFetchParams(events, params = {}, queries = undefined) {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
@@ -153,6 +166,12 @@ export default class PredictionExchange extends BaseExchange {
                 sortKey = 'created';
             }
             if (sortKey !== undefined) {
+                // normalize the sort key on every row first — sortBy reads it with a raw
+                // subscript, which raises KeyError/undefined-index in Python/PHP when a
+                // venue's parsed event omits the field (JS alone tolerates the miss)
+                for (let i = 0; i < result.length; i++) {
+                    result[i][sortKey] = this.safeNumber(result[i], sortKey, 0);
+                }
                 result = this.sortBy(result, sortKey, true, 0);
             }
         }
@@ -359,6 +378,18 @@ export default class PredictionExchange extends BaseExchange {
         }
         throw new BadSymbol(this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
+    hasOutcome(outcomeIdOrSymbol) {
+        // sync cache-only membership probe — never throws and never fetches. this is the predicate
+        // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
+        // and outcome (throws on miss) are the accessors
+        if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
+            return true;
+        }
+        if ((this.outcomes_by_id !== undefined) && (outcomeIdOrSymbol in this.outcomes_by_id)) {
+            return true;
+        }
+        return false;
+    }
     safeOutcome(outcomeIdOrSymbol, outcomeObj = undefined) {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
@@ -556,14 +587,44 @@ export default class PredictionExchange extends BaseExchange {
         }
         this.populateOutcomes();
     }
-    async loadOutcomes(reload = false, params = {}) {
-        // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
-        // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
-        // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
-        // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
-        // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
-        // from the loaded markets (the setMarkets override that normally does this is not dispatched
-        // by the base loadMarkets under the Go/C#/Java transpilers).
+    async loadOutcomes(outcomes = undefined, reload = false, params = {}) {
+        // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+        // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
+        //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+        //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+        // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
+        //   idempotent unless reload; only worth paying on venues whose whole universe is one
+        //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+        // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+        // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+        if (outcomes !== undefined) {
+            let missing = [];
+            for (let i = 0; i < outcomes.length; i++) {
+                if (reload || !this.hasOutcome(outcomes[i])) {
+                    missing.push(outcomes[i]);
+                }
+            }
+            let missingLength = missing.length;
+            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
+            const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
+            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                await this.loadOutcomes();
+                const stillMissing = [];
+                for (let i = 0; i < missingLength; i++) {
+                    if (!this.hasOutcome(missing[i])) {
+                        stillMissing.push(missing[i]);
+                    }
+                }
+                missing = stillMissing;
+                missingLength = missing.length;
+            }
+            if (missingLength > 0) {
+                await this.fetchOutcomes(missing);
+            }
+            return this.outcomes;
+        }
         if (!reload && (this.outcomes !== undefined) && !this.isEmpty(this.outcomes)) {
             return this.outcomes;
         }
@@ -571,59 +632,131 @@ export default class PredictionExchange extends BaseExchange {
         this.populateOutcomes();
         return this.outcomes;
     }
-    async loadOutcome(outcomeSymbol) {
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#fetchOutcomes
+     * @description resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+     * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcomes(outcomeSymbols) {
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            await this.fetchOutcome(outcomeSymbols[i]);
+        }
+        return this.outcomes;
+    }
+    async loadOutcome(outcomeSymbol, reload = false) {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-        // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
-        // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
-        if (this.outcomes !== undefined) {
-            if (outcomeSymbol in this.outcomes) {
-                return this.outcomes[outcomeSymbol];
+        // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
+        // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+        // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+        // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
+        // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+        // sane on venues whose full universe is one cheap request (hyperliquid)
+        if (!reload) {
+            if (this.hasOutcome(outcomeSymbol)) {
+                return this.safeOutcome(outcomeSymbol);
             }
-            if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                return this.outcomes_by_id[outcomeSymbol];
-            }
-        }
-        const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
-        // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-        // but the outcome cache is cold, index them for free before hitting the network — this
-        // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-        if (!wasWarm && (this.markets !== undefined) && !this.isEmpty(this.markets)) {
-            this.populateOutcomes();
-            if (this.outcomes !== undefined) {
-                if (outcomeSymbol in this.outcomes) {
-                    return this.outcomes[outcomeSymbol];
-                }
-                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                    return this.outcomes_by_id[outcomeSymbol];
+            const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if (!wasWarm && (this.markets !== undefined) && !this.isEmpty(this.markets)) {
+                this.populateOutcomes();
+                if (this.hasOutcome(outcomeSymbol)) {
+                    return this.safeOutcome(outcomeSymbol);
                 }
             }
-        }
-        const loadAll = this.safeBool(this.options, 'loadAllOutcomes', true);
-        if (loadAll && !wasWarm) {
-            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-            // the whole listing (which would mask typos and clobber offline-injected markets)
-            await this.loadOutcomes();
-            if (this.outcomes !== undefined) {
-                if (outcomeSymbol in this.outcomes) {
-                    return this.outcomes[outcomeSymbol];
-                }
-                if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-                    return this.outcomes_by_id[outcomeSymbol];
+            const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
+            if (loadAll && !wasWarm) {
+                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
+                await this.loadOutcomes();
+                if (this.hasOutcome(outcomeSymbol)) {
+                    return this.safeOutcome(outcomeSymbol);
                 }
             }
         }
         return await this.fetchOutcome(outcomeSymbol);
     }
+    outcomeSearchQuery(outcomeSymbol) {
+        // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
+        // cache miss can be resolved through the venue's scoped search instead of a bulk listing
+        // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
+        // carry no searchable words
+        let marketPart = outcomeSymbol;
+        const colonIndex = outcomeSymbol.indexOf(':');
+        if (colonIndex >= 0) {
+            marketPart = outcomeSymbol.slice(0, colonIndex);
+        }
+        if (marketPart.indexOf('0x') === 0) {
+            return undefined;
+        }
+        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        const normalized = marketPart.toLowerCase().replaceAll('-', '_');
+        const rawWords = normalized.split('_');
+        const words = [];
+        let hasLetters = false;
+        const letters = 'abcdefghijklmnopqrstuvwxyz';
+        for (let i = 0; i < rawWords.length; i++) {
+            const word = rawWords[i];
+            // inline .length so the php transpiler emits strlen() — the standalone
+            // `const n = str.length;` statement form wrongly becomes count() (array)
+            if (word.length === 0) {
+                continue;
+            }
+            let wordHasLetters = false;
+            const chars = this.stringToCharsArray(word);
+            for (let ci = 0; ci < chars.length; ci++) {
+                if (letters.indexOf(chars[ci]) >= 0) {
+                    wordHasLetters = true;
+                    break;
+                }
+            }
+            // the query is the handle's letter-bearing words only. standalone numeric tokens
+            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // reliably index — and since the result is re-checked against the EXACT handle,
+            // a broader query only adds recall, never a wrong match
+            if (!wordHasLetters) {
+                continue;
+            }
+            words.push(word);
+            hasLetters = true;
+        }
+        const wordsLength = words.length;
+        if ((wordsLength === 0) || !hasLetters) {
+            // a purely numeric/symbolic handle is an id, not searchable text
+            return undefined;
+        }
+        return words.join(' ');
+    }
     async fetchOutcome(outcomeSymbol) {
-        // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-        // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
-        // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
-        // override this to fetch and cache only the requested outcome — the "always fetch one" path.
-        await this.loadOutcomes();
-        return this.outcome(outcomeSymbol);
+        // fetch just one outcome on demand — never through a bulk listing download. the base has
+        // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+        // through the venue's own scoped fetchEvents (which caches everything it finds), then
+        // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
+        // token id) override this with a cheaper single fetch and fall back to super on a miss.
+        const searchQuery = this.outcomeSearchQuery(outcomeSymbol);
+        if ((searchQuery !== undefined) && this.safeBool(this.has, 'fetchEvents', false)) {
+            const searchLimit = this.safeInteger(this.options, 'fetchOutcomeSearchLimit', 10);
+            try {
+                await this.fetchEvents({ 'query': searchQuery, 'limit': searchLimit });
+            }
+            catch (e) {
+                // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                // plain miss (the guidance-rich throw below); let real transport errors propagate
+                if (!(e instanceof BadSymbol)) {
+                    throw e;
+                }
+            }
+            if (this.hasOutcome(outcomeSymbol)) {
+                return this.safeOutcome(outcomeSymbol);
+            }
+        }
+        throw new BadSymbol(this.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId");
     }
     /**
      * @method
@@ -943,23 +1076,260 @@ export default class PredictionExchange extends BaseExchange {
     async fetchSettlements(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchSettlements() is not supported yet');
     }
-    safePredictionOrder(order, market = undefined) {
-        // the prediction identity is the `outcome` handle carried on the raw dict (read by
-        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
-        const parsed = super.safeOrder(order);
-        return this.toPredictionStructure(parsed, order);
+    safePredictionOrder(outcomeOrder, outcomeObj = undefined) {
+        // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
+        // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
+        // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
+        // outcome-addressed row). prediction is always linear with a contract size of 1.
+        let amount = this.omitZero(this.safeString(outcomeOrder, 'amount'));
+        let filled = this.safeString(outcomeOrder, 'filled');
+        let remaining = this.safeString(outcomeOrder, 'remaining');
+        let cost = this.safeString(outcomeOrder, 'cost');
+        let average = this.omitZero(this.safeString(outcomeOrder, 'average'));
+        const price = this.omitZero(this.safeString(outcomeOrder, 'price'));
+        let side = this.safeString(outcomeOrder, 'side');
+        const status = this.safeString(outcomeOrder, 'status');
+        let lastTradeTimestamp = this.safeInteger(outcomeOrder, 'lastTradeTimestamp');
+        // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
+        const rawTrades = this.safeList(outcomeOrder, 'trades', []);
+        const trades = this.parsePredictionTrades(rawTrades, outcomeObj);
+        const tradesLength = trades.length;
+        const feeList = [];
+        if (tradesLength > 0) {
+            if (filled === undefined) {
+                filled = '0';
+            }
+            if (cost === undefined) {
+                cost = '0';
+            }
+            for (let i = 0; i < tradesLength; i++) {
+                const trade = trades[i];
+                const tradeAmount = this.safeString(trade, 'amount');
+                if (tradeAmount !== undefined) {
+                    filled = Precise.stringAdd(filled, tradeAmount);
+                }
+                const tradeCost = this.safeString(trade, 'cost');
+                if (tradeCost !== undefined) {
+                    cost = Precise.stringAdd(cost, tradeCost);
+                }
+                if (side === undefined) {
+                    side = this.safeString(trade, 'side');
+                }
+                const tradeTimestamp = this.safeInteger(trade, 'timestamp');
+                if (tradeTimestamp !== undefined) {
+                    if (lastTradeTimestamp === undefined) {
+                        lastTradeTimestamp = tradeTimestamp;
+                    }
+                    else if (tradeTimestamp > lastTradeTimestamp) {
+                        lastTradeTimestamp = tradeTimestamp;
+                    }
+                }
+                const tradeFee = this.safeDict(trade, 'fee');
+                if (tradeFee !== undefined) {
+                    feeList.push(tradeFee);
+                }
+            }
+        }
+        // fill any totals the venue left undefined (linear, contract size 1)
+        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
+            filled = Precise.stringSub(amount, remaining);
+        }
+        if ((remaining === undefined) && (amount !== undefined) && (filled !== undefined)) {
+            remaining = Precise.stringSub(amount, filled);
+        }
+        if ((amount === undefined) && (filled !== undefined) && (remaining !== undefined)) {
+            amount = Precise.stringAdd(filled, remaining);
+        }
+        if ((average === undefined) && (filled !== undefined) && (cost !== undefined) && Precise.stringGt(filled, '0')) {
+            average = Precise.stringDiv(cost, filled);
+        }
+        if ((cost === undefined) && (filled !== undefined)) {
+            const multiplyPrice = (average !== undefined) ? average : price;
+            if (multiplyPrice !== undefined) {
+                cost = Precise.stringMul(filled, multiplyPrice);
+            }
+        }
+        let fee = this.safeDict(outcomeOrder, 'fee');
+        // own-line length reads so the regex transpiler emits count() (array), not strlen()
+        const feeListLength = feeList.length;
+        if ((fee === undefined) && (feeListLength > 0)) {
+            const reduced = this.reduceFeesByCurrency(feeList);
+            const reducedLength = reduced.length;
+            if (reducedLength > 0) {
+                fee = reduced[0];
+            }
+        }
+        // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
+        // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
+        const orderType = this.safeString(outcomeOrder, 'type');
+        let timeInForce = this.safeString(outcomeOrder, 'timeInForce');
+        let postOnly = this.safeBool(outcomeOrder, 'postOnly');
+        if (timeInForce === undefined) {
+            if (orderType === 'market') {
+                timeInForce = 'IOC';
+            }
+            if (postOnly) {
+                timeInForce = 'PO';
+            }
+        }
+        else if (postOnly === undefined) {
+            postOnly = (timeInForce === 'PO');
+        }
+        const timestamp = this.safeInteger(outcomeOrder, 'timestamp');
+        let datetime = this.safeString(outcomeOrder, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601(timestamp);
+        }
+        const result = {
+            'id': this.safeString(outcomeOrder, 'id'),
+            'clientOrderId': this.safeString(outcomeOrder, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': this.safeInteger(outcomeOrder, 'lastUpdateTimestamp'),
+            'status': status,
+            'type': orderType,
+            'timeInForce': timeInForce,
+            'side': side,
+            'price': this.parseNumber(price),
+            'average': this.parseNumber(average),
+            'amount': this.parseNumber(amount),
+            'filled': this.parseNumber(filled),
+            'remaining': this.parseNumber(remaining),
+            'cost': this.parseNumber(cost),
+            'fee': fee,
+            'reduceOnly': this.safeBool(outcomeOrder, 'reduceOnly'),
+            'postOnly': postOnly,
+            'trades': trades,
+            'outcome': this.safeString(outcomeOrder, 'outcome'),
+            'outcomeId': this.safeString(outcomeOrder, 'outcomeId'),
+            'label': this.safeString(outcomeOrder, 'label'),
+            'market': this.safeString(outcomeOrder, 'market'),
+            'event': this.safeString(outcomeOrder, 'event'),
+            'info': this.safeValue(outcomeOrder, 'info', outcomeOrder),
+        };
+        return result;
     }
-    safePredictionTrade(trade, market = undefined) {
-        const parsed = super.safeTrade(trade);
-        return this.toPredictionStructure(parsed, trade);
+    safePredictionTrade(trade, outcomeObj = undefined) {
+        // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
+        const price = this.safeString(trade, 'price');
+        const amount = this.safeString(trade, 'amount');
+        let cost = this.safeString(trade, 'cost');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
+            cost = Precise.stringMul(price, amount);
+        }
+        const timestamp = this.safeInteger(trade, 'timestamp');
+        let datetime = this.safeString(trade, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601(timestamp);
+        }
+        const result = {
+            'id': this.safeString(trade, 'id'),
+            'order': this.safeString(trade, 'order'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'type': this.safeString(trade, 'type'),
+            'side': this.safeString(trade, 'side'),
+            'takerOrMaker': this.safeString(trade, 'takerOrMaker'),
+            'price': this.parseNumber(price),
+            'amount': this.parseNumber(amount),
+            'cost': this.parseNumber(cost),
+            'fee': this.safeDict(trade, 'fee'),
+            'realizedPnl': this.safeNumber(trade, 'realizedPnl'),
+            'outcome': this.safeString(trade, 'outcome'),
+            'outcomeId': this.safeString(trade, 'outcomeId'),
+            'label': this.safeString(trade, 'label'),
+            'market': this.safeString(trade, 'market'),
+            'info': this.safeValue(trade, 'info', trade),
+        };
+        return result;
     }
-    safePredictionTicker(ticker, market = undefined) {
-        const parsed = super.safeTicker(ticker);
-        return this.toPredictionStructure(parsed, ticker);
+    safePredictionTicker(ticker, outcomeObj = undefined) {
+        // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
+        // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
+        // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
+        const open = this.omitZero(this.safeString(ticker, 'open'));
+        const close = this.omitZero(this.safeString2(ticker, 'close', 'last'));
+        const last = this.omitZero(this.safeString2(ticker, 'last', 'close'));
+        let change = this.safeString(ticker, 'change');
+        let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
+        let average = this.omitZero(this.safeString(ticker, 'average'));
+        if ((change === undefined) && (open !== undefined) && (close !== undefined)) {
+            change = Precise.stringSub(close, open);
+        }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt(open, '0')) {
+            percentage = Precise.stringMul(Precise.stringDiv(change, open), '100');
+        }
+        if ((average === undefined) && (open !== undefined) && (close !== undefined)) {
+            average = Precise.stringDiv(Precise.stringAdd(open, close), '2');
+        }
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let datetime = this.safeString(ticker, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601(timestamp);
+        }
+        const result = {
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'high': this.safeNumber(ticker, 'high'),
+            'low': this.safeNumber(ticker, 'low'),
+            'bid': this.parseNumber(this.omitZero(this.safeString(ticker, 'bid'))),
+            'bidVolume': this.safeNumber(ticker, 'bidVolume'),
+            'ask': this.parseNumber(this.omitZero(this.safeString(ticker, 'ask'))),
+            'askVolume': this.safeNumber(ticker, 'askVolume'),
+            'open': this.parseNumber(open),
+            'close': this.parseNumber(close),
+            'last': this.parseNumber(last),
+            'change': this.parseNumber(change),
+            'percentage': this.parseNumber(percentage),
+            'average': this.parseNumber(average),
+            'baseVolume': this.safeNumber(ticker, 'baseVolume'),
+            'quoteVolume': this.safeNumber(ticker, 'quoteVolume'),
+            'openInterest': this.safeNumber(ticker, 'openInterest'),
+            'outcome': this.safeString(ticker, 'outcome'),
+            'outcomeId': this.safeString(ticker, 'outcomeId'),
+            'label': this.safeString(ticker, 'label'),
+            'market': this.safeString(ticker, 'market'),
+            'event': this.safeString(ticker, 'event'),
+            'info': this.safeValue(ticker, 'info', ticker),
+        };
+        return result;
     }
     safePredictionPosition(position) {
-        const parsed = super.safePosition(position);
-        return this.toPredictionStructure(parsed, position);
+        // build the prediction position directly (no crypto safePosition, which carries the whole
+        // leverage/marginMode/liquidation block the prediction type omits)
+        const timestamp = this.safeInteger(position, 'timestamp');
+        let datetime = this.safeString(position, 'datetime');
+        if (datetime === undefined) {
+            datetime = this.iso8601(timestamp);
+        }
+        const result = {
+            'id': this.safeString(position, 'id'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'contracts': this.safeNumber(position, 'contracts'),
+            'contractSize': this.safeNumber(position, 'contractSize'),
+            'side': this.safeString(position, 'side'),
+            'notional': this.safeNumber(position, 'notional'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedPnl'),
+            'realizedPnl': this.safeNumber(position, 'realizedPnl'),
+            'collateral': this.safeNumber(position, 'collateral'),
+            'entryPrice': this.safeNumber(position, 'entryPrice'),
+            'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': this.safeNumber(position, 'lastPrice'),
+            'percentage': this.safeNumber(position, 'percentage'),
+            'resolved': this.safeBool(position, 'resolved'),
+            'won': this.safeBool(position, 'won'),
+            'settleFraction': this.safeNumber(position, 'settleFraction'),
+            'payout': this.safeNumber(position, 'payout'),
+            'outcome': this.safeString(position, 'outcome'),
+            'outcomeId': this.safeString(position, 'outcomeId'),
+            'label': this.safeString(position, 'label'),
+            'market': this.safeString(position, 'market'),
+            'event': this.safeString(position, 'event'),
+            'info': this.safeValue(position, 'info', position),
+        };
+        return result;
     }
     safePredictionOrderBook(orderbook, outcomeObj = undefined) {
         // normalize a parsed order book to the prediction shape: replace the unified
@@ -986,22 +1356,6 @@ export default class PredictionExchange extends BaseExchange {
     }
     parsePredictionOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parsePredictionOpenInterest() is not supported yet');
-    }
-    toPredictionStructure(parsed, raw) {
-        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
-        // and the other prediction fields (raw exchange id, label, parent market/event) that the
-        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        parsed['outcome'] = this.safeString(raw, 'outcome');
-        parsed['outcomeId'] = this.safeString(raw, 'outcomeId');
-        parsed['label'] = this.safeString(raw, 'label');
-        parsed['market'] = this.safeString(raw, 'market');
-        parsed['event'] = this.safeString(raw, 'event');
-        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
-        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
-        if ('symbol' in parsed) {
-            delete parsed['symbol'];
-        }
-        return parsed;
     }
     /**
      * @ignore

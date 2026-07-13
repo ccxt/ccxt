@@ -119,6 +119,9 @@ class hyperliquid extends Exchange {
             ),
             'options' => array(
                 'defaultType' => 'prediction',
+                // the whole outcome universe is one cheap outcomeMeta request, so bulk-warming on
+                // a cache miss stays the right trade-off here (the base default is false)
+                'loadAllOutcomes' => true,
                 'sandboxMode' => false,  // outcome markets currently deployed on testnet
                 'outcomeQuoteCurrency' => 'USDH',
                 'defaultSlippage' => 0.05,
@@ -670,9 +673,12 @@ class hyperliquid extends Exchange {
              */
             $requestedOutcomeSymbols = array();
             if ($outcomes !== null) {
+                // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
+                // then identities resolve synchronously
+                Async\await($this->load_outcomes($outcomes));
                 for ($i = 0; $i < count($outcomes); $i++) {
                     $requested = $outcomes[$i];
-                    $requestedOutcomeObj = Async\await($this->load_outcome($requested));
+                    $requestedOutcomeObj = $this->safe_outcome($requested);
                     $requestedOutcome = $this->safe_string($requestedOutcomeObj, 'outcome', $requested);
                     $requestedOutcomeSymbols[$requestedOutcome] = true;
                 }
@@ -978,9 +984,12 @@ class hyperliquid extends Exchange {
              */
             $requestedOutcomeSymbols = array();
             if ($outcomes !== null) {
+                // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
+                // then identities resolve synchronously
+                Async\await($this->load_outcomes($outcomes));
                 for ($i = 0; $i < count($outcomes); $i++) {
                     $requested = $outcomes[$i];
-                    $requestedOutcomeObj = Async\await($this->load_outcome($requested));
+                    $requestedOutcomeObj = $this->safe_outcome($requested);
                     $requestedOutcome = $this->safe_string($requestedOutcomeObj, 'outcome', $requested);
                     $requestedOutcomeSymbols[$requestedOutcome] = true;
                 }
@@ -1860,7 +1869,8 @@ class hyperliquid extends Exchange {
                         $allWords = true;
                         for ($wi = 0; $wi < $wordsLength; $wi++) {
                             $word = $words[$wi];
-                            if (($word !== '') && (mb_strpos($haystack, $word) === -1)) {
+                            // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
+                            if (($word !== '') && (mb_strpos($haystack, $word) === false)) {
                                 $allWords = false;
                                 break;
                             }

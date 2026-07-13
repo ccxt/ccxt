@@ -554,8 +554,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str [params.expiration]: unix-seconds expiration for a GTD order
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         defaultModel = self.safe_string(info, 'tradingModel', 'amm')
         tradingModel = self.safe_string_lower(params, 'tradingModel', defaultModel)
@@ -680,8 +679,11 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcomes()
         ordersLength = len(orders)
+        orderOutcomes = []
+        for i in range(0, ordersLength):
+            orderOutcomes.append(self.safe_string(orders[i], 'outcome'))
+        await self.load_outcomes(orderOutcomes)
         result = []
         for i in range(0, ordersLength):
             o = orders[i]
@@ -711,7 +713,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcomes()
+        await self.load_outcome(outcome)
         await self.cancel_order(id, outcome)
         return await self.create_orderbook_order(outcome, type, side, amount, price, params)
 
@@ -959,8 +961,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         wrapper = self.extend(fetched, {'status': status, 'networkId': networkId})
         market = None
         if outcome is not None:
-            await self.load_outcomes()
-            market = self.outcome(outcome)
+            market = await self.load_outcome(outcome)
         return self.parse_prediction_order(wrapper, market)
 
     async def cancel_all_orders(self, outcome: Str = None, params={}) -> Any:
@@ -979,8 +980,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         marketId = self.safe_string(params, 'market_id', '0')
         networkId = self.safe_string(params, 'network_id', self.safe_string(self.options, 'defaultNetworkId', '56'))
         if outcome is not None:
-            await self.load_outcomes()
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             info = self.safe_dict(outcomeObj, 'info', {})
             marketId = self.safe_string(info, 'marketId', marketId)
             networkId = self.safe_string(info, 'networkId', networkId)
@@ -1048,8 +1048,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         response = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, params))
         market = None
         if outcome is not None:
-            await self.load_outcomes()
-            market = self.outcome(outcome)
+            market = await self.load_outcome(outcome)
         return self.parse_prediction_order(response, market)
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
@@ -1075,8 +1074,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 request['trader'] = self.walletAddress
         outcomeSymbol = None
         if outcome is not None:
-            await self.load_outcomes()
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             outcomeSymbol = self.safe_string(outcomeObj, 'outcome', outcome)
         response = await self.myriadPublicGetOrders(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -1455,8 +1453,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         networkId = self.safe_string(outcomeObj['info'], 'networkId')
         marketId = self.safe_string(outcomeObj['info'], 'marketId')
         request = {
@@ -1549,8 +1546,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         request = {
             'id': self.safe_string(info, 'marketId'),
@@ -1718,8 +1714,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         networkId = self.safe_string(outcomeObj['info'], 'networkId')
         marketId = self.safe_string(outcomeObj['info'], 'marketId')
         outcomeId = self.safe_string(outcomeObj['info'], 'outcomeId')
@@ -1895,8 +1890,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: a list of candles ordered, open, high, low, close, volume
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(outcomeObj['info'], 'networkId')
         marketId = self.safe_string(outcomeObj['info'], 'marketId')
@@ -2023,25 +2017,15 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         https://docs.myriad.markets/builders/myriad-api-reference
 
-        :param str[] [outcomes]: unified outcomes, refreshes the markets listing and returns tickers for all outcomes when omitted
+        :param str[] outcomes: unified outcomes — required: myriad has no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
         """
-        await self.load_outcomes()
-        result = {}
         if outcomes is None:
-            rawMarkets = await self.fetch_raw_markets_list(params)
-            for i in range(0, len(rawMarkets)):
-                raw = rawMarkets[i]
-                m = self.parse_myriad_market(raw)
-                outcomesList = self.safe_list(m, 'outcomes', [])
-                for j in range(0, len(outcomesList)):
-                    ticker = self.parse_prediction_ticker(raw, outcomesList[j])
-                    symbolKey = self.safe_string(ticker, 'outcome')
-                    if symbolKey is not None:
-                        result[symbolKey] = ticker
-            return result
-        # group target outcomes by their parent market to fetch each market only once
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+        result = {}
+        # resolve the uncached outcomes first, then group by parent market to fetch each market only once
+        await self.load_outcomes(outcomes)
         outcomesByMarket = {}
         marketKeys = []
         for i in range(0, len(outcomes)):
@@ -2092,8 +2076,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId')
         marketId = self.safe_string(info, 'marketId')
@@ -2176,13 +2159,14 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """
-        fetches prediction-market events matching the given search terms(or all open markets when omitted) and caches their markets and outcomes on the instance
+        fetches prediction-market events matching the given scope(query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
 
         https://docs.myriad.markets/builders/myriad-api-reference
 
         :param dict [params]: extra exchange-specific parameters
-        :param str [params.query]: a single search term; when omitted, an eventId does a direct lookup and any other scope(tags) pages the markets listing
+        :param str [params.query]: a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
         :param str[] [params.queries]: multiple search terms(alternative to query)
+        :param str[] [params.tags]: tag slugs to scope by(searched, e.g. ['bitcoin', 'world-cup'])
         :param str [params.eventId]: direct lookup by unified event id(composite networkId:marketId)
         :param int [params.limit]: maximum number of markets per query, defaults to 50
         :param str [params.state]: 'open', 'closed' or 'resolved', defaults to 'open'
@@ -2190,12 +2174,12 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
         self.require_event_query(params)
         queries = self.parse_search_queries(params)
-        rest = self.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
+        rest = self.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags'])
         queriesLength = len(queries)
         eventId = self.safe_string(params, 'eventId')
         # always fetch fresh from the API(never serve the possibly-cold cache): a query searches,
-        # an eventId does a direct lookup, and any other scope(tags) pages the markets listing so
-        # applyEventFetchParams can filter it below
+        # an eventId does a direct lookup, and tags map to server-side keyword searches(the
+        # markets listing ignores tag filter params, but tag slugs match through keyword=)
         rawMarkets = []
         if queriesLength > 0:
             rawMarkets = await self.fetch_raw_markets_by_search(queries, rest)
@@ -2203,7 +2187,14 @@ class myriad(PredictionExchange, ImplicitAPI):
             rawMarket = await self.fetch_raw_market_by_id(eventId, rest)
             rawMarkets = [rawMarket]
         else:
-            rawMarkets = await self.fetch_raw_markets_list(rest)
+            requestedTags = self.safe_list(params, 'tags', [])
+            tagQueries = []
+            requestedTagsLength = len(requestedTags)
+            for i in range(0, requestedTagsLength):
+                # tag slugs are hyphenated('world-cup'); search with spaces so titles match
+                tagSlug = requestedTags[i]
+                tagQueries.append(tagSlug.replace('-', ' '))
+            rawMarkets = await self.fetch_raw_markets_by_search(tagQueries, rest)
         if not self.markets:
             self.markets = self.create_safe_dictionary()
         result = []
@@ -2217,7 +2208,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         self.set_events(result)
         self.populate_outcomes()
-        return self.apply_event_fetch_params(result, params, queries)
+        # tags were already applied server-side(mapped to keyword searches); strip them before
+        # the client-side pass — raw markets don't carry a matching event-level tags field
+        postParams = self.omit(params, ['tags'])
+        return self.apply_event_fetch_params(result, postParams, queries)
 
     def parse_event(self, rawEvent: dict) -> Any:
         """
@@ -2369,8 +2363,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId')
         marketId = self.safe_string(info, 'marketId')
@@ -2444,8 +2437,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId')
         marketId = self.safe_string(info, 'marketId')
@@ -2470,8 +2462,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
         if outcome is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a outcome(the trades channel is per-market)')
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId')
         marketId = self.safe_string(info, 'marketId')
@@ -2592,8 +2583,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        await self.load_outcomes()
-        outcomeObj = self.outcome(outcome)
+        outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId')
         marketId = self.safe_string(info, 'marketId')
@@ -2612,12 +2602,12 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
         """
-        await self.load_outcomes()
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' watchTickers() requires a list of outcomes(the prices channel is per-market)')
         symbolsLength = len(outcomes)
         url = self.safe_string(self.urls['api'], 'ws')
         await self.connect_centrifugo(url)
+        await self.load_outcomes(outcomes)
         client = self.client(url)
         seenChannels = {}
         resolvedSymbols = []
@@ -2717,11 +2707,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        await self.load_outcomes()
         trader = self.wallet_address_from_keys()
         networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
         if outcome is not None:
-            outcomeObj = self.outcome(outcome)
+            outcomeObj = await self.load_outcome(outcome)
             info = self.safe_dict(outcomeObj, 'info', {})
             networkId = self.safe_string(info, 'networkId', networkId)
             outcome = self.safe_outcome_symbol(outcome, outcomeObj)
@@ -2787,7 +2776,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
         """
-        await self.load_outcomes()
+        if outcomes is not None:
+            await self.load_outcomes(outcomes)
         trader = self.wallet_address_from_keys()
         networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
         channel = 'positions:' + networkId + ':' + trader

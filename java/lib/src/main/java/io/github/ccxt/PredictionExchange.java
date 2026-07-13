@@ -110,7 +110,9 @@ public Object describe()
     public Object requireEventQuery(Object... optionalArgs)
     {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-        // entire exchange. require one of query / queries / tags / eventId / slug
+        // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
+        // venue-specific scope params an exchange declares in options['eventScopeParams']
+        // (e.g. kalshi's category / series_ticker)
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object query = this.safeString(parameters, "query");
         Object queries = this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -119,11 +121,23 @@ public Object describe()
         Object slug = this.safeString(parameters, "slug");
         Object queriesLength = Helpers.getArrayLength(queries);
         Object tagsLength = Helpers.getArrayLength(tags);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(query, null))) && Helpers.isTrue((Helpers.isEqual(queriesLength, 0)))) && Helpers.isTrue((Helpers.isEqual(tagsLength, 0)))) && Helpers.isTrue((Helpers.isEqual(eventId, null)))) && Helpers.isTrue((Helpers.isEqual(slug, null)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) || Helpers.isTrue((Helpers.isGreaterThan(queriesLength, 0)))) || Helpers.isTrue((Helpers.isGreaterThan(tagsLength, 0)))) || Helpers.isTrue((!Helpers.isEqual(eventId, null)))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")) ;
+            return null;
         }
-        return null;
+        Object extraScopeParams = this.safeList(this.options, "eventScopeParams", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object extraScopeParamsLength = Helpers.getArrayLength(extraScopeParams);
+        Object extraNames = "";
+        for (var i = 0; Helpers.isLessThan(i, extraScopeParamsLength); i++)
+        {
+            Object scopeKey = Helpers.GetValue(extraScopeParams, i);
+            if (Helpers.isTrue(Helpers.inOp(parameters, scopeKey)))
+            {
+                return null;
+            }
+            extraNames = Helpers.add(Helpers.add(extraNames, ", "), scopeKey);
+        }
+        throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")) ;
     }
 
     public Object applyEventFetchParams(Object events, Object... optionalArgs)
@@ -182,6 +196,13 @@ public Object describe()
             }
             if (Helpers.isTrue(!Helpers.isEqual(sortKey, null)))
             {
+                // normalize the sort key on every row first — sortBy reads it with a raw
+                // subscript, which raises KeyError/undefined-index in Python/PHP when a
+                // venue's parsed event omits the field (JS alone tolerates the miss)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
+                {
+                    Helpers.addElementToObject(Helpers.GetValue(result, i), sortKey, this.safeNumber(Helpers.GetValue(result, i), sortKey, 0));
+                }
                 result = this.sortBy(result, sortKey, true, 0);
             }
         }
@@ -478,6 +499,22 @@ public Object describe()
         throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
+    public Object hasOutcome(Object outcomeIdOrSymbol)
+    {
+        // sync cache-only membership probe — never throws and never fetches. this is the predicate
+        // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
+        // and outcome (throws on miss) are the accessors
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes, outcomeIdOrSymbol)))))
+        {
+            return true;
+        }
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeIdOrSymbol)))))
+        {
+            return true;
+        }
+        return false;
+    }
+
     public Object safeOutcome(Object outcomeIdOrSymbol, Object... optionalArgs)
     {
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
@@ -728,15 +765,53 @@ public Object describe()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
-            // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
-            // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
-            // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
-            // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
-            // from the loaded markets (the setMarkets override that normally does this is not dispatched
-            // by the base loadMarkets under the Go/C#/Java transpilers).
-            Object reload = Helpers.getArg(optionalArgs, 0, false);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+            // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
+            //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+            //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+            // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
+            //   idempotent unless reload; only worth paying on venues whose whole universe is one
+            //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+            // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+            // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+            // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+            // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object reload = Helpers.getArg(optionalArgs, 1, false);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
+            {
+                Object missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
+                {
+                    if (Helpers.isTrue(Helpers.isTrue(reload) || !Helpers.isTrue(this.hasOutcome(Helpers.GetValue(outcomes, i)))))
+                    {
+                        ((java.util.List<Object>)missing).add(Helpers.GetValue(outcomes, i));
+                    }
+                }
+                Object missingLength = Helpers.getArrayLength(missing);
+                Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue(loadAll)) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
+                {
+                    (this.loadOutcomes()).join();
+                    Object stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    for (var i = 0; Helpers.isLessThan(i, missingLength); i++)
+                    {
+                        if (!Helpers.isTrue(this.hasOutcome(Helpers.GetValue(missing, i))))
+                        {
+                            ((java.util.List<Object>)stillMissing).add(Helpers.GetValue(missing, i));
+                        }
+                    }
+                    missing = stillMissing;
+                    missingLength = Helpers.getArrayLength(missing);
+                }
+                if (Helpers.isTrue(Helpers.isGreaterThan(missingLength, 0)))
+                {
+                    (this.fetchOutcomes(missing)).join();
+                }
+                return this.outcomes;
+            }
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(reload) && Helpers.isTrue((!Helpers.isEqual(this.outcomes, null)))) && !Helpers.isTrue(this.isEmpty(this.outcomes))))
             {
                 return this.outcomes;
@@ -748,62 +823,70 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadOutcome(Object outcomeSymbol2)
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#fetchOutcomes
+     * @description resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+     * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
+     * @returns {object} the outcome cache
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
     {
-        final Object outcomeSymbol3 = outcomeSymbol2;
+
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-            Object outcomeSymbol = outcomeSymbol3;
-            // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-            // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
-            // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-            // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
-            if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeSymbols)); i++)
             {
-                if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
-                {
-                    return Helpers.GetValue(this.outcomes, outcomeSymbol);
-                }
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
-                {
-                    return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
-                }
+                (this.fetchOutcome(Helpers.GetValue(outcomeSymbols, i))).join();
             }
-            Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+            return this.outcomes;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> loadOutcome(Object outcomeSymbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+            // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
+            // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+            // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+            // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
+            // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+            // sane on venues whose full universe is one cheap request (hyperliquid)
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(wasWarm) && Helpers.isTrue((!Helpers.isEqual(this.markets, null)))) && !Helpers.isTrue(this.isEmpty(this.markets))))
+            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+            // the whole listing (which would mask typos and clobber offline-injected markets)
+            Object reload = Helpers.getArg(optionalArgs, 0, false);
+            if (!Helpers.isTrue(reload))
             {
-                this.populateOutcomes();
-                if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+                if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
                 {
-                    if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
+                    return this.safeOutcome(outcomeSymbol);
+                }
+                Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(wasWarm) && Helpers.isTrue((!Helpers.isEqual(this.markets, null)))) && !Helpers.isTrue(this.isEmpty(this.markets))))
+                {
+                    this.populateOutcomes();
+                    if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
                     {
-                        return Helpers.GetValue(this.outcomes, outcomeSymbol);
-                    }
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
-                    {
-                        return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+                        return this.safeOutcome(outcomeSymbol);
                     }
                 }
-            }
-            Object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
-            if (Helpers.isTrue(Helpers.isTrue(loadAll) && !Helpers.isTrue(wasWarm)))
-            {
-                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-                // the whole listing (which would mask typos and clobber offline-injected markets)
-                (this.loadOutcomes()).join();
-                if (Helpers.isTrue(!Helpers.isEqual(this.outcomes, null)))
+                Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+                if (Helpers.isTrue(Helpers.isTrue(loadAll) && !Helpers.isTrue(wasWarm)))
                 {
-                    if (Helpers.isTrue(Helpers.inOp(this.outcomes, outcomeSymbol)))
+                    (this.loadOutcomes()).join();
+                    if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
                     {
-                        return Helpers.GetValue(this.outcomes, outcomeSymbol);
-                    }
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.outcomes_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.outcomes_by_id, outcomeSymbol)))))
-                    {
-                        return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+                        return this.safeOutcome(outcomeSymbol);
                     }
                 }
             }
@@ -812,17 +895,102 @@ public Object describe()
 
     }
 
+    public Object outcomeSearchQuery(Object outcomeSymbol)
+    {
+        // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
+        // cache miss can be resolved through the venue's scoped search instead of a bulk listing
+        // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
+        // carry no searchable words
+        Object marketPart = outcomeSymbol;
+        Object colonIndex = Helpers.getIndexOf(outcomeSymbol, ":");
+        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(colonIndex, 0)))
+        {
+            marketPart = Helpers.slice(outcomeSymbol, 0, colonIndex);
+        }
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(marketPart, "0x"), 0)))
+        {
+            return null;
+        }
+        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
+        Object rawWords = Helpers.split(normalized, "_");
+        Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object hasLetters = false;
+        Object letters = "abcdefghijklmnopqrstuvwxyz";
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawWords)); i++)
+        {
+            Object word = Helpers.GetValue(rawWords, i);
+            // inline .length so the php transpiler emits strlen() — the standalone
+            // `const n = str.length;` statement form wrongly becomes count() (array)
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(word), 0)))
+            {
+                continue;
+            }
+            Object wordHasLetters = false;
+            Object chars = this.stringToCharsArray(word);
+            for (var ci = 0; Helpers.isLessThan(ci, Helpers.getArrayLength(chars)); ci++)
+            {
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(letters, Helpers.GetValue(chars, ci)), 0)))
+                {
+                    wordHasLetters = true;
+                    break;
+                }
+            }
+            // the query is the handle's letter-bearing words only. standalone numeric tokens
+            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // reliably index — and since the result is re-checked against the EXACT handle,
+            // a broader query only adds recall, never a wrong match
+            if (!Helpers.isTrue(wordHasLetters))
+            {
+                continue;
+            }
+            ((java.util.List<Object>)words).add(word);
+            hasLetters = true;
+        }
+        Object wordsLength = Helpers.getArrayLength(words);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(wordsLength, 0))) || !Helpers.isTrue(hasLetters)))
+        {
+            // a purely numeric/symbolic handle is an id, not searchable text
+            return null;
+        }
+        return String.join((String)" ", (java.util.List<String>)words);
+    }
+
     public java.util.concurrent.CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-            // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
-            // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
-            // override this to fetch and cache only the requested outcome — the "always fetch one" path.
-            (this.loadOutcomes()).join();
-            return this.outcome(outcomeSymbol);
+            // fetch just one outcome on demand — never through a bulk listing download. the base has
+            // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+            // through the venue's own scoped fetchEvents (which caches everything it finds), then
+            // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
+            // token id) override this with a cheaper single fetch and fall back to super on a miss.
+            Object searchQuery = this.outcomeSearchQuery(outcomeSymbol);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(searchQuery, null))) && Helpers.isTrue(this.safeBool(this.has, "fetchEvents", false))))
+            {
+                Object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
+                try
+                {
+                    (this.fetchEvents(new java.util.HashMap<String, Object>() {{
+                        put( "query", searchQuery );
+                        put( "limit", searchLimit );
+                    }})).join();
+                } catch(Exception e)
+                {
+                    // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                    // plain miss (the guidance-rich throw below); let real transport errors propagate
+                    if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
+                    {
+                        throw e;
+                    }
+                }
+                if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
+                {
+                    return this.safeOutcome(outcomeSymbol);
+                }
+            }
+            throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
         });
 
     }
@@ -1384,33 +1552,322 @@ public Object describe()
 
     }
 
-    public Object safePredictionOrder(Object order, Object... optionalArgs)
+    public Object safePredictionOrder(Object outcomeOrder, Object... optionalArgs)
     {
-        // the prediction identity is the `outcome` handle carried on the raw dict (read by
-        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object parsed = super.safeOrder(order);
-        return this.toPredictionStructure(parsed, order);
+        // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
+        // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
+        // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
+        // outcome-addressed row). prediction is always linear with a contract size of 1.
+        Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
+        Object amount = this.omitZero(this.safeString(outcomeOrder, "amount"));
+        Object filled = this.safeString(outcomeOrder, "filled");
+        Object remaining = this.safeString(outcomeOrder, "remaining");
+        Object cost = this.safeString(outcomeOrder, "cost");
+        Object average = this.omitZero(this.safeString(outcomeOrder, "average"));
+        Object price = this.omitZero(this.safeString(outcomeOrder, "price"));
+        Object side = this.safeString(outcomeOrder, "side");
+        Object status = this.safeString(outcomeOrder, "status");
+        Object lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
+        // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
+        Object rawTrades = this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
+        Object tradesLength = Helpers.getArrayLength(trades);
+        Object feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
+        {
+            if (Helpers.isTrue(Helpers.isEqual(filled, null)))
+            {
+                filled = "0";
+            }
+            if (Helpers.isTrue(Helpers.isEqual(cost, null)))
+            {
+                cost = "0";
+            }
+            for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
+            {
+                Object trade = Helpers.GetValue(trades, i);
+                Object tradeAmount = this.safeString(trade, "amount");
+                if (Helpers.isTrue(!Helpers.isEqual(tradeAmount, null)))
+                {
+                    filled = Precise.stringAdd(filled, tradeAmount);
+                }
+                Object tradeCost = this.safeString(trade, "cost");
+                if (Helpers.isTrue(!Helpers.isEqual(tradeCost, null)))
+                {
+                    cost = Precise.stringAdd(cost, tradeCost);
+                }
+                if (Helpers.isTrue(Helpers.isEqual(side, null)))
+                {
+                    side = this.safeString(trade, "side");
+                }
+                Object tradeTimestamp = this.safeInteger(trade, "timestamp");
+                if (Helpers.isTrue(!Helpers.isEqual(tradeTimestamp, null)))
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestamp, null)))
+                    {
+                        lastTradeTimestamp = tradeTimestamp;
+                    } else if (Helpers.isTrue(Helpers.isGreaterThan(tradeTimestamp, lastTradeTimestamp)))
+                    {
+                        lastTradeTimestamp = tradeTimestamp;
+                    }
+                }
+                Object tradeFee = this.safeDict(trade, "fee");
+                if (Helpers.isTrue(!Helpers.isEqual(tradeFee, null)))
+                {
+                    ((java.util.List<Object>)feeList).add(tradeFee);
+                }
+            }
+        }
+        // fill any totals the venue left undefined (linear, contract size 1)
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))) && Helpers.isTrue((!Helpers.isEqual(remaining, null)))))
+        {
+            filled = Precise.stringSub(amount, remaining);
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(remaining, null))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
+        {
+            remaining = Precise.stringSub(amount, filled);
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))) && Helpers.isTrue((!Helpers.isEqual(remaining, null)))))
+        {
+            amount = Precise.stringAdd(filled, remaining);
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(average, null))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue(Precise.stringGt(filled, "0"))))
+        {
+            average = Precise.stringDiv(cost, filled);
+        }
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
+        {
+            Object multiplyPrice = ((Helpers.isTrue((!Helpers.isEqual(average, null))))) ? average : price;
+            if (Helpers.isTrue(!Helpers.isEqual(multiplyPrice, null)))
+            {
+                cost = Precise.stringMul(filled, multiplyPrice);
+            }
+        }
+        Object fee = this.safeDict(outcomeOrder, "fee");
+        // own-line length reads so the regex transpiler emits count() (array), not strlen()
+        Object feeListLength = Helpers.getArrayLength(feeList);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fee, null))) && Helpers.isTrue((Helpers.isGreaterThan(feeListLength, 0)))))
+        {
+            Object reduced = this.reduceFeesByCurrency(feeList);
+            Object reducedLength = Helpers.getArrayLength(reduced);
+            if (Helpers.isTrue(Helpers.isGreaterThan(reducedLength, 0)))
+            {
+                fee = Helpers.GetValue(reduced, 0);
+            }
+        }
+        // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
+        // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
+        Object orderType = this.safeString(outcomeOrder, "type");
+        Object timeInForce = this.safeString(outcomeOrder, "timeInForce");
+        Object postOnly = this.safeBool(outcomeOrder, "postOnly");
+        if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
+        {
+            if (Helpers.isTrue(Helpers.isEqual(orderType, "market")))
+            {
+                timeInForce = "IOC";
+            }
+            if (Helpers.isTrue(postOnly))
+            {
+                timeInForce = "PO";
+            }
+        } else if (Helpers.isTrue(Helpers.isEqual(postOnly, null)))
+        {
+            postOnly = (Helpers.isEqual(timeInForce, "PO"));
+        }
+        Object timestamp = this.safeInteger(outcomeOrder, "timestamp");
+        Object datetime = this.safeString(outcomeOrder, "datetime");
+        if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        final Object finalDatetime = datetime;
+        final Object finalLastTradeTimestamp = lastTradeTimestamp;
+        final Object finalOrderType = orderType;
+        final Object finalTimeInForce = timeInForce;
+        final Object finalSide = side;
+        final Object finalAverage = average;
+        final Object finalAmount = amount;
+        final Object finalFilled = filled;
+        final Object finalRemaining = remaining;
+        final Object finalCost = cost;
+        final Object finalFee = fee;
+        final Object finalPostOnly = postOnly;
+        Object result = new java.util.HashMap<String, Object>() {{
+            put( "id", PredictionExchange.this.safeString(outcomeOrder, "id") );
+            put( "clientOrderId", PredictionExchange.this.safeString(outcomeOrder, "clientOrderId") );
+            put( "timestamp", timestamp );
+            put( "datetime", finalDatetime );
+            put( "lastTradeTimestamp", finalLastTradeTimestamp );
+            put( "lastUpdateTimestamp", PredictionExchange.this.safeInteger(outcomeOrder, "lastUpdateTimestamp") );
+            put( "status", status );
+            put( "type", finalOrderType );
+            put( "timeInForce", finalTimeInForce );
+            put( "side", finalSide );
+            put( "price", PredictionExchange.this.parseNumber(price) );
+            put( "average", PredictionExchange.this.parseNumber(finalAverage) );
+            put( "amount", PredictionExchange.this.parseNumber(finalAmount) );
+            put( "filled", PredictionExchange.this.parseNumber(finalFilled) );
+            put( "remaining", PredictionExchange.this.parseNumber(finalRemaining) );
+            put( "cost", PredictionExchange.this.parseNumber(finalCost) );
+            put( "fee", finalFee );
+            put( "reduceOnly", PredictionExchange.this.safeBool(outcomeOrder, "reduceOnly") );
+            put( "postOnly", finalPostOnly );
+            put( "trades", trades );
+            put( "outcome", PredictionExchange.this.safeString(outcomeOrder, "outcome") );
+            put( "outcomeId", PredictionExchange.this.safeString(outcomeOrder, "outcomeId") );
+            put( "label", PredictionExchange.this.safeString(outcomeOrder, "label") );
+            put( "market", PredictionExchange.this.safeString(outcomeOrder, "market") );
+            put( "event", PredictionExchange.this.safeString(outcomeOrder, "event") );
+            put( "info", PredictionExchange.this.safeValue(outcomeOrder, "info", outcomeOrder) );
+        }};
+        return result;
     }
 
     public Object safePredictionTrade(Object trade, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object parsed = super.safeTrade(trade);
-        return this.toPredictionStructure(parsed, trade);
+        // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
+        Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
+        Object price = this.safeString(trade, "price");
+        Object amount = this.safeString(trade, "amount");
+        Object cost = this.safeString(trade, "cost");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))))
+        {
+            cost = Precise.stringMul(price, amount);
+        }
+        Object timestamp = this.safeInteger(trade, "timestamp");
+        Object datetime = this.safeString(trade, "datetime");
+        if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        final Object finalDatetime = datetime;
+        final Object finalPrice = price;
+        final Object finalAmount = amount;
+        final Object finalCost = cost;
+        Object result = new java.util.HashMap<String, Object>() {{
+            put( "id", PredictionExchange.this.safeString(trade, "id") );
+            put( "order", PredictionExchange.this.safeString(trade, "order") );
+            put( "timestamp", timestamp );
+            put( "datetime", finalDatetime );
+            put( "type", PredictionExchange.this.safeString(trade, "type") );
+            put( "side", PredictionExchange.this.safeString(trade, "side") );
+            put( "takerOrMaker", PredictionExchange.this.safeString(trade, "takerOrMaker") );
+            put( "price", PredictionExchange.this.parseNumber(finalPrice) );
+            put( "amount", PredictionExchange.this.parseNumber(finalAmount) );
+            put( "cost", PredictionExchange.this.parseNumber(finalCost) );
+            put( "fee", PredictionExchange.this.safeDict(trade, "fee") );
+            put( "realizedPnl", PredictionExchange.this.safeNumber(trade, "realizedPnl") );
+            put( "outcome", PredictionExchange.this.safeString(trade, "outcome") );
+            put( "outcomeId", PredictionExchange.this.safeString(trade, "outcomeId") );
+            put( "label", PredictionExchange.this.safeString(trade, "label") );
+            put( "market", PredictionExchange.this.safeString(trade, "market") );
+            put( "info", PredictionExchange.this.safeValue(trade, "info", trade) );
+        }};
+        return result;
     }
 
     public Object safePredictionTicker(Object ticker, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object parsed = super.safeTicker(ticker);
-        return this.toPredictionStructure(parsed, ticker);
+        // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
+        // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
+        // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
+        Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
+        Object open = this.omitZero(this.safeString(ticker, "open"));
+        Object close = this.omitZero(this.safeString2(ticker, "close", "last"));
+        Object last = this.omitZero(this.safeString2(ticker, "last", "close"));
+        Object change = this.safeString(ticker, "change");
+        Object percentage = this.omitZero(this.safeString(ticker, "percentage"));
+        Object average = this.omitZero(this.safeString(ticker, "average"));
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(change, null))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
+        {
+            change = Precise.stringSub(close, open);
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(percentage, null))) && Helpers.isTrue((!Helpers.isEqual(change, null)))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && Helpers.isTrue(Precise.stringGt(open, "0"))))
+        {
+            percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
+        }
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(average, null))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
+        {
+            average = Precise.stringDiv(Precise.stringAdd(open, close), "2");
+        }
+        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Object datetime = this.safeString(ticker, "datetime");
+        if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        final Object finalDatetime = datetime;
+        final Object finalOpen = open;
+        final Object finalClose = close;
+        final Object finalChange = change;
+        final Object finalPercentage = percentage;
+        final Object finalAverage = average;
+        Object result = new java.util.HashMap<String, Object>() {{
+            put( "timestamp", timestamp );
+            put( "datetime", finalDatetime );
+            put( "high", PredictionExchange.this.safeNumber(ticker, "high") );
+            put( "low", PredictionExchange.this.safeNumber(ticker, "low") );
+            put( "bid", PredictionExchange.this.parseNumber(PredictionExchange.this.omitZero(PredictionExchange.this.safeString(ticker, "bid"))) );
+            put( "bidVolume", PredictionExchange.this.safeNumber(ticker, "bidVolume") );
+            put( "ask", PredictionExchange.this.parseNumber(PredictionExchange.this.omitZero(PredictionExchange.this.safeString(ticker, "ask"))) );
+            put( "askVolume", PredictionExchange.this.safeNumber(ticker, "askVolume") );
+            put( "open", PredictionExchange.this.parseNumber(finalOpen) );
+            put( "close", PredictionExchange.this.parseNumber(finalClose) );
+            put( "last", PredictionExchange.this.parseNumber(last) );
+            put( "change", PredictionExchange.this.parseNumber(finalChange) );
+            put( "percentage", PredictionExchange.this.parseNumber(finalPercentage) );
+            put( "average", PredictionExchange.this.parseNumber(finalAverage) );
+            put( "baseVolume", PredictionExchange.this.safeNumber(ticker, "baseVolume") );
+            put( "quoteVolume", PredictionExchange.this.safeNumber(ticker, "quoteVolume") );
+            put( "openInterest", PredictionExchange.this.safeNumber(ticker, "openInterest") );
+            put( "outcome", PredictionExchange.this.safeString(ticker, "outcome") );
+            put( "outcomeId", PredictionExchange.this.safeString(ticker, "outcomeId") );
+            put( "label", PredictionExchange.this.safeString(ticker, "label") );
+            put( "market", PredictionExchange.this.safeString(ticker, "market") );
+            put( "event", PredictionExchange.this.safeString(ticker, "event") );
+            put( "info", PredictionExchange.this.safeValue(ticker, "info", ticker) );
+        }};
+        return result;
     }
 
     public Object safePredictionPosition(Object position)
     {
-        Object parsed = super.safePosition(position);
-        return this.toPredictionStructure(parsed, position);
+        // build the prediction position directly (no crypto safePosition, which carries the whole
+        // leverage/marginMode/liquidation block the prediction type omits)
+        Object timestamp = this.safeInteger(position, "timestamp");
+        Object datetime = this.safeString(position, "datetime");
+        if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        final Object finalDatetime = datetime;
+        Object result = new java.util.HashMap<String, Object>() {{
+            put( "id", PredictionExchange.this.safeString(position, "id") );
+            put( "timestamp", timestamp );
+            put( "datetime", finalDatetime );
+            put( "contracts", PredictionExchange.this.safeNumber(position, "contracts") );
+            put( "contractSize", PredictionExchange.this.safeNumber(position, "contractSize") );
+            put( "side", PredictionExchange.this.safeString(position, "side") );
+            put( "notional", PredictionExchange.this.safeNumber(position, "notional") );
+            put( "unrealizedPnl", PredictionExchange.this.safeNumber(position, "unrealizedPnl") );
+            put( "realizedPnl", PredictionExchange.this.safeNumber(position, "realizedPnl") );
+            put( "collateral", PredictionExchange.this.safeNumber(position, "collateral") );
+            put( "entryPrice", PredictionExchange.this.safeNumber(position, "entryPrice") );
+            put( "markPrice", PredictionExchange.this.safeNumber(position, "markPrice") );
+            put( "lastPrice", PredictionExchange.this.safeNumber(position, "lastPrice") );
+            put( "percentage", PredictionExchange.this.safeNumber(position, "percentage") );
+            put( "resolved", PredictionExchange.this.safeBool(position, "resolved") );
+            put( "won", PredictionExchange.this.safeBool(position, "won") );
+            put( "settleFraction", PredictionExchange.this.safeNumber(position, "settleFraction") );
+            put( "payout", PredictionExchange.this.safeNumber(position, "payout") );
+            put( "outcome", PredictionExchange.this.safeString(position, "outcome") );
+            put( "outcomeId", PredictionExchange.this.safeString(position, "outcomeId") );
+            put( "label", PredictionExchange.this.safeString(position, "label") );
+            put( "market", PredictionExchange.this.safeString(position, "market") );
+            put( "event", PredictionExchange.this.safeString(position, "event") );
+            put( "info", PredictionExchange.this.safeValue(position, "info", position) );
+        }};
+        return result;
     }
 
     public Object safePredictionOrderBook(Object orderbook, Object... optionalArgs)
@@ -1455,25 +1912,6 @@ public Object describe()
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         throw new NotSupported((String)Helpers.add(this.id, " parsePredictionOpenInterest() is not supported yet")) ;
-    }
-
-    public Object toPredictionStructure(Object parsed, Object raw)
-    {
-        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
-        // and the other prediction fields (raw exchange id, label, parent market/event) that the
-        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        Helpers.addElementToObject(parsed, "outcome", this.safeString(raw, "outcome"));
-        Helpers.addElementToObject(parsed, "outcomeId", this.safeString(raw, "outcomeId"));
-        Helpers.addElementToObject(parsed, "label", this.safeString(raw, "label"));
-        Helpers.addElementToObject(parsed, "market", this.safeString(raw, "market"));
-        Helpers.addElementToObject(parsed, "event", this.safeString(raw, "event"));
-        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
-        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
-        if (Helpers.isTrue(Helpers.inOp(parsed, "symbol")))
-        {
-            ((java.util.Map<String,Object>)parsed).remove((String)"symbol");
-        }
-        return parsed;
     }
 
     /**

@@ -86,6 +86,24 @@
                     }
                 ]
             }
+        ],
+        "fetchOutcome": [
+            {
+                "description": "a unified handle resolves through the series-scoped events listing (its first token is the series ticker), never a by-ticker fetch of the handle itself",
+                "method": "fetchOutcome",
+                "url": "https://external-api.kalshi.com/trade-api/v2/events?series_ticker=KXBTCD&status=open&with_nested_markets=true&limit=100",
+                "input": [
+                    "KXBTCD_26JUL1417_53_000_ABOVE:YES"
+                ]
+            },
+            {
+                "description": "an outcomeId with a -NO suffix fetches the single market by its base ticker",
+                "method": "fetchOutcome",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/KXELONMARS-99",
+                "input": [
+                    "KXELONMARS-99-NO"
+                ]
+            }
         ]
     },
     "options": {

@@ -386,8 +386,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         resultLimit = self.safe_integer(params, 'limit')
         # fixed page size(gamma's limit_per_type). do NOT tie it to `limit`: that made a small
-        # limit fan out into many tiny-page requests(limit:1 -> ~one request per matching event)
-        pageSize = self.safe_integer(self.options, 'searchPageSize', 100)
+        # limit fan out into many tiny-page requests(limit:1 -> ~one request per matching event).
+        # tunable per-call via params.searchPageSize, else the exchange option, else 100
+        optionPageSize = self.safe_integer(self.options, 'searchPageSize', 100)
+        pageSize = self.safe_integer(params, 'searchPageSize', optionPageSize)
         # map the unified sort/status onto the gamma search params
         sort = self.safe_string(params, 'sort')
         sortParam = 'volume'
@@ -401,7 +403,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             eventsStatus = 'closed'
         elif status == 'all':
             eventsStatus = None
-        rest = self.omit(params, ['limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries'])
+        rest = self.omit(params, ['limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'searchPageSize', 'maxSearchPages'])
         seen = {}
         rawEvents = []
         for qi in range(0, len(queries)):
@@ -424,7 +426,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 if limitPages < totalPages:
                     totalPages = limitPages
             else:
-                maxSearchPages = self.safe_integer(self.options, 'maxSearchPages', 5)
+                optionMaxPages = self.safe_integer(self.options, 'maxSearchPages', 5)
+                maxSearchPages = self.safe_integer(params, 'maxSearchPages', optionMaxPages)
                 if maxSearchPages < totalPages:
                     totalPages = maxSearchPages
             remainingPages = []
@@ -481,11 +484,25 @@ class polymarket(PredictionExchange, ImplicitAPI):
         rest = self.omit(params, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags'])
         baseRequest = {'limit': pageSize, 'order': order, 'ascending': False}
         baseRequest = self.extend(baseRequest, rest)
-        # push a requested tag server-side(gamma accepts tag_slug) so a tags-only fetchEvents returns
-        # the tagged events rather than filtering the top-volume listing down to nothing; the base
-        # filterEventsByTags then narrows further client-side when multiple tags are requested
+        # push requested tags server-side(gamma accepts one tag_slug per request) so a tags-only
+        # fetchEvents returns the tagged events rather than filtering the top-volume listing down
+        # to nothing; multiple tags run one listing per tag, unioned and deduped by event id
         requestedTags = self.safe_list(params, 'tags', [])
         requestedTagsLength = len(requestedTags)
+        if requestedTagsLength > 1:
+            seen = {}
+            unioned = []
+            for ti in range(0, requestedTagsLength):
+                singleTagParams = self.extend({}, params)
+                singleTagParams['tags'] = [requestedTags[ti]]
+                tagEvents = await self.fetch_raw_events_list(singleTagParams)
+                for ei in range(0, len(tagEvents)):
+                    rawEvent = tagEvents[ei]
+                    eventId = self.safe_string(rawEvent, 'id')
+                    if (eventId is not None) and not (eventId in seen):
+                        seen[eventId] = True
+                        unioned.append(rawEvent)
+            return unioned
         if requestedTagsLength > 0:
             baseRequest['tag_slug'] = self.safe_string(requestedTags, 0)
         if status == 'active':
@@ -770,7 +787,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: the resolved outcome object
         """
         # a bare CLOB token id has no ':'; an outcome handle is always "MARKET:LABEL"
-        if outcomeSymbol.find(':') == -1:
+        # absence must be `< 0` — the php transpiler maps that to `== False`, while a literal
+        # `== -1` passes through and never matches mb_strpos's False return
+        if outcomeSymbol.find(':') < 0:
             response = await self.gammaPublicGetMarkets({'clob_token_ids': outcomeSymbol})
             rawMarkets = response if (response is not None) else []
             rawMarketsLength = len(rawMarkets)
@@ -787,6 +806,52 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 if byId is not None:
                     return byId
         return await super(polymarket, self).fetch_outcome(outcomeSymbol)
+
+    async def fetch_outcomes(self, outcomeSymbols: List[str]) -> Any:
+        """
+ @ignore
+        resolves several uncached outcomes at once — bare CLOB token ids are batched into gamma markets requests(repeated clob_token_ids params, 50 per request to keep the URL bounded); handle-shaped symbols fall back to the single fetch and its search path
+
+        https://docs.polymarket.com/api-reference/markets/list-markets
+
+        :param str[] outcomeSymbols: outcome token ids or handles
+        :returns dict: the outcome cache
+        """
+        tokenIds = []
+        for i in range(0, len(outcomeSymbols)):
+            outcomeSymbol = outcomeSymbols[i]
+            # absence must be `< 0` — the php transpiler maps that to `== False`, while a
+            # literal `== -1` passes through and never matches mb_strpos's False return
+            if outcomeSymbol.find(':') < 0:
+                tokenIds.append(outcomeSymbol)
+        tokenIdsLength = len(tokenIds)
+        if tokenIdsLength > 0:
+            if self.markets is None:
+                self.markets = self.create_safe_dictionary()
+            # token ids are ~78 chars each, so cap the batch to keep the URL under common limits
+            chunkSize = self.safe_integer(self.options, 'fetchOutcomesBatchSize', 50)
+            startIndex = 0
+            while(startIndex < tokenIdsLength):
+                endIndex = self.sum(startIndex, chunkSize)
+                if endIndex > tokenIdsLength:
+                    endIndex = tokenIdsLength
+                chunk = []
+                for i in range(startIndex, endIndex):
+                    chunk.append(tokenIds[i])
+                # gamma matches repeated clob_token_ids params — comma-joined ids are rejected
+                # with a validation error, so the list rides through urlencodeWithArrayRepeat
+                response = await self.gammaPublicGetMarkets({'clob_token_ids': chunk, 'limit': chunkSize})
+                rawMarkets = response if (response is not None) else []
+                ccxtMarkets = self.parse_event_to_markets({'markets': rawMarkets})
+                for i in range(0, len(ccxtMarkets)):
+                    mkt = ccxtMarkets[i]
+                    self.markets[mkt['symbol']] = mkt
+                startIndex = self.sum(startIndex, chunkSize)
+            self.populate_outcomes()
+        for i in range(0, len(outcomeSymbols)):
+            if not self.has_outcome(outcomeSymbols[i]):
+                await self.fetch_outcome(outcomeSymbols[i])
+        return self.outcomes
 
     async def fetch_ticker(self, outcome: str, params={}) -> PredictionTicker:
         """
@@ -843,25 +908,22 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
     async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
         """
-        fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
+        fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints(200 per request pair)
 
         https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
         https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
 
-        :param str[] [outcomes]: unified outcomes or outcome token ids, fetches all loaded outcomes when omitted
+        :param str[] outcomes: unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
         """
-        await self.load_outcomes()
-        outcomesMap = self.outcomes if (self.outcomes is not None) else {}
+        if outcomes is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch(discover them via fetchEvents())')
+        # batch-resolve the uncached outcomes(one gamma request per 50 token ids)
+        await self.load_outcomes(outcomes)
         targets = []
-        if outcomes is not None:
-            for oi in range(0, len(outcomes)):
-                targets.append(outcomes[oi])
-        else:
-            allOutcomeKeys = list(outcomesMap.keys())
-            for ki in range(0, len(allOutcomeKeys)):
-                targets.append(allOutcomeKeys[ki])
+        for oi in range(0, len(outcomes)):
+            targets.append(outcomes[oi])
         outcomesByTokenId = {}
         tokenIds = []
         for i in range(0, len(targets)):
@@ -1419,7 +1481,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         outcomesLength = 0
         if outcomes is not None:
             outcomesLength = len(outcomes)
-        await self.load_outcomes()
+            await self.load_outcomes(outcomes)
+        # no bulk warm-up on the unfiltered path: the positions request is self-contained and
+        # labels resolve cache-only via safeOutcome(raw token ids when the cache is cold)
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' walletAddress is required to fetchPositions')
         request = {
@@ -1669,7 +1733,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
         await self.load_api_credentials()
-        await self.load_outcomes()
+        # buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
+        # requested outcomes first(one gamma request for all uncached token ids)
+        orderOutcomes = []
+        for i in range(0, len(orders)):
+            o = orders[i]
+            orderOutcomes.append(self.safe_string(o, 'outcome'))
+        await self.load_outcomes(orderOutcomes)
         bodies = []
         outcomes = []
         requests = []
@@ -2034,7 +2104,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """
-        fetches prediction-market events matching the given search terms(or all active events when omitted) and caches their markets and outcomes on the instance
+        fetches prediction-market events matching the given scope(query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets()
 
         https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
         https://docs.polymarket.com/api-reference/events/list-events
@@ -2048,10 +2118,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [params.searchIn]: when searching, restrict the match to 'title'(default), 'description' or 'both'
         :param str [params.eventId]: direct lookup by event id(short-circuits the listing/search)
         :param str [params.slug]: direct lookup by event slug
+        :param int [params.searchPageSize]: search page size(gamma limit_per_type, default 100); lower it to shrink the download when a small limit is enough, higher to over-fetch before client-side status/title filtering
+        :param int [params.maxSearchPages]: max search pages to fetch when no limit is given(default 5), bounding a broad query
         :returns dict[]: an array of event structures
         """
-        # no requireEventQuery: polymarket has a bounded gamma listing(fetchRawEventsList), so an
-        # unscoped call returns the most-active events(matching self method's documented contract)
+        self.require_event_query(params)
         requestedEventId = self.safe_string(params, 'eventId')
         requestedSlug = self.safe_string(params, 'slug')
         queries = self.parse_search_queries(params)
@@ -2293,7 +2364,15 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if not isArrayBody:
             query = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            querystring = self.urlencode(query)
+            # array-valued params must repeat the key(gamma's clob_token_ids rejects
+            # comma-joined ids); scalar-only queries keep the plain encoder — the repeat
+            # encoder capitalizes booleans("False") under the C# base
+            hasArrayParam = False
+            queryKeys = list(query.keys())
+            for i in range(0, len(queryKeys)):
+                if isinstance(query[queryKeys[i]], list):
+                    hasArrayParam = True
+            querystring = self.urlencode_with_array_repeat(query) if hasArrayParam else self.urlencode(query)
             if querystring:
                 url += '?' + querystring
         elif isArrayBody:

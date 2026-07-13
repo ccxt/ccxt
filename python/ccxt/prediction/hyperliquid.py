@@ -122,6 +122,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             },
             'options': {
                 'defaultType': 'prediction',
+                # the whole outcome universe is one cheap outcomeMeta request, so bulk-warming on
+                # a cache miss stays the right trade-off here(the base default is False)
+                'loadAllOutcomes': True,
                 'sandboxMode': False,  # outcome markets currently deployed on testnet
                 'outcomeQuoteCurrency': 'USDH',
                 'defaultSlippage': 0.05,
@@ -613,9 +616,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         """
         requestedOutcomeSymbols = {}
         if outcomes is not None:
+            # one warm-up for the whole list(a cold cache bulk-loads once via loadAllOutcomes),
+            # then identities resolve synchronously
+            await self.load_outcomes(outcomes)
             for i in range(0, len(outcomes)):
                 requested = outcomes[i]
-                requestedOutcomeObj = await self.load_outcome(requested)
+                requestedOutcomeObj = self.safe_outcome(requested)
                 requestedOutcome = self.safe_string(requestedOutcomeObj, 'outcome', requested)
                 requestedOutcomeSymbols[requestedOutcome] = True
         else:
@@ -897,9 +903,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         """
         requestedOutcomeSymbols = {}
         if outcomes is not None:
+            # one warm-up for the whole list(a cold cache bulk-loads once via loadAllOutcomes),
+            # then identities resolve synchronously
+            await self.load_outcomes(outcomes)
             for i in range(0, len(outcomes)):
                 requested = outcomes[i]
-                requestedOutcomeObj = await self.load_outcome(requested)
+                requestedOutcomeObj = self.safe_outcome(requested)
                 requestedOutcome = self.safe_string(requestedOutcomeObj, 'outcome', requested)
                 requestedOutcomeSymbols[requestedOutcome] = True
         else:
@@ -1679,7 +1688,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     allWords = True
                     for wi in range(0, wordsLength):
                         word = words[wi]
-                        if (word != '') and (haystack.find(word) == -1):
+                        # `< 0`(not `== -1`) — the php transpiler maps `< 0` to `== False`
+                        if (word != '') and (haystack.find(word) < 0):
                             allWords = False
                             break
                     if allWords:

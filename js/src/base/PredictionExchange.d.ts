@@ -2,7 +2,7 @@ import { BaseExchange } from './Exchange.js';
 import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
- * @augments Exchange
+ * @augments BaseExchange
  * @description Base class for prediction-market exchanges. It carries the
  * prediction-specific state (events / outcomes) and helpers, and re-declares the
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
@@ -21,13 +21,14 @@ export default class PredictionExchange extends BaseExchange {
     filterEventsBySearchIn(events: any[], queries: string[], searchIn?: Str): any[];
     filterEventsByTags(events: any[], tags?: string[]): any[];
     fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
-    fetchEvent(id: string, params?: {}): Promise<any>;
+    fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
     setEvents(events: any[]): Dictionary<any>;
     eventsList(): any[];
     loadEventsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     loadEvents(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     getEvent(eventIdOrSlug: string): any;
     outcome(outcomeSymbol: string): any;
+    hasOutcome(outcomeIdOrSymbol: string): boolean;
     safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): any;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
     shortenSlug(slug: Str): string;
@@ -37,8 +38,18 @@ export default class PredictionExchange extends BaseExchange {
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     indexEventOutcomes(event: any): void;
-    loadOutcomes(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
-    loadOutcome(outcomeSymbol: string): Promise<any>;
+    loadOutcomes(outcomes?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#fetchOutcomes
+     * @description resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+     * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
+     * @returns {object} the outcome cache
+     */
+    fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
+    loadOutcome(outcomeSymbol: string, reload?: boolean): Promise<any>;
+    outcomeSearchQuery(outcomeSymbol: string): Str;
     fetchOutcome(outcomeSymbol: string): Promise<any>;
     /**
      * @method
@@ -300,9 +311,9 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction settlement structures
      */
     fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionSettlement[]>;
-    safePredictionOrder(order: Dict, market?: any): PredictionOrder;
-    safePredictionTrade(trade: Dict, market?: any): PredictionTrade;
-    safePredictionTicker(ticker: Dict, market?: any): PredictionTicker;
+    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: any): PredictionOrder;
+    safePredictionTrade(trade: Dict, outcomeObj?: any): PredictionTrade;
+    safePredictionTicker(ticker: Dict, outcomeObj?: any): PredictionTicker;
     safePredictionPosition(position: Dict): PredictionPosition;
     safePredictionOrderBook(orderbook: Dict, outcomeObj?: Dict): PredictionOrderBook;
     parsePredictionTicker(ticker: Dict, market?: Market): PredictionTicker;
@@ -310,7 +321,6 @@ export default class PredictionExchange extends BaseExchange {
     parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
     parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
     parsePredictionOpenInterest(interest: Dict, market?: Market): PredictionOpenInterest;
-    toPredictionStructure(parsed: Dict, raw: Dict): any;
     /**
      * @ignore
      * @method
