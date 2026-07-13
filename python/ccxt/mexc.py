@@ -1570,7 +1570,7 @@ class mexc(Exchange, ImplicitAPI):
             request['limit'] = limit
         trades = []
         if market['spot']:
-            until = self.safe_integer_n(params, ['endTime', 'until'])
+            until = self.safe_integer_2(params, 'endTime', 'until')
             if since is not None:
                 request['startTime'] = since
                 if until is None:
@@ -1812,7 +1812,7 @@ class mexc(Exchange, ImplicitAPI):
             'interval': timeframeValue,
         }
         candles = []
-        until = self.safe_integer_n(params, ['until', 'endTime'])
+        until = self.safe_integer_2(params, 'until', 'endTime')
         start = since
         if (until is not None) and (since is None):
             params = self.omit(params, ['until'])

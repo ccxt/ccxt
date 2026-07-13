@@ -1489,7 +1489,7 @@ class hashkey(Exchange, ImplicitAPI):
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'
         takerOrMaker = None
-        isMaker = self.safe_bool_n(trade, ['isMaker', 'isMarker'])
+        isMaker = self.safe_bool_2(trade, 'isMaker', 'isMarker')
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
         isBuyerMaker = self.safe_bool(trade, 'ibm')

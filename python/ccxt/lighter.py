@@ -786,12 +786,12 @@ class lighter(Exchange, ImplicitAPI):
                 triggerOrderSide = 'sell'
             else:
                 triggerOrderSide = 'buy'
-            stopLossOrderTriggerPrice = self.safe_number_n(stopLoss, ['triggerPrice', 'stopPrice'])
+            stopLossOrderTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
             stopLossOrderType = self.safe_string(stopLoss, 'type', 'limit')
-            stopLossOrderLimitPrice = self.safe_number_n(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice)
-            takeProfitOrderTriggerPrice = self.safe_number_n(takeProfit, ['triggerPrice', 'stopPrice'])
+            stopLossOrderLimitPrice = self.safe_number_2(stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice)
+            takeProfitOrderTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
             takeProfitOrderType = self.safe_string(takeProfit, 'type', 'limit')
-            takeProfitOrderLimitPrice = self.safe_number_n(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice)
+            takeProfitOrderLimitPrice = self.safe_number_2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice)
             # amount should be 0 for child orders
             if stopLoss is not None:
                 orderObj = self.create_order_request(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, self.extend(params, {

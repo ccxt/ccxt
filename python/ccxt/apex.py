@@ -846,12 +846,12 @@ class apex(Exchange, ImplicitAPI):
         #  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         #
         return [
-            self.safe_integer_n(ohlcv, ['start', 't']),
-            self.safe_number_n(ohlcv, ['open', 'o']),
-            self.safe_number_n(ohlcv, ['high', 'h']),
-            self.safe_number_n(ohlcv, ['low', 'l']),
-            self.safe_number_n(ohlcv, ['close', 'c']),
-            self.safe_number_n(ohlcv, ['volume', 'v']),
+            self.safe_integer_2(ohlcv, 'start', 't'),
+            self.safe_number_2(ohlcv, 'open', 'o'),
+            self.safe_number_2(ohlcv, 'high', 'h'),
+            self.safe_number_2(ohlcv, 'low', 'l'),
+            self.safe_number_2(ohlcv, 'close', 'c'),
+            self.safe_number_2(ohlcv, 'volume', 'v'),
         ]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
