@@ -101,7 +101,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function require_event_query($params = array()) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-        // entire exchange. require one of $query / $queries / $tags / $eventId / $slug
+        // entire exchange. require one of $query / $queries / $tags / $eventId / $slug, or one of the
+        // venue-specific scope $params an exchange declares in options['eventScopeParams']
+        // (e.g. kalshi's category / series_ticker)
         $query = $this->safe_string($params, 'query');
         $queries = $this->safe_list($params, 'queries', array());
         $tags = $this->safe_list($params, 'tags', array());
@@ -109,10 +111,20 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $slug = $this->safe_string($params, 'slug');
         $queriesLength = count($queries);
         $tagsLength = count($tags);
-        if (($query === null) && ($queriesLength === 0) && ($tagsLength === 0) && ($eventId === null) && ($slug === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of $query, $queries, $tags, $eventId or $slug to scope the search');
+        if (($query !== null) || ($queriesLength > 0) || ($tagsLength > 0) || ($eventId !== null) || ($slug !== null)) {
+            return null;
         }
-        return null;
+        $extraScopeParams = $this->safe_list($this->options, 'eventScopeParams', array());
+        $extraScopeParamsLength = count($extraScopeParams);
+        $extraNames = '';
+        for ($i = 0; $i < $extraScopeParamsLength; $i++) {
+            $scopeKey = $extraScopeParams[$i];
+            if (is_array($params) && array_key_exists($scopeKey, $params)) {
+                return null;
+            }
+            $extraNames = $extraNames . ', ' . $scopeKey;
+        }
+        throw new ArgumentsRequired($this->id . ' fetchEvents() requires at least one of $query, $queries, $tags, $eventId, slug' . $extraNames . ' to scope the search');
     }
 
     public function apply_event_fetch_params(array $events, $params = array(), ?array $queries = null) {
@@ -607,26 +619,16 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         })();
     }
 
-    public function load_outcome(string $outcomeSymbol) {
-        return Async\async(function () use ($outcomeSymbol) {
+    public function load_outcome(string $outcomeSymbol, $reload = false) {
+        return Async\async(function () use ($outcomeSymbol, $reload) {
             // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-            // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
-            // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-            // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
-            if ($this->outcomes !== null) {
-                if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
-                    return $this->outcomes[$outcomeSymbol];
-                }
-                if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
-                    return $this->outcomes_by_id[$outcomeSymbol];
-                }
-            }
-            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
-            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-            // but the outcome cache is cold, index them for free before hitting the network — this
-            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if (!$wasWarm && ($this->markets !== null) && !$this->is_empty($this->markets)) {
-                $this->populate_outcomes();
+            // returns at once (pass $reload=true to skip the cache and refetch the outcome's metadata).
+            // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+            // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+            // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up => the first
+            // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+            // sane on venues whose full universe is one cheap request (hyperliquid)
+            if (!$reload) {
                 if ($this->outcomes !== null) {
                     if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
                         return $this->outcomes[$outcomeSymbol];
@@ -635,20 +637,35 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                         return $this->outcomes_by_id[$outcomeSymbol];
                     }
                 }
-            }
-            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', true);
-            if ($loadAll && !$wasWarm) {
-                // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
-                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-                // the whole listing (which would mask typos and clobber offline-injected markets)
-                Async\await($this->load_outcomes());
-                if ($this->outcomes !== null) {
-                    if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
-                        return $this->outcomes[$outcomeSymbol];
+                $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
+                // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+                // but the outcome cache is cold, index them for free before hitting the network — this
+                // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+                if (!$wasWarm && ($this->markets !== null) && !$this->is_empty($this->markets)) {
+                    $this->populate_outcomes();
+                    if ($this->outcomes !== null) {
+                        if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                            return $this->outcomes[$outcomeSymbol];
+                        }
+                        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                            return $this->outcomes_by_id[$outcomeSymbol];
+                        }
                     }
-                    if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
-                        return $this->outcomes_by_id[$outcomeSymbol];
+                }
+                $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
+                if ($loadAll && !$wasWarm) {
+                    // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
+                    // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                    // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                    // the whole listing (which would mask typos and clobber offline-injected markets)
+                    Async\await($this->load_outcomes());
+                    if ($this->outcomes !== null) {
+                        if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                            return $this->outcomes[$outcomeSymbol];
+                        }
+                        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                            return $this->outcomes_by_id[$outcomeSymbol];
+                        }
                     }
                 }
             }
@@ -656,14 +673,86 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         })();
     }
 
+    public function outcome_search_query(string $outcomeSymbol) {
+        // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
+        // cache miss can be resolved through the venue's scoped search instead of a bulk listing
+        // download. returns null for id-like inputs (numeric token ids, 0x hashes) that
+        // carry no searchable $words
+        $marketPart = $outcomeSymbol;
+        $colonIndex = mb_strpos($outcomeSymbol, ':');
+        if ($colonIndex >= 0) {
+            $marketPart = mb_substr($outcomeSymbol, 0, $colonIndex - 0);
+        }
+        if (mb_strpos($marketPart, '0x') === 0) {
+            return null;
+        }
+        // handles join $words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        $normalized = str_replace('-', '_', strtolower($marketPart));
+        $rawWords = explode('_', $normalized);
+        $words = array();
+        $hasLetters = false;
+        $letters = 'abcdefghijklmnopqrstuvwxyz';
+        for ($i = 0; $i < count($rawWords); $i++) {
+            $word = $rawWords[$i];
+            $wordLength = count($word);
+            if ($wordLength === 0) {
+                continue;
+            }
+            $wordHasLetters = false;
+            $chars = $this->string_to_chars_array($word);
+            for ($ci = 0; $ci < count($chars); $ci++) {
+                if (mb_strpos($letters, $chars[$ci]) !== false) {
+                    $wordHasLetters = true;
+                    break;
+                }
+            }
+            // the query is the handle's letter-bearing $words only. standalone numeric tokens
+            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // reliably index — and since the result is re-checked against the EXACT handle,
+            // a broader query only adds recall, never a wrong match
+            if (!$wordHasLetters) {
+                continue;
+            }
+            $words[] = $word;
+            $hasLetters = true;
+        }
+        $wordsLength = count($words);
+        if (($wordsLength === 0) || !$hasLetters) {
+            // a purely numeric/symbolic handle is an id, not searchable text
+            return null;
+        }
+        return implode(' ', $words);
+    }
+
     public function fetch_outcome(string $outcomeSymbol) {
         return Async\async(function () use ($outcomeSymbol) {
-            // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-            // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
-            // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
-            // override this to fetch and cache only the requested outcome — the "always fetch one" path.
-            Async\await($this->load_outcomes());
-            return $this->outcome($outcomeSymbol);
+            // fetch just one outcome on demand — never through a bulk listing download. the base has
+            // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+            // through the venue's own scoped fetchEvents (which caches everything it finds), then
+            // re-checks the cache. venues with a $real by-id fetch (kalshi by ticker, polymarket by
+            // token id) override this with a cheaper single fetch and fall back to super on a miss.
+            $searchQuery = $this->outcome_search_query($outcomeSymbol);
+            if (($searchQuery !== null) && $this->safe_bool($this->has, 'fetchEvents', false)) {
+                $searchLimit = $this->safe_integer($this->options, 'fetchOutcomeSearchLimit', 10);
+                try {
+                    Async\await($this->fetch_events(array( 'query' => $searchQuery, 'limit' => $searchLimit )));
+                } catch (Exception $e) {
+                    // a query with zero matches surfaces on some venues — treat it
+                    // plain miss (the guidance-rich throw $below); $real transport errors propagate
+                    if (!($e instanceof BadSymbol)) {
+                        throw $e;
+                    }
+                }
+                if ($this->outcomes !== null) {
+                    if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+                        return $this->outcomes[$outcomeSymbol];
+                    }
+                    if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+                        return $this->outcomes_by_id[$outcomeSymbol];
+                    }
+                }
+            }
+            throw new BadSymbol($this->id . ' could not resolve outcome ' . $outcomeSymbol . " — call fetchEvents (array( 'query' => ... )) first, or pass a known outcomeId");
         })();
     }
 
@@ -1039,9 +1128,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             }
         }
         $fee = $this->safe_dict($outcomeOrder, 'fee');
-        if (($fee === null) && (strlen($feeList) > 0)) {
+        // own-line length reads so the regex transpiler emits count() (array), not strlen()
+        $feeListLength = count($feeList);
+        if (($fee === null) && ($feeListLength > 0)) {
             $reduced = $this->reduce_fees_by_currency($feeList);
-            if (strlen($reduced) > 0) {
+            $reducedLength = count($reduced);
+            if ($reducedLength > 0) {
                 $fee = $reduced[0];
             }
         }

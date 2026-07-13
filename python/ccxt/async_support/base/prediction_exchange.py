@@ -96,7 +96,9 @@ class PredictionExchange(BaseExchange):
 
     def require_event_query(self, params={}):
         # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-        # entire exchange. require one of query / queries / tags / eventId / slug
+        # entire exchange. require one of query / queries / tags / eventId / slug, or one of the
+        # venue-specific scope params an exchange declares in options['eventScopeParams']
+        #(e.g. kalshi's category / series_ticker)
         query = self.safe_string(params, 'query')
         queries = self.safe_list(params, 'queries', [])
         tags = self.safe_list(params, 'tags', [])
@@ -104,9 +106,17 @@ class PredictionExchange(BaseExchange):
         slug = self.safe_string(params, 'slug')
         queriesLength = len(queries)
         tagsLength = len(tags)
-        if (query is None) and (queriesLength == 0) and (tagsLength == 0) and (eventId is None) and (slug is None):
-            raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search')
-        return None
+        if (query is not None) or (queriesLength > 0) or (tagsLength > 0) or (eventId is not None) or (slug is not None):
+            return None
+        extraScopeParams = self.safe_list(self.options, 'eventScopeParams', [])
+        extraScopeParamsLength = len(extraScopeParams)
+        extraNames = ''
+        for i in range(0, extraScopeParamsLength):
+            scopeKey = extraScopeParams[i]
+            if scopeKey in params:
+                return None
+            extraNames = extraNames + ', ' + scopeKey
+        raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search')
 
     def apply_event_fetch_params(self, events: List[Any], params={}, queries: List[str] = None):
         # applies the unified fetchEvents options client-side(eventId/slug/status/searchIn/sort/limit)
@@ -501,48 +511,109 @@ class PredictionExchange(BaseExchange):
         self.populate_outcomes()
         return self.outcomes
 
-    async def load_outcome(self, outcomeSymbol: str):
+    async def load_outcome(self, outcomeSymbol: str, reload=False):
         # resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-        # returns at once. on a miss, options.loadAllOutcomes(default True) bulk-loads the whole set
-        # once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        # kalshi sets it False and overrides fetchOutcome to fetch just the requested one on demand.
-        if self.outcomes is not None:
-            if outcomeSymbol in self.outcomes:
-                return self.outcomes[outcomeSymbol]
-            if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                return self.outcomes_by_id[outcomeSymbol]
-        wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
-        # if markets are already loaded(offline-injected, or loaded by loadMarkets/fetchEvents)
-        # but the outcome cache is cold, index them for free before hitting the network — self
-        # makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-        if not wasWarm and (self.markets is not None) and not self.is_empty(self.markets):
-            self.populate_outcomes()
+        # returns at once(pass reload=true to skip the cache and refetch the outcome's metadata).
+        # on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+        # venues with such an endpoint(kalshi, polymarket) or the venue's scoped search otherwise.
+        # options.loadAllOutcomes(default False) opts back into the legacy bulk warm-up: the first
+        # miss loads the whole(capped) listing once so later lookups are 0-network hits — only
+        # sane on venues whose full universe is one cheap request(hyperliquid)
+        if not reload:
             if self.outcomes is not None:
                 if outcomeSymbol in self.outcomes:
                     return self.outcomes[outcomeSymbol]
                 if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
                     return self.outcomes_by_id[outcomeSymbol]
-        loadAll = self.safe_bool(self.options, 'loadAllOutcomes', True)
-        if loadAll and not wasWarm:
-            # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-            # a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-            # listed, so fall through to fetchOutcome(a real BadSymbol) rather than refetching
-            # the whole listing(which would mask typos and clobber offline-injected markets)
-            await self.load_outcomes()
-            if self.outcomes is not None:
-                if outcomeSymbol in self.outcomes:
-                    return self.outcomes[outcomeSymbol]
-                if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-                    return self.outcomes_by_id[outcomeSymbol]
+            wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
+            # if markets are already loaded(offline-injected, or loaded by loadMarkets/fetchEvents)
+            # but the outcome cache is cold, index them for free before hitting the network — self
+            # makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if not wasWarm and (self.markets is not None) and not self.is_empty(self.markets):
+                self.populate_outcomes()
+                if self.outcomes is not None:
+                    if outcomeSymbol in self.outcomes:
+                        return self.outcomes[outcomeSymbol]
+                    if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                        return self.outcomes_by_id[outcomeSymbol]
+            loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
+            if loadAll and not wasWarm:
+                # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                # a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                # listed, so fall through to fetchOutcome(a real BadSymbol) rather than refetching
+                # the whole listing(which would mask typos and clobber offline-injected markets)
+                await self.load_outcomes()
+                if self.outcomes is not None:
+                    if outcomeSymbol in self.outcomes:
+                        return self.outcomes[outcomeSymbol]
+                    if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                        return self.outcomes_by_id[outcomeSymbol]
         return await self.fetch_outcome(outcomeSymbol)
 
+    def outcome_search_query(self, outcomeSymbol: str):
+        # derive a human search query from a unified outcome handle(EVENT_MARKET:LABEL) so a
+        # cache miss can be resolved through the venue's scoped search instead of a bulk listing
+        # download. returns None for id-like inputs(numeric token ids, 0x hashes) that
+        # carry no searchable words
+        marketPart = outcomeSymbol
+        colonIndex = outcomeSymbol.find(':')
+        if colonIndex >= 0:
+            marketPart = outcomeSymbol[0:colonIndex]
+        if marketPart.find('0x') == 0:
+            return None
+        # handles join words with '_'(slug-derived) or '-'(e.g. hyperliquid's BTC-ABOVE-78213)
+        normalized = marketPart.lower().replace('-', '_')
+        rawWords = normalized.split('_')
+        words = []
+        hasLetters = False
+        letters = 'abcdefghijklmnopqrstuvwxyz'
+        for i in range(0, len(rawWords)):
+            word = rawWords[i]
+            wordLength = len(word)
+            if wordLength == 0:
+                continue
+            wordHasLetters = False
+            chars = self.string_to_chars_array(word)
+            for ci in range(0, len(chars)):
+                if letters.find(chars[ci]) >= 0:
+                    wordHasLetters = True
+                    break
+            # the query is the handle's letter-bearing words only. standalone numeric tokens
+            #(slug timestamps, strikes, years) are venue artifacts that title searches don't
+            # reliably index — and since the result is re-checked against the EXACT handle,
+            # a broader query only adds recall, never a wrong match
+            if not wordHasLetters:
+                continue
+            words.append(word)
+            hasLetters = True
+        wordsLength = len(words)
+        if (wordsLength == 0) or not hasLetters:
+            # a purely numeric/symbolic handle is an id, not searchable text
+            return None
+        return ' '.join(words)
+
     async def fetch_outcome(self, outcomeSymbol: str):
-        # fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-        # resolves from the already-loaded set(loadOutcomes() is a cached no-op once warmed, and
-        # self throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch(kalshi)
-        # override self to fetch and cache only the requested outcome — the "always fetch one" path.
-        await self.load_outcomes()
-        return self.outcome(outcomeSymbol)
+        # fetch just one outcome on demand — never through a bulk listing download. the base has
+        # no generic by-id endpoint, so it derives a search query from the handle and resolves it
+        # through the venue's own scoped fetchEvents(which caches everything it finds), then
+        # re-checks the cache. venues with a real by-id fetch(kalshi by ticker, polymarket by
+        # token id) override self with a cheaper single fetch and fall back to super on a miss.
+        searchQuery = self.outcome_search_query(outcomeSymbol)
+        if (searchQuery is not None) and self.safe_bool(self.has, 'fetchEvents', False):
+            searchLimit = self.safe_integer(self.options, 'fetchOutcomeSearchLimit', 10)
+            try:
+                await self.fetch_events({'query': searchQuery, 'limit': searchLimit})
+            except Exception as e:
+                # a query with zero matches surfaces on some venues — treat it
+                # plain miss(the guidance-rich raise below); real transport errors propagate
+                if not (isinstance(e, BadSymbol)):
+                    raise e
+            if self.outcomes is not None:
+                if outcomeSymbol in self.outcomes:
+                    return self.outcomes[outcomeSymbol]
+                if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
+                    return self.outcomes_by_id[outcomeSymbol]
+        raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents({'query': ...}) first, or pass a known outcomeId")
 
     async def fetch_ticker(self, outcome: str, params={}):
         """
@@ -867,9 +938,12 @@ class PredictionExchange(BaseExchange):
             if multiplyPrice is not None:
                 cost = Precise.string_mul(filled, multiplyPrice)
         fee = self.safe_dict(outcomeOrder, 'fee')
-        if (fee is None) and (len(feeList) > 0):
+        # own-line length reads so the regex transpiler emits count()(array), not strlen()
+        feeListLength = len(feeList)
+        if (fee is None) and (feeListLength > 0):
             reduced = self.reduce_fees_by_currency(feeList)
-            if len(reduced) > 0:
+            reducedLength = len(reduced)
+            if reducedLength > 0:
                 fee = reduced[0]
         # derive timeInForce/postOnly the same way the crypto safeOrder does(prediction has no
         # trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC

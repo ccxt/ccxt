@@ -685,14 +685,23 @@ export default class PredictionExchange extends BaseExchange {
             if (wordLength === 0) {
                 continue;
             }
-            words.push (word);
+            let wordHasLetters = false;
             const chars = this.stringToCharsArray (word);
             for (let ci = 0; ci < chars.length; ci++) {
                 if (letters.indexOf (chars[ci]) >= 0) {
-                    hasLetters = true;
+                    wordHasLetters = true;
                     break;
                 }
             }
+            // the query is the handle's letter-bearing words only. standalone numeric tokens
+            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // reliably index — and since the result is re-checked against the EXACT handle,
+            // a broader query only adds recall, never a wrong match
+            if (!wordHasLetters) {
+                continue;
+            }
+            words.push (word);
+            hasLetters = true;
         }
         const wordsLength = words.length;
         if ((wordsLength === 0) || !hasLetters) {
