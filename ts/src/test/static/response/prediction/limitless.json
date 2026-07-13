@@ -201,11 +201,9 @@
 					"bidVolume": 2000,
 					"ask": 0.486,
 					"askVolume": 2000,
-					"vwap": null,
 					"open": null,
 					"close": 0.476,
 					"last": 0.476,
-					"previousClose": null,
 					"change": null,
 					"percentage": null,
 					"average": 0.476,
@@ -561,9 +559,8 @@
 							"lastTradePrice": null
 						}
 					},
-					"indexPrice": null,
-					"markPrice": null,
-					"event": null
+					"event": null,
+					"openInterest": null
 				}
 			}
 		],
@@ -803,12 +800,8 @@
 						"price": 0.928,
 						"amount": 107.758,
 						"cost": 99.999424,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
+						"fee": null,
+						"realizedPnl": null
 					},
 					{
 						"id": "0x24054841959e28097ffd054b180a49c2127c89e36ea41eccd989f6bbc044ec74",
@@ -845,12 +838,8 @@
 						"price": 0.943,
 						"amount": 106.044,
 						"cost": 99.999492,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
+						"fee": null,
+						"realizedPnl": null
 					},
 					{
 						"id": "0x2538d5ebe92b2ed1ee0f9c759c28fa7b4103110bd5c4701e8f96756d1b18a015",
@@ -887,12 +876,8 @@
 						"price": 0.956,
 						"amount": 104.602,
 						"cost": 99.999512,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
+						"fee": null,
+						"realizedPnl": null
 					}
 				]
 			}

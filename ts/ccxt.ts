@@ -29,7 +29,8 @@ SOFTWARE.
 
 /* eslint-disable */
 
-import { Exchange }  from './src/base/Exchange.js'
+import { Exchange, BaseExchange }  from './src/base/Exchange.js'
+import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
@@ -446,14 +447,18 @@ const prediction = {
 };
 
 (prediction as any).exchanges = Object.keys (prediction)
-prediction['Exchange'] = Exchange
+// the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
+// prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
+prediction['Exchange'] = PredictionExchange
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
     Exchange,
+    BaseExchange,
+    PredictionExchange,
     exchanges,
     pro,
     prediction,

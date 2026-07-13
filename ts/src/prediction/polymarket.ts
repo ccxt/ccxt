@@ -388,8 +388,10 @@ export default class polymarket extends Exchange {
     async fetchRawEventsBySearch (queries: any[], params = {}): Promise<any[]> {
         const resultLimit = this.safeInteger (params, 'limit');
         // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
-        // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event)
-        const pageSize = this.safeInteger (this.options, 'searchPageSize', 100);
+        // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
+        // tunable per-call via params.searchPageSize, else the exchange option, else 100
+        const optionPageSize = this.safeInteger (this.options, 'searchPageSize', 100);
+        const pageSize = this.safeInteger (params, 'searchPageSize', optionPageSize);
         // map the unified sort/status onto the gamma search params
         const sort = this.safeString (params, 'sort');
         let sortParam = 'volume';
@@ -405,7 +407,7 @@ export default class polymarket extends Exchange {
         } else if (status === 'all') {
             eventsStatus = undefined;
         }
-        const rest = this.omit (params, [ 'limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries' ]);
+        const rest = this.omit (params, [ 'limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'searchPageSize', 'maxSearchPages' ]);
         const seen: Dict = {};
         const rawEvents: any[] = [];
         for (let qi = 0; qi < queries.length; qi++) {
@@ -430,7 +432,8 @@ export default class polymarket extends Exchange {
                     totalPages = limitPages;
                 }
             } else {
-                const maxSearchPages = this.safeInteger (this.options, 'maxSearchPages', 5);
+                const optionMaxPages = this.safeInteger (this.options, 'maxSearchPages', 5);
+                const maxSearchPages = this.safeInteger (params, 'maxSearchPages', optionMaxPages);
                 if (maxSearchPages < totalPages) {
                     totalPages = maxSearchPages;
                 }
@@ -2199,6 +2202,8 @@ export default class polymarket extends Exchange {
      * @param {string} [params.searchIn] when searching, restrict the match to 'title' (default), 'description' or 'both'
      * @param {string} [params.eventId] direct lookup by event id (short-circuits the listing/search)
      * @param {string} [params.slug] direct lookup by event slug
+     * @param {int} [params.searchPageSize] search page size (gamma limit_per_type, default 100); lower it to shrink the download when a small limit is enough, higher to over-fetch before client-side status/title filtering
+     * @param {int} [params.maxSearchPages] max search pages to fetch when no limit is given (default 5), bounding a broad query
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {

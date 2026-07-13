@@ -133,11 +133,9 @@
 					"bidVolume": null,
 					"ask": 0.72519807,
 					"askVolume": null,
-					"vwap": 0.7253241754988454,
 					"open": 0.72554582,
 					"close": 0.72519807,
 					"last": 0.72519807,
-					"previousClose": 0.72554582,
 					"change": -0.00034775,
 					"percentage": -0.047929433319593796,
 					"average": 0.72519807,
@@ -249,9 +247,8 @@
 						},
 						"externalSources": []
 					},
-					"indexPrice": null,
-					"markPrice": null,
-					"event": null
+					"event": null,
+					"openInterest": null
 				}
 			}
 		],
@@ -385,11 +382,9 @@
 						"bidVolume": null,
 						"ask": 0.72519807,
 						"askVolume": null,
-						"vwap": 0.7253241754988454,
 						"open": 0.72554582,
 						"close": 0.72519807,
 						"last": 0.72519807,
-						"previousClose": 0.72554582,
 						"change": -0.00034775,
 						"percentage": -0.047929433319593796,
 						"average": 0.72519807,
@@ -501,9 +496,8 @@
 							},
 							"externalSources": []
 						},
-						"indexPrice": null,
-						"markPrice": null,
-						"event": null
+						"event": null,
+						"openInterest": null
 					},
 					"POLYMARKET_KALSHI:KALSHI": {
 						"outcome": "POLYMARKET_KALSHI:KALSHI",
@@ -518,11 +512,9 @@
 						"bidVolume": null,
 						"ask": 0.27480193,
 						"askVolume": null,
-						"vwap": 0.7253241754988454,
 						"open": 0.27388306,
 						"close": 0.27480193,
 						"last": 0.27480193,
-						"previousClose": 0.27388306,
 						"change": 0.00091887,
 						"percentage": 0.33549720088566265,
 						"average": 0.27480193,
@@ -634,9 +626,8 @@
 							},
 							"externalSources": []
 						},
-						"indexPrice": null,
-						"markPrice": null,
-						"event": null
+						"event": null,
+						"openInterest": null
 					}
 				}
 			}
@@ -881,12 +872,8 @@
 						"price": 0.7253241754988454,
 						"amount": 1.418676,
 						"cost": 1.029,
-						"fee": {
-							"cost": null,
-							"currency": null
-						},
-						"fees": [],
-						"event": null
+						"fee": null,
+						"realizedPnl": null
 					}
 				]
 			}
