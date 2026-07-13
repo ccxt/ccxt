@@ -1508,7 +1508,7 @@ export default class dreamdex extends Exchange {
         const issuedAt = this.iso8601 (now);
         const url = this.safeString (this.urls['api'], 'rest');
         const urlReplaced = url.replace ('https://', '').replace ('http://', '');
-        const message = urlReplaced + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI: ' + urlReplaced + "\n" + 'Version: 1' + "\n" + 'Chain ID: 5031' + "\n" + 'Nonce: ' + nonce + "\n" + 'Issued At: ' + issuedAt; // eslint-disable-line quotes
+        const message = urlReplaced + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI: ' + url + "\n" + 'Version: 1' + "\n" + 'Chain ID: 5031' + "\n" + 'Nonce: ' + nonce + "\n" + 'Issued At: ' + issuedAt; // eslint-disable-line quotes
         const hash = this.hashMessage (message);
         const sig = this.signHash (hash, this.privateKey);
         const loginRequest: Dict = {
