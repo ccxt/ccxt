@@ -413,6 +413,7 @@ type IDerivedExchange interface {
 	FetchTime(optionalArgs ...any) <-chan any
 	FetchEvents(optionalArgs ...any) <-chan any
 	FetchOutcome(outcomeSymbol any) <-chan any
+	FetchOutcomes(outcomeSymbols any) <-chan any
 	SignEvmTransaction(tx any, privateKey any) any
 	FetchLeverageTiers(optionalArgs ...any) <-chan any
 	ParseDepositAddresses(addresses any, optionalArgs ...any) any

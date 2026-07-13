@@ -86,7 +86,9 @@ func  (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any  {
 }
 func  (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any  {
     // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-    // entire exchange. require one of query / queries / tags / eventId / slug
+    // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
+    // venue-specific scope params an exchange declares in options['eventScopeParams']
+    // (e.g. kalshi's category / series_ticker)
     params := GetArg(optionalArgs, 0, map[string]any {})
     _ = params
     var query any = this.SafeString(params, "query")
@@ -96,10 +98,20 @@ func  (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any  {
     var slug any = this.SafeString(params, "slug")
     var queriesLength any =     GetArrayLength(queries)
     var tagsLength any =     GetArrayLength(tags)
-    if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(query, nil))) && IsTrue((IsEqual(queriesLength, 0)))) && IsTrue((IsEqual(tagsLength, 0)))) && IsTrue((IsEqual(eventId, nil)))) && IsTrue((IsEqual(slug, nil)))) {
-        panic(ArgumentsRequired(Add(this.Id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")))
+    if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(query, nil))) || IsTrue((IsGreaterThan(queriesLength, 0)))) || IsTrue((IsGreaterThan(tagsLength, 0)))) || IsTrue((!IsEqual(eventId, nil)))) || IsTrue((!IsEqual(slug, nil)))) {
+        return nil
     }
-    return nil
+    var extraScopeParams any = this.SafeList(this.Options, "eventScopeParams", []any{})
+    var extraScopeParamsLength any =     GetArrayLength(extraScopeParams)
+    var extraNames any = ""
+    for i := 0; IsLessThan(i, extraScopeParamsLength); i++ {
+        var scopeKey any = GetValue(extraScopeParams, i)
+        if IsTrue(InOp(params, scopeKey)) {
+            return nil
+        }
+        extraNames = Add(Add(extraNames, ", "), scopeKey)
+    }
+    panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")))
 }
 func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs ...any) any  {
     // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
@@ -148,6 +160,12 @@ func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs 
             sortKey = "created"
         }
         if IsTrue(!IsEqual(sortKey, nil)) {
+            // normalize the sort key on every row first — sortBy reads it with a raw
+            // subscript, which raises KeyError/undefined-index in Python/PHP when a
+            // venue's parsed event omits the field (JS alone tolerates the miss)
+            for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
+                AddElementToObject(GetValue(result, i), sortKey, this.SafeNumber(GetValue(result, i), sortKey, 0))
+            }
             result = this.SortBy(result, sortKey, true, 0)
         }
     }
@@ -378,9 +396,9 @@ func  (this *PredictionExchange) LoadEvents(optionalArgs ...any) <- chan any {
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes34415 :=  (<-this.LoadEventsHelper(reload, params))
-                PanicOnError(retRes34415)
-        ch <- retRes34415
+                retRes36215 :=  (<-this.LoadEventsHelper(reload, params))
+                PanicOnError(retRes36215)
+        ch <- retRes36215
                 return nil
         
             }()
@@ -408,6 +426,18 @@ func  (this *PredictionExchange) Outcome(outcomeSymbol any) any  {
         return GetValue(this.Outcomes_by_id, outcomeSymbol)
     }
     panic(BadSymbol(Add(Add(Add(this.Id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
+}
+func  (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) any  {
+    // sync cache-only membership probe — never throws and never fetches. this is the predicate
+    // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
+    // and outcome (throws on miss) are the accessors
+    if IsTrue(IsTrue((!IsEqual(this.Outcomes, nil))) && IsTrue((InOp(this.Outcomes, outcomeIdOrSymbol)))) {
+        return true
+    }
+    if IsTrue(IsTrue((!IsEqual(this.Outcomes_by_id, nil))) && IsTrue((InOp(this.Outcomes_by_id, outcomeIdOrSymbol)))) {
+        return true
+    }
+    return false
 }
 func  (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs ...any) any  {
     outcomeObj := GetArg(optionalArgs, 0, nil)
@@ -618,25 +648,63 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
             go func() any {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
-            // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
-            // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
-            // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
-            // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
-            // from the loaded markets (the setMarkets override that normally does this is not dispatched
-            // by the base loadMarkets under the Go/C#/Java transpilers).
-            reload := GetArg(optionalArgs, 0, false)
+                    // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+            // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
+            //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+            //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+            // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
+            //   idempotent unless reload; only worth paying on venues whose whole universe is one
+            //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+            // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+            // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+            // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+            // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+            outcomes := GetArg(optionalArgs, 0, nil)
+            _ = outcomes
+            reload := GetArg(optionalArgs, 1, false)
             _ = reload
-            params := GetArg(optionalArgs, 1, map[string]any {})
+            params := GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if IsTrue(!IsEqual(outcomes, nil)) {
+                var missing any = []any{}
+                for i := 0; IsLessThan(i, GetArrayLength(outcomes)); i++ {
+                    if IsTrue(IsTrue(reload) || !IsTrue(this.HasOutcome(GetValue(outcomes, i)))) {
+                        AppendToArray(&missing, GetValue(outcomes, i))
+                    }
+                }
+                var missingLength any =         GetArrayLength(missing)
+                var wasWarm any = IsTrue((!IsEqual(this.Outcomes, nil))) && !IsTrue(this.IsEmpty(this.Outcomes))
+                var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
+                if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue(loadAll)) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
+        
+                    retRes63016 := (<-this.LoadOutcomes())
+                    PanicOnError(retRes63016)
+                    var stillMissing any = []any{}
+                    for i := 0; IsLessThan(i, missingLength); i++ {
+                        if !IsTrue(this.HasOutcome(GetValue(missing, i))) {
+                            AppendToArray(&stillMissing, GetValue(missing, i))
+                        }
+                    }
+                    missing = stillMissing
+                    missingLength = GetArrayLength(missing)
+                }
+                if IsTrue(IsGreaterThan(missingLength, 0)) {
+        
+                    retRes64116 := <-this.DerivedExchange.FetchOutcomes(missing)
+                    PanicOnError(retRes64116)
+                }
+        
+                ch <- this.Outcomes
+                return nil
+            }
             if IsTrue(IsTrue(!IsTrue(reload) && IsTrue((!IsEqual(this.Outcomes, nil)))) && !IsTrue(this.IsEmpty(this.Outcomes))) {
         
                 ch <- this.Outcomes
                 return nil
             }
         
-            retRes5878 := (<-this.LoadMarkets(reload, params))
-            PanicOnError(retRes5878)
+            retRes6488 := (<-this.LoadMarkets(reload, params))
+            PanicOnError(retRes6488)
             this.PopulateOutcomes()
         
             ch <- this.Outcomes
@@ -645,92 +713,189 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
             }()
             return ch
         }
-func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any) <- chan any {
+/**
+ * @ignore
+ * @method
+ * @name PredictionExchange#fetchOutcomes
+ * @description resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+ * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
+ * @returns {object} the outcome cache
+ */
+func  (this *PredictionExchange) FetchOutcomes(outcomeSymbols any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    for i := 0; IsLessThan(i, GetArrayLength(outcomeSymbols)); i++ {
+        
+                retRes66312 := <-this.DerivedExchange.FetchOutcome(GetValue(outcomeSymbols, i))
+                PanicOnError(retRes66312)
+            }
+        
+            ch <- this.Outcomes
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
                 defer close(ch)
                 defer ReturnPanicError(ch)
                     // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-            // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
-            // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-            // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
-            if IsTrue(!IsEqual(this.Outcomes, nil)) {
-                if IsTrue(InOp(this.Outcomes, outcomeSymbol)) {
-        
-                    ch <- GetValue(this.Outcomes, outcomeSymbol)
-                    return nil
-                }
-                if IsTrue(IsTrue((!IsEqual(this.Outcomes_by_id, nil))) && IsTrue((InOp(this.Outcomes_by_id, outcomeSymbol)))) {
-        
-                    ch <- GetValue(this.Outcomes_by_id, outcomeSymbol)
-                    return nil
-                }
-            }
-            var wasWarm any = IsTrue((!IsEqual(this.Outcomes, nil))) && !IsTrue(this.IsEmpty(this.Outcomes))
+            // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
+            // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+            // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+            // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
+            // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+            // sane on venues whose full universe is one cheap request (hyperliquid)
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if IsTrue(IsTrue(!IsTrue(wasWarm) && IsTrue((!IsEqual(this.Markets, nil)))) && !IsTrue(this.IsEmpty(this.Markets))) {
-                this.PopulateOutcomes()
-                if IsTrue(!IsEqual(this.Outcomes, nil)) {
-                    if IsTrue(InOp(this.Outcomes, outcomeSymbol)) {
+            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+            // the whole listing (which would mask typos and clobber offline-injected markets)
+            reload := GetArg(optionalArgs, 0, false)
+            _ = reload
+            if !IsTrue(reload) {
+                if IsTrue(this.HasOutcome(outcomeSymbol)) {
         
-                        ch <- GetValue(this.Outcomes, outcomeSymbol)
-                        return nil
-                    }
-                    if IsTrue(IsTrue((!IsEqual(this.Outcomes_by_id, nil))) && IsTrue((InOp(this.Outcomes_by_id, outcomeSymbol)))) {
+                    ch <- this.SafeOutcome(outcomeSymbol)
+                    return nil
+                }
+                var wasWarm any = IsTrue((!IsEqual(this.Outcomes, nil))) && !IsTrue(this.IsEmpty(this.Outcomes))
+                if IsTrue(IsTrue(!IsTrue(wasWarm) && IsTrue((!IsEqual(this.Markets, nil)))) && !IsTrue(this.IsEmpty(this.Markets))) {
+                    this.PopulateOutcomes()
+                    if IsTrue(this.HasOutcome(outcomeSymbol)) {
         
-                        ch <- GetValue(this.Outcomes_by_id, outcomeSymbol)
+                        ch <- this.SafeOutcome(outcomeSymbol)
                         return nil
                     }
                 }
-            }
-            var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", true)
-            if IsTrue(IsTrue(loadAll) && !IsTrue(wasWarm)) {
-                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-                // the whole listing (which would mask typos and clobber offline-injected markets)
+                var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
+                if IsTrue(IsTrue(loadAll) && !IsTrue(wasWarm)) {
         
-                retRes62612 := (<-this.LoadOutcomes())
-                PanicOnError(retRes62612)
-                if IsTrue(!IsEqual(this.Outcomes, nil)) {
-                    if IsTrue(InOp(this.Outcomes, outcomeSymbol)) {
+                    retRes69616 := (<-this.LoadOutcomes())
+                    PanicOnError(retRes69616)
+                    if IsTrue(this.HasOutcome(outcomeSymbol)) {
         
-                        ch <- GetValue(this.Outcomes, outcomeSymbol)
-                        return nil
-                    }
-                    if IsTrue(IsTrue((!IsEqual(this.Outcomes_by_id, nil))) && IsTrue((InOp(this.Outcomes_by_id, outcomeSymbol)))) {
-        
-                        ch <- GetValue(this.Outcomes_by_id, outcomeSymbol)
+                        ch <- this.SafeOutcome(outcomeSymbol)
                         return nil
                     }
                 }
             }
         
-                retRes63615 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
-                PanicOnError(retRes63615)
-                ch <- retRes63615
+                retRes70215 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
+                PanicOnError(retRes70215)
+                ch <- retRes70215
                 return nil
         
             }()
             return ch
         }
+func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
+    // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
+    // cache miss can be resolved through the venue's scoped search instead of a bulk listing
+    // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
+    // carry no searchable words
+    var marketPart any = outcomeSymbol
+    var colonIndex any = GetIndexOf(outcomeSymbol, ":")
+    if IsTrue(IsGreaterThanOrEqual(colonIndex, 0)) {
+        marketPart = Slice(outcomeSymbol, 0, colonIndex)
+    }
+    if IsTrue(IsEqual(GetIndexOf(marketPart, "0x"), 0)) {
+        return nil
+    }
+    // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+    var normalized any = Replace(ToLower(marketPart), "-", "_")
+    var rawWords any = Split(normalized, "_")
+    var words any = []any{}
+    var hasLetters any = false
+    var letters any = "abcdefghijklmnopqrstuvwxyz"
+    for i := 0; IsLessThan(i, GetArrayLength(rawWords)); i++ {
+        var word any = GetValue(rawWords, i)
+        // inline .length so the php transpiler emits strlen() — the standalone
+        // `const n = str.length;` statement form wrongly becomes count() (array)
+        if IsTrue(IsEqual(GetArrayLength(word), 0)) {
+            continue
+        }
+        var wordHasLetters any = false
+        var chars any = this.StringToCharsArray(word)
+        for ci := 0; IsLessThan(ci, GetArrayLength(chars)); ci++ {
+            if IsTrue(IsGreaterThanOrEqual(GetIndexOf(letters, GetValue(chars, ci)), 0)) {
+                wordHasLetters = true
+                break
+            }
+        }
+        // the query is the handle's letter-bearing words only. standalone numeric tokens
+        // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+        // reliably index — and since the result is re-checked against the EXACT handle,
+        // a broader query only adds recall, never a wrong match
+        if !IsTrue(wordHasLetters) {
+            continue
+        }
+        AppendToArray(&words, word)
+        hasLetters = true
+    }
+    var wordsLength any =     GetArrayLength(words)
+    if IsTrue(IsTrue((IsEqual(wordsLength, 0))) || !IsTrue(hasLetters)) {
+        // a purely numeric/symbolic handle is an id, not searchable text
+        return nil
+    }
+    return Join(words, " ")
+}
 func  (this *PredictionExchange) FetchOutcome(outcomeSymbol any) <- chan any {
             ch := make(chan any)
             go func() any {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-            // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
-            // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
-            // override this to fetch and cache only the requested outcome — the "always fetch one" path.
+                    // fetch just one outcome on demand — never through a bulk listing download. the base has
+            // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+            // through the venue's own scoped fetchEvents (which caches everything it finds), then
+            // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
+            // token id) override this with a cheaper single fetch and fall back to super on a miss.
+            var searchQuery any = this.OutcomeSearchQuery(outcomeSymbol)
+            if IsTrue(IsTrue((!IsEqual(searchQuery, nil))) && IsTrue(this.SafeBool(this.Has, "fetchEvents", false))) {
+                var searchLimit any = this.SafeInteger(this.Options, "fetchOutcomeSearchLimit", 10)
+                
+                    {
+                         func(this *PredictionExchange) (ret_ any) {
+                		    defer func() {
+                                if e := recover(); e != nil {
+                                    if e == "break" {
+                                        return
+                                    }
+                                    ret_ = func(this *PredictionExchange) any {
+                                        // catch block:
+                                                    // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                            // plain miss (the guidance-rich throw below); let real transport errors propagate
+                            if !IsTrue((IsInstance(e, BadSymbol))) {
+                                panic(e)
+                            }
+                                        return nil
+                                    }(this)
+                                }
+                            }()
+                		    // try block:
+                            
+                            retRes76716 := <-this.callInternal("fetchEvents", map[string]any {
+                    "query": searchQuery,
+                    "limit": searchLimit,
+                })
+                            PanicOnError(retRes76716)
+                		    return nil
+                	    }(this)
+                    
+                        }
+                if IsTrue(this.HasOutcome(outcomeSymbol)) {
         
-            retRes6448 := (<-this.LoadOutcomes())
-            PanicOnError(retRes6448)
-        
-            ch <- this.Outcome(outcomeSymbol)
-            return nil
+                    ch <- this.SafeOutcome(outcomeSymbol)
+                    return nil
+                }
+            }
+            panic(BadSymbol(Add(Add(Add(this.Id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ \\'query\\': ... }) first, or pass a known outcomeId")))
         
             }()
             return ch
@@ -803,9 +968,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes68515 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes68515)
-                ch <- retRes68515
+                retRes81915 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes81915)
+                ch <- retRes81915
                 return nil
         
             }()
@@ -1191,9 +1356,9 @@ func  (this *PredictionExchange) CreateMarketBuyOrderWithCost(outcome any, cost 
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false))) {
         
-                    retRes90119 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
-                    PanicOnError(retRes90119)
-                    ch <- retRes90119
+                    retRes103519 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
+                    PanicOnError(retRes103519)
+                    ch <- retRes103519
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
@@ -1219,9 +1384,9 @@ func  (this *PredictionExchange) CreateMarketSellOrderWithCost(outcome any, cost
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false))) {
         
-                    retRes91719 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
-                    PanicOnError(retRes91719)
-                    ch <- retRes91719
+                    retRes105119 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
+                    PanicOnError(retRes105119)
+                    ch <- retRes105119
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
@@ -1439,9 +1604,12 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
         }
     }
     var fee any = this.SafeDict(outcomeOrder, "fee")
-    if IsTrue(IsTrue((IsEqual(fee, nil))) && IsTrue((IsGreaterThan(GetArrayLength(feeList), 0)))) {
+    // own-line length reads so the regex transpiler emits count() (array), not strlen()
+    var feeListLength any =     GetArrayLength(feeList)
+    if IsTrue(IsTrue((IsEqual(fee, nil))) && IsTrue((IsGreaterThan(feeListLength, 0)))) {
         var reduced any = this.ReduceFeesByCurrency(feeList)
-        if IsTrue(IsGreaterThan(GetArrayLength(reduced), 0)) {
+        var reducedLength any =         GetArrayLength(reduced)
+        if IsTrue(IsGreaterThan(reducedLength, 0)) {
             fee = GetValue(reduced, 0)
         }
     }
@@ -1925,9 +2093,9 @@ func  (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, fro
             var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
             PanicOnError(signed)
         
-                retRes150015 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-                PanicOnError(retRes150015)
-                ch <- retRes150015
+                retRes163715 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+                PanicOnError(retRes163715)
+                ch <- retRes163715
                 return nil
         
             }()
@@ -1951,8 +2119,8 @@ func  (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash an
                     return nil
                 }
         
-                retRes151012 := (<-this.Sleep(2000))
-                PanicOnError(retRes151012)
+                retRes164712 := (<-this.Sleep(2000))
+                PanicOnError(retRes164712)
             }
             panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
         

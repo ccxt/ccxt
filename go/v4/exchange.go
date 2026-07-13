@@ -2251,6 +2251,20 @@ func (this *BaseExchange) FetchOutcome(outcomeSymbol any) <-chan any {
 	return ch
 }
 
+// FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
+// The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
+// kalshi/polymarket override it with batched by-id requests.
+func (this *BaseExchange) FetchOutcomes(outcomeSymbols any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		_ = outcomeSymbols
+		panic(NotSupported(Add(this.Id, " fetchOutcomes() is not supported yet")))
+	}()
+	return ch
+}
+
 // SignEvmTransaction is a default stub so every exchange satisfies IDerivedExchange.
 // EVM prediction exchanges (limitless, myriad) override it — it needs the noble crypto imports.
 func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
