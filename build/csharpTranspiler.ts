@@ -1156,6 +1156,9 @@ class NewTranspiler {
         }
 
         if (prediction) {
+            // the venues override methods declared in the prediction base — regenerate it
+            // in the same pass so a scoped prediction run can't leave the base stale
+            this.transpilePredictionBaseMethods ()
             log.bright.green ('Transpiled prediction exchanges successfully.')
             return;
         }
