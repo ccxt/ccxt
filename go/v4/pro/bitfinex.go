@@ -406,20 +406,9 @@ func (this *BitfinexCore) WatchTrades(symbol any, optionalArgs ...any) <-chan an
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitfinexCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes30115 := (<-this.UnSubscribe("trades", "trades", symbol, params))
-		ccxt.PanicOnError(retRes30115)
-		ch <- retRes30115
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.UnSubscribe("trades", "trades", symbol, params)
 }
 
 /**
@@ -478,20 +467,9 @@ func (this *BitfinexCore) WatchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitfinexCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes33915 := (<-this.Subscribe("ticker", symbol, params))
-		ccxt.PanicOnError(retRes33915)
-		ch <- retRes33915
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.Subscribe("ticker", symbol, params)
 }
 
 /**
@@ -503,20 +481,9 @@ func (this *BitfinexCore) WatchTicker(symbol any, optionalArgs ...any) <-chan an
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitfinexCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes35115 := (<-this.UnSubscribe("ticker", "ticker", symbol, params))
-		ccxt.PanicOnError(retRes35115)
-		ch <- retRes35115
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.UnSubscribe("ticker", "ticker", symbol, params)
 }
 func (this *BitfinexCore) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	//
@@ -1063,7 +1030,7 @@ func (this *BitfinexCore) HandleBalance(client any, message any, subscription an
 	//         0.06729727, // wallet balance
 	//         0, // unsettled balance
 	//         0.06729727, // available balance might be null
-	//         "ccxt.Exchange 0.4 LTC for UST @ 65.075",
+	//         "Exchange 0.4 LTC for UST @ 65.075",
 	//         {
 	//           "reason": "TRADE",
 	//           "order_id": 96596397973,

@@ -151,20 +151,9 @@ func (this *BitvavoCore) WatchPublicMultiple(methodName any, channelName any, sy
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitvavoCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes12315 := (<-this.WatchPublic("ticker24h", symbol, params))
-		ccxt.PanicOnError(retRes12315)
-		ch <- retRes12315
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.WatchPublic("ticker24h", symbol, params)
 }
 
 /**
@@ -1561,20 +1550,9 @@ func (this *BitvavoCore) FetchTradingFeesWs(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BitvavoCore) FetchMarketsWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes111515 := (<-this.WatchRequest("getMarkets", params))
-		ccxt.PanicOnError(retRes111515)
-		ch <- retRes111515
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	return this.WatchRequest("getMarkets", params)
 }
 
 /**

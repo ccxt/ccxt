@@ -596,24 +596,13 @@ func (this *PoloniexCore) WatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *PoloniexCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes42315 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes42315)
-		ch <- retRes42315
-		return nil
-
-	}()
-	return ch
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
 }
 
 /**
@@ -1558,7 +1547,7 @@ func (this *PoloniexCore) HandleErrorMessage(client any, message any) any {
 	//    {
 	//        "orderId": 0,
 	//        "clientOrderId": null,
-	//        "message": "ccxt.Currency trade disabled",
+	//        "message": "Currency trade disabled",
 	//        "code": 21352
 	//    }
 	//

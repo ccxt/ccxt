@@ -405,22 +405,11 @@ func (this *KucoinCore) AuthenticateUta() <-chan any {
 	return ch
 }
 func (this *KucoinCore) UnSubscribe(url any, messageHash any, topic any, subscriptionHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		subscription := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = subscription
-
-		retRes28315 := (<-this.UnSubscribeMultiple(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription))
-		ccxt.PanicOnError(retRes28315)
-		ch <- retRes28315
-		return nil
-
-	}()
-	return ch
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	subscription := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = subscription
+	return this.UnSubscribeMultiple(url, []any{messageHash}, topic, []any{subscriptionHash}, params, subscription)
 }
 func (this *KucoinCore) SubscribeMultiple(url any, messageHashes any, topic any, subscriptionHashes any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2749,7 +2738,7 @@ func (this *KucoinCore) HandleOrder(client any, message any) {
 	//
 	//    {
 	//        "createdAt": 1692745706437,
-	//        "error": "ccxt.Balance insufficient!",       // not always there
+	//        "error": "Balance insufficient!",       // not always there
 	//        "orderId": "vs86kp757vlda6ni003qs70v",
 	//        "orderPrice": "0.26",
 	//        "orderType": "stop",
@@ -4170,7 +4159,7 @@ func (this *KucoinCore) HandleErrorMessage(client any, message any) any {
 	//     {
 	//         "id": "1",
 	//         "result": false,
-	//         "reason": "missing `symbol` for topic: ccxt.Position"
+	//         "reason": "missing `symbol` for topic: Position"
 	//     }
 	//
 	var data any = this.SafeString2(message, "data", "reason", "")

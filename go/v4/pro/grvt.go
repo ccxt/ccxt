@@ -355,24 +355,13 @@ func (this *GrvtCore) ParseWsTicker(message any, optionalArgs ...any) any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *GrvtCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes29815 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes29815)
-		ch <- retRes29815
-		return nil
-
-	}()
-	return ch
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	return this.WatchTradesForSymbols([]any{symbol}, since, limit, params)
 }
 
 /**
@@ -821,8 +810,8 @@ func (this *GrvtCore) Authenticate(optionalArgs ...any) <-chan any {
 				"ws": map[string]any{
 					"options": map[string]any{
 						"headers": map[string]any{
-							"Cookie":                 cookieValue,
-							"X-Grvt-ccxt.Account-Id": accountId,
+							"Cookie":            cookieValue,
+							"X-Grvt-Account-Id": accountId,
 						},
 					},
 				},

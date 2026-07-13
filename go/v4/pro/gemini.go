@@ -526,22 +526,11 @@ func (this *GeminiCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...an
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *GeminiCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes44615 := (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
-		ccxt.PanicOnError(retRes44615)
-		ch <- retRes44615
-		return nil
-
-	}()
-	return ch
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	return this.HelperForWatchMultipleConstruct("bidsasks", symbols, params)
 }
 func (this *GeminiCore) HandleBidsAsksForMultidata(client any, rawBidAskChanges any, timestamp any, nonce any) {
 	//
@@ -1057,7 +1046,7 @@ func (this *GeminiCore) Authenticate(optionalArgs ...any) <-chan any {
 		this.CheckRequiredCredentials()
 		var startIndex any = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 		var urlParamsIndex any = ccxt.GetIndexOf(url, "?")
-		var urlLength any = ccxt.GetArrayLength(url)
+		var urlLength any = ccxt.GetLength(url)
 		var endIndex any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(urlParamsIndex, 0))), urlParamsIndex, urlLength)
 		var request any = ccxt.Slice(url, startIndex, endIndex)
 		var payload any = map[string]any{

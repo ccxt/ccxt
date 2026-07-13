@@ -2622,6 +2622,19 @@ ${caseStatements.join('\n')}
         let isExtended = this.isExtendedExchange(exchangeName);
         const isAlias = this.isAlias (exchangeName);
 
+        // A non-async method declared to return a Promise (e.g. `watchTrades (symbol): Promise<Trade[]> {
+        // return this.watchTradesForSymbols([symbol], ...) }`) is transpiled with a Go return type of
+        // `any` — the ast-transpiler only channel-wraps `async` methods. But its body returns a channel
+        // and the typed wrapper reads it with `<-`, so coerce the declared return type to `<-chan any`.
+        // Target methods by name from the parsed metadata (the same async||Promise signal the wrapper
+        // side uses) so only Promise-returning methods are touched, never the many sync helpers.
+        const promiseMethods = (goVersion.methodsTypes || []).filter ((m: any) => !m.async && (typeof m.returnType === 'string') && m.returnType.startsWith ('Promise'));
+        for (let mi = 0; mi < promiseMethods.length; mi++) {
+            const capName = capitalize (promiseMethods[mi].name);
+            const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + capName + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
+            content = content.replace (coerceRegex, '$1 <-chan any$2');
+        }
+
         if (!isWs) {
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
