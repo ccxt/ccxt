@@ -2462,7 +2462,6 @@ export default class bithumb extends Exchange {
         }
         const request: Dict = {};
         let response = undefined;
-        let side = undefined;
         const twap = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
         if (twap) {
@@ -2501,6 +2500,7 @@ export default class bithumb extends Exchange {
             if (!side_in_params) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
+            let side = undefined;
             if (params['side'] === 'buy') {
                 side = 'bid';
             } else {
@@ -2520,7 +2520,6 @@ export default class bithumb extends Exchange {
         }
         return this.extend (this.parseOrder (response, market), {
             'id': id,
-            'side': side,
         }) as Order;
     }
 

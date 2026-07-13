@@ -1954,7 +1954,7 @@
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
-                    "side": "buy",
+                    "side": null,
                     "price": null,
                     "triggerPrice": null,
                     "amount": null,
