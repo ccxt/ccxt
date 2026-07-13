@@ -1525,6 +1525,24 @@ export default class nado extends Exchange {
         const assets = this.safeList (responses, 2, []);
         const pairsById = this.indexBy (pairs, 'product_id');
         const assetsById = this.indexBy (assets, 'product_id');
+        const assetsByCode: Dict = {};
+        for (let i = 0; i < assets.length; i++) {
+            const rawAsset = assets[i];
+            const assetSymbol = this.safeString (rawAsset, 'symbol');
+            const assetCode = this.safeCurrencyCode (this.removeMarketSuffix (assetSymbol));
+            const previous = this.safeDict (assetsByCode, assetCode);
+            if (previous === undefined) {
+                assetsByCode[assetCode] = rawAsset;
+            } else {
+                const previousDeposit = this.safeBool (previous, 'can_deposit', false);
+                const previousWithdraw = this.safeBool (previous, 'can_withdraw', false);
+                const currentDeposit = this.safeBool (rawAsset, 'can_deposit', false);
+                const currentWithdraw = this.safeBool (rawAsset, 'can_withdraw', false);
+                if (!previousDeposit && !previousWithdraw && (currentDeposit || currentWithdraw)) {
+                    assetsByCode[assetCode] = rawAsset;
+                }
+            }
+        }
         const markets = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
@@ -1538,12 +1556,16 @@ export default class nado extends Exchange {
             if (tickerId === undefined) {
                 continue;
             }
-            const baseId = this.safeString (market, 'symbol');
-            const quoteId = this.safeString (pair, 'quote', 'USDT0');
+            const rawBaseId = this.safeString (market, 'symbol');
+            const rawQuoteId = this.safeString (pair, 'quote', 'USDT0');
+            const base = this.safeCurrencyCode (this.removeMarketSuffix (rawBaseId));
+            const quote = this.safeCurrencyCode (rawQuoteId);
+            const baseAsset = this.safeDict (assetsByCode, base, asset);
+            const quoteAsset = this.safeDict (assetsByCode, quote);
+            const baseId = this.safeString (baseAsset, 'product_id', rawBaseId);
+            const quoteId = this.safeString (quoteAsset, 'product_id', rawQuoteId);
             const settleId = contract ? quoteId : undefined;
-            const base = this.safeCurrencyCode (this.removeMarketSuffix (baseId));
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
+            const settle = contract ? quote : undefined;
             let symbol = base + '/' + quote;
             if (contract) {
                 symbol += ':' + settle;
@@ -1624,18 +1646,25 @@ export default class nado extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.gatewayV2PublicGetAssets (params);
-        const currencies = [];
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
-            const marketType = this.safeString (currency, 'market_type');
+            const parsed = this.parseCurrency (currency);
+            const code = this.safeString (parsed, 'code');
+            const previous = this.safeDict (result, code);
             const canDeposit = this.safeBool (currency, 'can_deposit', false);
             const canWithdraw = this.safeBool (currency, 'can_withdraw', false);
-            if ((marketType === 'perp') && !canDeposit && !canWithdraw) {
-                continue;
+            if (previous === undefined) {
+                result[code] = parsed;
+            } else {
+                const previousDeposit = this.safeBool (previous, 'deposit', false);
+                const previousWithdraw = this.safeBool (previous, 'withdraw', false);
+                if (!previousDeposit && !previousWithdraw && (canDeposit || canWithdraw)) {
+                    result[code] = parsed;
+                }
             }
-            currencies.push (currency);
         }
-        return this.parseCurrencies (currencies);
+        return result;
     }
 
     /**

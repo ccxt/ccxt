@@ -1433,41 +1433,6 @@
                     }
                 ],
                 "parsedResponse": {
-                    "USDC": {
-                        "info": {
-                            "product_id": "5",
-                            "ticker_id": "USDC_USDT0",
-                            "market_type": "spot",
-                            "name": "USDC",
-                            "symbol": "USDC",
-                            "maker_fee": "0.0",
-                            "taker_fee": "0.0",
-                            "can_withdraw": true,
-                            "can_deposit": true
-                        },
-                        "id": "5",
-                        "numericId": null,
-                        "code": "USDC",
-                        "precision": null,
-                        "type": "crypto",
-                        "name": "USDC",
-                        "active": null,
-                        "deposit": true,
-                        "withdraw": true,
-                        "fee": null,
-                        "fees": {},
-                        "networks": {},
-                        "limits": {
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "withdraw": {
-                                "min": null,
-                                "max": null
-                            }
-                        }
-                    },
                     "USDT0": {
                         "info": {
                             "product_id": "0",
@@ -1486,6 +1451,76 @@
                         "precision": null,
                         "type": "crypto",
                         "name": "USDT0",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BTC": {
+                        "info": {
+                            "product_id": "2",
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "market_type": "perp",
+                            "name": "Bitcoin Perp",
+                            "symbol": "BTC-PERP",
+                            "maker_fee": "0.0001",
+                            "taker_fee": "0.00035",
+                            "can_withdraw": false,
+                            "can_deposit": false
+                        },
+                        "id": "2",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Bitcoin Perp",
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDC": {
+                        "info": {
+                            "product_id": "5",
+                            "ticker_id": "USDC_USDT0",
+                            "market_type": "spot",
+                            "name": "USDC",
+                            "symbol": "USDC",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "5",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "USDC",
                         "active": null,
                         "deposit": true,
                         "withdraw": true,
