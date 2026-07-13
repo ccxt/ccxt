@@ -144,6 +144,11 @@ class PredictionExchange(BaseExchange):
             elif sort == 'newest':
                 sortKey = 'created'
             if sortKey is not None:
+                # normalize the sort key on every row first — sortBy reads it with a raw
+                # subscript, which raises KeyError/None-index in Python/PHP when a
+                # venue's parsed event omits the field(JS alone tolerates the miss)
+                for i in range(0, len(result)):
+                    result[i][sortKey] = self.safe_number(result[i], sortKey, 0)
                 result = self.sort_by(result, sortKey, True, 0)
         limit = self.safe_integer(params, 'limit')
         if limit is not None:

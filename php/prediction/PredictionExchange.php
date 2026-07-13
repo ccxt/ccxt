@@ -157,6 +157,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 $sortKey = 'created';
             }
             if ($sortKey !== null) {
+                // normalize the $sort key on every row first — sortBy reads it with a raw
+                // subscript, which raises KeyError/null-index in Python/PHP when a
+                // venue's parsed $event omits the field (JS alone tolerates the miss)
+                for ($i = 0; $i < count($result); $i++) {
+                    $result[$i][$sortKey] = $this->safe_number($result[$i], $sortKey, 0);
+                }
                 $result = $this->sort_by($result, $sortKey, true, 0);
             }
         }

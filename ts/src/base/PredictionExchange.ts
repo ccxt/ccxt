@@ -152,6 +152,12 @@ export default class PredictionExchange extends BaseExchange {
                 sortKey = 'created';
             }
             if (sortKey !== undefined) {
+                // normalize the sort key on every row first — sortBy reads it with a raw
+                // subscript, which raises KeyError/undefined-index in Python/PHP when a
+                // venue's parsed event omits the field (JS alone tolerates the miss)
+                for (let i = 0; i < result.length; i++) {
+                    result[i][sortKey] = this.safeNumber (result[i], sortKey, 0);
+                }
                 result = this.sortBy (result, sortKey, true, 0);
             }
         }
