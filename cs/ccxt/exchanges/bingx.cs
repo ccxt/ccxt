@@ -1555,7 +1555,7 @@ public partial class bingx : Exchange
             amount = Precise.stringMul(volume, contractSize);
         }
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeStringN(trade, new List<object>() {"id", "t"}) },
+            { "id", this.safeString2(trade, "id", "t") },
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },
