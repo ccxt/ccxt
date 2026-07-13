@@ -3037,7 +3037,9 @@ class NewTranspiler {
             [/public Object initOfflineExchange/g, 'public BaseExchange initOfflineExchange'],
             [/Object exchange(?=[,)])/g, 'BaseExchange exchange'],
             [/Object exchange =/g, 'BaseExchange exchange ='],
-            [/BaseExchange exchange = (initExchange\((?:exchangeId|"Exchange")[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
+            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
+            // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
+            [/BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
             [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
             [/testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)'],
             [/throw new Error/g, 'throw new Exception'],
@@ -3152,7 +3154,12 @@ class NewTranspiler {
                 [/assert/g, 'Assert'],
                 [/testSharedMethods\./gm, 'TestSharedMethods.'],
                 [/async public/gm, 'public'],
-                [/Object exchange(?=[,)])/g, 'Exchange exchange'],
+                // REST test functions serve BOTH tiers (regular Exchange and prediction
+                // PredictionExchange are siblings under BaseExchange), so type the exchange
+                // param as the common base; the awaited unified-method calls are late-bound
+                // below through Helpers.callDynamically. WS tests only run against regular
+                // venues, keep them statically typed.
+                [/Object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange'],
                 [/throw new Exception/g, 'throw new RuntimeException'],
                 [/throw e/gm, 'throw new RuntimeException(e)'],
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
@@ -3262,6 +3269,16 @@ class NewTranspiler {
             }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
             contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
+            if (!isWs) {
+                // late-bind awaited unified-method calls: the exchange param is BaseExchange
+                // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
+                // so `(exchange.fetchX(args)).join()` must dispatch reflectively on the runtime
+                // type. Helpers.callDynamically throws unchecked, so no try/catch is needed.
+                contentIndentend = contentIndentend.replace(/\(exchange\.(\w+)\((.*)\)\)\.join\(\)/g, (match: string, name: string, callArgs: string) => {
+                    const argsArray = callArgs.trim() === '' ? 'new Object[]{}' : `new Object[]{${callArgs}}`;
+                    return `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "${name}", ${argsArray})).join()`;
+                });
+            }
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
@@ -3271,6 +3288,7 @@ class NewTranspiler {
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.Exchange;',
+                ...(isWs ? [] : ['import io.github.ccxt.BaseExchange;']),
                 'import io.github.ccxt.errors.*;',
                 ...(isWs ? ['import tests.exchange.*;'] : []),
                 preciseImport,

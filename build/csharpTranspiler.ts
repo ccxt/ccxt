@@ -1608,7 +1608,9 @@ class NewTranspiler {
             [ /public virtual object initOfflineExchange/g, 'public virtual BaseExchange initOfflineExchange' ],
             [ /object exchange(?=[,)])/g, 'BaseExchange exchange' ],
             [ /object exchange =/g, 'BaseExchange exchange =' ],
-            [ /BaseExchange exchange = (initExchange\((?:exchangeId|"Exchange")[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)' ],
+            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
+            // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
+            [ /BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)' ],
             [ /BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))' ],
             [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [ /throw new Error/g, 'throw new Exception' ],
@@ -1695,7 +1697,12 @@ class NewTranspiler {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
             let regexes = [
-                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+                // REST test functions serve BOTH tiers (regular Exchange and prediction
+                // PredictionExchange are siblings under BaseExchange), so type the exchange
+                // param as the common base and late-bind the unified-method calls through
+                // `dynamic` — the DLR resolves them on the concrete tier at runtime.
+                // WS tests only run against regular venues, keep them statically typed.
+                [ /object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
@@ -1703,6 +1710,12 @@ class NewTranspiler {
                 // apply 'getPreTranspilationRegexes' here, bcz in CS we don't have pre-transpilation regexes
                 [/exchange.jsonStringifyWithNull/g, 'json'],
             ];
+
+            if (!isWs) {
+                regexes = regexes.concat([
+                    [/await exchange\.(\w+)\(/g, 'await ((dynamic)exchange).$1('],
+                ]);
+            }
 
             if (isWs) {
                 // add ws-tests specific regeces
