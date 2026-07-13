@@ -6961,7 +6961,7 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger2 (position, 'createdTime', 'createdAt');
         let lastUpdateTimestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerN (position, [ 'updatedTime', 'updatedAt', 'updatedTime' ]);
+            lastUpdateTimestamp = this.safeInteger2 (position, 'updatedTime', 'updatedAt');
         }
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ]));
