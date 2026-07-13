@@ -580,8 +580,8 @@ impl BlockchaincomCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_418: bool = true;
-            while { if !__for_first_418 { i = add(&i, &Value::Int(1)); } __for_first_418 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_399: bool = true;
+            while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_value(markets.clone(), marketId.clone(), &[]);
@@ -615,14 +615,12 @@ impl BlockchaincomCore {
             let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString.clone(), &[]);
             // maximum order size
             let mut maxOrderSize: Value = Value::Null;
-            maxOrderSize = self.safe_string_k(market.clone(), "max_order_size", &[]);
-            if !is_equal(&maxOrderSize, &Value::Str("0".to_string())) {
+            let mut maxOrderSizeRaw: Value = self.safe_string_k(market.clone(), "max_order_size", &[]);
+            if !is_equal(&maxOrderSizeRaw, &Value::Str("0".to_string())) {
                 let mut maxOrderSizeScaleString: Value = self.safe_string_k(market.clone(), "max_order_size_scale", &[]);
                 let mut maxOrderSizeScalePrecisionString: Value = self.parse_precision(&[maxOrderSizeScaleString.clone()]);
-                let mut maxOrderSizeString: Value = crate::precise::Precise::stringMul(&maxOrderSize, &maxOrderSizeScalePrecisionString);
-                maxOrderSize = self.parse_number(maxOrderSizeString.clone(), &[]);
-            }  else {
-                maxOrderSize = Value::Null;
+                let mut maxOrderSizeValueString: Value = crate::precise::Precise::stringMul(&maxOrderSizeRaw, &maxOrderSizeScalePrecisionString);
+                maxOrderSize = self.parse_number(maxOrderSizeValueString.clone(), &[]);
             }
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -703,7 +701,7 @@ impl BlockchaincomCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -732,7 +730,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -755,7 +755,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -829,7 +831,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -858,7 +862,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut tickers: Value = self.public_get_tickers(&[params.clone()]).await;
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
@@ -962,7 +968,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = self.safe_string_k(params.clone(), "ordType", &[type_var.clone()]);
         let mut uppercaseOrderType: Value = to_upper(&orderType);
@@ -1062,7 +1070,9 @@ impl BlockchaincomCore {
 }));
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1095,7 +1105,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_fees(&[params.clone()]).await;
         //
         //     {
@@ -1112,8 +1124,8 @@ impl BlockchaincomCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_419: bool = true;
-            while { if !__for_first_419 { i = add(&i, &Value::Int(1)); } __for_first_419 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_400: bool = true;
+            while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1213,7 +1225,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), state.clone());
@@ -1249,7 +1263,7 @@ impl BlockchaincomCore {
         //
         let mut orderId: Value = self.safe_string_k(trade.clone(), "exOrdId", &[]);
         let mut tradeId: Value = self.safe_string_k(trade.clone(), "tradeId", &[]);
-        let mut side: Value = to_lower(&self.safe_string_k(trade.clone(), "side", &[]));
+        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "qty", &[]);
@@ -1308,7 +1322,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1342,7 +1358,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1487,7 +1505,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1523,7 +1543,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1558,7 +1580,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("withdrawalId".to_string(), id.clone());
@@ -1590,7 +1614,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1625,7 +1651,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut depositId: Value = self.safe_string_k(params.clone(), "depositId", &[id.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1652,7 +1680,9 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountName: Value = self.safe_string_k(params.clone(), "account", &[Value::Str("primary".to_string())]);
         params = self.omit(params.clone(), Value::Str("account".to_string()), &[]);
         let mut request: Value = Value::Map({
@@ -1688,8 +1718,8 @@ impl BlockchaincomCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_420: bool = true;
-            while { if !__for_first_420 { i = add(&i, &Value::Int(1)); } __for_first_420 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_401: bool = true;
+            while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -1723,7 +1753,9 @@ impl BlockchaincomCore {
 }));
         // note: only works with exchange-order-id
         // does not work with clientOrderId
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());

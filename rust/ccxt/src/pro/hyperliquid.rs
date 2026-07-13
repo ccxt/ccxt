@@ -399,7 +399,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut ordersRequest: Value = self.create_orders_request(orders.clone(), &[params.clone()]);
         let mut wrapped: Value = self.wrap_as_post_action(ordersRequest.clone());
@@ -449,7 +451,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut orderglobalParamsVariable = self.parse_create_edit_order_args(Value::Null, symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut order: Value = get_value(&orderglobalParamsVariable, &Value::Int(0));
         let mut globalParams: Value = get_value(&orderglobalParamsVariable, &Value::Int(1));
@@ -494,7 +498,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut orderglobalParamsVariable = self.parse_create_edit_order_args(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
@@ -547,7 +553,9 @@ impl HyperliquidCore {
     m
 }));
         self.check_required_credentials(&[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = self.cancel_orders_request(ids.clone(), &[symbol.clone(), params.clone()]);
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut wrapped: Value = self.wrap_as_post_action(request.clone());
@@ -569,8 +577,8 @@ impl HyperliquidCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_405: bool = true;
-            while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_399: bool = true;
+            while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut status: Value = get_value(&statuses, &i);
             let mut status: Value = get_value(&statuses, &i);
             append_to_array(&mut orders, self.safe_order(Value::Map({
@@ -618,7 +626,7 @@ impl HyperliquidCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -626,7 +634,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
@@ -656,14 +666,16 @@ impl HyperliquidCore {
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut subMessageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
@@ -748,7 +760,6 @@ impl HyperliquidCore {
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -783,8 +794,7 @@ impl HyperliquidCore {
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
- * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
+ * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
@@ -793,19 +803,18 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut messageHash: Value = Value::Str("tickers".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
-        let mut channel: Value = Value::Str("webData2".to_string());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("channel".to_string()), &[channel.clone()]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("type".to_string(), channel.clone());
-        m.insert("user".to_string(), Value::Str("0x0000000000000000000000000000000000000000".to_string()));
+        m.insert("type".to_string(), Value::Str("allMids".to_string()));
     m
 }));
             m
@@ -845,7 +854,6 @@ impl HyperliquidCore {
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn un_watch_tickers(&mut self, optional_args: &[Value]) -> Value {
@@ -854,11 +862,11 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut subMessageHash: Value = Value::Str("tickers".to_string());
-        let mut channel: Value = Value::Str("webData2".to_string());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("unWatchTickers".to_string()), Value::Str("channel".to_string()), &[channel.clone()]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = add(&Value::Str("unsubscribe:".to_string()), &subMessageHash);
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut request: Value = Value::Map({
@@ -866,8 +874,7 @@ impl HyperliquidCore {
                 m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("type".to_string(), channel.clone());
-        m.insert("user".to_string(), Value::Str("0x0000000000000000000000000000000000000000".to_string()));
+        m.insert("type".to_string(), Value::Str("allMids".to_string()));
     m
 }));
             m
@@ -899,8 +906,12 @@ impl HyperliquidCore {
     m
 }));
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("watchMyTrades".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchMyTrades".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
@@ -944,12 +955,16 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("unWatchMyTrades".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchMyTrades".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut messageHash: Value = Value::Str("unsubscribe:myTrades".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut request: Value = Value::Map({
@@ -984,143 +999,41 @@ impl HyperliquidCore {
         //     }
         // }
         //
-        //     {
-        //         "channel": "webData2",
-        //         "data": {
-        //             "meta": {
-        //                 "universe": [
-        //                     {
-        //                         "szDecimals": 5,
-        //                         "name": "BTC",
-        //                         "maxLeverage": 50,
-        //                         "onlyIsolated": false
-        //                     },
-        //                     ...
-        //                 ],
-        //             },
-        //             "assetCtxs": [
-        //                 {
-        //                     "funding": "0.00003005",
-        //                     "openInterest": "2311.50778",
-        //                     "prevDayPx": "63475.0",
-        //                     "dayNtlVlm": "468043329.64289033",
-        //                     "premium": "0.00094264",
-        //                     "oraclePx": "64712.0",
-        //                     "markPx": "64774.0",
-        //                     "midPx": "64773.5",
-        //                     "impactPxs": [
-        //                         "64773.0",
-        //                         "64774.0"
-        //                     ]
-        //                 },
-        //                 ...
-        //             ],
-        //             "spotAssetCtxs": [
-        //                 {
-        //                     "prevDayPx": "0.20937",
-        //                     "dayNtlVlm": "11188888.61984999",
-        //                     "markPx": "0.19722",
-        //                     "midPx": "0.197145",
-        //                     "circulatingSupply": "598760557.12072003",
-        //                     "coin": "PURR/USDC"
-        //                 },
-        //                 ...
-        //             ],
-        //         }
-        //     }
-        //
         // handle hip3 mids
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        if is_equal(&channel, &Value::Str("allMids".to_string())) {
-            let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut mids: Value = self.safe_dict_k(data.clone(), "mids", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            if !is_equal(&mids, &Value::Null) {
-                let mut keys: Value = object_keys(&mids);
-                {
-                                        let mut i: Value = Value::Int(0);
-                    let mut __for_first_406: bool = true;
-                    while { if !__for_first_406 { i = add(&i, &Value::Int(1)); } __for_first_406 = false; is_less_than(&i, &get_array_length(&keys)) } {
-                    let mut name: Value = get_value(&keys, &i);
-                    let mut name: Value = get_value(&keys, &i);
-                    let mut marketId: Value = self.coin_to_market_id(name.clone());
-                    let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
-                    let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-                    let mut ticker: Value = self.parse_ws_ticker(Value::Map({
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut mids: Value = self.safe_dict_k(data.clone(), "mids", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        if !is_equal(&mids, &Value::Null) {
+            let mut keys: Value = object_keys(&mids);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_400: bool = true;
+                while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut name: Value = get_value(&keys, &i);
+                let mut name: Value = get_value(&keys, &i);
+                let mut marketId: Value = self.coin_to_market_id(name.clone());
+                let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
+                let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+                let mut ticker: Value = self.parse_ws_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price".to_string(), self.safe_number(mids.clone(), name.clone(), &[]));
     m
 }), &[market.clone()]);
-                    add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
-                }
-                }
-                let mut messageHash: Value = Value::Str("tickers".to_string());
-                let mut dexMessage: Value = self.safe_string_k(data.clone(), "dex", &[]);
-                if !is_equal(&dexMessage, &Value::Null) {
-                    messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &dexMessage));
-                }
-                client.resolve(&[self.tickers.clone(), messageHash.clone()]);
-                return Value::Bool(true);
+                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
             }
+            }
+            let mut messageHash: Value = Value::Str("tickers".to_string());
+            let mut dexMessage: Value = self.safe_string_k(data.clone(), "dex", &[]);
+            if !is_equal(&dexMessage, &Value::Null) {
+                messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &dexMessage));
+            }
+            client.resolve(&[self.tickers.clone(), messageHash.clone()]);
         }
-        // spot
-        let mut rawData: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut spotAssets: Value = self.safe_list_k(rawData.clone(), "spotAssetCtxs", &[Value::List(vec![])]);
-        let mut parsedTickers: Value = Value::List(vec![]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_407: bool = true;
-            while { if !__for_first_407 { i = add(&i, &Value::Int(1)); } __for_first_407 = false; is_less_than(&i, &get_array_length(&spotAssets)) } {
-            let mut assetObject: Value = get_value(&spotAssets, &i);
-            let mut assetObject: Value = get_value(&spotAssets, &i);
-            let mut coin: Value = self.safe_string_k(assetObject.clone(), "coin", &[]);
-            let mut marketId: Value = self.coin_to_market_id(coin.clone());
-            let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("spot".to_string())]);
-            let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-            let mut ticker: Value = self.parse_ws_ticker(assetObject.clone(), &[market.clone()]);
-            append_to_array(&mut parsedTickers, ticker.clone());
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
-        }
-        }
-        // perpetuals
-        let mut meta: Value = self.safe_dict_k(rawData.clone(), "meta", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
-        let mut assetCtxs: Value = self.safe_list_k(rawData.clone(), "assetCtxs", &[Value::List(vec![])]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_408: bool = true;
-            while { if !__for_first_408 { i = add(&i, &Value::Int(1)); } __for_first_408 = false; is_less_than(&i, &get_array_length(&universe)) } {
-            let __ws_arg_2 = self.safe_dict(universe.clone(), i.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let __ws_arg_3 = self.safe_dict(assetCtxs.clone(), i.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut data: Value = self.extend(__ws_arg_2, &[__ws_arg_3]);
-            let mut coin: Value = self.safe_string_k(data.clone(), "name", &[]);
-            let mut marketId: Value = self.coin_to_market_id(coin.clone());
-            let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
-            let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-            let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone()]);
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
-            append_to_array(&mut parsedTickers, ticker.clone());
-        }
-        }
-        let mut tickers: Value = self.index_by(parsedTickers.clone(), Value::Str("symbol".to_string()));
-        client.resolve(&[tickers.clone(), Value::Str("tickers".to_string())]);
         return Value::Bool(true);
 
     Value::Null
@@ -1182,8 +1095,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_409: bool = true;
-            while { if !__for_first_409 { i = add(&i, &Value::Int(1)); } __for_first_409 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_401: bool = true;
+            while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
@@ -1195,8 +1108,8 @@ impl HyperliquidCore {
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_410: bool = true;
-            while { if !__for_first_410 { i = add(&i, &Value::Int(1)); } __for_first_410 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_402: bool = true;
+            while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currentMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &get_value(&keys, &i));
             client.resolve(&[trades.clone(), currentMessageHash.clone()]);
         }
@@ -1224,7 +1137,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
@@ -1264,7 +1179,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut subMessageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
@@ -1325,9 +1242,12 @@ impl HyperliquidCore {
         let mut trades: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_411: bool = true;
-            while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &get_array_length(&entry)) } {
-            let mut data: Value = self.safe_dict(entry.clone(), i.clone(), &[]);
+            let mut __for_first_403: bool = true;
+            while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&entry)) } {
+            let mut data: Value = self.safe_dict(entry.clone(), i.clone(), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
             trades.append(trade.clone());
         }
@@ -1430,7 +1350,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -1473,7 +1395,9 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -1564,7 +1488,7 @@ impl HyperliquidCore {
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+ * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -1572,13 +1496,19 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("watchBalance".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchBalance".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isUnifiedEnabled: Value = Value::Null;
-        { let __destr_tmp = self.is_unified_enabled(Value::Str("watchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await; isUnifiedEnabled = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut unifiedResult: Value = self.is_unified_enabled(Value::Str("watchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
+        isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
         let mut isSpot: Value = Value::Bool(is_true(&(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&isUnifiedEnabled))) && is_true(&(is_equal(&dex, &Value::Null))));
         let mut topic: Value = ternary(is_true(&(isSpot)), Value::Str("spotState".to_string()), Value::Str("clearinghouseState".to_string()));
@@ -1624,14 +1554,20 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("unWatchBalance".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchBalance".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("unWatchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isUnifiedEnabled: Value = Value::Null;
-        { let __destr_tmp = self.is_unified_enabled(Value::Str("unWatchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await; isUnifiedEnabled = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut unifiedResult: Value = self.is_unified_enabled(Value::Str("unWatchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
+        isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
         let mut isSpot: Value = Value::Bool(is_true(&(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&isUnifiedEnabled))) && is_true(&(is_equal(&dex, &Value::Null))));
         let mut topic: Value = ternary(is_true(&(isSpot)), Value::Str("spotState".to_string()), Value::Str("clearinghouseState".to_string()));
@@ -1721,7 +1657,7 @@ impl HyperliquidCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         if is_equal(&topic, &Value::Str("spotState".to_string())) {
             let mut spotState: Value = self.safe_dict_k(data.clone(), "spotState", &[]);
-            rawBalances = self.safe_list_k(spotState.clone(), "balances", &[]);
+            rawBalances = self.safe_list_k(spotState.clone(), "balances", &[Value::List(vec![])]);
             account = Value::Str("spot".to_string());
             info = rawBalances.clone();
         }
@@ -1735,8 +1671,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_412: bool = true;
-            while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &get_array_length(&rawBalances)) } {
+            let mut __for_first_404: bool = true;
+            while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&rawBalances)) } {
             self.parse_ws_balance(get_value(&rawBalances, &i), &[account.clone()]);
         }
         }
@@ -1823,6 +1759,7 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum number of positions to retrieve
  * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
     pub async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
@@ -1833,12 +1770,16 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("watchPositions".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchPositions".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut topic: Value = Value::Str("clearinghouseState".to_string());
         let mut messageHash: Value = add(&topic, &Value::Str("::positions".to_string()));
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if is_true(&(!is_equal(&symbols, &Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = add(&messageHash, &add(&Value::Str("::".to_string()), &join(&symbols, &Value::Str(",".to_string()))));
         }
@@ -1897,8 +1838,8 @@ impl HyperliquidCore {
         let mut rawPositions: Value = self.safe_list_k(clearinghouseState.clone(), "assetPositions", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_413: bool = true;
-            while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_405: bool = true;
+            while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -1910,8 +1851,8 @@ impl HyperliquidCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), baseMessageHash.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_414: bool = true;
-            while { if !__for_first_414 { i = add(&i, &Value::Int(1)); } __for_first_414 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_406: bool = true;
+            while { if !__for_first_406 { i = add(&i, &Value::Int(1)); } __for_first_406 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1944,14 +1885,18 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        if is_true(&(!is_equal(&symbols, &Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".to_string()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:clearinghouseState".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("unWatchPositions".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchPositions".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
@@ -1989,9 +1934,13 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("watchOrders".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("watchOrders".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("order".to_string());
         if !is_equal(&symbol, &Value::Null) {
@@ -2037,14 +1986,18 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:order".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("unWatchOrders".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut userAddressResult: Value = self.handle_public_address(Value::Str("unWatchOrders".to_string()), params.clone());
+        userAddress = self.safe_string(userAddressResult.clone(), Value::Int(0), &[]);
+        params = self.safe_dict(userAddressResult.clone(), Value::Int(1), &[params.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
@@ -2100,8 +2053,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_415: bool = true;
-            while { if !__for_first_415 { i = add(&i, &Value::Int(1)); } __for_first_415 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_407: bool = true;
+            while { if !__for_first_407 { i = add(&i, &Value::Int(1)); } __for_first_407 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawOrder: Value = get_value(&data, &i);
             let mut rawOrder: Value = get_value(&data, &i);
             let mut order: Value = self.parse_order(rawOrder.clone(), &[]);
@@ -2113,8 +2066,8 @@ impl HyperliquidCore {
         let mut keys: Value = object_keys(&marketSymbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_416: bool = true;
-            while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_408: bool = true;
+            while { if !__for_first_408 { i = add(&i, &Value::Int(1)); } __for_first_408 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut symbol: Value = get_value(&keys, &i);
             let mut symbol: Value = get_value(&keys, &i);
             let mut innerMessageHash: Value = add(&add(&messageHash, &Value::Str(":".to_string())), &symbol);
@@ -2157,8 +2110,8 @@ impl HyperliquidCore {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         if is_equal(&channel, &Value::Str("error".to_string())) {
             let mut ret_msg: Value = self.safe_string_k(message.clone(), "data", &[Value::Str("".to_string())]);
-            let mut errorMsg: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &ret_msg);
-            client.reject(&[errorMsg.clone()]);
+            let mut error = Value::from(crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &ret_msg)));
+            client.reject(&[Value::from(error.clone())]);
             return Value::Bool(true);
         }
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
@@ -2179,13 +2132,13 @@ impl HyperliquidCore {
         })]);
         let mut status: Value = self.safe_string_k(payload.clone(), "status", &[]);
         if !is_equal(&status, &Value::Null) && !is_equal(&status, &Value::Str("ok".to_string())) {
-            let mut errorMsg: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(payload.clone()));
-            client.reject(&[errorMsg.clone(), id.clone()]);
+            let mut error = Value::from(crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(payload.clone()))));
+            client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }
         let mut type_var: Value = self.safe_string_k(payload.clone(), "type", &[]);
         if is_equal(&type_var, &Value::Str("error".to_string())) {
-            let mut error: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(payload.clone()));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(payload.clone()))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }
@@ -2251,8 +2204,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbols: Value = object_keys(&self.tickers);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_417: bool = true;
-            while { if !__for_first_417 { i = add(&i, &Value::Int(1)); } __for_first_417 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_409: bool = true;
+            while { if !__for_first_409 { i = add(&i, &Value::Int(1)); } __for_first_409 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             remove(&mut self.tickers.clone(), &get_value(&symbols, &i));
         }
         }
@@ -2363,8 +2316,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.handle_order_book_unsubscription(client.clone(), subscription.clone());
             }  else if is_equal(&type_var, &Value::Str("trades".to_string())) {
                 self.handle_trades_unsubscription(client.clone(), subscription.clone());
-            }  else if is_equal(&type_var, &Value::Str("webData2".to_string())) {
-                self.handle_tickers_unsubscription(client.clone(), subscription.clone());
             }  else if is_equal(&type_var, &Value::Str("candle".to_string())) {
                 self.handle_ohlcv_unsubscription(client.clone(), subscription.clone());
             }  else if is_equal(&type_var, &Value::Str("orderUpdates".to_string())) {
@@ -2406,7 +2357,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("candle".to_string(), Value::Null.clone());
                 m.insert("orderUpdates".to_string(), Value::Null.clone());
                 m.insert("userFills".to_string(), Value::Null.clone());
-                m.insert("webData2".to_string(), Value::Null.clone());
                 m.insert("allMids".to_string(), Value::Null.clone());
                 m.insert("post".to_string(), Value::Null.clone());
                 m.insert("subscriptionResponse".to_string(), Value::Null.clone());
@@ -2422,8 +2372,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_418: bool = true;
-            while { if !__for_first_418 { i = add(&i, &Value::Int(1)); } __for_first_418 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_410: bool = true;
+            while { if !__for_first_410 { i = add(&i, &Value::Int(1)); } __for_first_410 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {
@@ -2451,8 +2401,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //       "channel": "pong"
         //   }
         //
-        let __ws_arg_4 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.safe_integer_k(message.clone(), "pong", &[__ws_arg_4]));
+        let __ws_arg_2 = self.milliseconds();
+        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.safe_integer_k(message.clone(), "pong", &[__ws_arg_2]));
         return message;
 
     Value::Null

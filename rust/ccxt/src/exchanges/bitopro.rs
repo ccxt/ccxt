@@ -507,7 +507,11 @@ impl BitoproCore {
         m.insert("BSC".to_string(), Value::Str("BSC".to_string()));
     m
 }));
+        m.insert("fetchCurrencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
         m.insert("fiatCurrencies".to_string(), Value::List(vec![Value::Str("TWD".to_string())]));
+    m
+}));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -681,7 +685,7 @@ impl BitoproCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::List(vec![])]);
+        let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".to_string()), Value::Str("fiatCurrencies".to_string()), &[Value::List(vec![])]);
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut deposit: Value = self.safe_bool_k(rawCurrency.clone(), "deposit", &[]);
@@ -878,7 +882,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -911,7 +917,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_tickers(&[]).await;
         let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
@@ -927,7 +935,7 @@ impl BitoproCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -935,7 +943,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1064,7 +1074,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1092,7 +1104,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_provisioning_limitations_and_fees(&[params.clone()]).await;
         let mut tradingFeeRate: Value = self.safe_dict_k(response.clone(), "tradingFeeRate", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1168,8 +1182,8 @@ impl BitoproCore {
         let mut taker: Value = self.safe_number_k(first.clone(), "takerFee", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_371: bool = true;
-            while { if !__for_first_371 { i = add(&i, &Value::Int(1)); } __for_first_371 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_352: bool = true;
+            while { if !__for_first_352 { i = add(&i, &Value::Int(1)); } __for_first_352 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1215,7 +1229,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: Value = Value::Map({
@@ -1324,8 +1340,8 @@ impl BitoproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_353: bool = true;
+            while { if !__for_first_353 { i = add(&i, &Value::Int(1)); } __for_first_353 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1359,7 +1375,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_accounts_balance(&[params.clone()]).await;
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_balance(balances.clone());
@@ -1379,7 +1397,7 @@ impl BitoproCore {
                 m.insert("6".to_string(), Value::Str("canceled".to_string()));
             m
         });
-        return self.safe_string(statuses.clone(), status.clone(), &[]);
+        return ternary(is_true(&(is_equal(&status, &Value::Null))), Value::Null, self.safe_string(statuses.clone(), status.clone(), &[]));
 
     Value::Null
 }
@@ -1500,7 +1518,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1561,7 +1581,9 @@ impl BitoproCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1581,15 +1603,15 @@ impl BitoproCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { i = add(&i, &Value::Int(1)); } __for_first_374 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { i = add(&i, &Value::Int(1)); } __for_first_355 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut orderIds: Value = get_value(&data, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_373: bool = true;
-                while { if !__for_first_373 { j = add(&j, &Value::Int(1)); } __for_first_373 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
+                let mut __for_first_354: bool = true;
+                while { if !__for_first_354 { j = add(&j, &Value::Int(1)); } __for_first_354 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
                 append_to_array(&mut orders, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), get_value(&orderIds, &j));
@@ -1625,7 +1647,9 @@ impl BitoproCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut id: Value = get_value(&market, &Value::Str("uppercaseId".to_string()));
         let mut request: Value = Value::Map({
@@ -1666,7 +1690,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1709,7 +1735,9 @@ impl BitoproCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1746,7 +1774,9 @@ impl BitoproCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1789,7 +1819,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1859,7 +1891,9 @@ impl BitoproCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1956,7 +1990,7 @@ impl BitoproCore {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone()]));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone(), code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "total", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -2005,7 +2039,9 @@ impl BitoproCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDeposits() requires the code argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.safe_currency(code.clone(), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2052,7 +2088,9 @@ impl BitoproCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchWithdrawals() requires the code argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.safe_currency(code.clone(), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2096,7 +2134,9 @@ impl BitoproCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchWithdrawal() requires the code argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.safe_currency(code.clone(), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2134,7 +2174,9 @@ impl BitoproCore {
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_address(&[address.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -2151,7 +2193,7 @@ impl BitoproCore {
 })]);
             let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string())]), &[]);
-            let mut networkId: Value = self.safe_string(networks.clone(), requestedNetwork.clone(), &[]);
+            let mut networkId: Value = ternary(is_true(&(is_equal(&requestedNetwork, &Value::Null))), Value::Null, self.safe_string(networks.clone(), requestedNetwork.clone(), &[]));
             if is_equal(&networkId, &Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" invalid network ".to_string())), &requestedNetwork)));
             }
@@ -2213,7 +2255,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_provisioning_currencies(&[params.clone()]).await;
         //
         //     {

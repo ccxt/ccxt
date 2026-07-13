@@ -360,7 +360,9 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         // only supports a limit of 150 at this time
@@ -448,7 +450,9 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         // only supports a limit of 150 at this time
@@ -527,8 +531,8 @@ impl BittradeCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_179: bool = true;
-            while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[market.clone()]);
             tradesCache.append(trade.clone());
         }
@@ -558,7 +562,9 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -643,7 +649,7 @@ impl BittradeCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -654,7 +660,9 @@ impl BittradeCore {
         if is_true(&(!is_equal(&limit, &Value::Null))) && is_true(&(!is_equal(&limit, &Value::Int(150)))) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" watchOrderBook accepts limit = 150 only".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         // only supports a limit of 150 at this time
@@ -727,8 +735,8 @@ impl BittradeCore {
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_180: bool = true;
-            while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&messages)) } {
+            let mut __for_first_169: bool = true;
+            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&messages)) } {
             self.handle_order_book_message(client.clone(), get_value(&messages, &i), orderbook.clone());
         }
         }
@@ -789,8 +797,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_181: bool = true;
-            while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_170: bool = true;
+            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1011,7 +1019,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return Value::Bool(false);
         }
-        return message;
+        return Value::Bool(true);
 
     Value::Null
 }

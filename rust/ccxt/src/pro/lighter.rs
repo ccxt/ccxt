@@ -474,8 +474,8 @@ impl LighterCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_470: bool = true;
-            while { if !__for_first_470 { i = add(&i, &Value::Int(1)); } __for_first_470 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_463: bool = true;
+            while { if !__for_first_463 { i = add(&i, &Value::Int(1)); } __for_first_463 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -557,7 +557,7 @@ impl LighterCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -565,7 +565,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -587,14 +589,16 @@ impl LighterCore {
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -669,8 +673,8 @@ impl LighterCore {
             let mut marketIds: Value = object_keys(&data);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_471: bool = true;
-                while { if !__for_first_471 { i = add(&i, &Value::Int(1)); } __for_first_471 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_464: bool = true;
+                while { if !__for_first_464 { i = add(&i, &Value::Int(1)); } __for_first_464 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -705,7 +709,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -733,7 +739,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -763,7 +771,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -780,8 +790,8 @@ impl LighterCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_472: bool = true;
-                while { if !__for_first_472 { i = add(&i, &Value::Int(1)); } __for_first_472 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_465: bool = true;
+                while { if !__for_first_465 { i = add(&i, &Value::Int(1)); } __for_first_465 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]));
@@ -818,7 +828,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("market_stats/all".to_string()));
@@ -1023,8 +1035,8 @@ impl LighterCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { i = add(&i, &Value::Int(1)); } __for_first_473 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_466: bool = true;
+            while { if !__for_first_466 { i = add(&i, &Value::Int(1)); } __for_first_466 = false; is_less_than(&i, &dataLength) } {
             let mut iReversed: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut trade: Value = self.parse_ws_trade(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(trade.clone());
@@ -1052,7 +1064,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1081,7 +1095,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1131,18 +1147,27 @@ impl LighterCore {
         let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
         let mut costString: Value = self.safe_string_k(trade.clone(), "usd_amount", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
-        let mut side: Value = ternary(is_true(&isMakerAsk), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
         let mut accountIndex: Value = self.safe_integer_k(trade.clone(), "accountIndex", &[]);
+        let mut bidAccountId: Value = self.safe_integer_k(trade.clone(), "bid_account_id", &[]);
+        let mut askAccountId: Value = self.safe_integer_k(trade.clone(), "ask_account_id", &[]);
+        let mut side: Value = Value::Null;
         let mut order: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         if !is_equal(&accountIndex, &Value::Null) {
-            if is_equal(&self.safe_integer_k(trade.clone(), "bid_account_id", &[]), &accountIndex) {
+            if is_equal(&bidAccountId, &accountIndex) {
+                // Own trades should use the account's order side
+                side = Value::Str("buy".to_string());
                 order = self.safe_string_k(trade.clone(), "bid_id", &[]);
                 takerOrMaker = ternary(is_true(&isMakerAsk), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
-            }  else if is_equal(&self.safe_integer_k(trade.clone(), "ask_account_id", &[]), &accountIndex) {
+            }  else if is_equal(&askAccountId, &accountIndex) {
+                side = Value::Str("sell".to_string());
                 order = self.safe_string_k(trade.clone(), "ask_id", &[]);
                 takerOrMaker = ternary(is_true(&isMakerAsk), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if is_equal(&side, &Value::Null) {
+            side = ternary(is_true(&isMakerAsk), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
         }
         let mut fee: Value = Value::Null;
         if !is_equal(&takerOrMaker, &Value::Null) {
@@ -1233,8 +1258,8 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_468: bool = true;
+            while { if !__for_first_468 { i = add(&i, &Value::Int(1)); } __for_first_468 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1242,8 +1267,8 @@ impl LighterCore {
             let mut tradesLength: Value = get_array_length(&trades);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_474: bool = true;
-                while { if !__for_first_474 { j = add(&j, &Value::Int(1)); } __for_first_474 = false; is_less_than(&j, &tradesLength) } {
+                let mut __for_first_467: bool = true;
+                while { if !__for_first_467 { j = add(&j, &Value::Int(1)); } __for_first_467 = false; is_less_than(&j, &tradesLength) } {
                 let mut jReversed: Value = subtract(&subtract(&tradesLength, &Value::Int(1)), &j);
                 let mut tradeRaw: Value = get_value(&trades, &jReversed);
                 add_element_to_object(&mut tradeRaw, &Value::Str("accountIndex".to_string()), accountIndex.clone());
@@ -1283,7 +1308,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountIndex: Value = Value::Null;
         { let __destr_tmp = self.handle_account_index(params.clone(), Value::Str("watchMyTrades".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".to_string()), &[]);
@@ -1450,8 +1477,8 @@ impl LighterCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_469: bool = true;
+            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &dataLength) } {
             let mut iReversed: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut liquidation: Value = self.parse_ws_liquidation(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(liquidation.clone());
@@ -1479,7 +1506,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1507,7 +1536,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("watchBalance".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1603,8 +1634,8 @@ impl LighterCore {
             let mut assetIds: Value = object_keys(&assets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_477: bool = true;
-                while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&assetIds)) } {
+                let mut __for_first_470: bool = true;
+                while { if !__for_first_470 { i = add(&i, &Value::Int(1)); } __for_first_470 = false; is_less_than(&i, &get_array_length(&assetIds)) } {
                 let mut assetId: Value = get_value(&assetIds, &i);
                 let mut assetId: Value = get_value(&assetIds, &i);
                 let mut asset: Value = get_value(&assets, &assetId);
@@ -1656,7 +1687,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountIndex: Value = Value::Null;
         { let __destr_tmp = self.handle_account_index(params.clone(), Value::Str("watchOrders".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = Value::Null;
@@ -1697,7 +1730,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountIndex: Value = Value::Null;
         { let __destr_tmp = self.handle_account_index(params.clone(), Value::Str("watchOrders".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = Value::Null;
@@ -1756,16 +1791,16 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("orders".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_479: bool = true;
-            while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_472: bool = true;
+            while { if !__for_first_472 { i = add(&i, &Value::Int(1)); } __for_first_472 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut orders: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_478: bool = true;
-                while { if !__for_first_478 { j = add(&j, &Value::Int(1)); } __for_first_478 = false; is_less_than(&j, &get_array_length(&orders)) } {
+                let mut __for_first_471: bool = true;
+                while { if !__for_first_471 { j = add(&j, &Value::Int(1)); } __for_first_471 = false; is_less_than(&j, &get_array_length(&orders)) } {
                 let mut order: Value = self.parse_order(get_value(&orders, &j), &[market.clone()]);
                 stored.append(order.clone());
                 let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
@@ -1889,8 +1924,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_480: bool = true;
-            while { if !__for_first_480 { i = add(&i, &Value::Int(1)); } __for_first_480 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { i = add(&i, &Value::Int(1)); } __for_first_473 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);

@@ -523,7 +523,7 @@ impl WeexCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api-spot.weex.com".to_string()));
@@ -826,13 +826,10 @@ impl WeexCore {
         m.insert("ETH".to_string(), Value::Str("ERC20".to_string()));
         m.insert("POLYGON".to_string(), Value::Str("POLYGON(MATIC)".to_string()));
         m.insert("MATIC".to_string(), Value::Str("POLYGON(MATIC)".to_string()));
-        m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM(ARB)".to_string()));
-        m.insert("ARB".to_string(), Value::Str("ARBITRUM(ARB)".to_string()));
-        m.insert("SOLANA".to_string(), Value::Str("SOLANA(SOL)".to_string()));
+        m.insert("ARBONE".to_string(), Value::Str("ARBITRUM(ARB)".to_string()));
         m.insert("SOL".to_string(), Value::Str("SOLANA(SOL)".to_string()));
         m.insert("OP".to_string(), Value::Str("OPTIMISM(OP)".to_string()));
         m.insert("OPTIMISM".to_string(), Value::Str("OPTIMISM(OP)".to_string()));
-        m.insert("AVALANCHEC".to_string(), Value::Str("AVALANCHE_C(AVAX_C)".to_string()));
         m.insert("AVAXC".to_string(), Value::Str("AVALANCHE_C(AVAX_C)".to_string()));
     m
 }));
@@ -841,7 +838,7 @@ impl WeexCore {
         m.insert("BEP20(BSC)".to_string(), Value::Str("BEP20".to_string()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
         m.insert("POLYGON(MATIC)".to_string(), Value::Str("MATIC".to_string()));
-        m.insert("ARBITRUM(ARB)".to_string(), Value::Str("ARB".to_string()));
+        m.insert("ARBITRUM(ARB)".to_string(), Value::Str("ARBONE".to_string()));
         m.insert("SOLANA(SOL)".to_string(), Value::Str("SOL".to_string()));
         m.insert("OPTIMISM(OP)".to_string(), Value::Str("OP".to_string()));
         m.insert("AVALANCHE_C(AVAX_C)".to_string(), Value::Str("AVAXC".to_string()));
@@ -1165,11 +1162,11 @@ impl WeexCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { j = add(&j, &Value::Int(1)); } __for_first_1051 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_996: bool = true;
+            while { if !__for_first_996 { j = add(&j, &Value::Int(1)); } __for_first_996 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
@@ -1461,7 +1458,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut marketType: Value = Value::Null;
@@ -1475,7 +1474,7 @@ impl WeexCore {
             m
         });
         if is_equal(&symbolsLength, &Value::Int(1)) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
@@ -1656,7 +1655,7 @@ impl WeexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 15, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1664,7 +1663,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1731,7 +1732,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             return self.fetch_spot_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), params.clone()]).await;
@@ -1763,7 +1766,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1805,7 +1810,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut maxHistoricalLimit: Value = Value::Int(100);
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1911,7 +1918,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1982,8 +1991,11 @@ impl WeexCore {
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "time", &[]);
         let mut isBuyer: Value = self.safe_bool_k(trade.clone(), "isBuyer", &[]);
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
+        let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]);
         if !is_equal(&isBuyer, &Value::Null) {
             side = ternary(is_true(&isBuyer), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
+        }  else if !is_equal(&isBuyerMaker, &Value::Null) {
+            side = ternary(is_true(&isBuyerMaker), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
         }
         let mut isSpot: Value = Value::Bool(true);
         if is_equal(&market, &Value::Null) {
@@ -2018,6 +2030,8 @@ impl WeexCore {
         let mut takerOrMaker: Value = Value::Null;
         if !is_equal(&isMaker, &Value::Null) {
             takerOrMaker = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
+        }  else if !is_equal(&isBuyerMaker, &Value::Null) {
+            takerOrMaker = Value::Str("taker".to_string());
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2054,7 +2068,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2110,7 +2126,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut symbolsLength: Value = Value::Int(0);
         if !is_equal(&symbols, &Value::Null) {
@@ -2122,7 +2140,7 @@ impl WeexCore {
         });
         if is_equal(&symbolsLength, &Value::Int(1)) {
             let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_12]).await;
@@ -2192,7 +2210,9 @@ impl WeexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2313,8 +2333,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1052: bool = true;
-            while { if !__for_first_1052 { i = add(&i, &Value::Int(1)); } __for_first_1052 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_997: bool = true;
+            while { if !__for_first_997 { i = add(&i, &Value::Int(1)); } __for_first_997 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -2350,7 +2370,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2436,7 +2458,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
             return self.create_contract_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -2468,7 +2492,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = self.private_post_api_v3_order(&[request.clone()]).await;
@@ -2540,7 +2566,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut triggerPrice: Value = self.safe_string_k(request.clone(), "triggerPrice", &[]);
@@ -2708,7 +2736,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2781,7 +2811,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2838,7 +2870,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2905,7 +2939,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2983,7 +3019,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -3005,7 +3043,7 @@ impl WeexCore {
             m
         });
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         let mut response: Value = Value::Null;
         if is_true(&isSpot) {
@@ -3136,7 +3174,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -3179,7 +3219,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -3224,7 +3266,9 @@ impl WeexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() supports spot markets only".to_string()))));
@@ -3276,7 +3320,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -3297,7 +3343,7 @@ impl WeexCore {
             m
         });
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -3544,7 +3590,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
@@ -3578,7 +3626,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -3600,7 +3650,7 @@ impl WeexCore {
             m
         });
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -3681,7 +3731,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".to_string()), Value::Str("paginate".to_string()), &[Value::Bool(false)]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut maxLimit: Value = Value::Int(100);
@@ -3872,7 +3924,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_position_all_position(&[params.clone()]).await;
         return self.parse_positions(response.clone(), &[symbols.clone()]);
@@ -3915,7 +3969,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4066,7 +4122,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.contract_private_post_capi_v3_close_positions(&[params.clone()]).await;
         return self.parse_positions(response.clone(), &[]);
 
@@ -4089,7 +4147,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4118,7 +4178,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() is not supported for spot markets".to_string()))));
@@ -4174,7 +4236,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4219,7 +4283,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[params.clone()]).await;
         return self.parse_margin_modes(response.clone(), &[symbols.clone(), Value::Str("symbol".to_string()), Value::Str("swap".to_string())]);
@@ -4273,7 +4339,9 @@ impl WeexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4317,7 +4385,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4350,7 +4420,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[params.clone()]).await;
         return self.parse_leverages(response.clone(), &[symbols.clone(), Value::Str("symbol".to_string()), Value::Str("swap".to_string())]);
@@ -4411,7 +4483,9 @@ impl WeexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4455,7 +4529,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4499,7 +4575,9 @@ impl WeexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setPositionMode() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setPositionMode".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4525,7 +4603,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut isolatedPositionId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("positionId".to_string()), Value::Str("id".to_string()), Value::Str("isolatedPositionId".to_string())]), &[]);
         if is_equal(&isolatedPositionId, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" modifyMarginHelper() requires a positionId parameter".to_string()))));
@@ -4569,12 +4649,12 @@ impl WeexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), get_value(&market, &Value::Str("settle".to_string())));
+        m.insert("code".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
         m.insert("status".to_string(), status.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));

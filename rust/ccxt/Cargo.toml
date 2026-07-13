@@ -65,6 +65,11 @@ form_urlencoded = "1"
 url = "2"
 # Precise decimal arithmetic (mirrors CCXT's Precise class)
 rust_decimal = { version = "1", features = ["serde-str"] }
+# Arbitrary-precision integers — used by Precise's div/mul fallback when
+# operands exceed i128 (CCXT fixtures carry full-precision float expansions
+# with 40+ significant digits; TS uses BigInt, so we must too to match).
+num-bigint = "0.4"
+num-traits = "0.2"
 # Cryptographic RNG
 rand = "0.8"
 # Hex encoding / decoding

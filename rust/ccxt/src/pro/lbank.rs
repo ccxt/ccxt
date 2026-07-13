@@ -387,7 +387,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
@@ -441,7 +443,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -592,7 +596,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("fetchTicker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -624,7 +630,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -747,7 +755,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("fetchTrades:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -787,7 +797,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -846,8 +858,8 @@ impl LbankCore {
         let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_469: bool = true;
-            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_462: bool = true;
+            while { if !__for_first_462 { i = add(&i, &Value::Int(1)); } __for_first_462 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_ws_trade(get_value(&rawTrades, &i), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             stored.append(trade.clone());
@@ -928,7 +940,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut key: Value = self.authenticate(&[params.clone()]).await;
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = Value::Null;
@@ -977,12 +991,10 @@ impl LbankCore {
         //
         let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string())]);
-        let mut myOrders: Value = Value::Null;
+        let mut myOrders: Value = self.orders.clone();
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             myOrders = ArrayCacheBySymbolById::new(limit.clone());
-        }  else {
-            myOrders = self.orders.clone();
         }
         let mut order: Value = self.parse_ws_order(message.clone(), &[]);
         myOrders.append(order.clone());
@@ -1112,7 +1124,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut key: Value = self.authenticate(&[params.clone()]).await;
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = Value::Str("balance".to_string());
@@ -1181,7 +1195,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("fetchOrderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -1219,7 +1235,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));

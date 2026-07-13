@@ -292,7 +292,7 @@ impl BequantCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));

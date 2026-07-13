@@ -165,6 +165,30 @@ pub mod shared {
     pub fn remove_proxy_options<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn get_active_markets<E: AsValue>(_e: E) -> Value { Value::List(vec![]) }
 
+    /// Ported from `test.sharedMethods.validateTickerExceptionForPercentage`.
+    /// Runs on the exception path of a ticker test: tolerate a "percentage
+    /// too far" error only when the symbol looks newly-listed (not yet in
+    /// markets); otherwise rethrow. The live "first day of listing" OHLCV
+    /// compromise can't be reproduced offline, so those cases fall through
+    /// and re-raise (mirroring the TS `assert(eMessage === '', eMessage)`).
+    pub async fn validate_ticker_exception_for_percentage(ex: Value, exchange: Value, ticker: Value) {
+        let e_message = match &ex {
+            Value::Str(s) => s.clone(),
+            other => ccxt::runtime::stringify_param(other),
+        };
+        let percentage_case = e_message.contains("percentage should be above")
+            || e_message.contains("percentage should be below");
+        if percentage_case {
+            let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".to_string()));
+            if !matches!(symbol, Value::Null) && !market_exists(&exchange, &symbol) {
+                return;
+            }
+        }
+        if !e_message.is_empty() {
+            panic!("{}", e_message);
+        }
+    }
+
     /// `exchange_prop(entry, key)` — reads `entry[key]`. The TS test
     /// uses this for both plain dicts AND for the exchange struct
     /// itself (`exchangeProp(exchange, 'tokenBucket')`). In Rust the

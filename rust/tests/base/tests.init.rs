@@ -62,6 +62,7 @@ pub async fn baseTestsInit() {
     testUnique();
     testUrlencodeNested();
     testSleep().await;
+    testFetchHistory().await;
     testIo();
     testIsJsonEncodedObject();
     testEncodeDecode();

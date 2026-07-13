@@ -367,9 +367,8 @@ impl P2bCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("extension".to_string(), Value::Str(".json".to_string()));
         m.insert("referral".to_string(), Value::Str("https://p2pb2b.com?referral=ee784c53".to_string()));
-        m.insert("logo".to_string(), Value::Str("https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.p2pb2b.com/api/v2/public".to_string()));
@@ -716,7 +715,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
         //
         //    {
@@ -766,7 +767,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -889,7 +892,7 @@ impl P2bCore {
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -897,7 +900,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -963,7 +968,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut lastId: Value = self.safe_integer_k(params.clone(), "lastId", &[]);
         if is_equal(&lastId, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTrades () requires an extra parameter params[\"lastId\"]".to_string()))));
@@ -1070,7 +1077,7 @@ impl P2bCore {
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "deal", &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), get_value(&market, &Value::Str("quote".to_string())));
+        m.insert("currency".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
         m.insert("cost".to_string(), self.safe_string2(trade.clone(), Value::Str("fee".to_string()), Value::Str("deal_fee".to_string()), &[]));
     m
 }));
@@ -1101,7 +1108,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1162,7 +1171,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_account_balances(&[params.clone()]).await;
         //
         //    {
@@ -1211,8 +1222,8 @@ impl P2bCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_972: bool = true;
-            while { if !__for_first_972 { i = add(&i, &Value::Int(1)); } __for_first_972 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_934: bool = true;
+            while { if !__for_first_934 { i = add(&i, &Value::Int(1)); } __for_first_934 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currencyId: Value = get_value(&keys, &i);
             let mut currencyId: Value = get_value(&keys, &i);
             let mut balance: Value = get_value(&response, &currencyId);
@@ -1252,7 +1263,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&type_var, &Value::Str("market".to_string())) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder () can only accept orders with type \"limit\"".to_string()))));
         }
@@ -1314,7 +1327,9 @@ impl P2bCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1377,7 +1392,9 @@ impl P2bCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrders () requires the symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1443,7 +1460,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1514,7 +1533,9 @@ impl P2bCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if is_equal(&until, &Value::Null) {
@@ -1604,7 +1625,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let mut market: Value = Value::Null;
@@ -1671,8 +1694,8 @@ impl P2bCore {
         let mut keys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_973: bool = true;
-            while { if !__for_first_973 { i = add(&i, &Value::Int(1)); } __for_first_973 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { i = add(&i, &Value::Int(1)); } __for_first_935 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketOrders: Value = get_value(&result, &marketId);

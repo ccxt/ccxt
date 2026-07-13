@@ -316,7 +316,7 @@ impl BitstampCore {
         m.insert("CORS".to_string(), Value::Bool(true));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(false));
+        m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("addMargin".to_string(), Value::Bool(false));
@@ -787,6 +787,7 @@ impl BitstampCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("mica".to_string(), Value::Bool(true));
         m.insert("networksById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("bitcoin-cash".to_string(), Value::Str("BCH".to_string()));
@@ -993,8 +994,8 @@ impl BitstampCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_391: bool = true;
-            while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_372: bool = true;
+            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut baseIdquoteIdVariable = Value::List(vec![self.safe_string_k(market.clone(), "base_currency", &[]), self.safe_string_k(market.clone(), "counter_currency", &[])]);
@@ -1274,7 +1275,7 @@ impl BitstampCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1282,7 +1283,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1383,7 +1386,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1412,7 +1417,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
@@ -1441,8 +1448,8 @@ impl BitstampCore {
         let mut ids: Value = object_keys(&transaction);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_392: bool = true;
-            while { if !__for_first_392 { i = add(&i, &Value::Int(1)); } __for_first_392 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_373: bool = true;
+            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if is_less_than(&get_index_of(&id, &Value::Str("_".to_string())), &Value::Int(0)) {
@@ -1534,8 +1541,8 @@ impl BitstampCore {
             let mut keys: Value = object_keys(&trade);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_393: bool = true;
-                while { if !__for_first_393 { i = add(&i, &Value::Int(1)); } __for_first_393 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_374: bool = true;
+                while { if !__for_first_374 { i = add(&i, &Value::Int(1)); } __for_first_374 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut currentKey: Value = get_value(&keys, &i);
                 let mut currentKey: Value = get_value(&keys, &i);
                 if !is_equal(&currentKey, &Value::Str("order_id".to_string())) && is_greater_than_or_equal(&get_index_of(&currentKey, &Value::Str("_".to_string())), &Value::Int(0)) {
@@ -1551,14 +1558,14 @@ impl BitstampCore {
             market = self.get_market_from_trade(trade.clone());
         }
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
-        let mut feeCurrency: Value = get_value(&market, &Value::Str("quote".to_string()));
-        let mut priceId: Value = ternary(is_true(&(!is_equal(&rawMarketId, &Value::Null))), rawMarketId.clone(), get_value(&market, &Value::Str("id".to_string())));
+        let mut feeCurrency: Value = self.safe_string_k(market.clone(), "quote", &[]);
+        let mut priceId: Value = ternary(is_true(&(!is_equal(&rawMarketId, &Value::Null))), rawMarketId.clone(), self.safe_string_k(market.clone(), "id", &[]));
         priceString = self.safe_string(trade.clone(), priceId.clone(), &[priceString.clone()]);
-        amountString = self.safe_string(trade.clone(), get_value(&market, &Value::Str("baseId".to_string())), &[amountString.clone()]);
-        costString = self.safe_string(trade.clone(), get_value(&market, &Value::Str("quoteId".to_string())), &[costString.clone()]);
+        amountString = self.safe_string(trade.clone(), self.safe_string_k(market.clone(), "baseId", &[]), &[amountString.clone()]);
+        costString = self.safe_string(trade.clone(), self.safe_string_k(market.clone(), "quoteId", &[]), &[costString.clone()]);
         // this endpoint is not aligned with "markets" endpoint
-        let mut baseIdLower: Value = to_lower(&get_value(&market, &Value::Str("baseId".to_string())));
-        let mut quoteIdLower: Value = to_lower(&get_value(&market, &Value::Str("quoteId".to_string())));
+        let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
+        let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
         let mut dashedIdLower: Value = add(&add(&baseIdLower, &Value::Str("_".to_string())), &quoteIdLower);
         if is_equal(&priceString, &Value::Null) {
             priceString = self.safe_string(trade.clone(), dashedIdLower.clone(), &[]);
@@ -1569,7 +1576,7 @@ impl BitstampCore {
         if is_equal(&costString, &Value::Null) {
             costString = self.safe_string(trade.clone(), quoteIdLower.clone(), &[]);
         }
-        symbol = get_value(&market, &Value::Str("symbol".to_string()));
+        symbol = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut datetimeString: Value = self.safe_string2(trade.clone(), Value::Str("date".to_string()), Value::Str("datetime".to_string()), &[]);
         let mut timestamp: Value = Value::Null;
         if !is_equal(&datetimeString, &Value::Null) {
@@ -1654,7 +1661,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1696,7 +1705,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1761,8 +1772,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_394: bool = true;
-            while { if !__for_first_394 { i = add(&i, &Value::Int(1)); } __for_first_394 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut currencyBalance: Value = get_value(&response, &i);
             let mut currencyBalance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(currencyBalance.clone(), "currency", &[]);
@@ -1792,7 +1803,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_account_balances(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -1813,7 +1826,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1872,8 +1887,8 @@ impl BitstampCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_395: bool = true;
-            while { if !__for_first_395 { i = add(&i, &Value::Int(1)); } __for_first_395 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_376: bool = true;
+            while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -1897,7 +1912,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_fees_trading(&[params.clone()]).await;
         return self.parse_trading_fees(response.clone());
 
@@ -1920,7 +1937,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_fees_withdrawal(&[params.clone()]).await;
         return self.parse_transaction_fees(response.clone(), &[]);
 
@@ -1937,8 +1956,8 @@ impl BitstampCore {
         let mut ids: Value = object_keys(&currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_396: bool = true;
-            while { if !__for_first_396 { i = add(&i, &Value::Int(1)); } __for_first_396 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_377: bool = true;
+            while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut fees: Value = self.safe_value(response.clone(), i.clone(), &[Value::Map({
@@ -1981,7 +2000,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_fees_withdrawal(&[params.clone()]).await;
         //
         //     [
@@ -2002,14 +2023,15 @@ impl BitstampCore {
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
+        let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_397: bool = true;
-            while { if !__for_first_397 { j = add(&j, &Value::Int(1)); } __for_first_397 = false; is_less_than(&j, &get_array_length(&fee)) } {
+            let mut __for_first_378: bool = true;
+            while { if !__for_first_378 { j = add(&j, &Value::Int(1)); } __for_first_378 = false; is_less_than(&j, &get_array_length(&fee)) } {
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "fee", &[]);
             add_element_to_object(&mut result, &Value::Str("withdraw".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2064,7 +2086,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2136,7 +2160,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2176,7 +2202,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -2205,7 +2233,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2263,7 +2293,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2298,7 +2330,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2341,7 +2375,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2391,7 +2427,9 @@ impl BitstampCore {
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".to_string()), params.clone()]).await;
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2468,7 +2506,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2533,7 +2573,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2844,8 +2886,8 @@ impl BitstampCore {
             let mut keys: Value = object_keys(&item);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_398: bool = true;
-                while { if !__for_first_398 { i = add(&i, &Value::Int(1)); } __for_first_398 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_379: bool = true;
+                while { if !__for_first_379 { i = add(&i, &Value::Int(1)); } __for_first_379 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 if is_greater_than_or_equal(&get_index_of(&get_value(&keys, &i), &Value::Str("_".to_string())), &Value::Int(0)) {
                     let mut marketId: Value = replace_str(&get_value(&keys, &i), &Value::Str("_".to_string()), &Value::Str("".to_string()));
                     market = self.safe_market(&[marketId.clone(), market.clone()]);
@@ -2869,7 +2911,7 @@ impl BitstampCore {
         m.insert("referenceId".to_string(), get_value(&parsedTrade, &Value::Str("order".to_string())));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.clone());
-        m.insert("currency".to_string(), get_value(&market, &Value::Str("base".to_string())));
+        m.insert("currency".to_string(), self.safe_string_k(market.clone(), "base", &[]));
         m.insert("amount".to_string(), get_value(&parsedTrade, &Value::Str("amount".to_string())));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
@@ -2932,7 +2974,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2965,7 +3009,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3039,7 +3085,9 @@ impl BitstampCore {
     m
 }));
         let mut market: Value = Value::Null;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
@@ -3124,7 +3172,9 @@ impl BitstampCore {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_address(&[address.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3177,7 +3227,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3337,8 +3389,8 @@ impl BitstampCore {
                 let mut keys: Value = object_keys(&error);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_399: bool = true;
-                    while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                    let mut __for_first_380: bool = true;
+                    while { if !__for_first_380 { i = add(&i, &Value::Int(1)); } __for_first_380 = false; is_less_than(&i, &get_array_length(&keys)) } {
                     let mut key: Value = get_value(&keys, &i);
                     let mut key: Value = get_value(&keys, &i);
                     let mut value: Value = self.safe_value(error.clone(), key.clone(), &[]);
@@ -3360,8 +3412,8 @@ impl BitstampCore {
                 let mut all: Value = self.safe_value_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_400: bool = true;
-                    while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&all)) } {
+                    let mut __for_first_381: bool = true;
+                    while { if !__for_first_381 { i = add(&i, &Value::Int(1)); } __for_first_381 = false; is_less_than(&i, &get_array_length(&all)) } {
                     append_to_array(&mut errors, get_value(&all, &i));
                 }
                 }
@@ -3373,8 +3425,8 @@ impl BitstampCore {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_401: bool = true;
-                while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&errors)) } {
+                let mut __for_first_382: bool = true;
+                while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&errors)) } {
                 let mut value: Value = get_value(&errors, &i);
                 let mut value: Value = get_value(&errors, &i);
                 self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), value.clone(), feedback.clone());

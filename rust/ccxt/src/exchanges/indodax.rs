@@ -640,8 +640,8 @@ impl IndodaxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_807: bool = true;
-            while { if !__for_first_807 { i = add(&i, &Value::Int(1)); } __for_first_807 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_774: bool = true;
+            while { if !__for_first_774 { i = add(&i, &Value::Int(1)); } __for_first_774 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -747,8 +747,8 @@ impl IndodaxCore {
         let mut currencyIds: Value = object_keys(&free);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_808: bool = true;
-            while { if !__for_first_808 { i = add(&i, &Value::Int(1)); } __for_first_808 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_775: bool = true;
+            while { if !__for_first_775 { i = add(&i, &Value::Int(1)); } __for_first_775 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -776,7 +776,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_info(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -791,7 +793,7 @@ impl IndodaxCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -799,7 +801,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -829,8 +833,8 @@ impl IndodaxCore {
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
         let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("server_time".to_string()), &[]);
-        let mut baseVolume: Value = add(&Value::Str("vol_".to_string()), &to_lower(&get_value(&market, &Value::Str("baseId".to_string()))));
-        let mut quoteVolume: Value = add(&Value::Str("vol_".to_string()), &to_lower(&get_value(&market, &Value::Str("quoteId".to_string()))));
+        let mut baseVolume: Value = add(&Value::Str("vol_".to_string()), &self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]));
+        let mut quoteVolume: Value = add(&Value::Str("vol_".to_string()), &self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]));
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -874,7 +878,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -921,7 +927,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         //
         // {
         //     "tickers": {
@@ -950,8 +958,8 @@ impl IndodaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_809: bool = true;
-            while { if !__for_first_809 { i = add(&i, &Value::Int(1)); } __for_first_809 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_776: bool = true;
+            while { if !__for_first_776 { i = add(&i, &Value::Int(1)); } __for_first_776 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut rawTicker: Value = get_value(&tickers, &key);
@@ -1008,7 +1016,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1049,7 +1059,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut selectedTimeframe: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut now: Value = self.seconds();
@@ -1213,7 +1225,9 @@ impl IndodaxCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1255,7 +1269,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1281,8 +1297,8 @@ impl IndodaxCore {
         let mut exchangeOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_810: bool = true;
-            while { if !__for_first_810 { i = add(&i, &Value::Int(1)); } __for_first_810 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_777: bool = true;
+            while { if !__for_first_777 { i = add(&i, &Value::Int(1)); } __for_first_777 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketOrders: Value = get_value(&rawOrders, &marketId);
@@ -1318,7 +1334,9 @@ impl IndodaxCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1353,7 +1371,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1440,7 +1460,9 @@ impl IndodaxCore {
         if is_equal(&side, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires an extra \"side\" param".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1490,7 +1512,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1544,15 +1568,17 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&since, &Value::Null) {
-            let mut startTime: Value = slice(&self.iso8601(since.clone()), &Value::Int(0), &Value::Int(10));
+            let mut startTime: Value = self.yyyymmdd(since.clone(), &[]);
             add_element_to_object(&mut request, &Value::Str("start".to_string()), startTime.clone());
-            add_element_to_object(&mut request, &Value::Str("end".to_string()), slice(&self.iso8601(self.milliseconds()), &Value::Int(0), &Value::Int(10)));
+            add_element_to_object(&mut request, &Value::Str("end".to_string()), self.yyyymmdd(self.milliseconds(), &[]));
         }
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_trans_history(&[__ws_arg_11]).await;
@@ -1631,8 +1657,8 @@ impl IndodaxCore {
             let mut keys: Value = object_keys(&withdraw);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_811: bool = true;
-                while { if !__for_first_811 { i = add(&i, &Value::Int(1)); } __for_first_811 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_778: bool = true;
+                while { if !__for_first_778 { i = add(&i, &Value::Int(1)); } __for_first_778 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 transactions = self.array_concat(transactions.clone(), get_value(&withdraw, &key));
@@ -1641,8 +1667,8 @@ impl IndodaxCore {
             keys = object_keys(&deposit);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_812: bool = true;
-                while { if !__for_first_812 { i = add(&i, &Value::Int(1)); } __for_first_812 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_779: bool = true;
+                while { if !__for_first_779 { i = add(&i, &Value::Int(1)); } __for_first_779 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 transactions = self.array_concat(transactions.clone(), get_value(&deposit, &key));
@@ -1679,7 +1705,9 @@ impl IndodaxCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
@@ -1817,7 +1845,9 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_info(&[params.clone()]).await;
         //
         //    {
@@ -1871,8 +1901,8 @@ impl IndodaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_814: bool = true;
-            while { if !__for_first_814 { i = add(&i, &Value::Int(1)); } __for_first_814 = false; is_less_than(&i, &get_array_length(&addressKeys)) } {
+            let mut __for_first_781: bool = true;
+            while { if !__for_first_781 { i = add(&i, &Value::Int(1)); } __for_first_781 = false; is_less_than(&i, &get_array_length(&addressKeys)) } {
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut code: Value = self.safe_currency_code(marketId.clone(), &[]);
@@ -1887,13 +1917,13 @@ impl IndodaxCore {
                         let mut networkIds: Value = split(&networkId, &Value::Str(",".to_string()));
                         {
                                                         let mut j: Value = Value::Int(0);
-                            let mut __for_first_813: bool = true;
-                            while { if !__for_first_813 { j = add(&j, &Value::Int(1)); } __for_first_813 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
-                            append_to_array(&mut network, to_upper(&self.network_id_to_code(&[get_value(&networkIds, &j)])));
+                            let mut __for_first_780: bool = true;
+                            while { if !__for_first_780 { j = add(&j, &Value::Int(1)); } __for_first_780 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+                            append_to_array(&mut network, to_upper(&self.network_id_to_code(&[get_value(&networkIds, &j), code.clone()])));
                         }
                         }
                     }  else {
-                        network = to_upper(&self.network_id_to_code(&[networkId.clone()]));
+                        network = to_upper(&self.network_id_to_code(&[networkId.clone(), code.clone()]));
                     }
                 }
                 let mut finalNetwork: Value = network.clone(); // java req

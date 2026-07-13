@@ -151,6 +151,11 @@ impl DeltaCore {
         self.call_method(Value::Str("private_get_profile".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetRateLimitsQuota` implicit endpoint.
+    pub async fn private_get_rate_limits_quota(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rate_limits_quota".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetHeartbeat` implicit endpoint.
     pub async fn private_get_heartbeat(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_heartbeat".to_string()), optional_args).await
@@ -244,6 +249,11 @@ impl DeltaCore {
     /// Auto-generated wrapper for the `privatePutUsersResetMmp` implicit endpoint.
     pub async fn private_put_users_reset_mmp(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_users_reset_mmp".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutUsersMarginMode` implicit endpoint.
+    pub async fn private_put_users_margin_mode(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_users_margin_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrders` implicit endpoint.

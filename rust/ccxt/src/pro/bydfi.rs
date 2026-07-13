@@ -502,7 +502,9 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
@@ -547,7 +549,9 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut messageHash: Value = Value::Str("ticker::".to_string());
@@ -559,8 +563,8 @@ impl BydfiCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_236: bool = true;
-                while { if !__for_first_236 { i = add(&i, &Value::Int(1)); } __for_first_236 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_225: bool = true;
+                while { if !__for_first_225 { i = add(&i, &Value::Int(1)); } __for_first_225 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut marketId: Value = self.market_id(symbol.clone());
@@ -608,8 +612,8 @@ impl BydfiCore {
             add_element_to_object(&mut subscription, &Value::Str("subHashIsPrefix".to_string()), Value::Bool(true));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_237: bool = true;
-                while { if !__for_first_237 { i = add(&i, &Value::Int(1)); } __for_first_237 = false; is_less_than(&i, &get_array_length(&subHashes)) } {
+                let mut __for_first_226: bool = true;
+                while { if !__for_first_226 { i = add(&i, &Value::Int(1)); } __for_first_226 = false; is_less_than(&i, &get_array_length(&subHashes)) } {
                 let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
                 if !is_equal(&subHash, &Value::Null) {
                     let mut parts: Value = split(&subHash, &Value::Str("::".to_string()));
@@ -627,8 +631,8 @@ impl BydfiCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_238: bool = true;
-                while { if !__for_first_238 { i = add(&i, &Value::Int(1)); } __for_first_238 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_227: bool = true;
+                while { if !__for_first_227 { i = add(&i, &Value::Int(1)); } __for_first_227 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut marketId: Value = self.market_id(symbol.clone());
@@ -656,8 +660,8 @@ impl BydfiCore {
         let mut keys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_239: bool = true;
-            while { if !__for_first_239 { i = add(&i, &Value::Int(1)); } __for_first_239 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { i = add(&i, &Value::Int(1)); } __for_first_228 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_equal(&get_index_of(&key, &Value::Str("ticker::".to_string())), &Value::Int(0)) {
@@ -760,13 +764,15 @@ impl BydfiCore {
         if is_equal(&symbolsLength, &Value::Int(0)) || !is_true(&Value::Bool(is_array(&get_value(&symbolsAndTimeframes, &Value::Int(0))))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channels: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_240: bool = true;
-            while { if !__for_first_240 { i = add(&i, &Value::Int(1)); } __for_first_240 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_229: bool = true;
+            while { if !__for_first_229 { i = add(&i, &Value::Int(1)); } __for_first_229 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
@@ -812,13 +818,15 @@ impl BydfiCore {
         if is_equal(&symbolsLength, &Value::Int(0)) || !is_true(&Value::Bool(is_array(&get_value(&symbolsAndTimeframes, &Value::Int(0))))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channels: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_241: bool = true;
-            while { if !__for_first_241 { i = add(&i, &Value::Int(1)); } __for_first_241 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_230: bool = true;
+            while { if !__for_first_230 { i = add(&i, &Value::Int(1)); } __for_first_230 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
@@ -895,7 +903,7 @@ impl BydfiCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -915,7 +923,7 @@ impl BydfiCore {
  * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -935,7 +943,7 @@ impl BydfiCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -943,7 +951,9 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut depth: Value = Value::Str("100".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".to_string()), Value::Str("depth".to_string()), &[depth.clone()]); depth = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -957,8 +967,8 @@ impl BydfiCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_242: bool = true;
-            while { if !__for_first_242 { i = add(&i, &Value::Int(1)); } __for_first_242 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_231: bool = true;
+            while { if !__for_first_231 { i = add(&i, &Value::Int(1)); } __for_first_231 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -980,14 +990,16 @@ impl BydfiCore {
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut depth: Value = Value::Str("100".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".to_string()), Value::Str("depth".to_string()), &[depth.clone()]); depth = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1001,8 +1013,8 @@ impl BydfiCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_243: bool = true;
-            while { if !__for_first_243 { i = add(&i, &Value::Int(1)); } __for_first_243 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_232: bool = true;
+            while { if !__for_first_232 { i = add(&i, &Value::Int(1)); } __for_first_232 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1096,7 +1108,9 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut messageHashes: Value = Value::List(vec![]);
         if is_equal(&symbols, &Value::Null) {
@@ -1104,8 +1118,8 @@ impl BydfiCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_244: bool = true;
-                while { if !__for_first_244 { i = add(&i, &Value::Int(1)); } __for_first_244 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_233: bool = true;
+                while { if !__for_first_233 { i = add(&i, &Value::Int(1)); } __for_first_233 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&Value::Str("orders::".to_string()), &symbol));
@@ -1265,7 +1279,9 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut messageHash: Value = Value::Str("positions".to_string());
@@ -1274,8 +1290,8 @@ impl BydfiCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_245: bool = true;
-                while { if !__for_first_245 { i = add(&i, &Value::Int(1)); } __for_first_245 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_234: bool = true;
+                while { if !__for_first_234 { i = add(&i, &Value::Int(1)); } __for_first_234 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str("::".to_string())), &symbol));
@@ -1444,7 +1460,9 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut client: Value = self.client(&[url.clone()]);
         self.fetch_balance_snapshot(client.clone());
@@ -1546,8 +1564,8 @@ impl BydfiCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_246: bool = true;
-                while { if !__for_first_246 { i = add(&i, &Value::Int(1)); } __for_first_246 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_235: bool = true;
+                while { if !__for_first_235 { i = add(&i, &Value::Int(1)); } __for_first_235 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut balance: Value = get_value(&balances, &i);
                 let mut balance: Value = get_value(&balances, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -1591,8 +1609,8 @@ impl BydfiCore {
         let mut subHashIsPrefix: Value = self.safe_bool_k(subscription.clone(), "subHashIsPrefix", &[Value::Bool(false)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_247: bool = true;
-            while { if !__for_first_247 { i = add(&i, &Value::Int(1)); } __for_first_247 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_236: bool = true;
+            while { if !__for_first_236 { i = add(&i, &Value::Int(1)); } __for_first_236 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = replace_str(&unsubHash, &Value::Str("unsubscribe::".to_string()), &Value::Str("".to_string()));

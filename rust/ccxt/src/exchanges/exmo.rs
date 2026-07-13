@@ -580,7 +580,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -588,7 +590,10 @@ impl ExmoCore {
                 m.insert("quantity".to_string(), amount.clone());
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if is_equal(&type_var, &Value::Str("add".to_string())) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_margin_user_position_margin_add(&[__ws_arg_0]).await;
@@ -708,7 +713,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_margin_pair_list(&[params.clone()]).await;
         //
         //     {
@@ -746,8 +753,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_600: bool = true;
+            while { if !__for_first_600 { i = add(&i, &Value::Int(1)); } __for_first_600 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut pair: Value = get_value(&pairs, &i);
             let mut pair: Value = get_value(&pairs, &i);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
@@ -778,7 +785,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_pair_settings(&[params.clone()]).await;
         //
         //     {
@@ -801,8 +810,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_601: bool = true;
+            while { if !__for_first_601 { i = add(&i, &Value::Int(1)); } __for_first_601 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_value(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[Value::Map({
@@ -865,7 +874,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut cryptoList: Value = self.public_get_payments_providers_crypto_list(&[params.clone()]).await;
         //
         //     {
@@ -908,8 +919,8 @@ impl ExmoCore {
         let mut cryptoListKeys: Value = object_keys(&cryptoList);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
+            let mut __for_first_603: bool = true;
+            while { if !__for_first_603 { i = add(&i, &Value::Int(1)); } __for_first_603 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
             let mut code: Value = get_value(&cryptoListKeys, &i);
             let mut code: Value = get_value(&cryptoListKeys, &i);
             if !is_equal(&codes, &Value::Null) && !is_true(&self.in_array(code.clone(), codes.clone())) {
@@ -926,8 +937,8 @@ impl ExmoCore {
             let mut providers: Value = self.safe_value(cryptoList.clone(), currencyId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_632: bool = true;
-                while { if !__for_first_632 { j = add(&j, &Value::Int(1)); } __for_first_632 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_602: bool = true;
+                while { if !__for_first_602 { j = add(&j, &Value::Int(1)); } __for_first_602 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut typeInner: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -961,7 +972,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_payments_providers_crypto_list(&[params.clone()]).await;
         //
         //    {
@@ -1011,13 +1024,16 @@ impl ExmoCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i = add(&i, &Value::Int(1)); } __for_first_634 = false; is_less_than(&i, &get_array_length(&fee)) } {
+            let mut __for_first_604: bool = true;
+            while { if !__for_first_604 { i = add(&i, &Value::Int(1)); } __for_first_604 = false; is_less_than(&i, &get_array_length(&fee)) } {
             let mut provider: Value = get_value(&fee, &i);
             let mut provider: Value = get_value(&fee, &i);
             let mut type_var: Value = self.safe_string_k(provider.clone(), "type", &[]);
             let mut networkId: Value = self.safe_string_k(provider.clone(), "name", &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
+            let mut currencyId: Value = self.safe_string_k(provider.clone(), "currency_name", &[]);
+            currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
+            let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut commissionDesc: Value = self.safe_string_k(provider.clone(), "commission_desc", &[]);
             let mut splitCommissionDesc: Value = Value::List(vec![]);
             let mut percentage: Value = Value::Null;
@@ -1114,8 +1130,8 @@ impl ExmoCore {
         let mut newArray: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
+            let mut __for_first_605: bool = true;
+            while { if !__for_first_605 { i = add(&i, &Value::Int(1)); } __for_first_605 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currencyId: Value = self.safe_string_k(currency.clone(), "name", &[]);
@@ -1151,8 +1167,8 @@ impl ExmoCore {
         }  else {
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_636: bool = true;
-                while { if !__for_first_636 { j = add(&j, &Value::Int(1)); } __for_first_636 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_606: bool = true;
+                while { if !__for_first_606 { j = add(&j, &Value::Int(1)); } __for_first_606 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut name: Value = self.safe_string_k(provider.clone(), "name", &[]);
@@ -1161,7 +1177,7 @@ impl ExmoCore {
                 networkId = replace_str(&networkId, &Value::Str("(".to_string()), &Value::Str("".to_string()));
                 let mut replaceChar: Value = Value::Str(")".to_string()); // transpiler trick
                 networkId = replace_str(&networkId, &replaceChar, &Value::Str("".to_string()));
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                 if !is_true(&(Value::Bool(in_op(&networks, &networkCode)))) {
                     add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1205,7 +1221,7 @@ impl ExmoCore {
                     add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("min".to_string()), minValue.clone());
                     add_element_to_object(get_value_mut(get_value_mut(&mut networkEntry, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("max".to_string()), maxValue.clone());
                 }
-                let mut info: Value = self.safe_list_k(networkEntry.clone(), "info", &[]);
+                let mut info: Value = self.safe_list_k(networkEntry.clone(), "info", &[Value::List(vec![])]);
                 append_to_array(&mut info, provider.clone());
                 add_element_to_object(&mut networkEntry, &Value::Str("info".to_string()), info.clone());
                 add_element_to_object(&mut networks, &networkCode, networkEntry.clone());
@@ -1301,8 +1317,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_637: bool = true;
-            while { if !__for_first_637 { i = add(&i, &Value::Int(1)); } __for_first_637 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_607: bool = true;
+            while { if !__for_first_607 { i = add(&i, &Value::Int(1)); } __for_first_607 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&spotResponse, &id);
@@ -1410,7 +1426,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut until: Value = self.safe_integer_product(params.clone(), Value::Str("until".to_string()), Value::Float(0.001), &[]);
         let mut untilIsDefined: Value = Value::Bool(!is_equal(&until, &Value::Null));
@@ -1482,8 +1500,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&wallets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_638: bool = true;
-                while { if !__for_first_638 { i = add(&i, &Value::Int(1)); } __for_first_638 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_608: bool = true;
+                while { if !__for_first_608 { i = add(&i, &Value::Int(1)); } __for_first_608 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut item: Value = get_value(&wallets, &currencyId);
@@ -1507,8 +1525,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_639: bool = true;
-                while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_609: bool = true;
+                while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1543,7 +1561,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
@@ -1568,7 +1588,7 @@ impl ExmoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1576,7 +1596,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1611,19 +1633,23 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ids: Value = Value::Null;
         if is_equal(&symbols, &Value::Null) {
             let mut allIds: Value = self.ids.clone();
-            ids = join(&allIds, &Value::Str(",".to_string()));
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if is_greater_than(&get_array_length(&ids), &Value::Int(2048)) {
-                let mut numIds: Value = get_array_length(&self.ids);
-                panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchOrderBooks() has ".to_string())), &to_string_val(&numIds)), &Value::Str(" symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks".to_string()))));
+            if !is_equal(&allIds, &Value::Null) {
+                ids = join(&allIds, &Value::Str(",".to_string()));
+                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if is_greater_than(&get_array_length(&ids), &Value::Int(2048)) {
+                    let mut numIds: Value = get_array_length(&allIds);
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchOrderBooks() has ".to_string())), &to_string_val(&numIds)), &Value::Str(" symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks".to_string()))));
+                }
             }
         }  else {
-            ids = self.market_ids(&[symbols.clone()]);
-            ids = join(&ids, &Value::Str(",".to_string()));
+            let mut requestedIds: Value = self.market_ids(&[symbols.clone()]);
+            ids = join(&requestedIds, &Value::Str(",".to_string()));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1642,8 +1668,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { i = add(&i, &Value::Int(1)); } __for_first_640 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_610: bool = true;
+            while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1716,7 +1742,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
         //
@@ -1741,8 +1769,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { i = add(&i, &Value::Int(1)); } __for_first_641 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_611: bool = true;
+            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -1770,7 +1798,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
         let mut market: Value = self.market(symbol.clone());
         return self.parse_ticker(get_value(&response, &get_value(&market, &Value::Str("id".to_string()))), &[market.clone()]);
@@ -1894,7 +1924,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1962,7 +1994,9 @@ impl ExmoCore {
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" only isolated margin is supported".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut pair: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut isSpot: Value = Value::Bool(!is_equal(&marginMode, &Value::Str("isolated".to_string())));
@@ -2014,8 +2048,8 @@ impl ExmoCore {
         let mut marketIdsInner: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { i = add(&i, &Value::Int(1)); } __for_first_642 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
+            let mut __for_first_612: bool = true;
+            while { if !__for_first_612 { i = add(&i, &Value::Int(1)); } __for_first_612 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut resultMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -2045,7 +2079,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         params = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
@@ -2071,7 +2107,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         params = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
@@ -2097,7 +2135,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         params = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
@@ -2133,7 +2173,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut isMarket: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_equal(&price, &Value::Null))));
         let mut marginMode: Value = Value::Null;
@@ -2247,7 +2289,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2296,7 +2340,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), to_string_val(&id));
@@ -2403,7 +2449,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2472,8 +2520,8 @@ impl ExmoCore {
             let mut marketIds: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_643: bool = true;
-                while { if !__for_first_643 { i = add(&i, &Value::Int(1)); } __for_first_643 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_613: bool = true;
+                while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
@@ -2698,7 +2746,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
@@ -2755,8 +2805,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { i = add(&i, &Value::Int(1)); } __for_first_644 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_614: bool = true;
+            while { if !__for_first_614 { i = add(&i, &Value::Int(1)); } __for_first_614 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             if is_equal(&get_value(&order, &Value::Str("status".to_string())), &Value::Str("canceled".to_string())) {
@@ -2797,7 +2847,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("editOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -2841,7 +2893,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_deposit_address(&[params.clone()]).await;
         //
         //     {
@@ -2905,7 +2959,9 @@ impl ExmoCore {
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3120,7 +3176,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3158,7 +3216,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3222,7 +3282,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3288,7 +3350,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3357,7 +3421,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

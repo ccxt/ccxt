@@ -2256,6 +2256,11 @@ impl BinanceCore {
         self.call_method(Value::Str("dapi_private_get_open_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `dapiPrivateGetOpenAlgoOrders` implicit endpoint.
+    pub async fn dapi_private_get_open_algo_orders(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("dapi_private_get_open_algo_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `dapiPrivateGetAllOrders` implicit endpoint.
     pub async fn dapi_private_get_all_orders(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_private_get_all_orders".to_string()), optional_args).await
@@ -2361,6 +2366,11 @@ impl BinanceCore {
         self.call_method(Value::Str("dapi_private_post_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `dapiPrivatePostAlgoOrder` implicit endpoint.
+    pub async fn dapi_private_post_algo_order(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("dapi_private_post_algo_order".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `dapiPrivatePostBatchOrders` implicit endpoint.
     pub async fn dapi_private_post_batch_orders(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_private_post_batch_orders".to_string()), optional_args).await
@@ -2409,6 +2419,11 @@ impl BinanceCore {
     /// Auto-generated wrapper for the `dapiPrivateDeleteOrder` implicit endpoint.
     pub async fn dapi_private_delete_order(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("dapi_private_delete_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `dapiPrivateDeleteAlgoOrder` implicit endpoint.
+    pub async fn dapi_private_delete_algo_order(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("dapi_private_delete_algo_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiPrivateDeleteAllOpenOrders` implicit endpoint.

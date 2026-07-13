@@ -345,7 +345,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = add(&add(&add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("?subscribe=ticker-".to_string())), &get_value(&market, &Value::Str("base".to_string()))), &Value::Str("-".to_string())), &get_value(&market, &Value::Str("quote".to_string())));
@@ -438,7 +440,7 @@ impl IndependentreserveCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -446,7 +448,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         if is_equal(&limit, &Value::Null) {
@@ -538,8 +542,8 @@ impl IndependentreserveCore {
             let mut payload: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_419: bool = true;
-                while { if !__for_first_419 { i = add(&i, &Value::Int(1)); } __for_first_419 = false; is_less_than(&i, &Value::Int(10)) } {
+                let mut __for_first_411: bool = true;
+                while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &Value::Int(10)) } {
                 if is_less_than(&i, &bidsLength) {
                     payload = add(&add(&payload, &self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(0)))), &self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(1))));
                 }
@@ -547,8 +551,8 @@ impl IndependentreserveCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_420: bool = true;
-                while { if !__for_first_420 { i = add(&i, &Value::Int(1)); } __for_first_420 = false; is_less_than(&i, &Value::Int(10)) } {
+                let mut __for_first_412: bool = true;
+                while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &Value::Int(10)) } {
                 if is_less_than(&i, &asksLength) {
                     payload = add(&add(&payload, &self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(0)))), &self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(1))));
                 }
@@ -581,15 +585,15 @@ impl IndependentreserveCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
         bookside.store_array(bidAsk.clone());
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_421: bool = true;
-            while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_413: bool = true;
+            while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -618,7 +622,7 @@ impl IndependentreserveCore {
                 m.insert("OrderBookChange".to_string(), Value::Null.clone());
             m
         });
-        let mut handler: Value = self.safe_value(handlers.clone(), event.clone(), &[]);
+        let mut handler: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(handlers.clone(), event.clone(), &[]));
         if !is_equal(&handler, &Value::Null) {
             handler.call(&[client.clone(), message.clone()]);
             return;

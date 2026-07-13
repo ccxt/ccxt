@@ -388,7 +388,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_required_credentials(&[]);
         let mut market: Value = Value::Null;
         let mut messageHash: Value = name.clone();
@@ -404,8 +406,8 @@ impl CoinbaseinternationalCore {
             productIds = marketIds.clone();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_273: bool = true;
-                while { if !__for_first_273 { i = add(&i, &Value::Int(1)); } __for_first_273 = false; is_less_than(&i, &get_array_length(&parsedSymbols)) } {
+                let mut __for_first_262: bool = true;
+                while { if !__for_first_262 { i = add(&i, &Value::Int(1)); } __for_first_262 = false; is_less_than(&i, &get_array_length(&parsedSymbols)) } {
                 append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("::".to_string())), &get_value(&parsedSymbols, &i)));
             }
             }
@@ -460,7 +462,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_required_credentials(&[]);
         if is_true(&self.is_empty(symbols.clone())) {
             symbols = self.symbols.clone();
@@ -471,8 +475,8 @@ impl CoinbaseinternationalCore {
         let mut productIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_274: bool = true;
-            while { if !__for_first_274 { i = add(&i, &Value::Int(1)); } __for_first_274 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_263: bool = true;
+            while { if !__for_first_263 { i = add(&i, &Value::Int(1)); } __for_first_263 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut marketId: Value = self.market_id(get_value(&symbols, &i));
             let mut symbol: Value = self.symbol(marketId.clone());
             append_to_array(&mut productIds, marketId.clone());
@@ -517,7 +521,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         return self.subscribe(Value::Str("RISK".to_string()), &[Value::List(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
@@ -541,7 +547,9 @@ impl CoinbaseinternationalCore {
         if is_equal(&symbols, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchFundingRates() requires an array of symbols".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut fundingRate: Value = self.subscribe_multiple(Value::Str("RISK".to_string()), &[symbols.clone(), params.clone()]).await;
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
         if is_true(&self.newUpdates) {
@@ -572,7 +580,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTicker".to_string()), Value::Str("channel".to_string()), &[Value::Str("LEVEL1".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         return self.subscribe(channel.clone(), &[Value::List(vec![symbol.clone()]), params.clone()]).await;
@@ -585,8 +595,8 @@ impl CoinbaseinternationalCore {
         let mut output: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_275: bool = true;
-            while { if !__for_first_275 { i = add(&i, &Value::Int(1)); } __for_first_275 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_264: bool = true;
+            while { if !__for_first_264 { i = add(&i, &Value::Int(1)); } __for_first_264 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&self.markets, &symbol);
@@ -616,7 +626,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("channel".to_string()), &[Value::Str("LEVEL1".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut ticker: Value = self.subscribe(channel.clone(), &[symbols.clone(), params.clone()]).await;
@@ -846,7 +858,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut options: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -899,8 +913,8 @@ impl CoinbaseinternationalCore {
         let mut data: Value = self.safe_list_k(message.clone(), "candles", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_276: bool = true;
-            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_265: bool = true;
+            while { if !__for_first_265 { i = add(&i, &Value::Int(1)); } __for_first_265 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut tick: Value = get_value(&data, &i);
             let mut tick: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ohlcv(tick.clone(), &[market.clone()]);
@@ -950,7 +964,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut trades: Value = self.subscribe_multiple(Value::Str("MATCH".to_string()), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -1040,7 +1056,7 @@ impl CoinbaseinternationalCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1061,7 +1077,7 @@ impl CoinbaseinternationalCore {
  * @param {string[]} symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1069,7 +1085,9 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         return self.subscribe_multiple(Value::Str("LEVEL2".to_string()), &[symbols.clone(), params.clone()]).await;
 
     Value::Null
@@ -1151,8 +1169,8 @@ impl CoinbaseinternationalCore {
     pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_277: bool = true;
-            while { if !__for_first_277 { i = add(&i, &Value::Int(1)); } __for_first_277 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_266: bool = true;
+            while { if !__for_first_266 { i = add(&i, &Value::Int(1)); } __for_first_266 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
         }
         }

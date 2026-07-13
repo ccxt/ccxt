@@ -16,9 +16,9 @@ impl HibachiCore {
         self.call_method(Value::Str("public_get_market_exchange_info".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicGetMarketDataTrades` implicit endpoint.
-    pub async fn public_get_market_data_trades(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_data_trades".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `publicGetMarketInventory` implicit endpoint.
+    pub async fn public_get_market_inventory(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_market_inventory".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetMarketDataPrices` implicit endpoint.
@@ -31,19 +31,24 @@ impl HibachiCore {
         self.call_method(Value::Str("public_get_market_data_stats".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarketDataTrades` implicit endpoint.
+    pub async fn public_get_market_data_trades(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_market_data_trades".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetMarketDataKlines` implicit endpoint.
     pub async fn public_get_market_data_klines(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_data_klines".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicGetMarketDataOrderbook` implicit endpoint.
-    pub async fn public_get_market_data_orderbook(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_data_orderbook".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `publicGetMarketDataOpenInterest` implicit endpoint.
     pub async fn public_get_market_data_open_interest(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_data_open_interest".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetMarketDataOrderbook` implicit endpoint.
+    pub async fn public_get_market_data_orderbook(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_market_data_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetMarketDataFundingRates` implicit endpoint.
@@ -56,9 +61,9 @@ impl HibachiCore {
         self.call_method(Value::Str("public_get_exchange_utc_timestamp".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privateGetCapitalDepositInfo` implicit endpoint.
-    pub async fn private_get_capital_deposit_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_capital_deposit_info".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `privateGetCapitalBalance` implicit endpoint.
+    pub async fn private_get_capital_balance(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_capital_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetCapitalHistory` implicit endpoint.
@@ -66,9 +71,9 @@ impl HibachiCore {
         self.call_method(Value::Str("private_get_capital_history".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privateGetTradeAccountTradingHistory` implicit endpoint.
-    pub async fn private_get_trade_account_trading_history(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_account_trading_history".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `privateGetCapitalDepositInfo` implicit endpoint.
+    pub async fn private_get_capital_deposit_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_capital_deposit_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeAccountInfo` implicit endpoint.
@@ -76,19 +81,34 @@ impl HibachiCore {
         self.call_method(Value::Str("private_get_trade_account_info".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privateGetTradeOrder` implicit endpoint.
-    pub async fn private_get_trade_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_order".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `privateGetTradeAccountTrades` implicit endpoint.
     pub async fn private_get_trade_account_trades(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_account_trades".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetTradeAccountTradingHistory` implicit endpoint.
+    pub async fn private_get_trade_account_trading_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_trade_account_trading_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetTradeAccountSettlementsHistory` implicit endpoint.
+    pub async fn private_get_trade_account_settlements_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_trade_account_settlements_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetTradeOrders` implicit endpoint.
     pub async fn private_get_trade_orders(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_trade_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetTradeOrder` implicit endpoint.
+    pub async fn private_get_trade_order(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_trade_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetTradeOrdersHistory` implicit endpoint.
+    pub async fn private_get_trade_orders_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_trade_orders_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutTradeOrder` implicit endpoint.
@@ -119,6 +139,16 @@ impl HibachiCore {
     /// Auto-generated wrapper for the `privatePostCapitalWithdraw` implicit endpoint.
     pub async fn private_post_capital_withdraw(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_capital_withdraw".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostCapitalTransfer` implicit endpoint.
+    pub async fn private_post_capital_transfer(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_capital_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTradeAccountLeverage` implicit endpoint.
+    pub async fn private_post_trade_account_leverage(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_trade_account_leverage".to_string()), optional_args).await
     }
 
 }

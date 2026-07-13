@@ -345,7 +345,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -380,7 +382,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -434,8 +438,8 @@ impl DydxCore {
         let mut parsedTrades: Value = self.parse_trades(rawTrades.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { i = add(&i, &Value::Int(1)); } __for_first_326 = false; is_less_than(&i, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_315: bool = true;
+            while { if !__for_first_315 { i = add(&i, &Value::Int(1)); } __for_first_315 = false; is_less_than(&i, &get_array_length(&parsedTrades)) } {
             let mut parsed: Value = get_value(&parsedTrades, &i);
             let mut parsed: Value = get_value(&parsedTrades, &i);
             stored.append(parsed.clone());
@@ -488,7 +492,7 @@ impl DydxCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -496,7 +500,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -521,14 +527,16 @@ impl DydxCore {
  * @see https://docs.dydx.xyz/indexer-client/websockets#orders
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -594,7 +602,7 @@ impl DydxCore {
             let mut amount: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
             bookside.store(price.clone(), amount.clone());
         }  else {
-            let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("size".to_string())]);
+            let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("size".to_string())]);
             bookside.store_array(bidAsk.clone());
         }
 }
@@ -619,7 +627,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ohlcv:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -658,7 +668,9 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ohlcv:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));

@@ -394,7 +394,7 @@ impl DeriveCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -402,7 +402,9 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(10);
         }
@@ -449,14 +451,17 @@ impl DeriveCore {
         // }
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_name", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-            let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
+            let mut subscription: Value = ternary(is_true(&(is_equal(&topic, &Value::Null))), Value::Null, get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic));
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -484,7 +489,9 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut topic: Value = add(&add(&Value::Str("ticker.".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(".100".to_string()));
         let mut request: Value = Value::Map({
@@ -576,10 +583,16 @@ impl DeriveCore {
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut rawData: Value = self.safe_dict_k(params.clone(), "data", &[]);
-        let mut data: Value = self.safe_dict_k(rawData.clone(), "instrument_ticker", &[]);
+        let mut data: Value = self.safe_dict_k(rawData.clone(), "instrument_ticker", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut topic: Value = self.safe_value_k(params.clone(), "channel", &[]);
         let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
-        add_element_to_object(&mut self.tickers.clone(), &get_value(&ticker, &Value::Str("symbol".to_string())), ticker.clone());
+        let mut tickerSymbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
+        if !is_equal(&tickerSymbol, &Value::Null) {
+            add_element_to_object(&mut self.tickers.clone(), &tickerSymbol, ticker.clone());
+        }
         client.resolve(&[ticker.clone(), topic.clone()]);
         return message;
 
@@ -593,14 +606,16 @@ impl DeriveCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(10);
@@ -641,7 +656,9 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut topic: Value = add(&Value::Str("trades.".to_string()), &get_value(&market, &Value::Str("id".to_string())));
         let mut messageHah: Value = add(&Value::Str("unwatch".to_string()), &topic);
@@ -732,8 +749,8 @@ impl DeriveCore {
             let mut topics: Value = object_keys(&status);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_322: bool = true;
-                while { if !__for_first_322 { i = add(&i, &Value::Int(1)); } __for_first_322 = false; is_less_than(&i, &get_array_length(&topics)) } {
+                let mut __for_first_311: bool = true;
+                while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &get_array_length(&topics)) } {
                 let mut topic: Value = get_value(&topics, &i);
                 let mut topic: Value = get_value(&topics, &i);
                 if is_greater_than_or_equal(&get_index_of(&topic, &Value::Str("orderbook".to_string())), &Value::Int(0)) {
@@ -767,7 +784,9 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut topic: Value = add(&Value::Str("trades.".to_string()), &get_value(&market, &Value::Str("id".to_string())));
         let mut request: Value = Value::Map({
@@ -800,7 +819,10 @@ impl DeriveCore {
         //
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut topic: Value = self.safe_value_k(params.clone(), "channel", &[]);
         let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
@@ -813,8 +835,8 @@ impl DeriveCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_323: bool = true;
-            while { if !__for_first_323 { i = add(&i, &Value::Int(1)); } __for_first_323 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_312: bool = true;
+            while { if !__for_first_312 { i = add(&i, &Value::Int(1)); } __for_first_312 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[]);
             tradesArray.append(trade.clone());
         }
@@ -905,7 +927,9 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subaccountId: Value = Value::Null;
         { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("watchOrders".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut topic: Value = add(&self.number_to_string(subaccountId.clone()), &Value::Str(".orders".to_string()));
@@ -985,11 +1009,11 @@ impl DeriveCore {
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[]);
+        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_324: bool = true;
-            while { if !__for_first_324 { i = add(&i, &Value::Int(1)); } __for_first_324 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_313: bool = true;
+            while { if !__for_first_313 { i = add(&i, &Value::Int(1)); } __for_first_313 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut data: Value = get_value(&rawOrders, &i);
             let mut data: Value = get_value(&rawOrders, &i);
             let mut parsed: Value = self.parse_order(data.clone(), &[]);
@@ -1005,7 +1029,7 @@ impl DeriveCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut order: Value = self.safe_value(orders.clone(), orderId.clone(), &[]);
+                let mut order: Value = ternary(is_true(&(is_equal(&orderId, &Value::Null))), Value::Null, self.safe_value(orders.clone(), orderId.clone(), &[]));
                 if !is_equal(&order, &Value::Null) {
                     let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                     if !is_equal(&fee, &Value::Null) {
@@ -1048,7 +1072,9 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subaccountId: Value = Value::Null;
         { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("watchMyTrades".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut topic: Value = add(&self.number_to_string(subaccountId.clone()), &Value::Str(".trades".to_string()));
@@ -1094,15 +1120,15 @@ impl DeriveCore {
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[]);
+        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_325: bool = true;
-            while { if !__for_first_325 { i = add(&i, &Value::Int(1)); } __for_first_325 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_314: bool = true;
+            while { if !__for_first_314 { i = add(&i, &Value::Int(1)); } __for_first_314 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_trade(message.clone(), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone()]);
-            let mut messageHash: Value = add(&topic, &get_value(&trade, &Value::Str("symbol".to_string())));
+            let mut messageHash: Value = add(&topic, &self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".to_string())]));
             client.resolve(&[myTrades.clone(), messageHash.clone()]);
         }
         }
@@ -1174,7 +1200,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        let mut method: Value = self.safe_value(methods.clone(), event.clone(), &[]);
+        let mut method: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
             method.call(&[client.clone(), message.clone()]);
             return;
@@ -1182,10 +1208,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(in_op(&message, &Value::Str("id".to_string())))) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
-            let mut subscription: Value = self.safe_value(subscriptionsById.clone(), id.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            let mut subscription: Value = ternary(is_true(&(is_equal(&id, &Value::Null))), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), self.safe_value(subscriptionsById.clone(), id.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
             if is_true(&Value::Bool(in_op(&subscription, &Value::Str("method".to_string())))) {
                 if is_equal(&get_value(&subscription, &Value::Str("method".to_string())), &Value::Str("public/login".to_string())) {
                     self.handle_auth(client.clone(), message.clone());
@@ -1204,7 +1233,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // }
         //
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut ids: Value = self.safe_list_k(message.clone(), "result", &[]);
+        let mut ids: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         if is_greater_than(&get_array_length(&ids), &Value::Int(0)) {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);

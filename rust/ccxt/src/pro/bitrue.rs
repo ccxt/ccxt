@@ -486,8 +486,8 @@ impl BitrueCore {
         add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), balances.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_172: bool = true;
-            while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -532,7 +532,9 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -667,7 +669,9 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
@@ -682,7 +686,7 @@ impl BitrueCore {
             cbId = wsId.clone();
             url = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("futurePublic".to_string()));
         }  else {
-            let mut marketIdLowercase: Value = to_lower(&get_value(&market, &Value::Str("id".to_string())));
+            let mut marketIdLowercase: Value = self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]);
             channel = add(&add(&Value::Str("market_".to_string()), &marketIdLowercase), &Value::Str("_simple_depth_step0".to_string()));
             cbId = marketIdLowercase.clone();
             url = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -780,8 +784,8 @@ impl BitrueCore {
         let mut symbols: Value = object_keys(&self.markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_173: bool = true;
-            while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut candidate: Value = get_value(&self.markets, &get_value(&symbols, &i));
             if !is_true(&get_value(&candidate, &Value::Str("swap".to_string()))) {
                 continue;
@@ -802,8 +806,8 @@ impl BitrueCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_174: bool = true;
-            while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&bidsAsks)) } {
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&bidsAsks)) } {
             let mut level: Value = get_value(&bidsAsks, &i);
             let mut level: Value = get_value(&bidsAsks, &i);
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
@@ -840,7 +844,7 @@ impl BitrueCore {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
@@ -849,7 +853,9 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
@@ -920,8 +926,8 @@ impl BitrueCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_164: bool = true;
+            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&data)) } {
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());
@@ -987,7 +993,9 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
@@ -1105,14 +1113,16 @@ impl BitrueCore {
  * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {

@@ -470,8 +470,8 @@ impl ExmoCore {
             let mut currencies: Value = object_keys(&balances);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_327: bool = true;
-                while { if !__for_first_327 { i = add(&i, &Value::Int(1)); } __for_first_327 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+                let mut __for_first_316: bool = true;
+                while { if !__for_first_316 { i = add(&i, &Value::Int(1)); } __for_first_316 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -512,8 +512,8 @@ impl ExmoCore {
         let mut currencies: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { i = add(&i, &Value::Int(1)); } __for_first_328 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_317: bool = true;
+            while { if !__for_first_317 { i = add(&i, &Value::Int(1)); } __for_first_317 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currencyId: Value = get_value(&currencies, &i);
             let mut currencyId: Value = get_value(&currencies, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -542,7 +542,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -575,14 +577,16 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { i = add(&i, &Value::Int(1)); } __for_first_329 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_318: bool = true;
+            while { if !__for_first_318 { i = add(&i, &Value::Int(1)); } __for_first_318 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, add(&Value::Str("spot/ticker:".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -655,7 +659,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -705,8 +711,8 @@ impl ExmoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { i = add(&i, &Value::Int(1)); } __for_first_330 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_319: bool = true;
+            while { if !__for_first_319 { i = add(&i, &Value::Int(1)); } __for_first_319 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[market.clone()]);
@@ -735,7 +741,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[params.clone()]).await;
         let mut type_varqueryVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".to_string()), &[Value::Null, params.clone()]);
         let mut type_var: Value = get_value(&type_varqueryVariable, &Value::Int(0));
@@ -851,8 +859,8 @@ impl ExmoCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_331: bool = true;
-            while { if !__for_first_331 { j = add(&j, &Value::Int(1)); } __for_first_331 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_320: bool = true;
+            while { if !__for_first_320 { j = add(&j, &Value::Int(1)); } __for_first_320 = false; is_less_than(&j, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &j);
             let mut trade: Value = get_value(&trades, &j);
             myTrades.append(trade.clone());
@@ -862,8 +870,8 @@ impl ExmoCore {
         let mut symbolKeys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_332: bool = true;
-            while { if !__for_first_332 { i = add(&i, &Value::Int(1)); } __for_first_332 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
+            let mut __for_first_321: bool = true;
+            while { if !__for_first_321 { i = add(&i, &Value::Int(1)); } __for_first_321 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbolSpecificMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &symbol);
@@ -880,7 +888,7 @@ impl ExmoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -888,7 +896,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -975,15 +985,15 @@ impl ExmoCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Int(0), Value::Int(1)]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Int(0), Value::Int(1)]);
         bookside.store_array(bidAsk.clone());
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_333: bool = true;
-            while { if !__for_first_333 { i = add(&i, &Value::Int(1)); } __for_first_333 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_322: bool = true;
+            while { if !__for_first_322 { i = add(&i, &Value::Int(1)); } __for_first_322 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1009,7 +1019,9 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[params.clone()]).await;
         let mut type_varqueryVariable = self.handle_market_type_and_params(Value::Str("watchOrders".to_string()), &[Value::Null, params.clone()]);
         let mut type_var: Value = get_value(&type_varqueryVariable, &Value::Int(0));
@@ -1119,8 +1131,8 @@ impl ExmoCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_334: bool = true;
-            while { if !__for_first_334 { j = add(&j, &Value::Int(1)); } __for_first_334 = false; is_less_than(&j, &get_array_length(&rawOrders)) } {
+            let mut __for_first_323: bool = true;
+            while { if !__for_first_323 { j = add(&j, &Value::Int(1)); } __for_first_323 = false; is_less_than(&j, &get_array_length(&rawOrders)) } {
             let mut order: Value = self.parse_ws_order(get_value(&rawOrders, &j), &[]);
             cachedOrders.append(order.clone());
             add_element_to_object(&mut symbols, &get_value(&order, &Value::Str("symbol".to_string())), Value::Bool(true));
@@ -1129,8 +1141,8 @@ impl ExmoCore {
         let mut symbolKeys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
+            let mut __for_first_324: bool = true;
+            while { if !__for_first_324 { i = add(&i, &Value::Int(1)); } __for_first_324 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbolSpecificMessageHash: Value = add(&Value::Str("orders:".to_string()), &symbol);

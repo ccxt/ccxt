@@ -16,6 +16,11 @@ impl BitsoCore {
         self.call_method(Value::Str("public_get_available_books".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetCatalogues` implicit endpoint.
+    pub async fn public_get_catalogues(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_catalogues".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
     pub async fn public_get_ticker(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ticker".to_string()), optional_args).await

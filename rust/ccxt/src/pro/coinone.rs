@@ -349,7 +349,7 @@ impl CoinoneCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -357,7 +357,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -434,7 +436,7 @@ impl CoinoneCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("qty".to_string())]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("qty".to_string())]);
         bookside.store_array(bidAsk.clone());
 }
 
@@ -452,7 +454,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -595,7 +599,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -745,8 +751,8 @@ impl CoinoneCore {
             let mut keys: Value = object_keys(&methods);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_290: bool = true;
-                while { if !__for_first_290 { i = add(&i, &Value::Int(1)); } __for_first_290 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_279: bool = true;
+                while { if !__for_first_279 { i = add(&i, &Value::Int(1)); } __for_first_279 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {

@@ -348,7 +348,9 @@ impl BithumbCore {
     m
 }));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut request: Value = Value::Map({
@@ -379,15 +381,20 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut marketIds: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_116: bool = true;
+            while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -523,7 +530,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -603,7 +612,7 @@ impl BithumbCore {
         //
         let mut sideId: Value = self.safe_string_k(delta.clone(), "orderType", &[]);
         let mut side: Value = ternary(is_true(&(is_equal(&sideId, &Value::Str("bid".to_string())))), Value::Str("bids".to_string()), Value::Str("asks".to_string()));
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
         orderbookSide.store_array(bidAsk.clone());
 }
@@ -611,8 +620,8 @@ impl BithumbCore {
     pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_128: bool = true;
-            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_117: bool = true;
+            while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
         }
         }
@@ -636,7 +645,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -683,8 +694,8 @@ impl BithumbCore {
         let mut rawTrades: Value = self.safe_list_k(content.clone(), "list", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_118: bool = true;
+            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut marketId: Value = self.safe_string_k(rawTrade.clone(), "symbol", &[]);
@@ -719,7 +730,7 @@ impl BithumbCore {
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut datetime: Value = self.safe_string_k(trade.clone(), "contDtm", &[]);
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        let mut timestamp: Value = subtract(&self.parse8601(datetime.clone()), &Value::Int(32400000));
+        let mut timestamp: Value = subtract(&self.parse_to_int(self.parse8601(datetime.clone())), &Value::Int(32400000));
         let mut sideId: Value = self.safe_string_k(trade.clone(), "buySellGb", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -781,7 +792,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("privateV2".to_string()));
         let mut messageHash: Value = Value::Str("myAsset".to_string());
@@ -826,8 +839,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_130: bool = true;
-            while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_119: bool = true;
+            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut asset: Value = get_value(&assets, &i);
             let mut asset: Value = get_value(&assets, &i);
             let mut currencyId: Value = self.safe_string_k(asset.clone(), "currency", &[]);
@@ -905,7 +918,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("privateV2".to_string()));
         let mut messageHash: Value = Value::Str("myOrder".to_string());

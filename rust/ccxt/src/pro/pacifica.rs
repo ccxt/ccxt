@@ -436,7 +436,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut requestoperationTypeVariable = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut request: Value = get_value(&requestoperationTypeVariable, &Value::Int(0));
         let mut operationType: Value = get_value(&requestoperationTypeVariable, &Value::Int(1));
@@ -535,7 +537,9 @@ impl PacificaCore {
     m
 }));
         let mut batchOperationType: Value = Value::Str("edit_order".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.edit_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), price.clone(), market.clone(), &[params.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("originAddress".to_string()), Value::Str("agentAddress".to_string()), Value::Str("expiryWindow".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
@@ -608,7 +612,9 @@ impl PacificaCore {
     m
 }));
         let mut batchOperationType: Value = Value::Str("batch_orders".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str("cancelOrders() requires a \"symbol\" argument!".to_string()))));
         }
@@ -651,8 +657,8 @@ impl PacificaCore {
         let mut ordersToReturn: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_544: bool = true;
+            while { if !__for_first_544 { i = add(&i, &Value::Int(1)); } __for_first_544 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
             let mut error: Value = self.safe_string_k(order.clone(), "error", &[Value::Null]);
@@ -705,7 +711,9 @@ impl PacificaCore {
     m
 }));
         let mut operationType: Value = Value::Str("cancel_order".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrderWs() requires a symbol argument".to_string()))));
         }
@@ -779,7 +787,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut operationType: Value = Value::Str("cancel_all_orders".to_string());
         let mut request: Value = self.cancel_all_orders_request(symbol.clone(), &[params.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("excludeReduceOnly".to_string()), Value::Str("agentAddress".to_string()), Value::Str("originAddress".to_string()), Value::Str("expiryWindow".to_string())]), &[]);
@@ -807,7 +817,7 @@ impl PacificaCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -816,7 +826,9 @@ impl PacificaCore {
     m
 }));
         self.setup_api_key_headers(&[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut aggLevel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("aggLevel".to_string()), &[Value::Int(1)]); aggLevel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -851,14 +863,16 @@ impl PacificaCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut aggLevel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("aggLevel".to_string()), &[Value::Int(1)]); aggLevel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -985,7 +999,9 @@ impl PacificaCore {
     m
 }));
         self.setup_api_key_headers(&[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut messageHash: Value = Value::Str("tickers".to_string());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1026,7 +1042,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut subMessageHash: Value = Value::Str("tickers".to_string());
         let mut messageHash: Value = add(&Value::Str("unsubscribe:".to_string()), &subMessageHash);
@@ -1071,7 +1089,9 @@ impl PacificaCore {
 }));
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_origin_and_single_address(Value::Str("watchMyTrades".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
@@ -1117,7 +1137,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
@@ -1169,8 +1191,8 @@ impl PacificaCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_552: bool = true;
-            while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_545: bool = true;
+            while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut info: Value = get_value(&data, &i);
             let mut info: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
@@ -1236,8 +1258,8 @@ impl PacificaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_553: bool = true;
-            while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_546: bool = true;
+            while { if !__for_first_546 { i = add(&i, &Value::Int(1)); } __for_first_546 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
@@ -1249,8 +1271,8 @@ impl PacificaCore {
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_554: bool = true;
-            while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_547: bool = true;
+            while { if !__for_first_547 { i = add(&i, &Value::Int(1)); } __for_first_547 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currentMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &get_value(&keys, &i));
             client.resolve(&[trades.clone(), currentMessageHash.clone()]);
         }
@@ -1278,7 +1300,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
@@ -1320,7 +1344,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut subMessageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
@@ -1379,8 +1405,8 @@ impl PacificaCore {
         let mut trades: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_555: bool = true;
-            while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&entry)) } {
+            let mut __for_first_548: bool = true;
+            while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&entry)) } {
             let mut data: Value = self.safe_dict(entry.clone(), i.clone(), &[]);
             let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
             trades.append(trade.clone());
@@ -1500,7 +1526,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1546,7 +1574,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1636,7 +1666,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_origin_and_single_address(Value::Str("watchOrders".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut market: Value = Value::Null;
@@ -1686,7 +1718,9 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
@@ -1758,8 +1792,8 @@ impl PacificaCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_556: bool = true;
-            while { if !__for_first_556 { i = add(&i, &Value::Int(1)); } __for_first_556 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_549: bool = true;
+            while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawOrder: Value = get_value(&data, &i);
             let mut rawOrder: Value = get_value(&data, &i);
             let mut order: Value = self.parse_order(rawOrder.clone(), &[]);
@@ -1771,8 +1805,8 @@ impl PacificaCore {
         let mut keys: Value = object_keys(&marketSymbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_557: bool = true;
-            while { if !__for_first_557 { i = add(&i, &Value::Int(1)); } __for_first_557 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_550: bool = true;
+            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut symbol: Value = get_value(&keys, &i);
             let mut symbol: Value = get_value(&keys, &i);
             let mut innerMessageHash: Value = add(&add(&messageHash, &Value::Str(":".to_string())), &symbol);
@@ -1846,8 +1880,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbols: Value = object_keys(&self.tickers);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_558: bool = true;
-            while { if !__for_first_558 { i = add(&i, &Value::Int(1)); } __for_first_558 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_551: bool = true;
+            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             remove(&mut self.tickers.clone(), &get_value(&symbols, &i));
         }
         }
@@ -1984,8 +2018,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i = add(&i, &Value::Int(1)); } __for_first_559 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_552: bool = true;
+            while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {

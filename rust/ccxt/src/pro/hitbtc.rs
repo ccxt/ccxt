@@ -146,6 +146,7 @@ impl HitbtcCore {
             "cancel_all_orders_ws" => self.cancel_all_orders_ws(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+            "describe_data" => self.describe_data(),
             "fetch_open_orders_ws" => self.fetch_open_orders_ws(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_error" => self.handle_error(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -304,7 +305,13 @@ impl std::ops::DerefMut for HitbtcCore {
 
 impl HitbtcCore {
     pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+        return self.deep_extend(self.parent.describe(), &[self.describe_data()]);
+
+    Value::Null
+}
+
+    pub fn describe_data(&self) -> Value {
+        return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -394,7 +401,7 @@ impl HitbtcCore {
     m
 }));
     m
-})]);
+});
 
     Value::Null
 }
@@ -415,7 +422,9 @@ impl HitbtcCore {
         let mut authenticated: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
         if is_equal(&authenticated, &Value::Null) {
             let mut timestamp: Value = self.milliseconds();
-            let mut signature: Value = self.hmac(self.encode(self.number_to_string(timestamp.clone())), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
+            let mut timestampString: Value = self.number_to_string(timestamp.clone());
+            let mut timestampEncoded: Value = ternary(is_true(&(is_equal(&timestampString, &Value::Null))), Value::Str("".to_string()), timestampString.clone());
+            let mut signature: Value = self.hmac(self.encode(timestampEncoded.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("login".to_string()));
@@ -450,7 +459,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut isBatch: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&name, &Value::Str("batch".to_string())), &Value::Int(0)));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
@@ -458,8 +469,8 @@ impl HitbtcCore {
         if !is_equal(&symbols, &Value::Null) && !is_true(&isBatch) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_376: bool = true;
-                while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_365: bool = true;
+                while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 append_to_array(&mut messageHashes, add(&add(&messageHashPrefix, &Value::Str("::".to_string())), &get_value(&symbols, &i)));
             }
             }
@@ -492,11 +503,13 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate().await;
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("private".to_string()));
         let mut splitName: Value = split(&name, &Value::Str("_subscribe".to_string()));
-        let mut messageHash: Value = self.safe_string(splitName.clone(), Value::Int(0), &[]);
+        let mut messageHash: Value = self.safe_string(splitName.clone(), Value::Int(0), &[Value::Str("".to_string())]);
         if !is_equal(&symbol, &Value::Null) {
             messageHash = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);
         }
@@ -523,7 +536,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate().await;
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("private".to_string()));
         let mut messageHash: Value = to_string_val(&self.nonce());
@@ -554,7 +569,7 @@ impl HitbtcCore {
  * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
  * @param {int} [params.depth] 5 , 10, or 20 (default)
  * @param {int} [params.speed] 100 (default), 500, or 1000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -613,14 +628,16 @@ impl HitbtcCore {
         //    }
         //
         let mut snapshot: Value = self.safe_dict_k(message.clone(), "snapshot", &[]);
-        let mut update: Value = self.safe_dict_k(message.clone(), "update", &[]);
-        let mut data: Value = ternary(is_true(&snapshot), snapshot.clone(), update.clone());
+        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("snapshot".to_string()), Value::Str("update".to_string()), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut type_var: Value = ternary(is_true(&snapshot), Value::Str("snapshot".to_string()), Value::Str("update".to_string()));
         let mut marketIds: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_377: bool = true;
-            while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -669,8 +686,8 @@ impl HitbtcCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_378: bool = true;
-            while { if !__for_first_378 { i = add(&i, &Value::Int(1)); } __for_first_378 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_367: bool = true;
+            while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -717,7 +734,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchTicker", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("ticker/{speed}/batch".to_string())]);
@@ -735,8 +754,8 @@ impl HitbtcCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_379: bool = true;
-                while { if !__for_first_379 { i = add(&i, &Value::Int(1)); } __for_first_379 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_368: bool = true;
+                while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut marketId: Value = self.market_id(get_value(&symbols, &i));
                 append_to_array(&mut marketIds, marketId.clone());
             }
@@ -815,8 +834,8 @@ impl HitbtcCore {
         let mut topic: Value = Value::Str("tickers".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { i = add(&i, &Value::Int(1)); } __for_first_380 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_369: bool = true;
+            while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -909,7 +928,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchBidsAsks", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("orderbook/top/{speed}/batch".to_string())]);
@@ -971,8 +992,8 @@ impl HitbtcCore {
         let mut topic: Value = Value::Str("bidask".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { i = add(&i, &Value::Int(1)); } __for_first_381 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_370: bool = true;
+            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -990,9 +1011,10 @@ impl HitbtcCore {
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
+        let mut bidAskSymbol: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("symbol".to_string())), Value::Null);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), bidAskSymbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "a", &[]));
@@ -1024,7 +1046,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1095,8 +1119,8 @@ impl HitbtcCore {
         let mut marketIds: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_372: bool = true;
+            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1110,8 +1134,8 @@ impl HitbtcCore {
             let mut trades: Value = self.parse_ws_trades(get_value(&data, &marketId), &[market.clone()]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_382: bool = true;
-                while { if !__for_first_382 { j = add(&j, &Value::Int(1)); } __for_first_382 = false; is_less_than(&j, &get_array_length(&trades)) } {
+                let mut __for_first_371: bool = true;
+                while { if !__for_first_371 { j = add(&j, &Value::Int(1)); } __for_first_371 = false; is_less_than(&j, &get_array_length(&trades)) } {
                 stored.append(get_value(&trades, &j));
             }
             }
@@ -1136,8 +1160,8 @@ impl HitbtcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_373: bool = true;
+            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let __ws_arg_0 = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
             let mut trade: Value = self.extend(__ws_arg_0, &[params.clone()]);
             append_to_array(&mut result, trade.clone());
@@ -1266,14 +1290,17 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut channel: Value = self.safe_string_k(message.clone(), "ch", &[]);
+        let mut channel: Value = self.safe_string_k(message.clone(), "ch", &[Value::Str("".to_string())]);
         let mut splitChannel: Value = split(&channel, &Value::Str("/".to_string()));
         let mut period: Value = self.safe_string(splitChannel.clone(), Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(period.clone(), &[]);
+        if is_equal(&timeframe, &Value::Null) {
+            return message;
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1291,8 +1318,8 @@ impl HitbtcCore {
             let mut ohlcvs: Value = self.parse_ws_ohlc_vs(get_value(&data, &marketId), &[market.clone()]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_385: bool = true;
-                while { if !__for_first_385 { j = add(&j, &Value::Int(1)); } __for_first_385 = false; is_less_than(&j, &get_array_length(&ohlcvs)) } {
+                let mut __for_first_374: bool = true;
+                while { if !__for_first_374 { j = add(&j, &Value::Int(1)); } __for_first_374 = false; is_less_than(&j, &get_array_length(&ohlcvs)) } {
                 stored.append(get_value(&ohlcvs, &j));
             }
             }
@@ -1333,7 +1360,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marketType: Value = Value::Null;
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -1427,8 +1456,8 @@ impl HitbtcCore {
         if is_true(&Value::Bool(is_array(&data))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_387: bool = true;
-                while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_376: bool = true;
+                while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut order: Value = get_value(&data, &i);
                 let mut order: Value = get_value(&data, &i);
                 self.handle_order_helper(client.clone(), message.clone(), order.clone());
@@ -1445,7 +1474,7 @@ impl HitbtcCore {
     pub fn handle_order_helper(&mut self, mut client: Value, mut message: Value, mut order: Value) {
         let mut orders: Value = self.orders.clone();
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".to_string()), Value::Str("symbol".to_string()), &[]);
-        let mut method: Value = self.safe_string_k(message.clone(), "method", &[]);
+        let mut method: Value = self.safe_string_k(message.clone(), "method", &[Value::Str("".to_string())]);
         let mut splitMethod: Value = split(&method, &Value::Str("_order".to_string()));
         let mut messageHash: Value = self.safe_string(splitMethod.clone(), Value::Int(0), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1604,7 +1633,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut name: Value = self.get_supported_mapping(type_var.clone(), &[Value::Map({
@@ -1653,9 +1684,14 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("createOrder".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginMode: Value = Value::Null;
@@ -1693,7 +1729,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1738,7 +1776,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -1781,7 +1821,9 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1872,8 +1914,8 @@ impl HitbtcCore {
             let mut parsedOrders: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_388: bool = true;
-                while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_377: bool = true;
+                while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&result)) } {
                 let mut parsedOrder: Value = self.parse_ws_order(get_value(&result, &i), &[]);
                 append_to_array(&mut parsedOrders, parsedOrder.clone());
             }
@@ -1919,7 +1961,7 @@ impl HitbtcCore {
                     m.insert("futures_balance".to_string(), Value::Null.clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);
+            let mut method: Value = ternary(is_true(&(is_equal(&channel, &Value::Null))), Value::Null, self.safe_value(methods.clone(), channel.clone(), &[]));
             if !is_equal(&method, &Value::Null) {
                 method.call(&[client.clone(), message.clone()]);
             }

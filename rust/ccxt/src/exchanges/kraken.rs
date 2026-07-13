@@ -141,7 +141,6 @@ impl KrakenCore {
     /// Returns Value::Null for unknown names.
     pub async fn call_dynamic(&mut self, method: &str, args: Vec<crate::Value>) -> crate::Value {
         match method {
-            "add_key_in_array_items" => self.add_key_in_array_items(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "add_pagination_cursor_to_result" => self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "cancel_all_orders" => self.cancel_all_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -186,7 +185,6 @@ impl KrakenCore {
             "order_request" => self.order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args.get(5..).unwrap_or(&[]).to_vec()[..]),
             "parse_account_type" => self.parse_account_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_bid_ask" => self.parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -194,6 +192,7 @@ impl KrakenCore {
             "parse_network" => self.parse_network(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_order_book_bid_ask" => self.parse_order_book_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -276,12 +275,6 @@ impl crate::exchange::DerivedExchange for KrakenCore {
         #[allow(invalid_reference_casting)]
         let me = unsafe { &mut *(self as *const KrakenCore as *mut KrakenCore) };
         KrakenCore::parse_currency(me, currency)
-    }
-    fn parse_bid_ask(&self, bidask: crate::Value, price_key: crate::Value, amount_key: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on KrakenCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const KrakenCore as *mut KrakenCore) };
-        KrakenCore::parse_bid_ask(me, bidask, &[price_key.clone(), amount_key.clone(), market.clone()])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenCore.
@@ -419,7 +412,7 @@ impl KrakenCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.kraken.com".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://docs.kraken.com/rest/".to_string()));
+        m.insert("doc".to_string(), Value::Str("https://docs.kraken.com/api-reference/".to_string()));
         m.insert("fees".to_string(), Value::Str("https://www.kraken.com/en-us/features/fee-schedule".to_string()));
     m
 }));
@@ -460,7 +453,6 @@ impl KrakenCore {
         m.insert("Ticker".to_string(), Value::Int(1));
         m.insert("OHLC".to_string(), Value::Float(1.2));
         m.insert("Depth".to_string(), Value::Float(1.2));
-        m.insert("Level3".to_string(), Value::Float(1.2));
         m.insert("GroupedBook".to_string(), Value::Float(1.2));
         m.insert("Trades".to_string(), Value::Float(1.2));
         m.insert("Spread".to_string(), Value::Int(1));
@@ -474,6 +466,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("Level3".to_string(), Value::Float(1.2));
         m.insert("Balance".to_string(), Value::Int(3));
         m.insert("BalanceEx".to_string(), Value::Int(3));
         m.insert("CreditLines".to_string(), Value::Int(3));
@@ -557,6 +550,7 @@ impl KrakenCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("mica".to_string(), Value::Bool(true));
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("marketsByAltname".to_string(), Value::Map({
@@ -924,7 +918,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchMarkets
  * @description retrieves data on all markets for kraken
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+ * @see https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -999,8 +993,8 @@ impl KrakenCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_815: bool = true;
-            while { if !__for_first_815 { i = add(&i, &Value::Int(1)); } __for_first_815 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_782: bool = true;
+            while { if !__for_first_782 { i = add(&i, &Value::Int(1)); } __for_first_782 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut isSynthetic: Value = Value::Bool(false);
@@ -1124,7 +1118,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+ * @see https://docs.kraken.com/api-reference/market-data/get-system-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1159,7 +1153,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+ * @see https://docs.kraken.com/api-reference/market-data/get-asset-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1302,32 +1296,6 @@ impl KrakenCore {
     Value::Null
 }
 
-    pub fn add_key_in_array_items(&self, mut obj: Value, mut keyName: Value) -> Value {
-        let mut result: Value = Value::List(vec![]);
-        let mut keys: Value = object_keys(&obj);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_816: bool = true;
-            while { if !__for_first_816 { i = add(&i, &Value::Int(1)); } __for_first_816 = false; is_less_than(&i, &get_array_length(&keys)) } {
-            let mut key: Value = get_value(&keys, &i);
-            let mut key: Value = get_value(&keys, &i);
-            let mut item: Value = get_value(&obj, &key);
-            if is_equal(&item, &Value::Null) {
-                continue;
-            }
-            let mut itemWithKey: Value = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            }), &[item.clone()]);
-            add_element_to_object(&mut itemWithKey, &keyName, key.clone());
-            append_to_array(&mut result, itemWithKey.clone());
-        }
-        }
-        return result;
-
-    Value::Null
-}
-
     pub fn safe_currency_code(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         if is_equal(&currencyId, &Value::Null) {
@@ -1349,7 +1317,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+ * @see https://docs.kraken.com/api-reference/account-data/get-trade-volume
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -1359,7 +1327,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1438,7 +1408,7 @@ impl KrakenCore {
     Value::Null
 }
 
-    pub fn parse_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order_book_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 1, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
@@ -1454,11 +1424,11 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+ * @see https://docs.kraken.com/api-reference/market-data/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1466,7 +1436,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1576,7 +1548,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1587,7 +1559,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1597,8 +1571,8 @@ impl KrakenCore {
             let mut marketIds: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_817: bool = true;
-                while { if !__for_first_817 { i = add(&i, &Value::Int(1)); } __for_first_817 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_783: bool = true;
+                while { if !__for_first_783 { i = add(&i, &Value::Int(1)); } __for_first_783 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = get_value(&self.markets, &symbol);
@@ -1619,8 +1593,8 @@ impl KrakenCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_818: bool = true;
-            while { if !__for_first_818 { i = add(&i, &Value::Int(1)); } __for_first_818 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_784: bool = true;
+            while { if !__for_first_784 { i = add(&i, &Value::Int(1)); } __for_first_784 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -1638,7 +1612,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1648,7 +1622,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1674,7 +1650,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
+ * @see https://docs.kraken.com/api-reference/market-data/get-ohlc-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1691,7 +1667,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1820,7 +1798,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+ * @see https://docs.kraken.com/api-reference/account-data/get-ledgers-info
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -1838,7 +1816,9 @@ impl KrakenCore {
     m
 }));
         // https://www.kraken.com/features/api#get-ledgers-info
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1880,8 +1860,8 @@ impl KrakenCore {
         let mut items: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_819: bool = true;
-            while { if !__for_first_819 { i = add(&i, &Value::Int(1)); } __for_first_819 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_785: bool = true;
+            while { if !__for_first_785 { i = add(&i, &Value::Int(1)); } __for_first_785 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&ledger, &key);
@@ -1901,7 +1881,9 @@ impl KrakenCore {
     m
 }));
         // https://www.kraken.com/features/api#query-ledgers
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         ids = join(&ids, &Value::Str(",".to_string()));
         let mut request: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1923,8 +1905,8 @@ impl KrakenCore {
         let mut items: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_820: bool = true;
-            while { if !__for_first_820 { i = add(&i, &Value::Int(1)); } __for_first_820 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_786: bool = true;
+            while { if !__for_first_786 { i = add(&i, &Value::Int(1)); } __for_first_786 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&result, &key);
@@ -2111,7 +2093,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+ * @see https://docs.kraken.com/api-reference/market-data/get-recent-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -2125,7 +2107,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut id: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut request: Value = Value::Map({
@@ -2185,8 +2169,8 @@ impl KrakenCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_821: bool = true;
-            while { if !__for_first_821 { i = add(&i, &Value::Int(1)); } __for_first_821 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_787: bool = true;
+            while { if !__for_first_787 { i = add(&i, &Value::Int(1)); } __for_first_787 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2209,7 +2193,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+ * @see https://docs.kraken.com/api-reference/account-data/get-extended-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -2218,7 +2202,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_balance_ex(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -2229,7 +2215,7 @@ impl KrakenCore {
  * @method
  * @name kraken#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -2241,7 +2227,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         // only buy orders are supported by the endpoint
         let mut req: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2258,7 +2246,7 @@ impl KrakenCore {
  * @method
  * @name kraken#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol, side and cost
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2269,7 +2257,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         return self.create_market_order_with_cost(symbol.clone(), Value::Str("buy".to_string()), cost.clone(), &[params.clone()]).await;
 
     Value::Null
@@ -2279,7 +2269,7 @@ impl KrakenCore {
  * @method
  * @name kraken#createOrder
  * @description create a trade order
- * @see https://docs.kraken.com/api/docs/rest-api/add-order
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2304,7 +2294,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2328,7 +2320,10 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         add_element_to_object(&mut result, &Value::Str("usingCost".to_string()), isUsingCost.clone());
         return self.parse_order(result.clone(), &[]);
 
@@ -2339,7 +2334,7 @@ impl KrakenCore {
  * @method
  * @name kraken#createOrders
  * @description create a list of trade orders
- * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+ * @see https://docs.kraken.com/api-reference/trading/add-order-batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2349,15 +2344,17 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         let mut orderSymbols: Value = Value::List(vec![]);
         let mut symbol: Value = Value::Null;
         let mut market: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_822: bool = true;
-            while { if !__for_first_822 { i = add(&i, &Value::Int(1)); } __for_first_822 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_788: bool = true;
+            while { if !__for_first_788 { i = add(&i, &Value::Int(1)); } __for_first_788 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2395,7 +2392,7 @@ impl KrakenCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), ordersRequests.clone());
-                m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("pair".to_string(), self.safe_string_k(market.clone(), "id", &[]));
             m
         });
         request = self.extend(request.clone(), &[params.clone()]);
@@ -2720,8 +2717,8 @@ impl KrakenCore {
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_823: bool = true;
-            while { if !__for_first_823 { i = add(&i, &Value::Int(1)); } __for_first_823 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_789: bool = true;
+            while { if !__for_first_789 { i = add(&i, &Value::Int(1)); } __for_first_789 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             if is_string(&rawTrade) {
@@ -2779,6 +2776,7 @@ impl KrakenCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(order.clone(), Value::Str("closetm".to_string()), &[]));
         m.insert("status".to_string(), status.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), typeParsed.clone());
@@ -2904,6 +2902,10 @@ impl KrakenCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             }), &[close.clone()]);
+            close = ternary(is_true(&(is_equal(&close, &Value::Null))), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), close.clone());
             let mut closePrice: Value = self.safe_value_k(close.clone(), "price", &[]);
             if !is_equal(&closePrice, &Value::Null) {
                 add_element_to_object(&mut close, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), closePrice.clone()));
@@ -2938,7 +2940,7 @@ impl KrakenCore {
  * @method
  * @name kraken#editOrder
  * @description edit a trade order
- * @see https://docs.kraken.com/api/docs/rest-api/amend-order
+ * @see https://docs.kraken.com/api-reference/trading/amend-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -2964,7 +2966,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders, only spot orders are accepted".to_string()))));
@@ -3026,7 +3030,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+ * @see https://docs.kraken.com/api-reference/account-data/query-orders-info
  * @param {string} id order id
  * @param {string} symbol not used by kraken fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3038,7 +3042,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("userref".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3108,7 +3114,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+ * @see https://docs.kraken.com/api-reference/account-data/query-trades-info
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3131,8 +3137,8 @@ impl KrakenCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_824: bool = true;
-                while { if !__for_first_824 { i = add(&i, &Value::Int(1)); } __for_first_824 = false; is_less_than(&i, &get_array_length(&orderTrades)) } {
+                let mut __for_first_790: bool = true;
+                while { if !__for_first_790 { i = add(&i, &Value::Int(1)); } __for_first_790 = false; is_less_than(&i, &get_array_length(&orderTrades)) } {
                 let mut orderTrade: Value = get_value(&orderTrades, &i);
                 let mut orderTrade: Value = get_value(&orderTrades, &i);
                 if is_string(&orderTrade) {
@@ -3143,7 +3149,9 @@ impl KrakenCore {
             }
             }
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
         }
@@ -3158,13 +3166,13 @@ impl KrakenCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_827: bool = true;
-            while { if !__for_first_827 { j = add(&j, &Value::Int(1)); } __for_first_827 = false; is_less_than(&j, &numBatches) } {
+            let mut __for_first_793: bool = true;
+            while { if !__for_first_793 { j = add(&j, &Value::Int(1)); } __for_first_793 = false; is_less_than(&j, &numBatches) } {
             let mut requestIds: Value = Value::List(vec![]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_825: bool = true;
-                while { if !__for_first_825 { k = add(&k, &Value::Int(1)); } __for_first_825 = false; is_less_than(&k, &batchSize) } {
+                let mut __for_first_791: bool = true;
+                while { if !__for_first_791 { k = add(&k, &Value::Int(1)); } __for_first_791 = false; is_less_than(&k, &batchSize) } {
                 let mut index: Value = self.sum(&[multiply(&j, &batchSize), k.clone()]);
                 if is_less_than(&index, &numTradeIds) {
                     append_to_array(&mut requestIds, get_value(&tradeIds, &index));
@@ -3202,8 +3210,8 @@ impl KrakenCore {
             let mut ids: Value = object_keys(&rawTrades);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_826: bool = true;
-                while { if !__for_first_826 { i = add(&i, &Value::Int(1)); } __for_first_826 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_792: bool = true;
+                while { if !__for_first_792 { i = add(&i, &Value::Int(1)); } __for_first_792 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 add_element_to_object(get_value_mut(&mut rawTrades, &get_value(&ids, &i)), &Value::Str("id".to_string()), get_value(&ids, &i));
             }
             }
@@ -3221,7 +3229,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchOrdersByIds
  * @description fetch orders by the list of order id
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+ * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string[]} [ids] list of order id
  * @param {string} [symbol] unified ccxt market symbol
  * @param {object} [params] extra parameters specific to the kraken api endpoint
@@ -3233,7 +3241,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let __ws_arg_12 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trades".to_string(), Value::Bool(true));
@@ -3249,8 +3259,8 @@ impl KrakenCore {
         let mut orderIds: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_828: bool = true;
-            while { if !__for_first_828 { i = add(&i, &Value::Int(1)); } __for_first_828 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_794: bool = true;
+            while { if !__for_first_794 { i = add(&i, &Value::Int(1)); } __for_first_794 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&result, &id);
@@ -3272,7 +3282,7 @@ impl KrakenCore {
  * @method
  * @name kraken#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
+ * @see https://docs.kraken.com/api-reference/account-data/get-trades-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3289,7 +3299,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3337,8 +3349,8 @@ impl KrakenCore {
         let mut ids: Value = object_keys(&trades);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_829: bool = true;
-            while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_795: bool = true;
+            while { if !__for_first_795 { i = add(&i, &Value::Int(1)); } __for_first_795 = false; is_less_than(&i, &get_array_length(&ids)) } {
             add_element_to_object(get_value_mut(&mut trades, &get_value(&ids, &i)), &Value::Str("id".to_string()), get_value(&ids, &i));
         }
         }
@@ -3355,7 +3367,7 @@ impl KrakenCore {
  * @method
  * @name kraken#cancelOrder
  * @description cancels an open order
- * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
+ * @see https://docs.kraken.com/api-reference/trading/cancel-order
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3369,7 +3381,9 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = Value::Null;
         let mut requestId: Value = self.safe_value_k(params.clone(), "userref", &[id.clone()]); // string or integer
         params = self.omit(params.clone(), Value::Str("userref".to_string()), &[]);
@@ -3409,7 +3423,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+ * @see https://docs.kraken.com/api-reference/trading/cancel-order-batch
  * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3441,7 +3455,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+ * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
  * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3452,7 +3466,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_cancel_all(&[params.clone()]).await;
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3467,7 +3483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+ * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
@@ -3480,7 +3496,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_greater_than(&timeout, &Value::Int(86400000)) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelAllOrdersAfter timeout should be less than 86400000 milliseconds".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeout".to_string(), ternary(is_true(&(is_greater_than(&timeout, &Value::Int(0)))), (self.parse_to_int(divide(&timeout, &Value::Int(1000)))), Value::Int(0)));
@@ -3497,7 +3515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+ * @see https://docs.kraken.com/api-reference/account-data/get-open-orders
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3514,7 +3532,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3587,8 +3607,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderIds: Value = object_keys(&open);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_830: bool = true;
-            while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_796: bool = true;
+            while { if !__for_first_796 { i = add(&i, &Value::Int(1)); } __for_first_796 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&open, &id);
@@ -3608,7 +3628,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+ * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3626,7 +3646,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3702,8 +3724,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderIds: Value = object_keys(&closed);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_831: bool = true;
-            while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_797: bool = true;
+            while { if !__for_first_797 { i = add(&i, &Value::Int(1)); } __for_first_797 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&closed, &id);
@@ -3870,8 +3892,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_832: bool = true;
-            while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut __for_first_798: bool = true;
+            while { if !__for_first_798 { i = add(&i, &Value::Int(1)); } __for_first_798 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             let __ws_arg_20 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
@@ -3890,7 +3912,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+ * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3908,7 +3930,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         // https://www.kraken.com/en-us/help/api#deposit-status
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3938,7 +3962,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+ * @see https://docs.kraken.com/api-reference/market-data/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -3971,7 +3995,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+ * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3989,7 +4013,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawals".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4084,7 +4110,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -4109,7 +4135,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchDepositMethods
  * @description fetch deposit methods for a currency associated with this account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the kraken api endpoint
  * @returns {object} of deposit methods
@@ -4119,7 +4145,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4137,7 +4165,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -4147,7 +4175,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
         let mut networks: Value = self.safe_value_k(self.options.clone(), "networks", &[Value::Map({
@@ -4172,8 +4202,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_equal(&network, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_833: bool = true;
-                    while { if !__for_first_833 { i = add(&i, &Value::Int(1)); } __for_first_833 = false; is_less_than(&i, &get_array_length(&depositMethods)) } {
+                    let mut __for_first_799: bool = true;
+                    while { if !__for_first_799 { i = add(&i, &Value::Int(1)); } __for_first_799 = false; is_less_than(&i, &get_array_length(&depositMethods)) } {
                     let mut entry: Value = self.safe_string_k(get_value(&depositMethods, &i), "method", &[]);
                     if is_greater_than_or_equal(&get_index_of(&entry, &network), &Value::Int(0)) {
                         depositMethod = entry.clone();
@@ -4250,7 +4280,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#withdraw
  * @description make a withdrawal
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+ * @see https://docs.kraken.com/api-reference/funding/withdraw-funds
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
@@ -4303,7 +4333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#fetchPositions
  * @description fetch all open positions
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+ * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
  * @param {string[]} [symbols] not used by kraken fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4314,7 +4344,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("docalcs".to_string(), Value::Str("true".to_string()));
@@ -4447,7 +4479,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name kraken#transferOut
  * @description transfer from spot wallet to futures wallet
- * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+ * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
  * @param {str} code Unified currency code
  * @param {float} amount Size of the transfer
  * @param {dict} [params] Exchange specific parameters
@@ -4466,7 +4498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name kraken#transfer
- * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+ * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
  * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
  * @param {string} code Unified currency code
  * @param {float} amount Size of the transfer
@@ -4480,7 +4512,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut fromAccountParsed: Value = self.parse_account_type(fromAccount.clone());
         let mut toAccountParsed: Value = self.parse_account_type(toAccount.clone());
@@ -4648,8 +4682,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if is_true(&numErrors) {
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_834: bool = true;
-                            while { if !__for_first_834 { i = add(&i, &Value::Int(1)); } __for_first_834 = false; is_less_than(&i, &get_array_length(&get_value(&response, &Value::Str("error".to_string())))) } {
+                            let mut __for_first_800: bool = true;
+                            while { if !__for_first_800 { i = add(&i, &Value::Int(1)); } __for_first_800 = false; is_less_than(&i, &get_array_length(&get_value(&response, &Value::Str("error".to_string())))) } {
                             let mut error: Value = get_value(&get_value(&response, &Value::Str("error".to_string())), &i);
                             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), error.clone(), message.clone());
                             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), error.clone(), message.clone());
@@ -4668,8 +4702,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_835: bool = true;
-                            while { if !__for_first_835 { i = add(&i, &Value::Int(1)); } __for_first_835 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                            let mut __for_first_801: bool = true;
+                            while { if !__for_first_801 { i = add(&i, &Value::Int(1)); } __for_first_801 = false; is_less_than(&i, &get_array_length(&orders)) } {
                             let mut order: Value = get_value(&orders, &i);
                             let mut order: Value = get_value(&orders, &i);
                             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);

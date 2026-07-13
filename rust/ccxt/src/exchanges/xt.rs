@@ -440,7 +440,7 @@ impl XtCore {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("https://sapi.xt.com".to_string()));
@@ -903,11 +903,10 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("Ethereum".to_string()));
         m.insert("TRC20".to_string(), Value::Str("Tron".to_string()));
+        m.insert("TRX".to_string(), Value::Str("Tron".to_string()));
         m.insert("BEP20".to_string(), Value::Str("BNB Smart Chain".to_string()));
         m.insert("BEP2".to_string(), Value::Str("BNB-BEP2".to_string()));
         m.insert("ETH".to_string(), Value::Str("Ethereum".to_string()));
-        m.insert("TRON".to_string(), Value::Str("Tron".to_string()));
-        m.insert("BNB".to_string(), Value::Str("BNB Smart Chain".to_string()));
         m.insert("AVAX".to_string(), Value::Str("AVAX C-Chain".to_string()));
         m.insert("GAL".to_string(), Value::Str("GAL(FT)".to_string()));
         m.insert("ALEO".to_string(), Value::Str("ALEO(IOU)".to_string()));
@@ -1304,8 +1303,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1090: bool = true;
-            while { if !__for_first_1090 { i = add(&i, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
+            let mut __for_first_1034: bool = true;
+            while { if !__for_first_1034 { i = add(&i, &Value::Int(1)); } __for_first_1034 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -1321,8 +1320,8 @@ impl XtCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1089: bool = true;
-                while { if !__for_first_1089 { j = add(&j, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+                let mut __for_first_1033: bool = true;
+                while { if !__for_first_1033 { j = add(&j, &Value::Int(1)); } __for_first_1033 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chain", &[]);
@@ -1587,8 +1586,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1091: bool = true;
-            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1035: bool = true;
+            while { if !__for_first_1035 { i = add(&i, &Value::Int(1)); } __for_first_1035 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
         }
         }
@@ -1731,8 +1730,8 @@ impl XtCore {
         let mut amountPrecision: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1092: bool = true;
-            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&filters)) } {
+            let mut __for_first_1036: bool = true;
+            while { if !__for_first_1036 { i = add(&i, &Value::Int(1)); } __for_first_1036 = false; is_less_than(&i, &get_array_length(&filters)) } {
             let mut entry: Value = get_value(&filters, &i);
             let mut entry: Value = get_value(&filters, &i);
             let mut filter: Value = self.safe_string_k(entry.clone(), "filter", &[]);
@@ -1897,7 +1896,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[Value::Bool(false)]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -2015,7 +2016,8 @@ impl XtCore {
         //         "v": "702461.58895"
         //     }
         //
-        let mut volumeIndex: Value = ternary(is_true(&(get_value(&market, &Value::Str("inverse".to_string())))), Value::Str("v".to_string()), Value::Str("a".to_string()));
+        let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
+        let mut volumeIndex: Value = ternary(is_true(&(isInverse)), Value::Str("v".to_string()), Value::Str("a".to_string()));
         return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number2(ohlcv.clone(), Value::Str("q".to_string()), volumeIndex.clone(), &[])]);
 
     Value::Null
@@ -2038,7 +2040,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2144,7 +2148,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2233,7 +2239,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbols, &Value::Null) {
             symbols = self.market_symbols(&[symbols.clone()]);
@@ -2313,8 +2321,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1093: bool = true;
-            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1037: bool = true;
+            while { if !__for_first_1037 { i = add(&i, &Value::Int(1)); } __for_first_1037 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[market.clone()]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -2340,7 +2348,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2487,7 +2497,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2575,7 +2587,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2877,7 +2891,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         let mut subType: Value = Value::Null;
         let mut response: Value = Value::Null;
@@ -2984,8 +3000,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { i = add(&i, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1038: bool = true;
+            while { if !__for_first_1038 { i = add(&i, &Value::Int(1)); } __for_first_1038 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("currency".to_string()), Value::Str("coin".to_string()), &[]);
@@ -3024,7 +3040,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
@@ -3063,7 +3081,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -3081,7 +3101,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3155,7 +3177,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3253,7 +3277,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -3452,7 +3478,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3625,7 +3653,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4021,7 +4051,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -4123,7 +4155,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4193,7 +4227,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderIds".to_string(), ids.clone());
@@ -4432,7 +4468,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4574,7 +4612,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut currency: Value = self.currency(code.clone());
@@ -4650,7 +4690,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4723,7 +4765,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4796,7 +4840,9 @@ impl XtCore {
     m
 }));
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut networkCode: Value = Value::Null;
@@ -4963,7 +5009,9 @@ impl XtCore {
         if is_true(&(is_less_than(&leverage, &Value::Int(1)))) || is_true(&(is_greater_than(&leverage, &Value::Int(125)))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() leverage should be between 1 and 125".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&(get_value(&market, &Value::Str("contract".to_string())))) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" setLeverage() supports contract markets only".to_string()))));
@@ -5039,7 +5087,9 @@ impl XtCore {
 }));
         let mut positionSide: Value = self.safe_string_k(params.clone(), "positionSide", &[]);
         self.check_required_argument(Value::Str("setLeverage".to_string()), positionSide.clone(), Value::Str("positionSide".to_string()), &[Value::List(vec![Value::Str("LONG".to_string()), Value::Str("SHORT".to_string())])]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5099,7 +5149,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchLeverageTiers".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
@@ -5165,8 +5217,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1095: bool = true;
-            while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1039: bool = true;
+            while { if !__for_first_1039 { i = add(&i, &Value::Int(1)); } __for_first_1039 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5200,7 +5252,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5271,8 +5325,8 @@ impl XtCore {
         let mut brackets: Value = self.safe_value_k(info.clone(), "leverageBrackets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1096: bool = true;
-            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_1040: bool = true;
+            while { if !__for_first_1040 { i = add(&i, &Value::Int(1)); } __for_first_1040 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
@@ -5320,7 +5374,9 @@ impl XtCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -5378,8 +5434,8 @@ impl XtCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1097: bool = true;
-            while { if !__for_first_1097 { i = add(&i, &Value::Int(1)); } __for_first_1097 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i = add(&i, &Value::Int(1)); } __for_first_1041 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5435,7 +5491,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports swap contracts only".to_string()))));
@@ -5539,7 +5597,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingHistory() supports swap contracts only".to_string()))));
@@ -5594,8 +5654,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1098: bool = true;
-            while { if !__for_first_1098 { i = add(&i, &Value::Int(1)); } __for_first_1098 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i = add(&i, &Value::Int(1)); } __for_first_1042 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             append_to_array(&mut result, self.parse_funding_history(entry.clone(), &[market.clone()]));
@@ -5653,7 +5713,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5698,8 +5760,8 @@ impl XtCore {
         let mut positions: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1099: bool = true;
-            while { if !__for_first_1099 { i = add(&i, &Value::Int(1)); } __for_first_1099 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i = add(&i, &Value::Int(1)); } __for_first_1043 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5730,7 +5792,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPositions".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
@@ -5768,8 +5832,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1100: bool = true;
-            while { if !__for_first_1100 { i = add(&i, &Value::Int(1)); } __for_first_1100 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i = add(&i, &Value::Int(1)); } __for_first_1044 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5856,7 +5920,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsById", &[]);
         let mut fromAccountId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
@@ -5917,7 +5983,9 @@ impl XtCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" setMarginMode() supports contract markets only".to_string()))));
@@ -5977,7 +6045,9 @@ impl XtCore {
         if is_equal(&amount, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires an amount argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

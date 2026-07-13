@@ -354,7 +354,7 @@ async function editAPIFilesGo(){
 async function editAPIFilesRust(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => RUST_PATH + ex + '_api.rs');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedRustMethods[exchanges[idx]].join ('\n') + '\n')))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedRustMethods[exchanges[idx]].join ('\n') + '\n')))
 }
 
 async function editAPIFilesJava(){
@@ -467,6 +467,13 @@ function populateImplicitMethods(exchanges: string[]) {
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = ccxt[exchange]
+        // Skip ids listed in exchanges.json that the ccxt module no longer
+        // exports (delisted/renamed upstream, e.g. ascendex/coinmetro/oxfun).
+        // Their existing generated api files are left untouched rather than
+        // crashing the whole run on `new undefined()`.
+        if (typeof exchangeClass !== 'function') {
+            continue;
+        }
         const instance = new exchangeClass();
         let api = instance.api
         if (exchange in ccxt.pro) {

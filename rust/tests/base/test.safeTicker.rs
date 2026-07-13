@@ -149,4 +149,19 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("indexPrice".to_string()), Value::Str("5.8".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("markPrice".to_string()), Value::Str("5.9".to_string())))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&result8, &Value::Str("info".to_string())), &Value::Null)))));
+    // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+    let mut ticker9: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("open".to_string(), Value::Int(6));
+            m.insert("close".to_string(), Value::Int(6));
+            m.insert("last".to_string(), Value::Int(6));
+            m.insert("change".to_string(), Value::Int(0));
+            m.insert("percentage".to_string(), Value::Int(0));
+        m
+    });
+    let mut result9: Value = exchange.safe_ticker(ticker9.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("change".to_string()), Value::Str("0".to_string())))));
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("percentage".to_string()), Value::Str("0".to_string())))));
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("open".to_string()), Value::Str("6.0".to_string())))));
+    assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
 }

@@ -259,7 +259,7 @@ impl LunoCore {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("luno".to_string()));
-        m.insert("name".to_string(), Value::Str("luno".to_string()));
+        m.insert("name".to_string(), Value::Str("Luno".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("GB".to_string()), Value::Str("SG".to_string()), Value::Str("ZA".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(200));
         m.insert("version".to_string(), Value::Str("1".to_string()));
@@ -649,12 +649,12 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_898: bool = true;
-            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut __for_first_864: bool = true;
+            while { if !__for_first_864 { i = add(&i, &Value::Int(1)); } __for_first_864 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
@@ -757,8 +757,8 @@ impl LunoCore {
         let mut markets: Value = self.safe_value_k(response.clone(), "markets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_899: bool = true;
-            while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_865: bool = true;
+            while { if !__for_first_865 { i = add(&i, &Value::Int(1)); } __for_first_865 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -855,8 +855,8 @@ impl LunoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_900: bool = true;
-            while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_866: bool = true;
+            while { if !__for_first_866 { i = add(&i, &Value::Int(1)); } __for_first_866 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut account: Value = get_value(&wallets, &i);
             let mut account: Value = get_value(&wallets, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
@@ -888,8 +888,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_901: bool = true;
-            while { if !__for_first_901 { i = add(&i, &Value::Int(1)); } __for_first_901 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_867: bool = true;
+            while { if !__for_first_867 { i = add(&i, &Value::Int(1)); } __for_first_867 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut wallet: Value = get_value(&wallets, &i);
             let mut wallet: Value = get_value(&wallets, &i);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
@@ -928,7 +928,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -944,7 +946,7 @@ impl LunoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -952,7 +954,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1083,7 +1087,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -1104,7 +1110,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1255,7 +1263,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
         let mut tickers: Value = self.index_by(get_value(&response, &Value::Str("tickers".to_string())), Value::Str("pair".to_string()));
@@ -1266,8 +1276,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_902: bool = true;
-            while { if !__for_first_902 { i = add(&i, &Value::Int(1)); } __for_first_902 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_868: bool = true;
+            while { if !__for_first_868 { i = add(&i, &Value::Int(1)); } __for_first_868 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -1295,7 +1305,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1370,12 +1382,12 @@ impl LunoCore {
         let mut feeCost: Value = Value::Null;
         if !is_equal(&feeBaseString, &Value::Null) {
             if !is_true(&crate::precise::Precise::stringEquals(&feeBaseString, &Value::Str("0.0".to_string()))) {
-                feeCurrency = get_value(&market, &Value::Str("base".to_string()));
+                feeCurrency = self.safe_string_k(market.clone(), "base", &[]);
                 feeCost = feeBaseString.clone();
             }
         }  else if !is_equal(&feeCounterString, &Value::Null) {
             if !is_true(&crate::precise::Precise::stringEquals(&feeCounterString, &Value::Str("0.0".to_string()))) {
-                feeCurrency = get_value(&market, &Value::Str("quote".to_string()));
+                feeCurrency = self.safe_string_k(market.clone(), "quote", &[]);
                 feeCost = feeCounterString.clone();
             }
         }
@@ -1386,7 +1398,7 @@ impl LunoCore {
         m.insert("id".to_string(), id.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), orderId.clone());
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
@@ -1424,7 +1436,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1475,7 +1489,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1542,7 +1558,9 @@ impl LunoCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1598,7 +1616,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1641,7 +1661,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1692,7 +1714,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -1756,7 +1780,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.load_accounts(&[]).await;
         let mut currency: Value = Value::Null;
         let mut id: Value = self.safe_string_k(params.clone(), "id", &[]); // account id
@@ -1918,7 +1944,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1947,7 +1975,9 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

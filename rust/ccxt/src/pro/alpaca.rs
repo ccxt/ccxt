@@ -390,7 +390,9 @@ impl AlpacaCore {
 }));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("crypto".to_string()));
         self.authenticate(url.clone(), &[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut request: Value = Value::Map({
@@ -489,7 +491,9 @@ impl AlpacaCore {
 }));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("crypto".to_string()));
         self.authenticate(url.clone(), &[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut request: Value = Value::Map({
@@ -546,7 +550,7 @@ impl AlpacaCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -556,7 +560,9 @@ impl AlpacaCore {
 }));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("crypto".to_string()));
         self.authenticate(url.clone(), &[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str(":".to_string())), &symbol);
@@ -621,15 +627,15 @@ impl AlpacaCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Str("p".to_string()), Value::Str("s".to_string())]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("p".to_string()), Value::Str("s".to_string())]);
         bookside.store_array(bidAsk.clone());
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i = add(&i, &Value::Int(1)); } __for_first_3 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i = add(&i, &Value::Int(1)); } __for_first_0 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -655,7 +661,9 @@ impl AlpacaCore {
 }));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("crypto".to_string()));
         self.authenticate(url.clone(), &[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
@@ -724,7 +732,9 @@ impl AlpacaCore {
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("trading".to_string()));
         self.authenticate(url.clone(), &[]).await;
         let mut messageHash: Value = Value::Str("myTrades".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
             messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &symbol));
@@ -769,7 +779,9 @@ impl AlpacaCore {
 }));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("trading".to_string()));
         self.authenticate(url.clone(), &[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("orders".to_string());
         if !is_equal(&symbol, &Value::Null) {
             let mut market: Value = self.market(symbol.clone());
@@ -1072,8 +1084,8 @@ impl AlpacaCore {
     pub fn handle_crypto_message(&self, mut client: Value, mut message: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_4: bool = true;
-            while { if !__for_first_4 { i = add(&i, &Value::Int(1)); } __for_first_4 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i = add(&i, &Value::Int(1)); } __for_first_1 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut data: Value = get_value(&message, &i);
             let mut data: Value = get_value(&message, &i);
             let mut T: Value = self.safe_string_k(data.clone(), "T", &[]);

@@ -403,7 +403,9 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut symbolsLength: Value = get_array_length(&symbols);
         if is_equal(&symbolsLength, &Value::Int(0)) {
@@ -414,8 +416,8 @@ impl ApexCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i = add(&i, &Value::Int(1)); } __for_first_2 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -476,8 +478,8 @@ impl ApexCore {
         let mut length: Value = get_array_length(&trades);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_6: bool = true;
-            while { if !__for_first_6 { j = add(&j, &Value::Int(1)); } __for_first_6 = false; is_less_than(&j, &length) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { j = add(&j, &Value::Int(1)); } __for_first_3 = false; is_less_than(&j, &length) } {
             let mut index: Value = subtract(&subtract(&length, &j), &Value::Int(1));
             let mut parsed: Value = self.parse_ws_trade(get_value(&trades, &index), &[market.clone()]);
             stored.append(parsed.clone());
@@ -539,7 +541,7 @@ impl ApexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -560,7 +562,7 @@ impl ApexCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -568,7 +570,9 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut symbolsLength: Value = get_array_length(&symbols);
         if is_equal(&symbolsLength, &Value::Int(0)) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
@@ -579,8 +583,8 @@ impl ApexCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i = add(&i, &Value::Int(1)); } __for_first_4 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -614,8 +618,8 @@ impl ApexCore {
         let mut newTopicsCount: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &get_array_length(&topics)) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &get_array_length(&topics)) } {
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &get_value(&messageHashes, &i))))) {
                 append_to_array(&mut newTopics, get_value(&topics, &i));
                 newTopicsCount = add(&newTopicsCount, &Value::Int(1));
@@ -730,15 +734,15 @@ impl ApexCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[Value::Int(0), Value::Int(1)]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Int(0), Value::Int(1)]);
         bookside.store_array(bidAsk.clone());
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i = add(&i, &Value::Int(1)); } __for_first_9 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i = add(&i, &Value::Int(1)); } __for_first_6 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -758,7 +762,9 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = self.get_ws_public_url();
@@ -785,15 +791,17 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut url: Value = self.get_ws_public_url();
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { i = add(&i, &Value::Int(1)); } __for_first_10 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -846,7 +854,7 @@ impl ApexCore {
             m
         })]);
         let mut symbol: Value = Value::Null;
-        let mut parsed: Value = Value::Null;
+        let mut parsed: Value = self.parse_ticker(data.clone(), &[]);
         if is_true(&(is_equal(&updateType, &Value::Str("snapshot".to_string())))) {
             parsed = self.parse_ticker(data.clone(), &[]);
             symbol = get_value(&parsed, &Value::Str("symbol".to_string()));
@@ -920,14 +928,16 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = self.get_ws_public_url();
         let mut rawHashes: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { i = add(&i, &Value::Int(1)); } __for_first_11 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
@@ -1002,8 +1012,8 @@ impl ApexCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_12: bool = true;
-            while { if !__for_first_12 { i = add(&i, &Value::Int(1)); } __for_first_12 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i = add(&i, &Value::Int(1)); } __for_first_9 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut parsed: Value = self.parse_ws_ohlcv(get_value(&data, &i), &[]);
             stored.append(parsed.clone());
         }
@@ -1041,7 +1051,9 @@ impl ApexCore {
     m
 }));
         let mut messageHash: Value = Value::Str("myTrades".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
             messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &symbol));
@@ -1076,7 +1088,9 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("".to_string());
         if !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
@@ -1121,7 +1135,9 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("orders".to_string());
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
@@ -1168,12 +1184,11 @@ impl ApexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_13: bool = true;
-            while { if !__for_first_13 { i = add(&i, &Value::Int(1)); } __for_first_13 = false; is_less_than(&i, &get_array_length(&lists)) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i = add(&i, &Value::Int(1)); } __for_first_10 = false; is_less_than(&i, &get_array_length(&lists)) } {
             let mut rawTrade: Value = get_value(&lists, &i);
             let mut rawTrade: Value = get_value(&lists, &i);
-            let mut parsed: Value = Value::Null;
-            parsed = self.parse_ws_trade(rawTrade.clone(), &[]);
+            let mut parsed: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
             let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
             trades.append(parsed.clone());
@@ -1182,8 +1197,8 @@ impl ApexCore {
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_14: bool = true;
-            while { if !__for_first_14 { i = add(&i, &Value::Int(1)); } __for_first_14 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i = add(&i, &Value::Int(1)); } __for_first_11 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currentMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &get_value(&keys, &i));
             client.resolve(&[trades.clone(), currentMessageHash.clone()]);
         }
@@ -1234,10 +1249,9 @@ impl ApexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { i = add(&i, &Value::Int(1)); } __for_first_15 = false; is_less_than(&i, &get_array_length(&lists)) } {
-            let mut parsed: Value = Value::Null;
-            parsed = self.parse_order(get_value(&lists, &i), &[]);
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i = add(&i, &Value::Int(1)); } __for_first_12 = false; is_less_than(&i, &get_array_length(&lists)) } {
+            let mut parsed: Value = self.parse_order(get_value(&lists, &i), &[]);
             let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
             orders.append(parsed.clone());
@@ -1246,8 +1260,8 @@ impl ApexCore {
         let mut symbolsArray: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i = add(&i, &Value::Int(1)); } __for_first_16 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i = add(&i, &Value::Int(1)); } __for_first_13 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
             let mut currentMessageHash: Value = add(&Value::Str("orders:".to_string()), &get_value(&symbolsArray, &i));
             client.resolve(&[orders.clone(), currentMessageHash.clone()]);
         }
@@ -1276,14 +1290,14 @@ impl ApexCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_18: bool = true;
-            while { if !__for_first_18 { i = add(&i, &Value::Int(1)); } __for_first_18 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i = add(&i, &Value::Int(1)); } __for_first_15 = false; is_less_than(&i, &get_array_length(&promises)) } {
             let mut positions: Value = get_value(&promises, &i);
             let mut positions: Value = get_value(&promises, &i);
             {
                                 let mut ii: Value = Value::Int(0);
-                let mut __for_first_17: bool = true;
-                while { if !__for_first_17 { ii = add(&ii, &Value::Int(1)); } __for_first_17 = false; is_less_than(&ii, &get_array_length(&positions)) } {
+                let mut __for_first_14: bool = true;
+                while { if !__for_first_14 { ii = add(&ii, &Value::Int(1)); } __for_first_14 = false; is_less_than(&ii, &get_array_length(&positions)) } {
                 let mut position: Value = get_value(&positions, &ii);
                 cache.append(position.clone());
             }
@@ -1330,8 +1344,8 @@ impl ApexCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_19: bool = true;
-            while { if !__for_first_19 { i = add(&i, &Value::Int(1)); } __for_first_19 = false; is_less_than(&i, &get_array_length(&lists)) } {
+            let mut __for_first_16: bool = true;
+            while { if !__for_first_16 { i = add(&i, &Value::Int(1)); } __for_first_16 = false; is_less_than(&i, &get_array_length(&lists)) } {
             let mut rawPosition: Value = get_value(&lists, &i);
             let mut rawPosition: Value = get_value(&lists, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -1356,8 +1370,8 @@ impl ApexCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_20: bool = true;
-            while { if !__for_first_20 { i = add(&i, &Value::Int(1)); } __for_first_20 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i = add(&i, &Value::Int(1)); } __for_first_17 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1537,8 +1551,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_21: bool = true;
-            while { if !__for_first_21 { i = add(&i, &Value::Int(1)); } __for_first_21 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i = add(&i, &Value::Int(1)); } __for_first_18 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {

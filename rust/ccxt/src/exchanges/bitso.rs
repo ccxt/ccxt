@@ -146,6 +146,7 @@ impl BitsoCore {
             "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_balance" => self.fetch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+            "fetch_currencies" => self.fetch_currencies(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposit" => self.fetch_deposit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_deposit_withdraw_fees" => self.fetch_deposit_withdraw_fees(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -165,6 +166,7 @@ impl BitsoCore {
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -220,6 +222,12 @@ impl crate::exchange::DerivedExchange for BitsoCore {
         #[allow(invalid_reference_casting)]
         let me = unsafe { &mut *(self as *const BitsoCore as *mut BitsoCore) };
         BitsoCore::parse_ledger_entry(me, entry, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitsoCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const BitsoCore as *mut BitsoCore) };
+        BitsoCore::parse_currency(me, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitsoCore.
@@ -291,7 +299,7 @@ impl BitsoCore {
         m.insert("fetchBorrowRatesPerSymbol".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
-        m.insert("fetchCurrencies".to_string(), Value::Bool(false));
+        m.insert("fetchCurrencies".to_string(), Value::Bool(true));
         m.insert("fetchDeposit".to_string(), Value::Bool(true));
         m.insert("fetchDepositAddress".to_string(), Value::Bool(true));
         m.insert("fetchDepositAddresses".to_string(), Value::Bool(false));
@@ -372,7 +380,7 @@ impl BitsoCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Str("https://bitso.com/api".to_string()));
@@ -392,14 +400,6 @@ impl BitsoCore {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("precision".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("XRP".to_string(), Value::Float(0.000001));
-        m.insert("MXN".to_string(), Value::Float(0.01));
-        m.insert("TUSD".to_string(), Value::Float(0.01));
-    m
-}));
-        m.insert("defaultPrecision".to_string(), Value::Float(1e-8));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("TRC20".to_string(), Value::Str("trx".to_string()));
@@ -427,7 +427,7 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("available_books".to_string()), Value::Str("ticker".to_string()), Value::Str("order_book".to_string()), Value::Str("trades".to_string()), Value::Str("ohlc".to_string())]));
+        m.insert("get".to_string(), Value::List(vec![Value::Str("available_books".to_string()), Value::Str("catalogues".to_string()), Value::Str("ticker".to_string()), Value::Str("order_book".to_string()), Value::Str("trades".to_string()), Value::Str("ohlc".to_string())]));
     m
 }));
         m.insert("private".to_string(), Value::Map({
@@ -768,11 +768,12 @@ impl BitsoCore {
         //         ]
         //     }
         let mut markets: Value = self.safe_value_k(response.clone(), "payload", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "book", &[]);
@@ -808,8 +809,8 @@ impl BitsoCore {
             let mut makerFees: Value = Value::List(vec![]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_381: bool = true;
-                while { if !__for_first_381 { j = add(&j, &Value::Int(1)); } __for_first_381 = false; is_less_than(&j, &get_array_length(&feeTiers)) } {
+                let mut __for_first_362: bool = true;
+                while { if !__for_first_362 { j = add(&j, &Value::Int(1)); } __for_first_362 = false; is_less_than(&j, &get_array_length(&feeTiers)) } {
                 let mut tier: Value = get_value(&feeTiers, &j);
                 let mut tier: Value = get_value(&feeTiers, &j);
                 let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
@@ -830,10 +831,9 @@ impl BitsoCore {
                 m
             });
             add_element_to_object(&mut fee, &Value::Str("tiers".to_string()), tiers.clone());
-            // TODO: precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
-            let mut defaultPricePrecision: Value = self.safe_number(get_value(&self.options, &Value::Str("precision".to_string())), quote.clone(), &[get_value(&self.options, &Value::Str("defaultPrecision".to_string()))]);
-            let __ws_arg_1 = self.safe_number(get_value(&self.options, &Value::Str("precision".to_string())), base.clone(), &[get_value(&self.options, &Value::Str("defaultPrecision".to_string()))]);
-            let __ws_arg_2 = self.safe_number_k(market.clone(), "tick_size", &[defaultPricePrecision.clone()]);
+            let mut baseCurrency: Value = self.safe_dict(currencies.clone(), base.clone(), &[]);
+            let __ws_arg_1 = self.safe_number_k(baseCurrency.clone(), "precision", &[]);
+            let __ws_arg_2 = self.safe_number_k(market.clone(), "tick_size", &[]);
             let __ws_arg_3 = self.safe_number_k(market.clone(), "minimum_amount", &[]);
             let __ws_arg_4 = self.safe_number_k(market.clone(), "maximum_amount", &[]);
             let __ws_arg_5 = self.safe_number_k(market.clone(), "minimum_price", &[]);
@@ -912,6 +912,95 @@ impl BitsoCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name bitso#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.bitso.com/bitso-payouts-funding/docs
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+    pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut catalogues: Value = self.public_get_catalogues(&[params.clone()]).await;
+        //
+        //     {
+        //         "payload": {
+        //             "currencies": {
+        //                 "metadata": [
+        //                     {
+        //                         "code": "brl",
+        //                         "full_name": "Brazilian Reais",
+        //                         "color": "02A630",
+        //                         "precision": 2,
+        //                         "display_ticker": "BRL",
+        //                         "type": "fiat"
+        //                     },
+        //                     {
+        //                         "code": "usdt",
+        //                         "full_name": "USDT (Digital Dollars)",
+        //                         "color": "50AF95",
+        //                         "precision": 2,
+        //                         "display_ticker": "USDT",
+        //                         "type": "crypto"
+        //                     }, ...
+        //
+        let mut payload: Value = self.safe_dict_k(catalogues.clone(), "payload", &[]);
+        let mut currencies: Value = self.safe_dict_k(payload.clone(), "currencies", &[]);
+        let mut metadata: Value = self.safe_list_k(currencies.clone(), "metadata", &[Value::List(vec![])]);
+        return self.parse_currencies(metadata.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "code", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        return self.safe_currency_structure(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), rawCurrency.clone());
+        m.insert("code".to_string(), code.clone());
+        m.insert("id".to_string(), currencyId.clone());
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "full_name", &[]));
+        m.insert("active".to_string(), Value::Null);
+        m.insert("deposit".to_string(), Value::Null);
+        m.insert("withdraw".to_string(), Value::Null);
+        m.insert("fee".to_string(), Value::Null);
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]));
+        m.insert("margin".to_string(), self.safe_bool_k(rawCurrency.clone(), "marginAvailable", &[]));
+        m.insert("limits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+        m.insert("withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+        m.insert("deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+    m
+}));
+        m.insert("networks".to_string(), Value::Null);
+        m.insert("type".to_string(), self.safe_string_k(rawCurrency.clone(), "type", &[]));
+    m
+}));
+
+    Value::Null
+}
+
     pub fn parse_balance(&self, mut response: Value) -> Value {
         let mut payload: Value = self.safe_value_k(response.clone(), "payload", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -927,8 +1016,8 @@ impl BitsoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_364: bool = true;
+            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -958,7 +1047,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -973,7 +1064,7 @@ impl BitsoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -981,7 +1072,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1061,7 +1154,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1095,7 +1190,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1279,7 +1376,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1306,7 +1405,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_fees(&[params.clone()]).await;
         //
         //    {
@@ -1362,8 +1463,8 @@ impl BitsoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_365: bool = true;
+            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut marketId: Value = self.safe_string_k(fee.clone(), "book", &[]);
@@ -1404,7 +1505,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
@@ -1456,7 +1559,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1498,7 +1603,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("oid".to_string(), id.clone());
@@ -1565,8 +1672,8 @@ impl BitsoCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { i = add(&i, &Value::Int(1)); } __for_first_385 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut id: Value = get_value(&payload, &i);
             let mut id: Value = get_value(&payload, &i);
             append_to_array(&mut orders, self.parse_order(id.clone(), &[market.clone()]));
@@ -1606,8 +1713,8 @@ impl BitsoCore {
         let mut canceledOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_367: bool = true;
+            while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut order: Value = self.parse_order(get_value(&payload, &i), &[]);
             append_to_array(&mut canceledOrders, order.clone());
         }
@@ -1702,7 +1809,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
@@ -1752,7 +1861,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_orders_oid(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("oid".to_string(), id.clone());
@@ -1790,7 +1901,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1820,7 +1933,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fid".to_string(), id.clone());
@@ -1880,7 +1995,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
@@ -1928,7 +2045,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1974,7 +2093,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_fees(&[params.clone()]).await;
         //
         //    {
@@ -2030,8 +2151,8 @@ impl BitsoCore {
         let mut depositFees: Value = self.safe_value_k(payload.clone(), "deposit_fees", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&depositFees)) } {
+            let mut __for_first_368: bool = true;
+            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&depositFees)) } {
             let mut depositFee: Value = get_value(&depositFees, &i);
             let mut depositFee: Value = get_value(&depositFees, &i);
             let mut currencyId: Value = self.safe_string_k(depositFee.clone(), "currency", &[]);
@@ -2057,8 +2178,8 @@ impl BitsoCore {
         let mut currencyIds: Value = object_keys(&withdrawalFees);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_369: bool = true;
+            while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2099,7 +2220,9 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_fees(&[params.clone()]).await;
         //
         //    {
@@ -2201,8 +2324,8 @@ impl BitsoCore {
         let mut withdrawalResponse: Value = self.safe_value_k(response.clone(), "withdrawal_fees", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_389: bool = true;
-            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&depositResponse)) } {
+            let mut __for_first_370: bool = true;
+            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&depositResponse)) } {
             let mut entry: Value = get_value(&depositResponse, &i);
             let mut entry: Value = get_value(&depositResponse, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -2235,8 +2358,8 @@ impl BitsoCore {
         let mut withdrawalKeys: Value = object_keys(&withdrawalResponse);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_390: bool = true;
-            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&withdrawalKeys)) } {
+            let mut __for_first_371: bool = true;
+            while { if !__for_first_371 { i = add(&i, &Value::Int(1)); } __for_first_371 = false; is_less_than(&i, &get_array_length(&withdrawalKeys)) } {
             let mut currencyId: Value = get_value(&withdrawalKeys, &i);
             let mut currencyId: Value = get_value(&withdrawalKeys, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2278,7 +2401,9 @@ impl BitsoCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("BTC".to_string(), Value::Str("Bitcoin".to_string()));
@@ -2379,7 +2504,7 @@ impl BitsoCore {
         let mut networkId: Value = self.safe_string2(transaction.clone(), Value::Str("network".to_string()), Value::Str("method".to_string()), &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut withdrawId: Value = self.safe_string_k(transaction.clone(), "wid", &[]);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+        let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), get_value(&currency, &Value::Str("code".to_string()))]);
         let mut networkCodeUpper: Value = ternary(is_true(&(!is_equal(&networkCode, &Value::Null))), to_upper(&networkCode), Value::Null);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

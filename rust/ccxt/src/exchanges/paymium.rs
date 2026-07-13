@@ -386,8 +386,8 @@ impl PaymiumCore {
         let mut currencies: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { i = add(&i, &Value::Int(1)); } __for_first_996 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_958: bool = true;
+            while { if !__for_first_958 { i = add(&i, &Value::Int(1)); } __for_first_958 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut code: Value = get_value(&currencies, &i);
             let mut code: Value = get_value(&currencies, &i);
             let mut currency: Value = self.currency(code.clone());
@@ -420,7 +420,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_user(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -435,7 +437,7 @@ impl PaymiumCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -443,7 +445,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -525,7 +529,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -587,7 +593,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -615,7 +623,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_user_addresses(&[params.clone()]).await;
         return self.parse_deposit_address(response.clone(), &[]);
 
@@ -636,7 +646,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), code.clone());
@@ -664,7 +676,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_user_addresses(&[params.clone()]).await;
         return self.parse_deposit_addresses(response.clone(), &[codes.clone()]);
 
@@ -715,7 +729,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -789,7 +805,9 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         if is_less_than(&get_index_of(&toAccount, &Value::Str("@".to_string())), &Value::Int(0)) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() only allows transfers to an email address".to_string()))));

@@ -310,19 +310,13 @@ impl OkxusCore {
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Null);
-        m.insert("swap".to_string(), Value::Bool(false));
+        m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
     m
 }));
         m.insert("features".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("swap".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("linear".to_string(), Value::Null);
-        m.insert("inverse".to_string(), Value::Null);
-    m
-}));
         m.insert("future".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Null);

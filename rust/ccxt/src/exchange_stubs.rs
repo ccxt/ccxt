@@ -671,11 +671,47 @@ impl Exchange {
         let me = unsafe { coerce_to_mut_unsafe(self) };
         me.set_markets(markets, &[currencies])
     }
-    pub fn super_network_id_to_code(&self, network_id: Value) -> Value {
-        self.network_id_to_code(&[network_id])
+    pub fn super_network_id_to_code(&self, optional_args: &[Value]) -> Value {
+        self.network_id_to_code(optional_args)
     }
-    pub fn super_network_code_to_id(&self, network_code: Value) -> Value {
-        self.network_code_to_id(network_code, &[])
+
+    // ── request bookkeeping (hand-written, above the transpile marker) ──
+    // These live above the `METHODS BELOW THIS LINE ...` marker in
+    // `ts/src/base/Exchange.ts` (plain assignments in most languages), so
+    // they are implemented by hand rather than transpiled. They mutate
+    // instance fields; the `&self` receiver matches the transpiler's call
+    // shape and we reborrow `&mut` via the same helper as `super_set_markets`.
+    pub fn set_last_rest_request_timestamp(&self) {
+        let me = unsafe { coerce_to_mut_unsafe(self) };
+        me.lastRestRequestTimestamp = self.milliseconds();
+    }
+
+    pub fn set_last_request(&self, request: Value) {
+        let me = unsafe { coerce_to_mut_unsafe(self) };
+        me.last_request_headers = crate::runtime::get_value(&request, &Value::Str("headers".to_string()));
+        me.last_request_body = crate::runtime::get_value(&request, &Value::Str("body".to_string()));
+        me.last_request_url = crate::runtime::get_value(&request, &Value::Str("url".to_string()));
+    }
+
+    pub fn get_fetch_cache(&self) -> Value {
+        self.fetchHistoryCache.clone()
+    }
+
+    pub fn add_fetch_cache(&self, data: Value) {
+        let me = unsafe { coerce_to_mut_unsafe(self) };
+        if crate::runtime::is_less_than_or_equal(&me.fetchHistoryCacheSize, &Value::Int(0)) {
+            return;
+        }
+        while crate::runtime::is_greater_than_or_equal(
+            &crate::runtime::get_array_length(&me.fetchHistoryCache),
+            &me.fetchHistoryCacheSize,
+        ) {
+            crate::runtime::remove(&mut me.fetchHistoryCache, &Value::Int(0));
+        }
+        crate::runtime::append_to_array(&mut me.fetchHistoryCache, data);
+    }
+    pub fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
+        self.network_code_to_id(network_code, optional_args)
     }
     pub async fn super_load_markets(&self, reload: Value, params: Value) -> Value {
         let me = unsafe { coerce_to_mut_unsafe(self) };
@@ -1387,6 +1423,7 @@ impl Exchange {
         put("requiredCredentials", &self.requiredCredentials);
         put("timeout", &self.timeout);             put("rateLimit", &self.rateLimit);
         put("enableRateLimit", &self.enableRateLimit);
+        put("fetchHistoryCacheSize", &self.fetchHistoryCacheSize);
         put("rateLimiterAlgorithm", &self.rateLimiterAlgorithm);
         put("rollingWindowSize", &self.rollingWindowSize);
         put("tokenBucket", &self.tokenBucket);     put("verbose", &self.verbose);

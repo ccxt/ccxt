@@ -16,6 +16,11 @@ impl CoincheckCore {
         self.call_method(Value::Str("public_get_exchange_orders_rate".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetExchangeStatus` implicit endpoint.
+    pub async fn public_get_exchange_status(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_exchange_status".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetOrderBooks` implicit endpoint.
     pub async fn public_get_order_books(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_order_books".to_string()), optional_args).await
@@ -61,9 +66,19 @@ impl CoincheckCore {
         self.call_method(Value::Str("private_get_deposit_money".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetExchangeOrdersId` implicit endpoint.
+    pub async fn private_get_exchange_orders_id(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_exchange_orders_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetExchangeOrdersOpens` implicit endpoint.
     pub async fn private_get_exchange_orders_opens(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_exchange_orders_opens".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetExchangeOrdersCancelStatus` implicit endpoint.
+    pub async fn private_get_exchange_orders_cancel_status(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_exchange_orders_cancel_status".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetExchangeOrdersTransactions` implicit endpoint.

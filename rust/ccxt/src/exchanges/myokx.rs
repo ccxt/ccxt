@@ -331,6 +331,11 @@ impl MyokxCore {
 }));
     m
 }));
+        m.insert("options".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("mica".to_string(), Value::Bool(true));
+    m
+}));
     m
 })]);
 

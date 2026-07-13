@@ -11,15 +11,17 @@ use super::*;
 
 pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Value) -> Value {
     let mut method: Value = Value::Str("fetchOrderBooks".to_string());
-    let mut symbol: Value = get_value(&get_value(&exchange, &Value::Str("symbols".to_string())), &Value::Int(0));
+    let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".to_string()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&symbols, &Value::Null)))));
+    let mut symbol: Value = get_value(&symbols, &Value::Int(0));
     let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::List(vec![symbol.clone()])]).await;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_object(&orderBooks)))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(orderBooks.clone()))));
     let mut orderBookKeys: Value = object_keys(&orderBooks);
     assert!(ccxt::runtime::is_true(&(get_array_length(&orderBookKeys))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1167: bool = true;
-        while { if !__for_first_1167 { i = add(&i, &Value::Int(1)); } __for_first_1167 = false; is_less_than(&i, &get_array_length(&orderBookKeys)) } {
+        let mut __for_first_51: bool = true;
+        while { if !__for_first_51 { i = add(&i, &Value::Int(1)); } __for_first_51 = false; is_less_than(&i, &get_array_length(&orderBookKeys)) } {
         let mut symbolInner: Value = get_value(&orderBookKeys, &i);
         testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&orderBooks, &symbolInner), symbolInner.clone());
     }

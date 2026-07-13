@@ -564,8 +564,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_340: bool = true;
-            while { if !__for_first_340 { i = add(&i, &Value::Int(1)); } __for_first_340 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_321: bool = true;
+            while { if !__for_first_321 { i = add(&i, &Value::Int(1)); } __for_first_321 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -578,14 +578,17 @@ impl BithumbCore {
         let mut results: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_342: bool = true;
-            while { if !__for_first_342 { i = add(&i, &Value::Int(1)); } __for_first_342 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_323: bool = true;
+            while { if !__for_first_323 { i = add(&i, &Value::Int(1)); } __for_first_323 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut quoteId: Value = quote.clone();
             let mut response: Value = get_value(&results, &i);
             let mut response: Value = get_value(&results, &i);
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut extension: Value = self.safe_dict(quoteCurrencies.clone(), quote.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -593,8 +596,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&data);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_341: bool = true;
-                while { if !__for_first_341 { j = add(&j, &Value::Int(1)); } __for_first_341 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_322: bool = true;
+                while { if !__for_first_322 { j = add(&j, &Value::Int(1)); } __for_first_322 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 if is_equal(&currencyId, &Value::Str("date".to_string())) {
@@ -690,8 +693,8 @@ impl BithumbCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_343: bool = true;
-            while { if !__for_first_343 { i = add(&i, &Value::Int(1)); } __for_first_343 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_324: bool = true;
+            while { if !__for_first_324 { i = add(&i, &Value::Int(1)); } __for_first_324 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -721,7 +724,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), Value::Str("ALL".to_string()));
@@ -742,7 +747,7 @@ impl BithumbCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -750,7 +755,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -862,7 +869,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -875,8 +884,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_344: bool = true;
-            while { if !__for_first_344 { i = add(&i, &Value::Int(1)); } __for_first_344 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_325: bool = true;
+            while { if !__for_first_325 { i = add(&i, &Value::Int(1)); } __for_first_325 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -889,8 +898,8 @@ impl BithumbCore {
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i = add(&i, &Value::Int(1)); } __for_first_346 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_327: bool = true;
+            while { if !__for_first_327 { i = add(&i, &Value::Int(1)); } __for_first_327 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -925,8 +934,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&tickers);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_345: bool = true;
-                while { if !__for_first_345 { j = add(&j, &Value::Int(1)); } __for_first_345 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_326: bool = true;
+                while { if !__for_first_326 { j = add(&j, &Value::Int(1)); } __for_first_326 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut ticker: Value = get_value(&data, &currencyId);
@@ -958,7 +967,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1023,7 +1034,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1166,7 +1179,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1220,7 +1235,9 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1274,7 +1291,9 @@ impl BithumbCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1462,7 +1481,9 @@ impl BithumbCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(100);
@@ -1584,7 +1605,9 @@ impl BithumbCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

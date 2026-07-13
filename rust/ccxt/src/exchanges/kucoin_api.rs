@@ -1581,6 +1581,16 @@ impl KucoinCore {
         self.call_method(Value::Str("uta_get_market_borrowable_currency".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `utaGetUserMyIp` implicit endpoint.
+    pub async fn uta_get_user_my_ip(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("uta_get_user_my_ip".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `utaGetMarketFiatPrice` implicit endpoint.
+    pub async fn uta_get_market_fiat_price(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("uta_get_market_fiat_price".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `utaPrivateGetMarketOrderbook` implicit endpoint.
     pub async fn uta_private_get_market_orderbook(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("uta_private_get_market_orderbook".to_string()), optional_args).await

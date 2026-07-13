@@ -450,7 +450,9 @@ impl AsterCore {
     m
 }));
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchTicker".to_string()));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.safe_symbol(symbol.clone(), &[]);
         let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
@@ -503,8 +505,13 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -525,8 +532,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_30: bool = true;
-            while { if !__for_first_30 { i = add(&i, &Value::Int(1)); } __for_first_30 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_19: bool = true;
+            while { if !__for_first_19 { i = add(&i, &Value::Int(1)); } __for_first_19 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -567,8 +574,13 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -589,8 +601,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_31: bool = true;
-            while { if !__for_first_31 { i = add(&i, &Value::Int(1)); } __for_first_31 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_20: bool = true;
+            while { if !__for_first_20 { i = add(&i, &Value::Int(1)); } __for_first_20 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -621,7 +633,9 @@ impl AsterCore {
     m
 }));
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchMarkPrice".to_string()));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.safe_symbol(symbol.clone(), &[]);
         let mut tickers: Value = self.watch_mark_prices(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
@@ -668,8 +682,13 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -691,8 +710,8 @@ impl AsterCore {
         let mut use1sFreq: Value = self.safe_bool_k(params.clone(), "use1sFreq", &[Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_32: bool = true;
-            while { if !__for_first_32 { i = add(&i, &Value::Int(1)); } __for_first_32 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i = add(&i, &Value::Int(1)); } __for_first_21 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -733,8 +752,13 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -756,8 +780,8 @@ impl AsterCore {
         let mut use1sFreq: Value = self.safe_bool_k(params.clone(), "use1sFreq", &[Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_33: bool = true;
-            while { if !__for_first_33 { i = add(&i, &Value::Int(1)); } __for_first_33 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_22: bool = true;
+            while { if !__for_first_22 { i = add(&i, &Value::Int(1)); } __for_first_22 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -810,8 +834,10 @@ impl AsterCore {
         let mut parsed: Value = self.parse_ws_ticker(ticker.clone(), marketType.clone());
         let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
-        client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
+        if !is_equal(&symbol, &Value::Null) {
+            add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
+            client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
+        }
 }
 
     pub fn parse_ws_ticker(&self, mut message: Value, mut marketType: Value) -> Value {
@@ -878,8 +904,13 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -897,8 +928,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_34: bool = true;
-            while { if !__for_first_34 { i = add(&i, &Value::Int(1)); } __for_first_34 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_23: bool = true;
+            while { if !__for_first_23 { i = add(&i, &Value::Int(1)); } __for_first_23 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -939,8 +970,13 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = get_array_length(&symbols);
@@ -958,8 +994,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_35: bool = true;
-            while { if !__for_first_35 { i = add(&i, &Value::Int(1)); } __for_first_35 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i = add(&i, &Value::Int(1)); } __for_first_24 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -993,7 +1029,9 @@ impl AsterCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut ticker: Value = self.parse_ws_bid_ask(data.clone(), &[market.clone()]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+        if !is_equal(&symbol, &Value::Null) {
+            add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+        }
         let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
@@ -1001,9 +1039,10 @@ impl AsterCore {
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "T", &[]);
+        let mut bidAskSymbol: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("symbol".to_string())), Value::Null);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), bidAskSymbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("ask".to_string(), self.safe_string_k(message.clone(), "a", &[]));
@@ -1085,7 +1124,9 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
@@ -1108,8 +1149,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_36: bool = true;
-            while { if !__for_first_36 { i = add(&i, &Value::Int(1)); } __for_first_36 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_25: bool = true;
+            while { if !__for_first_25 { i = add(&i, &Value::Int(1)); } __for_first_25 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1145,7 +1186,9 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
@@ -1167,8 +1210,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_37: bool = true;
-            while { if !__for_first_37 { i = add(&i, &Value::Int(1)); } __for_first_37 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i = add(&i, &Value::Int(1)); } __for_first_26 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1203,6 +1246,9 @@ impl AsterCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
         let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
+        if is_equal(&symbol, &Value::Null) {
+            return;
+        }
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
@@ -1379,7 +1425,7 @@ impl AsterCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1404,7 +1450,7 @@ impl AsterCore {
  * @param {string} symbol symbol of the market to unwatch the trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1428,7 +1474,7 @@ impl AsterCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1436,7 +1482,9 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
@@ -1461,8 +1509,8 @@ impl AsterCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_38: bool = true;
-            while { if !__for_first_38 { i = add(&i, &Value::Int(1)); } __for_first_38 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_27: bool = true;
+            while { if !__for_first_27 { i = add(&i, &Value::Int(1)); } __for_first_27 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1488,14 +1536,16 @@ impl AsterCore {
  * @param {string[]} symbols unified symbol of the market to unwatch the trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
@@ -1522,8 +1572,8 @@ impl AsterCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_39: bool = true;
-            while { if !__for_first_39 { i = add(&i, &Value::Int(1)); } __for_first_39 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i = add(&i, &Value::Int(1)); } __for_first_28 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1600,7 +1650,9 @@ impl AsterCore {
     m
 }));
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOHLCV".to_string()));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.safe_symbol(symbol.clone(), &[]);
         let mut result: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
         return get_value(&get_value(&result, &symbol), &timeframe);
@@ -1650,7 +1702,9 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut symbolsLength: Value = get_array_length(&symbolsAndTimeframes);
         let mut methodName: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchOHLCVForSymbols".to_string())]); methodName = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1673,15 +1727,18 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_40: bool = true;
-            while { if !__for_first_40 { i = add(&i, &Value::Int(1)); } __for_first_40 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i = add(&i, &Value::Int(1)); } __for_first_29 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
+            if is_equal(&symbolString, &Value::Null) {
+                continue;
+            }
             let mut market: Value = self.market(symbolString.clone());
             symbolString = get_value(&market, &Value::Str("symbol".to_string()));
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[]);
-            let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
+            let mut timeframeId: Value = ternary(is_true(&(is_equal(&unfiedTimeframe, &Value::Null))), Value::Null, self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]));
             append_to_array(&mut subscriptionArgs, add(&add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@kline_".to_string())), &timeframeId));
             append_to_array(&mut messageHashes, add(&add(&add(&Value::Str("ohlcv:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(":".to_string())), &unfiedTimeframe));
         }
@@ -1715,7 +1772,9 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut symbolsLength: Value = get_array_length(&symbolsAndTimeframes);
         let mut methodName: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("unWatchOHLCVForSymbols".to_string())]); methodName = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1738,15 +1797,18 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_41: bool = true;
-            while { if !__for_first_41 { i = add(&i, &Value::Int(1)); } __for_first_41 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i = add(&i, &Value::Int(1)); } __for_first_30 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
+            if is_equal(&symbolString, &Value::Null) {
+                continue;
+            }
             let mut market: Value = self.market(symbolString.clone());
             symbolString = get_value(&market, &Value::Str("symbol".to_string()));
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[]);
-            let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
+            let mut timeframeId: Value = ternary(is_true(&(is_equal(&unfiedTimeframe, &Value::Null))), Value::Null, self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]));
             append_to_array(&mut subscriptionArgs, add(&add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@kline_".to_string())), &timeframeId));
             append_to_array(&mut messageHashes, add(&add(&add(&Value::Str("unsubscribe:ohlcv:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(":".to_string())), &unfiedTimeframe));
         }
@@ -1792,6 +1854,9 @@ impl AsterCore {
         let mut kline: Value = self.safe_dict_k(data.clone(), "k", &[]);
         let mut timeframeId: Value = self.safe_string_k(kline.clone(), "i", &[]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
+        if is_equal(&timeframe, &Value::Null) {
+            return;
+        }
         let mut ohlcvsByTimeframe: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
         if is_equal(&ohlcvsByTimeframe, &Value::Null) {
             add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
@@ -1836,7 +1901,10 @@ impl AsterCore {
         })]);
         let mut listenKeyRefreshRate: Value = self.safe_integer(listenKeyRefreshRateOptions.clone(), type_var.clone(), &[Value::Int(3600000)]); // 1 hour
         if is_greater_than(&subtract(&time, &lastAuthenticatedTime), &listenKeyRefreshRate) {
-            let mut response: Value = Value::Null;
+            let mut response: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
             if is_equal(&type_var, &Value::Str("spot".to_string())) {
                 response = self.sapi_private_post_v3_listen_key(&[params.clone()]).await;
             }  else {
@@ -1882,8 +1950,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_42: bool = true;
-                while { if !__for_first_42 { i = add(&i, &Value::Int(1)); } __for_first_42 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+                let mut __for_first_31: bool = true;
+                while { if !__for_first_31 { i = add(&i, &Value::Int(1)); } __for_first_31 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -1932,7 +2000,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone(), type_var.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.authenticate(&[type_var.clone(), params.clone()]).await;
@@ -2062,8 +2132,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut wallet: Value = self.safe_string_k(self.options.clone(), "wallet", &[Value::Str("wb".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_43: bool = true;
-            while { if !__for_first_43 { i = add(&i, &Value::Int(1)); } __for_first_43 = false; is_less_than(&i, &get_array_length(&B)) } {
+            let mut __for_first_32: bool = true;
+            while { if !__for_first_32 { i = add(&i, &Value::Int(1)); } __for_first_32 = false; is_less_than(&i, &get_array_length(&B)) } {
             let mut entry: Value = get_value(&B, &i);
             let mut entry: Value = get_value(&B, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "a", &[]);
@@ -2101,7 +2171,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Str("swap".to_string());
         self.authenticate(&[type_var.clone(), params.clone()]).await;
         let mut url: Value = self.get_private_url(&[type_var.clone()]);
@@ -2115,8 +2187,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_44: bool = true;
-                while { if !__for_first_44 { i = add(&i, &Value::Int(1)); } __for_first_44 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_33: bool = true;
+                while { if !__for_first_33 { i = add(&i, &Value::Int(1)); } __for_first_33 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str("::".to_string())), &symbol));
@@ -2161,12 +2233,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_45: bool = true;
-            while { if !__for_first_45 { i = add(&i, &Value::Int(1)); } __for_first_45 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_34: bool = true;
+            while { if !__for_first_34 { i = add(&i, &Value::Int(1)); } __for_first_34 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
-            if is_greater_than(&contracts, &Value::Int(0)) {
+            if is_true(&(!is_equal(&contracts, &Value::Null))) && is_true(&(is_greater_than(&contracts, &Value::Int(0)))) {
                 cache.append(position.clone());
             }
         }
@@ -2226,8 +2298,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_46: bool = true;
-            while { if !__for_first_46 { i = add(&i, &Value::Int(1)); } __for_first_46 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_35: bool = true;
+            while { if !__for_first_35 { i = add(&i, &Value::Int(1)); } __for_first_35 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -2242,8 +2314,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !is_true(&self.is_empty(messageHashes.clone())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_47: bool = true;
-                while { if !__for_first_47 { i = add(&i, &Value::Int(1)); } __for_first_47 = false; is_less_than(&i, &get_array_length(&newPositions)) } {
+                let mut __for_first_36: bool = true;
+                while { if !__for_first_36 { i = add(&i, &Value::Int(1)); } __for_first_36 = false; is_less_than(&i, &get_array_length(&newPositions)) } {
                 let mut position: Value = get_value(&newPositions, &i);
                 let mut position: Value = get_value(&newPositions, &i);
                 let mut symbol: Value = get_value(&position, &Value::Str("symbol".to_string()));
@@ -2336,7 +2408,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2382,7 +2456,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2455,13 +2531,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                             let mut insertNewFeeCurrency: Value = Value::Bool(true);
                             {
                                                                 let mut i: Value = Value::Int(0);
-                                let mut __for_first_48: bool = true;
-                                while { if !__for_first_48 { i = add(&i, &Value::Int(1)); } __for_first_48 = false; is_less_than(&i, &get_array_length(&fees)) } {
+                                let mut __for_first_37: bool = true;
+                                while { if !__for_first_37 { i = add(&i, &Value::Int(1)); } __for_first_37 = false; is_less_than(&i, &get_array_length(&fees)) } {
                                 let mut orderFee: Value = get_value(&fees, &i);
                                 let mut orderFee: Value = get_value(&fees, &i);
                                 if is_equal(&get_value(&orderFee, &Value::Str("currency".to_string())), &get_value(&tradeFee, &Value::Str("currency".to_string()))) {
                                     let mut feeCost: Value = self.sum(&[get_value(&tradeFee, &Value::Str("cost".to_string())), get_value(&orderFee, &Value::Str("cost".to_string()))]);
-                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".to_string())), &i), &Value::Str("cost".to_string()), crate::runtime::parse_float(&self.currency_to_precision(get_value(&tradeFee, &Value::Str("currency".to_string())), feeCost.clone(), &[])));
+                                    let mut feeCostString: Value = self.currency_to_precision(get_value(&tradeFee, &Value::Str("currency".to_string())), feeCost.clone(), &[]);
+                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".to_string())), &i), &Value::Str("cost".to_string()), ternary(is_true(&(is_equal(&feeCostString, &Value::Null))), Value::Null, crate::runtime::parse_float(&feeCostString)));
                                     insertNewFeeCurrency = Value::Bool(false);
                                     break;
                                 }
@@ -2473,7 +2550,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         }  else if !is_equal(&fee, &Value::Null) {
                             if is_equal(&get_value(&fee, &Value::Str("currency".to_string())), &get_value(&tradeFee, &Value::Str("currency".to_string()))) {
                                 let mut feeCost: Value = self.sum(&[get_value(&fee, &Value::Str("cost".to_string())), get_value(&tradeFee, &Value::Str("cost".to_string()))]);
-                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), crate::runtime::parse_float(&self.currency_to_precision(get_value(&tradeFee, &Value::Str("currency".to_string())), feeCost.clone(), &[])));
+                                let mut feeCostString: Value = self.currency_to_precision(get_value(&tradeFee, &Value::Str("currency".to_string())), feeCost.clone(), &[]);
+                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), ternary(is_true(&(is_equal(&feeCostString, &Value::Null))), Value::Null, crate::runtime::parse_float(&feeCostString)));
                             }  else if is_equal(&get_value(&fee, &Value::Str("currency".to_string())), &Value::Null) {
                                 add_element_to_object(&mut order, &Value::Str("fee".to_string()), tradeFee.clone());
                             }  else {
@@ -2697,7 +2775,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("ORDER_TRADE_UPDATE".to_string(), Value::Null.clone());
             m
         });
-        let mut method: Value = self.safe_value(methods.clone(), event.clone(), &[]);
+        let mut method: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
             method.call(&[client.clone(), messageInner.clone()]);
         }

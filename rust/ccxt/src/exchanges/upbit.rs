@@ -606,7 +606,9 @@ impl UpbitCore {
 }));
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         return self.fetch_currency_by_id(get_value(&currency, &Value::Str("id".to_string())), &[params.clone()]).await;
 
@@ -734,7 +736,9 @@ impl UpbitCore {
 }));
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         return self.fetch_market_by_id(get_value(&market, &Value::Str("id".to_string())), &[params.clone()]).await;
 
@@ -973,8 +977,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1028: bool = true;
-            while { if !__for_first_1028 { i = add(&i, &Value::Int(1)); } __for_first_1028 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_990: bool = true;
+            while { if !__for_first_990 { i = add(&i, &Value::Int(1)); } __for_first_990 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1004,7 +1008,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_accounts(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -1029,13 +1035,18 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ids: Value = Value::Null;
         if is_equal(&symbols, &Value::Null) {
-            ids = join(&self.ids, &Value::Str(",".to_string()));
+            let mut allIds: Value = self.ids.clone();
+            if !is_equal(&allIds, &Value::Null) {
+                ids = join(&allIds, &Value::Str(",".to_string()));
+            }
         }  else {
-            ids = self.market_ids(&[symbols.clone()]);
-            ids = join(&ids, &Value::Str(",".to_string()));
+            let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
+            ids = join(&marketIds, &Value::Str(",".to_string()));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1081,8 +1092,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1029: bool = true;
-            while { if !__for_first_1029 { i = add(&i, &Value::Int(1)); } __for_first_1029 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_991: bool = true;
+            while { if !__for_first_991 { i = add(&i, &Value::Int(1)); } __for_first_991 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut orderbook: Value = get_value(&response, &i);
             let mut orderbook: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(orderbook.clone(), "market", &[]);
@@ -1091,8 +1102,8 @@ impl UpbitCore {
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("bids".to_string(), self.sort_by(self.parse_bids_asks(get_value(&orderbook, &Value::Str("orderbook_units".to_string())), &[Value::Str("bid_price".to_string()), Value::Str("bid_size".to_string())]), Value::Int(0), &[Value::Bool(true)]));
-        m.insert("asks".to_string(), self.sort_by(self.parse_bids_asks(get_value(&orderbook, &Value::Str("orderbook_units".to_string())), &[Value::Str("ask_price".to_string()), Value::Str("ask_size".to_string())]), Value::Int(0), &[]));
+        m.insert("bids".to_string(), self.sort_by(self.parse_order_book_bids_asks(get_value(&orderbook, &Value::Str("orderbook_units".to_string())), &[Value::Str("bid_price".to_string()), Value::Str("bid_size".to_string())]), Value::Int(0), &[Value::Bool(true)]));
+        m.insert("asks".to_string(), self.sort_by(self.parse_order_book_bids_asks(get_value(&orderbook, &Value::Str("orderbook_units".to_string())), &[Value::Str("ask_price".to_string()), Value::Str("ask_size".to_string())]), Value::Int(0), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("nonce".to_string(), Value::Null);
@@ -1114,7 +1125,7 @@ impl UpbitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1206,15 +1217,17 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut ids: Value = ternary(is_true(&(!is_equal(&symbols, &Value::Null))), self.market_ids(&[symbols.clone()]), self.ids.clone());
         let mut promises: Value = Value::List(vec![]);
         let mut queries: Value = self.ids_query_strings(ids.clone(), Value::Int(6400)); // seems upbit server limitations
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1030: bool = true;
-            while { if !__for_first_1030 { i = add(&i, &Value::Int(1)); } __for_first_1030 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_992: bool = true;
+            while { if !__for_first_992 { i = add(&i, &Value::Int(1)); } __for_first_992 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut idsQuery: Value = get_value(&queries, &i);
             let mut idsQuery: Value = get_value(&queries, &i);
             append_to_array(&mut promises, self.public_get_ticker(&[Value::Map({
@@ -1264,8 +1277,8 @@ impl UpbitCore {
         let mut queries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1031: bool = true;
-            while { if !__for_first_1031 { i = add(&i, &Value::Int(1)); } __for_first_1031 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_993: bool = true;
+            while { if !__for_first_993 { i = add(&i, &Value::Int(1)); } __for_first_993 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if !is_equal(&idsString, &Value::Str("".to_string())) {
@@ -1405,7 +1418,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(200);
@@ -1438,7 +1453,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1513,7 +1530,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut fetchMarketResponse: Value = self.fetch_markets(&[params.clone()]).await;
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1521,8 +1540,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1032: bool = true;
-            while { if !__for_first_1032 { i = add(&i, &Value::Int(1)); } __for_first_1032 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
+            let mut __for_first_994: bool = true;
+            while { if !__for_first_994 { i = add(&i, &Value::Int(1)); } __for_first_994 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
             let mut element: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1569,7 +1588,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut timeframePeriod: Value = self.parse_timeframe(timeframe.clone());
         let mut timeframeValue: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -1659,7 +1680,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         let mut customType: Value = self.safe_string2(params.clone(), Value::Str("ordType".to_string()), Value::Str("ord_type".to_string()), &[]);
@@ -1767,7 +1790,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id.clone());
@@ -1808,7 +1833,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1942,7 +1969,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1980,7 +2009,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id.clone());
@@ -2018,7 +2049,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2056,7 +2089,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id.clone());
@@ -2301,8 +2336,8 @@ impl UpbitCore {
             cost = Value::Str("0".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1033: bool = true;
-                while { if !__for_first_1033 { i = add(&i, &Value::Int(1)); } __for_first_1033 = false; is_less_than(&i, &numTrades) } {
+                let mut __for_first_995: bool = true;
+                while { if !__for_first_995 { i = add(&i, &Value::Int(1)); } __for_first_995 = false; is_less_than(&i, &numTrades) } {
                 let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade.clone(), "cost", &[]));
@@ -2378,7 +2413,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2419,7 +2456,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("done".to_string()));
@@ -2465,7 +2504,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("cancel".to_string()));
@@ -2507,7 +2548,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("uuid".to_string(), id.clone());
@@ -2536,7 +2579,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_deposits_coin_addresses(&[params.clone()]).await;
         return self.parse_deposit_addresses(response.clone(), &[codes.clone()]);
 
@@ -2563,7 +2608,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone()]));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone(), code.clone()]));
         m.insert("address".to_string(), address.clone());
         m.insert("tag".to_string(), tag.clone());
     m
@@ -2588,7 +2633,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -2622,7 +2669,9 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2676,7 +2725,9 @@ impl UpbitCore {
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

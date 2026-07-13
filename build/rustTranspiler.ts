@@ -843,9 +843,9 @@ class RustTranspilerBuilder {
                 'pub async fn $1(&mut self)'],
 
             // Specific sync methods known to mutate self.
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
                 'pub fn $1(&mut self,'],
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror)\(&self\)/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror)\(&self\)/g,
                 'pub fn $1(&mut self)'],
 
             // (`}\nimpl X {\n` collapse is applied per-call-site in
@@ -3953,6 +3953,10 @@ class RustTranspilerBuilder {
         const out = { ...this.handWrittenVariadics() };
         delete out['extend_exchange_options'];
         delete out['exception_message'];
+        // Generated base methods that test files call directly (e.g.
+        // `test.fetchHistory` drives `exchange.fetch2(path)`) and whose
+        // trailing optional args must be wrapped into the `&[Value]` slice.
+        out['fetch2'] = 1;
         return out;
     }
 
@@ -5435,13 +5439,61 @@ impl std::ops::DerefMut for ${coreName} {
         overwriteFileAndFolder(`${folder}/mod.rs`, content);
     }
 
+    /**
+     * Strip TypeScript method *overload signatures* — bodyless class-member
+     * declarations like `safeDict (a, b): Dictionary<any>;` that precede the
+     * real implementation. The AST rust transpiler's `printMethodDeclaration`
+     * assumes every method has a `body` and crashes with `Cannot read
+     * properties of undefined (reading 'statements')` on these bodyless
+     * nodes. The other language transpilers skip them; the rust one doesn't
+     * yet, so we drop the overload signatures before transpiling. The
+     * implementation signature — which carries the body and the runtime
+     * behaviour — is left untouched, so the emitted Rust is unchanged.
+     *
+     * Matches a single line at class-member indentation (4 spaces): an
+     * identifier, a parenthesised parameter list, a `:` return-type
+     * annotation and a trailing `;`, with no `{` (not an implementation) and
+     * no `=`/`=>` (not a field or arrow-typed property).
+     */
+    stripTsOverloadSignatures(content: string): string {
+        const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
+        return content
+            .split('\n')
+            .filter((line) => {
+                if (!sigRe.test(line)) {
+                    return true;
+                }
+                if (line.indexOf('=>') !== -1 || line.indexOf(' = ') !== -1) {
+                    return true;
+                }
+                return false;
+            })
+            .join('\n');
+    }
+
     // ── base methods transpilation ─────────────────────────────────────────────
 
     transpileBaseMethods(baseFile: string, isWs = false) {
         log.bright.cyan('Transpiling base methods →', baseFile.yellow, BASE_METHODS_FILE.yellow);
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
 
-        const result = this.transpiler.transpileRustByPath(baseFile);
+        // Strip bodyless TS overload signatures (which crash the AST rust
+        // transpiler) via a temp file in the same directory so the relative
+        // imports in Exchange.ts still resolve exactly as the by-path run.
+        const rawTs = fs.readFileSync(baseFile, 'utf8');
+        const cleanedTs = this.stripTsOverloadSignatures(rawTs);
+        let result;
+        if (cleanedTs !== rawTs) {
+            const tmpFile = path.join(path.dirname(baseFile), '.__ExchangeNoOverloads.ts');
+            fs.writeFileSync(tmpFile, cleanedTs);
+            try {
+                result = this.transpiler.transpileRustByPath(tmpFile);
+            } finally {
+                fs.unlinkSync(tmpFile);
+            }
+        } else {
+            result = this.transpiler.transpileRustByPath(baseFile);
+        }
         let content: string = result.content ?? '';
 
         // ── 1. take only the slice below the marker ────────────────────────────

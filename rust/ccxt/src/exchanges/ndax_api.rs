@@ -26,6 +26,11 @@ impl NdaxCore {
         self.call_method(Value::Str("public_get_authenticate_user".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetEnableXP2FA` implicit endpoint.
+    pub async fn public_get_enable_xp2_fa(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_enable_xp2_fa".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetGetL2Snapshot` implicit endpoint.
     pub async fn public_get_get_l2_snapshot(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_l2_snapshot".to_string()), optional_args).await
@@ -71,9 +76,34 @@ impl NdaxCore {
         self.call_method(Value::Str("public_get_get_instruments".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetGetEarliestTickTime` implicit endpoint.
+    pub async fn public_get_get_earliest_tick_time(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_earliest_tick_time".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetPing` implicit endpoint.
     pub async fn public_get_ping(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ping".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetAssets` implicit endpoint.
+    pub async fn public_get_assets(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
+    pub async fn public_get_orderbook(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_orderbook".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
+    pub async fn public_get_ticker(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetSummary` implicit endpoint.
+    pub async fn public_get_summary(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_summary".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTrades` implicit endpoint.
@@ -84,6 +114,11 @@ impl NdaxCore {
     /// Auto-generated wrapper for the `publicGetGetLastTrades` implicit endpoint.
     pub async fn public_get_get_last_trades(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_last_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetConfirmWithdraw` implicit endpoint.
+    pub async fn public_get_confirm_withdraw(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_confirm_withdraw".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSubscribeLevel1` implicit endpoint.
@@ -341,14 +376,34 @@ impl NdaxCore {
         self.call_method(Value::Str("private_get_get_withdraw_ticket".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetWithdrawTicketAttachment` implicit endpoint.
+    pub async fn private_get_get_withdraw_ticket_attachment(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_withdraw_ticket_attachment".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetGetWithdrawTickets` implicit endpoint.
     pub async fn private_get_get_withdraw_tickets(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_withdraw_tickets".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetDepositTicketAttachment` implicit endpoint.
+    pub async fn private_get_get_deposit_ticket_attachment(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_deposit_ticket_attachment".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAddUserAffiliateTag` implicit endpoint.
     pub async fn private_post_add_user_affiliate_tag(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_add_user_affiliate_tag".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAddDepositTicketAttachment` implicit endpoint.
+    pub async fn private_post_add_deposit_ticket_attachment(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_add_deposit_ticket_attachment".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAddWithdrawTicketAttachment` implicit endpoint.
+    pub async fn private_post_add_withdraw_ticket_attachment(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_add_withdraw_ticket_attachment".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelUserReport` implicit endpoint.

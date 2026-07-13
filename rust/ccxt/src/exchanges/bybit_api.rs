@@ -146,6 +146,11 @@ impl BybitCore {
         self.call_method(Value::Str("public_get_v5_announcements_index".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV5SystemStatus` implicit endpoint.
+    pub async fn public_get_v5_system_status(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_system_status".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetV5MarketTime` implicit endpoint.
     pub async fn public_get_v5_market_time(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_time".to_string()), optional_args).await
@@ -179,6 +184,16 @@ impl BybitCore {
     /// Auto-generated wrapper for the `publicGetV5MarketOrderbook` implicit endpoint.
     pub async fn public_get_v5_market_orderbook(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_orderbook".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5MarketRpiOrderbook` implicit endpoint.
+    pub async fn public_get_v5_market_rpi_orderbook(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_rpi_orderbook".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5MarketFullOrderbook` implicit endpoint.
+    pub async fn public_get_v5_market_full_orderbook(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_full_orderbook".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketTickers` implicit endpoint.
@@ -221,9 +236,34 @@ impl BybitCore {
         self.call_method(Value::Str("public_get_v5_market_delivery_price".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV5MarketNewDeliveryPrice` implicit endpoint.
+    pub async fn public_get_v5_market_new_delivery_price(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_new_delivery_price".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetV5MarketAccountRatio` implicit endpoint.
     pub async fn public_get_v5_market_account_ratio(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v5_market_account_ratio".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5MarketIndexPriceComponents` implicit endpoint.
+    pub async fn public_get_v5_market_index_price_components(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_index_price_components".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5MarketPriceLimit` implicit endpoint.
+    pub async fn public_get_v5_market_price_limit(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_price_limit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5MarketAdlAlert` implicit endpoint.
+    pub async fn public_get_v5_market_adl_alert(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_adl_alert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV5MarketFeeGroupInfo` implicit endpoint.
+    pub async fn public_get_v5_market_fee_group_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v5_market_fee_group_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotLeverTokenInfo` implicit endpoint.
@@ -616,9 +656,19 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_position_closed_pnl".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5PositionGetClosedPositions` implicit endpoint.
+    pub async fn private_get_v5_position_get_closed_positions(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_position_get_closed_positions".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5PositionMoveHistory` implicit endpoint.
     pub async fn private_get_v5_position_move_history(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_position_move_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5PositionSymbolInfo` implicit endpoint.
+    pub async fn private_get_v5_position_symbol_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_position_symbol_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5PreUpgradeOrderHistory` implicit endpoint.
@@ -671,6 +721,11 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_account_collateral_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5AccountOptionAssetInfo` implicit endpoint.
+    pub async fn private_get_v5_account_option_asset_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_account_option_asset_info".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5AssetCoinGreeks` implicit endpoint.
     pub async fn private_get_v5_asset_coin_greeks(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_coin_greeks".to_string()), optional_args).await
@@ -696,6 +751,26 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_account_contract_transaction_log".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5AccountQueryDcpInfo` implicit endpoint.
+    pub async fn private_get_v5_account_query_dcp_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_account_query_dcp_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AccountUserSettingConfig` implicit endpoint.
+    pub async fn private_get_v5_account_user_setting_config(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_account_user_setting_config".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AccountPayInfo` implicit endpoint.
+    pub async fn private_get_v5_account_pay_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_account_pay_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AccountTradeInfoForAnalysis` implicit endpoint.
+    pub async fn private_get_v5_account_trade_info_for_analysis(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_account_trade_info_for_analysis".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5AccountSmpGroup` implicit endpoint.
     pub async fn private_get_v5_account_smp_group(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_smp_group".to_string()), optional_args).await
@@ -709,6 +784,11 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privateGetV5AccountWithdrawal` implicit endpoint.
     pub async fn private_get_v5_account_withdrawal(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_account_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AssetAssetOverview` implicit endpoint.
+    pub async fn private_get_v5_asset_asset_overview(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_asset_asset_overview".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeQueryCoinList` implicit endpoint.
@@ -729,6 +809,21 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeOrderRecord` implicit endpoint.
     pub async fn private_get_v5_asset_exchange_order_record(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_exchange_order_record".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AssetFundinghistory` implicit endpoint.
+    pub async fn private_get_v5_asset_fundinghistory(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_asset_fundinghistory".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AssetPortfolioMargin` implicit endpoint.
+    pub async fn private_get_v5_asset_portfolio_margin(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_asset_portfolio_margin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AssetTotalMembersAssets` implicit endpoint.
+    pub async fn private_get_v5_asset_total_members_assets(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_asset_total_members_assets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDeliveryRecord` implicit endpoint.
@@ -831,6 +926,16 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_asset_withdraw_vasp_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5AssetCovertSmallBalanceList` implicit endpoint.
+    pub async fn private_get_v5_asset_covert_small_balance_list(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_asset_covert_small_balance_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AssetCovertSmallBalanceHistory` implicit endpoint.
+    pub async fn private_get_v5_asset_covert_small_balance_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_asset_covert_small_balance_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5AssetConvertSmallBalanceList` implicit endpoint.
     pub async fn private_get_v5_asset_convert_small_balance_list(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_asset_convert_small_balance_list".to_string()), optional_args).await
@@ -901,9 +1006,24 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_user_submembers".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5UserEscrowSubMembers` implicit endpoint.
+    pub async fn private_get_v5_user_escrow_sub_members(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_user_escrow_sub_members".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5UserInvitationReferrals` implicit endpoint.
+    pub async fn private_get_v5_user_invitation_referrals(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_user_invitation_referrals".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5AffiliateAffUserList` implicit endpoint.
     pub async fn private_get_v5_affiliate_aff_user_list(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_affiliate_aff_user_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5AffiliateAffiliateSubList` implicit endpoint.
+    pub async fn private_get_v5_affiliate_affiliate_sub_list(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_affiliate_affiliate_sub_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotLeverTokenOrderRecord` implicit endpoint.
@@ -934,6 +1054,31 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeCoinstate` implicit endpoint.
     pub async fn private_get_v5_spot_margin_trade_coinstate(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_coinstate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeCurrencyData` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_currency_data(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_currency_data".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedborrowContractInfo` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_fixedborrow_contract_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixedborrow_contract_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedborrowOrderInfo` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_fixedborrow_order_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixedborrow_order_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFixedborrowOrderQuote` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_fixedborrow_order_quote(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_fixedborrow_order_quote".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeLiability` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_liability(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_liability".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeRepaymentAvailableAmount` implicit endpoint.
@@ -1061,6 +1206,11 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_ins_loan_product_infos".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5InsLoanEnsureTokens` implicit endpoint.
+    pub async fn private_get_v5_ins_loan_ensure_tokens(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_ins_loan_ensure_tokens".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5InsLoanEnsureTokensConvert` implicit endpoint.
     pub async fn private_get_v5_ins_loan_ensure_tokens_convert(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_ensure_tokens_convert".to_string()), optional_args).await
@@ -1076,9 +1226,19 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_ins_loan_repaid_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5InsLoanLtv` implicit endpoint.
+    pub async fn private_get_v5_ins_loan_ltv(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_ins_loan_ltv".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5InsLoanLtvConvert` implicit endpoint.
     pub async fn private_get_v5_ins_loan_ltv_convert(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_ins_loan_ltv_convert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV5InsLoanCoinDeltaAmount` implicit endpoint.
+    pub async fn private_get_v5_ins_loan_coin_delta_amount(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_ins_loan_coin_delta_amount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV5LendingInfo` implicit endpoint.
@@ -1461,6 +1621,11 @@ impl BybitCore {
         self.call_method(Value::Str("private_post_v5_order_disconnected_cancel_all".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostV5OrderPreCheck` implicit endpoint.
+    pub async fn private_post_v5_order_pre_check(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_order_pre_check".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV5PositionSetLeverage` implicit endpoint.
     pub async fn private_post_v5_position_set_leverage(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_position_set_leverage".to_string()), optional_args).await
@@ -1561,6 +1726,11 @@ impl BybitCore {
         self.call_method(Value::Str("private_post_v5_account_set_limit_px_action".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostV5AccountSetDeltaMode` implicit endpoint.
+    pub async fn private_post_v5_account_set_delta_mode(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_account_set_delta_mode".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV5AssetExchangeQuoteApply` implicit endpoint.
     pub async fn private_post_v5_asset_exchange_quote_apply(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_exchange_quote_apply".to_string()), optional_args).await
@@ -1589,6 +1759,11 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privatePostV5AssetDepositDepositToAccount` implicit endpoint.
     pub async fn private_post_v5_asset_deposit_deposit_to_account(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_asset_deposit_deposit_to_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5AssetTravelRuleDepositSubmit` implicit endpoint.
+    pub async fn private_post_v5_asset_travel_rule_deposit_submit(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_asset_travel_rule_deposit_submit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetWithdrawCreate` implicit endpoint.
@@ -1656,6 +1831,16 @@ impl BybitCore {
         self.call_method(Value::Str("private_post_v5_user_delete_sub_api".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostV5UserAgreement` implicit endpoint.
+    pub async fn private_post_v5_user_agreement(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_user_agreement".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5UserCreateDemoMember` implicit endpoint.
+    pub async fn private_post_v5_user_create_demo_member(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_user_create_demo_member".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV5SpotLeverTokenPurchase` implicit endpoint.
     pub async fn private_post_v5_spot_lever_token_purchase(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_lever_token_purchase".to_string()), optional_args).await
@@ -1679,6 +1864,16 @@ impl BybitCore {
     /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeSetAutoRepayMode` implicit endpoint.
     pub async fn private_post_v5_spot_margin_trade_set_auto_repay_mode(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v5_spot_margin_trade_set_auto_repay_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeFixedborrow` implicit endpoint.
+    pub async fn private_post_v5_spot_margin_trade_fixedborrow(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_spot_margin_trade_fixedborrow".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV5SpotMarginTradeFixedborrowRenew` implicit endpoint.
+    pub async fn private_post_v5_spot_margin_trade_fixedborrow_renew(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v5_spot_margin_trade_fixedborrow_renew".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV5SpotCrossMarginTradeLoan` implicit endpoint.

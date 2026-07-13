@@ -606,7 +606,7 @@ impl KrakenCore {
  * @method
  * @name kraken#createOrderWs
  * @description create a trade order
- * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -689,7 +689,7 @@ impl KrakenCore {
  * @method
  * @name kraken#editOrderWs
  * @description edit a trade order
- * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -735,7 +735,7 @@ impl KrakenCore {
  * @method
  * @name kraken#cancelOrdersWs
  * @description cancel multiple orders
- * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -777,7 +777,7 @@ impl KrakenCore {
  * @method
  * @name kraken#cancelOrderWs
  * @description cancels an open order
- * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -836,7 +836,7 @@ impl KrakenCore {
  * @method
  * @name kraken#cancelAllOrdersWs
  * @description cancel all open orders
- * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -983,8 +983,8 @@ impl KrakenCore {
         let mut parsed: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_422: bool = true;
-            while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_414: bool = true;
+            while { if !__for_first_414 { i = add(&i, &Value::Int(1)); } __for_first_414 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             stored.append(get_value(&parsed, &i));
         }
         }
@@ -1040,10 +1040,10 @@ impl KrakenCore {
         let mut ohlcvsLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_423: bool = true;
-            while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &ohlcvsLength) } {
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { i = add(&i, &Value::Int(1)); } __for_first_415 = false; is_less_than(&i, &ohlcvsLength) } {
             let mut candle: Value = get_value(&data, &subtract(&subtract(&ohlcvsLength, &i), &Value::Int(1)));
-            let mut datetime: Value = self.safe_string_k(candle.clone(), "timestamp", &[]);
+            let mut datetime: Value = self.safe_string_k(candle.clone(), "interval_begin", &[]);
             let mut timestamp: Value = self.parse8601(datetime.clone());
             let mut parsed: Value = Value::List(vec![timestamp.clone(), self.safe_string_k(candle.clone(), "open", &[]), self.safe_string_k(candle.clone(), "high", &[]), self.safe_string_k(candle.clone(), "low", &[]), self.safe_string_k(candle.clone(), "close", &[]), self.safe_string_k(candle.clone(), "volume", &[])]);
             stored.append(parsed.clone());
@@ -1067,7 +1067,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1089,7 +1089,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
  * @param {string[]} symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1120,7 +1120,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchBidsAsks
  * @description watches best bid & ask for symbols
- * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1152,7 +1152,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1175,7 +1175,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchTradesForSymbols
  * @description get the list of most recent trades for a list of symbols
- * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1204,11 +1204,11 @@ impl KrakenCore {
  * @method
  * @name kraken#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kraken.com/api/docs/websocket-v2/book
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1225,11 +1225,11 @@ impl KrakenCore {
  * @method
  * @name kraken#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kraken.com/api/docs/websocket-v2/book
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1262,7 +1262,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1321,19 +1321,23 @@ impl KrakenCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_424: bool = true;
-                while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-                let mut symbol: Value = get_value(&self.symbols, &i);
-                let mut market: Value = get_value(&self.markets, &symbol);
-                let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
-                let mut wsName: Value = self.safe_string_k(info.clone(), "wsname", &[]);
-                add_element_to_object(&mut marketsByWsName, &wsName, market.clone());
-            }
+            let mut symbols: Value = self.symbols.clone(); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            if !is_equal(&symbols, &Value::Null) {
+                {
+                                        let mut i: Value = Value::Int(0);
+                    let mut __for_first_416: bool = true;
+                    while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                    let mut symbol: Value = get_value(&symbols, &i);
+                    let mut symbol: Value = get_value(&symbols, &i);
+                    let mut market: Value = get_value(&self.markets, &symbol);
+                    let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                        m
+                    })]);
+                    let mut wsName: Value = self.safe_string_k(info.clone(), "wsname", &[]);
+                    add_element_to_object(&mut marketsByWsName, &wsName, market.clone());
+                }
+                }
             }
             add_element_to_object(&mut self.options, &Value::Str("marketsByWsName".to_string()), marketsByWsName.clone());
         }
@@ -1481,8 +1485,8 @@ impl KrakenCore {
             let mut keys: Value = Value::List(vec![Value::Str("asks".to_string()), Value::Str("bids".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_425: bool = true;
-                while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_417: bool = true;
+                while { if !__for_first_417 { i = add(&i, &Value::Int(1)); } __for_first_417 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut bookside: Value = get_value(&orderbook, &key);
@@ -1504,8 +1508,8 @@ impl KrakenCore {
                 let mut checkBids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_426: bool = true;
-                    while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &Value::Int(10)) } {
+                    let mut __for_first_418: bool = true;
+                    while { if !__for_first_418 { i = add(&i, &Value::Int(1)); } __for_first_418 = false; is_less_than(&i, &Value::Int(10)) } {
                     let mut currentAsk: Value = self.safe_value(checkAsks.clone(), i.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1516,8 +1520,8 @@ impl KrakenCore {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_427: bool = true;
-                    while { if !__for_first_427 { i = add(&i, &Value::Int(1)); } __for_first_427 = false; is_less_than(&i, &Value::Int(10)) } {
+                    let mut __for_first_419: bool = true;
+                    while { if !__for_first_419 { i = add(&i, &Value::Int(1)); } __for_first_419 = false; is_less_than(&i, &Value::Int(10)) } {
                     let mut currentBid: Value = self.safe_value(checkBids.clone(), i.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1543,8 +1547,8 @@ impl KrakenCore {
     pub fn custom_handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { j = add(&j, &Value::Int(1)); } __for_first_428 = false; is_less_than(&j, &get_array_length(&deltas)) } {
+            let mut __for_first_420: bool = true;
+            while { if !__for_first_420 { j = add(&j, &Value::Int(1)); } __for_first_420 = false; is_less_than(&j, &get_array_length(&deltas)) } {
             let mut delta: Value = get_value(&deltas, &j);
             let mut delta: Value = get_value(&deltas, &j);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);
@@ -1656,7 +1660,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1724,8 +1728,8 @@ impl KrakenCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_429: bool = true;
-                while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&allTrades)) } {
+                let mut __for_first_421: bool = true;
+                while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&allTrades)) } {
                 let mut trade: Value = self.safe_dict(allTrades.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1741,8 +1745,8 @@ impl KrakenCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_430: bool = true;
-                while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_422: bool = true;
+                while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &get_value(&keys, &i));
                 client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
             }
@@ -1822,7 +1826,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1890,8 +1894,8 @@ impl KrakenCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_431: bool = true;
-                while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
+                let mut __for_first_423: bool = true;
+                while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
                 let mut order: Value = self.safe_dict(allOrders.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1928,8 +1932,8 @@ impl KrakenCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_432: bool = true;
-                while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_424: bool = true;
+                while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &get_value(&keys, &i));
                 client.resolve(&[self.orders.clone(), messageHash.clone()]);
             }
@@ -2026,11 +2030,14 @@ impl KrakenCore {
         self.load_markets(&[]).await;
         // symbols are required
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
+        if is_equal(&symbols, &Value::Null) {
+            return Value::Null;
+        }
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_433: bool = true;
-            while { if !__for_first_433 { i = add(&i, &Value::Int(1)); } __for_first_433 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_425: bool = true;
+            while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut eventTrigger: Value = self.safe_string_k(params.clone(), "event_trigger", &[]);
             if !is_equal(&eventTrigger, &Value::Null) {
                 append_to_array(&mut messageHashes, self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(get_value(&symbols, &i))]));
@@ -2062,7 +2069,7 @@ impl KrakenCore {
  * @method
  * @name kraken#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -2124,8 +2131,8 @@ impl KrakenCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { i = add(&i, &Value::Int(1)); } __for_first_434 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut currencyId: Value = self.safe_string_k(get_value(&data, &i), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();

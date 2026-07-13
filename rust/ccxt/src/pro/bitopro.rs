@@ -353,7 +353,7 @@ impl BitoproCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -366,7 +366,9 @@ impl BitoproCore {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000".to_string()))));
             }
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&add(&Value::Str("ORDER_BOOK".to_string()), &Value::Str(":".to_string())), &symbol);
@@ -440,7 +442,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&add(&Value::Str("TRADE".to_string()), &Value::Str(":".to_string())), &symbol);
@@ -487,8 +491,8 @@ impl BitoproCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&trades)) } {
             tradesCache.append(get_value(&trades, &i));
         }
         }
@@ -516,7 +520,9 @@ impl BitoproCore {
     m
 }));
         self.check_required_credentials(&[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("USER_TRADE".to_string());
         if !is_equal(&symbol, &Value::Null) {
             let mut market: Value = self.market(symbol.clone());
@@ -674,7 +680,9 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&add(&Value::Str("TICKER".to_string()), &Value::Str(":".to_string())), &symbol);
@@ -704,7 +712,7 @@ impl BitoproCore {
         //
         let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
         // market-ids are lowercase in REST API and uppercase in WS API
-        let mut market: Value = self.safe_market(&[to_lower(&marketId), Value::Null, Value::Str("_".to_string())]);
+        let mut market: Value = self.safe_market(&[ternary(!is_equal(&marketId, &Value::Null), to_lower(&marketId), Value::Null), Value::Null, Value::Str("_".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut messageHash: Value = add(&add(&event, &Value::Str(":".to_string())), &symbol);
@@ -778,7 +786,9 @@ impl BitoproCore {
     m
 }));
         self.check_required_credentials(&[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("ACCOUNT_BALANCE".to_string());
         let mut url: Value = add(&add(&get_value(&get_value(&self.urls, &Value::Str("ws".to_string())), &Value::Str("private".to_string())), &Value::Str("/".to_string())), &Value::Str("account-balance".to_string()));
         self.authenticate(url.clone());
@@ -818,8 +828,8 @@ impl BitoproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_171: bool = true;
-            while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currency: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
             let mut balance: Value = self.safe_value(data.clone(), currency.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);

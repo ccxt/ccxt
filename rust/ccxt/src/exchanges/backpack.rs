@@ -437,7 +437,7 @@ impl BackpackCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.backpack.exchange".to_string()));
@@ -939,13 +939,13 @@ impl BackpackCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_216: bool = true;
-            while { if !__for_first_216 { j = add(&j, &Value::Int(1)); } __for_first_216 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_197: bool = true;
+            while { if !__for_first_197 { j = add(&j, &Value::Int(1)); } __for_first_197 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "blockchain", &[]);
             let mut networkIdLowerCase: Value = self.safe_string_lower(network.clone(), Value::Str("blockchain".to_string()), &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkIdLowerCase.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkIdLowerCase.clone(), code.clone()]);
             add_element_to_object(&mut parsedNetworks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
@@ -1269,7 +1269,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1296,7 +1298,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1385,7 +1389,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1437,7 +1443,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: Value = Value::Map({
@@ -1496,7 +1504,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchFundingRate() symbol does not support market ".to_string())), &symbol)));
@@ -1572,7 +1582,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchOpenInterest() symbol does not support market ".to_string())), &symbol)));
@@ -1608,7 +1620,7 @@ impl BackpackCore {
         let mut openInterest: Value = self.safe_number_k(interest.clone(), "openInterest", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("openInterestAmount".to_string(), Value::Null);
         m.insert("openInterestValue".to_string(), openInterest.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -1642,7 +1654,9 @@ impl BackpackCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1666,8 +1680,8 @@ impl BackpackCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_198: bool = true;
+            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rate: Value = get_value(&response, &i);
             let mut rate: Value = get_value(&response, &i);
             let mut datetime: Value = self.safe_string_k(rate.clone(), "intervalEndTimestamp", &[]);
@@ -1709,7 +1723,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1754,7 +1770,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1820,10 +1838,17 @@ impl BackpackCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "quantity", &[]);
-        let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
-        let mut takerOrMaker: Value = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
-        let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
+        let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]);
         let mut side: Value = self.parse_order_side(self.safe_string_k(trade.clone(), "side", &[]));
+        let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
+        let mut takerOrMaker: Value = Value::Null;
+        if !is_equal(&isMaker, &Value::Null) {
+            takerOrMaker = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
+        }  else if !is_equal(&isBuyerMaker, &Value::Null) {
+            takerOrMaker = Value::Str("taker".to_string());
+            side = ternary(is_true(&isBuyerMaker), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
+        }
+        let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
         let mut fee: Value = Value::Null;
         let mut feeAmount: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
@@ -1929,7 +1954,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_api_v1_capital(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -1953,8 +1980,8 @@ impl BackpackCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&balanceKeys)) } {
+            let mut __for_first_199: bool = true;
+            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&balanceKeys)) } {
             let mut id: Value = get_value(&balanceKeys, &i);
             let mut id: Value = get_value(&balanceKeys, &i);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -1993,7 +2020,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2040,7 +2069,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2086,7 +2117,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2101,7 +2134,7 @@ impl BackpackCore {
         let mut networkCodequeryVariable = self.handle_network_code_and_params(params.clone());
         let mut networkCode: Value = get_value(&networkCodequeryVariable, &Value::Int(0));
         let mut query: Value = get_value(&networkCodequeryVariable, &Value::Int(1));
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[]);
+        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]);
         if is_equal(&networkId, &Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" withdraw() requires a network parameter".to_string()))));
         }
@@ -2195,7 +2228,7 @@ impl BackpackCore {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "createdAt", &[]));
         let mut amount: Value = self.safe_number_k(transaction.clone(), "quantity", &[]);
         let mut networkId: Value = self.safe_string_lower2(transaction.clone(), Value::Str("source".to_string()), Value::Str("blockchain".to_string()), &[]);
-        let mut network: Value = self.network_id_to_code(&[networkId.clone()]);
+        let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "toAddress", &[]);
         let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "fromAddress", &[]);
         let mut tag: Value = self.safe_string_k(transaction.clone(), "platformMemo", &[]);
@@ -2271,7 +2304,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&networkCode, &Value::Null) {
@@ -2280,7 +2315,7 @@ impl BackpackCore {
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[]));
+                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
             m
         });
         let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
@@ -2349,7 +2384,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut orderRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = self.private_post_api_v1_order(&[orderRequest.clone()]).await;
@@ -2372,12 +2409,14 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_219: bool = true;
-            while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_200: bool = true;
+            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2516,7 +2555,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2549,7 +2590,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrder() requires a symbol argument".to_string()))));
         }
@@ -2583,7 +2626,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
@@ -2616,7 +2661,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
@@ -2652,7 +2699,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2863,7 +2912,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_api_v1_position(&[params.clone()]).await;
         let mut positions: Value = self.parse_positions(response.clone(), &[]);
         if is_true(&self.is_empty(symbols.clone())) {
@@ -2986,7 +3037,9 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3121,8 +3174,8 @@ impl BackpackCore {
         let mut payload: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i = add(&i, &Value::Int(1)); } __for_first_220 = false; is_less_than(&i, &get_array_length(&params)) } {
+            let mut __for_first_201: bool = true;
+            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&params)) } {
             let mut order: Value = self.safe_dict(params.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

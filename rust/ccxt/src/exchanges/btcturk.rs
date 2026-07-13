@@ -348,7 +348,7 @@ impl BtcturkCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.btcturk.com/api/v2".to_string()));
@@ -605,8 +605,8 @@ impl BtcturkCore {
         let mut minCost: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { j = add(&j, &Value::Int(1)); } __for_first_434 = false; is_less_than(&j, &get_array_length(&filters)) } {
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { j = add(&j, &Value::Int(1)); } __for_first_415 = false; is_less_than(&j, &get_array_length(&filters)) } {
             let mut filter: Value = get_value(&filters, &j);
             let mut filter: Value = get_value(&filters, &j);
             let mut filterType: Value = self.safe_string_k(filter.clone(), "filterType", &[]);
@@ -698,8 +698,8 @@ impl BtcturkCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_435: bool = true;
-            while { if !__for_first_435 { i = add(&i, &Value::Int(1)); } __for_first_435 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -729,7 +729,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_users_balances(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -744,7 +746,7 @@ impl BtcturkCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -752,7 +754,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -852,7 +856,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
         let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
@@ -874,7 +880,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_value(tickers.clone(), symbol.clone(), &[]);
 
@@ -969,7 +977,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         // let maxCount = 50;
         let mut request: Value = Value::Map({
@@ -1033,7 +1043,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1084,8 +1096,8 @@ impl BtcturkCore {
         let mut volume: Value = self.safe_list_k(ohlcvs.clone(), "v", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_436: bool = true;
-            while { if !__for_first_436 { i = add(&i, &Value::Int(1)); } __for_first_436 = false; is_less_than(&i, &get_array_length(&timestamp)) } {
+            let mut __for_first_417: bool = true;
+            while { if !__for_first_417 { i = add(&i, &Value::Int(1)); } __for_first_417 = false; is_less_than(&i, &get_array_length(&timestamp)) } {
             let mut ohlcv: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), i.clone(), &[]));
@@ -1124,7 +1136,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1201,7 +1215,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1243,7 +1259,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1390,7 +1408,9 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());

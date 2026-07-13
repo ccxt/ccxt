@@ -149,7 +149,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             exitScript(Value::Int(0));
         }
         self.import_files(exchange.clone()).await;
-        assert(Value::Bool(is_greater_than(&get_array_length(&object_keys(&self.testFiles)), &Value::Int(0))), &[Value::Str("Test files were not loaded".to_string())]); // ensure test files are found & filled
+        // ensure test files are found & filled
+        assert(Value::Bool(is_greater_than(&get_array_length(&object_keys(&self.testFiles)), &Value::Int(0))), &[Value::Str("Test files were not loaded".to_string())]);
         self.expand_settings(exchange.clone());
         self.check_if_specific_test_is_chosen(methodArgv.clone());
         self.start_test(exchange.clone(), symbolArgv.clone()).await;
@@ -166,13 +167,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_greater_than_or_equal(&get_array_length(&possibleMethodNames), &Value::Int(1)) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1: bool = true;
-                    while { if !__for_first_1 { i = add(&i, &Value::Int(1)); } __for_first_1 = false; is_less_than(&i, &get_array_length(&testFileNames)) } {
+                    let mut __for_first_62: bool = true;
+                    while { if !__for_first_62 { i = add(&i, &Value::Int(1)); } __for_first_62 = false; is_less_than(&i, &get_array_length(&testFileNames)) } {
                     let mut testFileName: Value = get_value(&testFileNames, &i);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_0: bool = true;
-                        while { if !__for_first_0 { j = add(&j, &Value::Int(1)); } __for_first_0 = false; is_less_than(&j, &get_array_length(&possibleMethodNames)) } {
+                        let mut __for_first_61: bool = true;
+                        while { if !__for_first_61 { j = add(&j, &Value::Int(1)); } __for_first_61 = false; is_less_than(&j, &get_array_length(&possibleMethodNames)) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
                         methodName = replace_str(&methodName, &Value::Str("()".to_string()), &Value::Str("".to_string()));
                         if is_equal(&testFileName, &methodName) {
@@ -206,8 +207,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_2: bool = true;
-            while { if !__for_first_2 { i = add(&i, &Value::Int(1)); } __for_first_2 = false; is_less_than(&i, &get_array_length(&objkeys)) } {
+            let mut __for_first_63: bool = true;
+            while { if !__for_first_63 { i = add(&i, &Value::Int(1)); } __for_first_63 = false; is_less_than(&i, &get_array_length(&objkeys)) } {
             let mut credential: Value = get_value(&objkeys, &i);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if is_true(&isRequired) && is_equal(&getExchangeProp(exchange.clone(), credential.clone(), &[]), &Value::Null) {
@@ -252,12 +253,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut settingKeys: Value = object_keys(&exchangeSettings);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_3: bool = true;
-                while { if !__for_first_3 { i = add(&i, &Value::Int(1)); } __for_first_3 = false; is_less_than(&i, &get_array_length(&settingKeys)) } {
+                let mut __for_first_64: bool = true;
+                while { if !__for_first_64 { i = add(&i, &Value::Int(1)); } __for_first_64 = false; is_less_than(&i, &get_array_length(&settingKeys)) } {
                 let mut key: Value = get_value(&settingKeys, &i);
                 if is_true(&get_value(&exchangeSettings, &key)) {
                     let mut finalValue: Value = Value::Null;
-                    if is_object(&get_value(&exchangeSettings, &key)) {
+                    if is_true(&exchange.is_dictionary(get_value(&exchangeSettings, &key))) {
                         let mut existing: Value = getExchangeProp(exchange.clone(), key.clone(), &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                             m
@@ -312,8 +313,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_greater_than(&missingSpace, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_4: bool = true;
-                while { if !__for_first_4 { i = add(&i, &Value::Int(1)); } __for_first_4 = false; is_less_than(&i, &missingSpace) } {
+                let mut __for_first_65: bool = true;
+                while { if !__for_first_65 { i = add(&i, &Value::Int(1)); } __for_first_65 = false; is_less_than(&i, &missingSpace) } {
                 res = add(&res, &Value::Str(" ".to_string()));
             }
             }
@@ -394,8 +395,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodNames: Value = Value::List(vec![methodName.clone(), add(&add(&methodName, &Value::Str(".".to_string())), &self.ext)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &get_array_length(&methodNames)) } {
+            let mut __for_first_66: bool = true;
+            while { if !__for_first_66 { i = add(&i, &Value::Int(1)); } __for_first_66 = false; is_less_than(&i, &get_array_length(&methodNames)) } {
             let mut mName: Value = get_value(&methodNames, &i);
             if is_true(&Value::Bool(in_op(&self.skippedMethods, &mName))) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -422,8 +423,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut objectNames: Value = object_keys(&objectSkips);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_6: bool = true;
-            while { if !__for_first_6 { i = add(&i, &Value::Int(1)); } __for_first_6 = false; is_less_than(&i, &get_array_length(&objectNames)) } {
+            let mut __for_first_67: bool = true;
+            while { if !__for_first_67 { i = add(&i, &Value::Int(1)); } __for_first_67 = false; is_less_than(&i, &get_array_length(&objectNames)) } {
             let mut objectName: Value = get_value(&objectNames, &i);
             let mut objectMethods: Value = get_value(&objectSkips, &objectName);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
@@ -468,8 +469,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut argsStringified: Value = exchange.json(args.clone()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &maxRetries) } {
+            let mut __for_first_68: bool = true;
+            while { if !__for_first_68 { i = add(&i, &Value::Int(1)); } __for_first_68 = false; is_less_than(&i, &maxRetries) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
@@ -612,8 +613,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &get_array_length(&testNames)) } {
+            let mut __for_first_69: bool = true;
+            while { if !__for_first_69 { i = add(&i, &Value::Int(1)); } __for_first_69 = false; is_less_than(&i, &get_array_length(&testNames)) } {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testArgs: Value = get_value(&tests, &testName);
             append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
@@ -626,8 +627,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut failedMethods: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i = add(&i, &Value::Int(1)); } __for_first_9 = false; is_less_than(&i, &get_array_length(&testNames)) } {
+            let mut __for_first_70: bool = true;
+            while { if !__for_first_70 { i = add(&i, &Value::Int(1)); } __for_first_70 = false; is_less_than(&i, &get_array_length(&testNames)) } {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testReturnedValue: Value = get_value(&results, &i);
             if !is_true(&testReturnedValue) {
@@ -671,8 +672,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { i = add(&i, &Value::Int(1)); } __for_first_10 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_71: bool = true;
+            while { if !__for_first_71 { i = add(&i, &Value::Int(1)); } __for_first_71 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut s: Value = get_value(&symbols, &i);
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".to_string())), s.clone(), &[]);
             if !is_equal(&market, &Value::Null) {
@@ -697,8 +698,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut code: Value = get_value(&codes, &Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { i = add(&i, &Value::Int(1)); } __for_first_11 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_72: bool = true;
+            while { if !__for_first_72 { i = add(&i, &Value::Int(1)); } __for_first_72 = false; is_less_than(&i, &get_array_length(&codes)) } {
             if is_true(&Value::Bool(in_op(&get_value(&exchange, &Value::Str("currencies".to_string())), &get_value(&codes, &i)))) {
                 return get_value(&codes, &i);
             }
@@ -719,8 +720,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_12: bool = true;
-            while { if !__for_first_12 { i = add(&i, &Value::Int(1)); } __for_first_12 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_73: bool = true;
+            while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&markets, &key);
             if is_true(&spot) && is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -747,8 +748,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_equal(&symbol, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_13: bool = true;
-                while { if !__for_first_13 { i = add(&i, &Value::Int(1)); } __for_first_13 = false; is_less_than(&i, &get_array_length(&codes)) } {
+                let mut __for_first_74: bool = true;
+                while { if !__for_first_74 { i = add(&i, &Value::Int(1)); } __for_first_74 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut currentCode: Value = get_value(&codes, &i);
                 let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".to_string()), currentCode.clone(), &[]);
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".to_string()));
@@ -767,8 +768,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut activeSymbols: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_14: bool = true;
-                while { if !__for_first_14 { i = add(&i, &Value::Int(1)); } __for_first_14 = false; is_less_than(&i, &get_array_length(&activeMarkets)) } {
+                let mut __for_first_75: bool = true;
+                while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&activeMarkets)) } {
                 append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".to_string())));
             }
             }
@@ -779,7 +780,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut valuesLength: Value = get_array_length(&values);
             if is_greater_than(&valuesLength, &Value::Int(0)) {
                 let mut first: Value = get_value(&values, &Value::Int(0));
-                if !is_equal(&first, &Value::Null) {
+                if is_true(&first) {
                     symbol = get_value(&first, &Value::Str("symbol".to_string()));
                 }
             }
@@ -816,7 +817,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // getValidSymbol returns undefined in that case — skip swap
                 // tests rather than crashing on `undefined.replace(...)`.
                 if !is_equal(&primarySymbol, &Value::Null) {
-                    let mut secondarySymbol: Value = replace_str(&primarySymbol, &Value::Str("BTC".to_string()), &Value::Str("ETH".to_string())); // this should work any exchange
+                    let mut secondarySymbol: Value = replace_all_str(&primarySymbol, &Value::Str("BTC".to_string()), &Value::Str("ETH".to_string())); // this should work any exchange
                     swapSymbols = Value::List(vec![primarySymbol.clone(), secondarySymbol.clone()]);
                 }
             }
@@ -888,6 +889,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("fetchTransactions".to_string(), Value::List(vec![code.clone()]));
                 m.insert("fetchDeposits".to_string(), Value::List(vec![code.clone()]));
                 m.insert("fetchWithdrawals".to_string(), Value::List(vec![code.clone()]));
+                m.insert("fetchTransfers".to_string(), Value::List(vec![code.clone()]));
                 m.insert("fetchBorrowInterest".to_string(), Value::List(vec![code.clone(), symbol.clone()]));
                 m.insert("cancelAllOrders".to_string(), Value::List(vec![symbol.clone()]));
                 m.insert("fetchCanceledOrders".to_string(), Value::List(vec![symbol.clone()]));
@@ -949,24 +951,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // try proxy several times
         let mut maxRetries: Value = Value::Int(3);
-        let mut exception: Value = Value::Null;
+        let mut exceptionMessageString: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { j = add(&j, &Value::Int(1)); } __for_first_15 = false; is_less_than(&j, &maxRetries) } {
+            let mut __for_first_76: bool = true;
+            while { if !__for_first_76 { j = add(&j, &Value::Int(1)); } __for_first_76 = false; is_less_than(&j, &maxRetries) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::List(vec![]), Value::Bool(true)).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                exception = e.clone();
+                exceptionMessageString = exceptionMessage(e.clone());
                 exchange.sleep(multiply(&j, &Value::Int(1000))).await;
              } }
         }
         }
         // if exception was set, then throw it
-        if !is_equal(&exception, &Value::Null) {
-            let mut errorMessage: Value = add(&add(&add(&Value::Str("[TEST_FAILURE] Failed ".to_string()), &proxyTestName), &Value::Str(" : ".to_string())), &exceptionMessage(exception.clone()));
+        if !is_equal(&exceptionMessageString, &Value::Null) {
+            let mut errorMessage: Value = add(&add(&add(&Value::Str("[TEST_FAILURE] Failed ".to_string()), &proxyTestName), &Value::Str(" : ".to_string())), &exceptionMessageString);
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump(&[add(&Value::Str("[TEST_WARNING]".to_string()), &errorMessage)]);
@@ -1016,6 +1018,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&self.sandbox) || is_true(&getExchangeProp(exchange.clone(), Value::Str("sandbox".to_string()), &[])) {
             exchange.set_sandbox_mode(Value::Bool(true));
         }
+        self.test_has_props(exchange.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut result: Value = self.load_exchange(exchange.clone()).await;
             if !is_true(&result) {
@@ -1042,6 +1045,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::Bool(true);
 
     Value::Null
+}
+
+    pub fn test_has_props(&self, mut exchange: Value) {
+        let mut watchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("watchOrderBook".to_string()));
+        let mut fetchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("fetchOrderBook".to_string()));
+        // ensure with hardcoded list of required methods
+        if is_true(&self.wsTests) && !is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("watchOrderBook".to_string()), &[Value::Bool(false)])) && !is_string(&watchOrderBookSkips) {
+            dump(&[Value::Str("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
+            exitScript(Value::Int(1));
+        }  else if !is_true(&self.wsTests) && !is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchOrderBook".to_string()), &[Value::Bool(false)])) && !is_string(&fetchOrderBookSkips) {
+            dump(&[Value::Str("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
+            exitScript(Value::Int(1));
+        }
 }
 
     pub fn assert_static_error(&self, mut cond: Value, mut message: Value, mut calculatedOutput: Value, mut storedOutput: Value, optional_args: &[Value]) {
@@ -1107,8 +1123,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut files: Value = ioDirRead(folder.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i = add(&i, &Value::Int(1)); } __for_first_16 = false; is_less_than(&i, &get_array_length(&files)) } {
+            let mut __for_first_77: bool = true;
+            while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&files)) } {
             let mut file: Value = get_value(&files, &i);
             let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".to_string()), &Value::Str("".to_string()));
             let mut content: Value = ioFileRead(add(&folder, &file), &[]);
@@ -1128,8 +1144,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut res: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_17: bool = true;
-            while { if !__for_first_17 { i = add(&i, &Value::Int(1)); } __for_first_17 = false; is_less_than(&i, &get_array_length(&urlParts)) } {
+            let mut __for_first_78: bool = true;
+            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&urlParts)) } {
             if is_greater_than(&i, &Value::Int(2)) {
                 let mut current: Value = get_value(&urlParts, &i);
                 if is_greater_than(&get_index_of(&current, &Value::Str("?".to_string())), &negate(&Value::Int(1))) {
@@ -1157,8 +1173,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut parts: Value = split(&url, &Value::Str("&".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_18: bool = true;
-            while { if !__for_first_18 { i = add(&i, &Value::Int(1)); } __for_first_18 = false; is_less_than(&i, &get_array_length(&parts)) } {
+            let mut __for_first_79: bool = true;
+            while { if !__for_first_79 { i = add(&i, &Value::Int(1)); } __for_first_79 = false; is_less_than(&i, &get_array_length(&parts)) } {
             let mut part: Value = get_value(&parts, &i);
             let mut keyValue: Value = split(&part, &Value::Str("=".to_string()));
             let mut keysLength: Value = get_array_length(&keyValue);
@@ -1193,7 +1209,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             storedOutput = jsonParse(storedOutput.clone());
             newOutput = jsonParse(newOutput.clone());
         }
-        if is_true(&(is_object(&storedOutput))) && is_true(&(is_object(&newOutput))) {
+        if is_true(&exchange.is_dictionary(storedOutput.clone())) && is_true(&exchange.is_dictionary(newOutput.clone())) {
             let mut storedOutputKeys: Value = object_keys(&storedOutput);
             let mut newOutputKeys: Value = object_keys(&newOutput);
             let mut storedKeysLength: Value = get_array_length(&storedOutputKeys);
@@ -1201,8 +1217,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.assert_static_error(Value::Bool(is_equal(&storedKeysLength, &newKeysLength)), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_19: bool = true;
-                while { if !__for_first_19 { i = add(&i, &Value::Int(1)); } __for_first_19 = false; is_less_than(&i, &get_array_length(&storedOutputKeys)) } {
+                let mut __for_first_80: bool = true;
+                while { if !__for_first_80 { i = add(&i, &Value::Int(1)); } __for_first_80 = false; is_less_than(&i, &get_array_length(&storedOutputKeys)) } {
                 let mut key: Value = get_value(&storedOutputKeys, &i);
                 if is_true(&exchange.in_array(key.clone(), skipKeys.clone())) {
                     continue;
@@ -1228,8 +1244,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.assert_static_error(Value::Bool(is_equal(&storedArrayLength, &newArrayLength)), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_20: bool = true;
-                while { if !__for_first_20 { i = add(&i, &Value::Int(1)); } __for_first_20 = false; is_less_than(&i, &get_array_length(&storedOutput)) } {
+                let mut __for_first_81: bool = true;
+                while { if !__for_first_81 { i = add(&i, &Value::Int(1)); } __for_first_81 = false; is_less_than(&i, &get_array_length(&storedOutput)) } {
                 let mut storedItem: Value = get_value(&storedOutput, &i);
                 let mut newItem: Value = get_value(&newOutput, &i);
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newItem.clone(), storedItem.clone(), &[strictTypeCheck.clone()]);
@@ -1254,6 +1270,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isComputedUndefined: Value = Value::Bool(is_equal(&sanitizedNewOutput, &Value::Null));
                 let mut isStoredUndefined: Value = Value::Bool(is_equal(&sanitizedStoredOutput, &Value::Null));
                 let mut shouldBeSame: Value = Value::Bool(is_true(&(is_equal(&isComputedBool, &isStoredBool))) && is_true(&(is_equal(&isComputedString, &isStoredString))) && is_true(&(is_equal(&isComputedUndefined, &isStoredUndefined))));
+                if !is_true(&shouldBeSame) && is_true(&(is_equal(&self.lang, &Value::Str("PY".to_string())))) && !is_true(&isComputedBool) && !is_true(&isStoredBool) && !is_true(&isComputedUndefined) && !is_true(&isStoredUndefined) {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    let mut isNumber: Value = Value::Bool(false);
+                    let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        exchange.parse_to_numeric(newOutputString.clone());
+                        exchange.parse_to_numeric(storedOutputString.clone());
+                        isNumber = Value::Bool(true);
+                     #[allow(unreachable_code)] { Value::Null }}));
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                        isNumber = Value::Bool(false);
+                    }
+                    if is_true(&isNumber) {
+                        self.assert_static_error(Value::Bool(is_equal(&exchange.parse_to_numeric(newOutputString.clone()), &exchange.parse_to_numeric(storedOutputString.clone()))), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                        return Value::Bool(true);
+                    }
+                }
                 self.assert_static_error(shouldBeSame.clone(), Value::Str("output type mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                 let mut isBoolean: Value = Value::Bool(is_true(&isComputedBool) || is_true(&isStoredBool));
                 let mut isString: Value = Value::Bool(is_true(&isComputedString) || is_true(&isStoredString));
@@ -1394,8 +1427,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut newInput: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_21: bool = true;
-            while { if !__for_first_21 { i = add(&i, &Value::Int(1)); } __for_first_21 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_82: bool = true;
+            while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut current: Value = get_value(&input, &i);
             if is_true(&isNullValue(current.clone())) {
                 append_to_array(&mut newInput, Value::Null);
@@ -1598,14 +1631,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_23: bool = true;
-            while { if !__for_first_23 { i = add(&i, &Value::Int(1)); } __for_first_23 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_84: bool = true;
+            while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_22: bool = true;
-                while { if !__for_first_22 { j = add(&j, &Value::Int(1)); } __for_first_22 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_83: bool = true;
+                while { if !__for_first_83 { j = add(&j, &Value::Int(1)); } __for_first_83 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
@@ -1708,14 +1741,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_25: bool = true;
-            while { if !__for_first_25 { i = add(&i, &Value::Int(1)); } __for_first_25 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_86: bool = true;
+            while { if !__for_first_86 { i = add(&i, &Value::Int(1)); } __for_first_86 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_24: bool = true;
-                while { if !__for_first_24 { j = add(&j, &Value::Int(1)); } __for_first_24 = false; is_less_than(&j, &get_array_length(&results)) } {
+                let mut __for_first_85: bool = true;
+                while { if !__for_first_85 { j = add(&j, &Value::Int(1)); } __for_first_85 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
@@ -1792,8 +1825,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_26: bool = true;
-            while { if !__for_first_26 { i = add(&i, &Value::Int(1)); } __for_first_26 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
+            let mut __for_first_87: bool = true;
+            while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
@@ -1877,8 +1910,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_27: bool = true;
-            while { if !__for_first_27 { i = add(&i, &Value::Int(1)); } __for_first_27 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
+            let mut __for_first_88: bool = true;
+            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
             let mut exchangeName: Value = get_value(&exchanges, &i);
             let mut exchangeData: Value = get_value(&staticData, &exchangeName);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
@@ -1949,7 +1982,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut spotId: Value = Value::Str("x-TKT5PX2F".to_string());
         let mut swapId: Value = Value::Str("x-cvBPrNm9".to_string());
         let mut inverseSwapId: Value = Value::Str("x-xcKtGhcu".to_string());
-        let mut spotOrderRequest: Value = Value::Null;
+        let mut spotOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -1959,14 +1995,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut clientOrderId: Value = get_value(&spotOrderRequest, &Value::Str("newClientOrderId".to_string()));
         let mut spotIdString: Value = to_string_val(&spotId);
         assert(Value::Bool(starts_with(&clientOrderId, &spotIdString)), &[add(&add(&add(&Value::Str("binance - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with spotId".to_string())), &spotIdString)]);
-        let mut swapOrderRequest: Value = Value::Null;
+        let mut swapOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
         }
-        let mut swapInverseOrderRequest: Value = Value::Null;
+        let mut swapInverseOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -1981,7 +2023,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut clientOrderIdInverse: Value = get_value(&swapInverseOrderRequest, &Value::Str("newClientOrderId".to_string()));
         assert(Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &[add(&add(&add(&Value::Str("binance - swap clientOrderIdInverse: ".to_string()), &clientOrderIdInverse), &Value::Str(" does not start with swapId".to_string())), &inverseSwapId)]);
         // linear swap conditional order
-        let mut swapAlgoOrderRequest: Value = Value::Null;
+        let mut swapAlgoOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Float(0.002), Value::Int(102000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1998,7 +2043,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
         }
-        let mut createOrdersRequest: Value = Value::Null;
+        let mut createOrdersRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut orders: Value = Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2024,8 +2072,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut batchOrders: Value = get_value(&createOrdersRequest, &Value::Str("batchOrders".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i = add(&i, &Value::Int(1)); } __for_first_28 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
+            let mut __for_first_89: bool = true;
+            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
             assert(Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &[add(&add(&add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), &Value::Str(" does not start with swapId".to_string())), &swapIdString)]);
@@ -2042,7 +2090,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn test_okx(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("okx".to_string()));
         let mut id: Value = Value::Str("6b9ad766b55dBCDE".to_string());
-        let mut spotOrderRequest: Value = Value::Null;
+        let mut spotOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2054,7 +2105,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         assert(Value::Bool(starts_with(&clientOrderId, &idString)), &[add(&add(&add(&Value::Str("okx - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         let mut spotTag: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("tag".to_string()));
         assert(Value::Bool(is_equal(&spotTag, &id)), &[add(&add(&add(&Value::Str("okx - id: ".to_string()), &id), &Value::Str(" different from spot tag: ".to_string())), &spotTag)]);
-        let mut swapOrderRequest: Value = Value::Null;
+        let mut swapOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2077,7 +2131,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptocom".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2096,7 +2153,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_bybit(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bybit".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -2118,7 +2178,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn test_kucoin(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("kucoin".to_string()));
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(false)); // prevents fetching account mode inside createOrder
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut spotId: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("spot".to_string())), &Value::Str("id".to_string()));
         let mut spotKey: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("spot".to_string())), &Value::Str("key".to_string()));
         assert(Value::Bool(is_equal(&spotId, &Value::Str("ccxt".to_string()))), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &spotId), &Value::Str(" not in options".to_string()))]);
@@ -2176,7 +2239,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_kucoinfutures(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("kucoinfutures".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("ccxtfutures".to_string());
         let mut futureId: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("future".to_string())), &Value::Str("id".to_string()));
         let mut futureKey: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("future".to_string())), &Value::Str("key".to_string()));
@@ -2208,7 +2274,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_bitget(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bitget".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("p4sve".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("bitget - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -2228,7 +2297,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_mexc(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("mexc".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("mexc - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
@@ -2251,7 +2323,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("htx".to_string()));
         // spot test
         let mut id: Value = Value::Str("AA03022abc".to_string());
-        let mut spotOrderRequest: Value = Value::Null;
+        let mut spotOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2262,14 +2337,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut idString: Value = to_string_val(&id);
         assert(Value::Bool(starts_with(&clientOrderId, &idString)), &[add(&add(&add(&Value::Str("htx - spot clientOrderId ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         // swap test
-        let mut swapOrderRequest: Value = Value::Null;
+        let mut swapOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
         }
-        let mut swapInverseOrderRequest: Value = Value::Null;
+        let mut swapInverseOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2292,7 +2373,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("woo".to_string()));
         // spot test
         let mut id: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
-        let mut spotOrderRequest: Value = Value::Null;
+        let mut spotOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2303,7 +2387,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut idString: Value = to_string_val(&id);
         assert(Value::Bool(starts_with(&brokerId, &idString)), &[add(&add(&add(&Value::Str("woo - broker_id: ".to_string()), &brokerId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         // swap test
-        let mut stopOrderRequest: Value = Value::Null;
+        let mut stopOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2326,7 +2413,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_bitmart(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bitmart".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("CCXTxBitmart000".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[add(&add(&Value::Str("bitmart - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
@@ -2349,7 +2439,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("coinex".to_string()));
         let mut id: Value = Value::Str("x-167673045".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[add(&add(&Value::Str("coinex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
-        let mut spotOrderRequest: Value = Value::Null;
+        let mut spotOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2369,7 +2462,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_bingx(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bingx".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("bingx - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -2391,7 +2487,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn test_phemex(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("phemex".to_string()));
         let mut id: Value = Value::Str("CCXT123456".to_string());
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2412,7 +2511,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn test_blofin(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("blofin".to_string()));
         let mut id: Value = Value::Str("ec6dd3a7dd982d0b".to_string());
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LTC/USDT:USDT".to_string()), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(1)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2451,7 +2553,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("portfolio".to_string()), Value::Str("random".to_string()));
         let mut id: Value = Value::Str("nfqkvdjp".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2472,7 +2577,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbase".to_string()));
         let mut id: Value = Value::Str("ccxt".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2497,7 +2605,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2517,7 +2628,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn test_xt(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("xt".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
-        let mut spotOrderRequest: Value = Value::Null;
+        let mut spotOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2526,7 +2640,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut spotMedia: Value = get_value(&spotOrderRequest, &Value::Str("media".to_string()));
         assert(Value::Bool(is_equal(&spotMedia, &id)), &[add(&add(&add(&Value::Str("xt - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &spotMedia)]);
-        let mut swapOrderRequest: Value = Value::Null;
+        let mut swapOrderRequest: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2579,7 +2696,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("liquidation_fee".to_string(), Value::Str("0.2".to_string()));
     m
 }));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("paradex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
@@ -2600,7 +2720,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_hashkey(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("hashkey".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("10000700011".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
@@ -2620,7 +2743,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_cryptomus(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptomus".to_string()));
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2644,7 +2770,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("derive".to_string()));
         let mut id: Value = Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("id".to_string())), &id)), &[add(&add(&Value::Str("derive - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut params: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2677,7 +2806,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Str("CCXTMODE".to_string());
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2698,7 +2830,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("backpack".to_string()));
         ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), Value::Str("Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=".to_string()));
         ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("1400".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(5000)]).await;
@@ -2718,7 +2853,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_toobit(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("toobit".to_string()));
-        let mut reqHeaders: Value = Value::Null;
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut id: Value = Value::Str("177321641268789".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
@@ -2740,7 +2878,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exchange: Value = self.init_offline_exchange(Value::Str("weex".to_string()));
         let mut id: Value = Value::Str("b-WEEX111125".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &id)), &[add(&add(&Value::Str("weex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
-        let mut request: Value = Value::Null;
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;

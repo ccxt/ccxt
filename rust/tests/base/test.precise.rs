@@ -111,4 +111,50 @@ pub fn testPrecise() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("10".to_string()), &Value::Str("5".to_string())), &Value::Str("15".to_string())))))); // 1010 | 0101 = 1111 = 15
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("0".to_string()), &Value::Str("0".to_string())), &Value::Str("0".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("7".to_string()), &Value::Str("0".to_string())), &Value::Str("7".to_string()))))));
+    // with undefined arguments
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringSub(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringSub(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringSub(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAbs(&Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringNeg(&Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMod(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMod(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMod(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMin(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMin(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMin(&Value::Null, &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMax(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMax(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMax(&Value::Null, &Value::Null), &Value::Null)))));
+    // bool false
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringEquals(&Value::Null, &Value::Str("1".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringEquals(&Value::Str("1".to_string()), &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringEquals(&Value::Null, &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringEq(&Value::Null, &Value::Str("1".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringEq(&Value::Str("1".to_string()), &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringEq(&Value::Null, &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringGt(&Value::Null, &Value::Str("1".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringGt(&Value::Str("1".to_string()), &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringGt(&Value::Null, &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringGe(&Value::Null, &Value::Str("1".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringGe(&Value::Str("1".to_string()), &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringGe(&Value::Null, &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringLt(&Value::Null, &Value::Str("1".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringLt(&Value::Str("1".to_string()), &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringLt(&Value::Null, &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringLe(&Value::Null, &Value::Str("1".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringLe(&Value::Str("1".to_string()), &Value::Null), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringLe(&Value::Null, &Value::Null), &Value::Bool(false))))));
 }

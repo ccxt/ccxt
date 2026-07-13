@@ -343,7 +343,7 @@ impl BitstampCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -351,7 +351,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
@@ -443,9 +445,9 @@ impl BitstampCore {
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
-            let mut bidAsk: Value = self.parse_bid_ask(get_value(&bidAsks, &i), &[]);
+            let mut __for_first_165: bool = true;
+            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
+            let mut bidAsk: Value = self.parse_order_book_bid_ask(get_value(&bidAsks, &i), &[]);
             bookSide.store_array(bidAsk.clone());
         }
         }
@@ -461,8 +463,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_177: bool = true;
-            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             let mut delta: Value = get_value(&deltas, &i);
             let mut delta: Value = get_value(&deltas, &i);
             let mut deltaNonce: Value = self.safe_integer_k(delta.clone(), "microtimestamp", &[]);
@@ -493,7 +495,9 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
@@ -624,7 +628,9 @@ impl BitstampCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut channel: Value = Value::Str("private-my_orders".to_string());
@@ -674,7 +680,7 @@ impl BitstampCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut stored: Value = self.orders.clone();
-        let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]);
+        let mut subscription: Value = ternary(is_true(&(is_equal(&channel, &Value::Null))), Value::Null, self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]));
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         let mut market: Value = self.market(symbol.clone());
         add_element_to_object(&mut order, &Value::Str("event".to_string()), self.safe_string_k(message.clone(), "event", &[]));
@@ -842,8 +848,8 @@ impl BitstampCore {
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_178: bool = true;
-            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_167: bool = true;
+            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than(&get_index_of(&channel, &key), &negate(&Value::Int(1))) {

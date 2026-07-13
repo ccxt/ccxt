@@ -457,7 +457,9 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let __ws_arg_1 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -474,7 +476,7 @@ impl GrvtCore {
  * @method
  * @name grvt#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+ * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -492,14 +494,16 @@ impl GrvtCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("channel".to_string()), &[Value::Str("v1.ticker.s".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut interval: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("interval".to_string()), &[Value::Int(500)]); interval = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut rawHashes: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_368: bool = true;
-            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_357: bool = true;
+            while { if !__for_first_357 { i = add(&i, &Value::Int(1)); } __for_first_357 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -610,7 +614,7 @@ impl GrvtCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[]);
+        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&selector, &Value::Str("@".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null]);
@@ -669,14 +673,16 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut rawHashes: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_369: bool = true;
-            while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_358: bool = true;
+            while { if !__for_first_358 { i = add(&i, &Value::Int(1)); } __for_first_358 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -731,7 +737,7 @@ impl GrvtCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[]);
+        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&selector, &Value::Str("@".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null]);
@@ -773,7 +779,9 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOHLCV".to_string()));
         let mut result: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
@@ -800,13 +808,15 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut rawHashes: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_370: bool = true;
-            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { i = add(&i, &Value::Int(1)); } __for_first_359 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
@@ -863,12 +873,12 @@ impl GrvtCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[]);
+        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&selector, &Value::Str("@".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+        let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".to_string())]);
         let mut timeframeId: Value = replace_str(&secondPart, &Value::Str("-TRADE".to_string()), &Value::Str("".to_string()));
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut messageHash: Value = add(&add(&add(&Value::Str("ohlcv::".to_string()), &symbol), &Value::Str("::".to_string())), &timeframe);
@@ -903,7 +913,7 @@ impl GrvtCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -911,7 +921,9 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
@@ -927,7 +939,7 @@ impl GrvtCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -935,7 +947,9 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("channel".to_string()), &[Value::Str("v1.book.d".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isSnapshot: Value = Value::Bool(is_equal(&channel, &Value::Str("v1.book.s".to_string())));
@@ -954,8 +968,8 @@ impl GrvtCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_371: bool = true;
-            while { if !__for_first_371 { i = add(&i, &Value::Int(1)); } __for_first_371 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_360: bool = true;
+            while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1008,7 +1022,7 @@ impl GrvtCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[]);
+        let mut selector: Value = self.safe_string_k(message.clone(), "selector", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&selector, &Value::Str("@".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null]);
@@ -1018,7 +1032,7 @@ impl GrvtCore {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut sequenceNumber: Value = self.safe_integer_k(message.clone(), "sequence_number", &[]);
+        let mut sequenceNumber: Value = self.safe_integer_k(message.clone(), "sequence_number", &[Value::Int(0)]);
         let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
         let mut isSnapshotChannel: Value = Value::Bool(is_equal(&stream, &Value::Str("v1.book.s".to_string())));
         let mut isSnapshotMessage: Value = Value::Bool(is_less_than_or_equal(&sequenceNumber, &Value::Int(0)));
@@ -1111,7 +1125,9 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut subAccountId: Value = self.get_sub_account_id(params.clone());
         let mut messageHashes: Value = Value::List(vec![]);
@@ -1217,7 +1233,9 @@ impl GrvtCore {
     m
 }));
         self.authenticate(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subAccountId: Value = self.get_sub_account_id(params.clone());
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut rawHashes: Value = Value::List(vec![]);
@@ -1225,8 +1243,8 @@ impl GrvtCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_372: bool = true;
-                while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_361: bool = true;
+                while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -1322,7 +1340,9 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut subAccountId: Value = self.get_sub_account_id(params.clone());
         let mut messageHashes: Value = Value::List(vec![]);

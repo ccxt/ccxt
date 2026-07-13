@@ -719,8 +719,8 @@ impl FoxbitCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_645: bool = true;
-            while { if !__for_first_645 { j = add(&j, &Value::Int(1)); } __for_first_645 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_615: bool = true;
+            while { if !__for_first_615 { j = add(&j, &Value::Int(1)); } __for_first_615 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "code", &[]);
@@ -935,7 +935,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1000,7 +1002,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.v3_public_get_markets_ticker24hr(&[params.clone()]).await;
         //  {
@@ -1043,7 +1047,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_me_fees_trading(&[params.clone()]).await;
         // [
         //     {
@@ -1059,8 +1065,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_646: bool = true;
-            while { if !__for_first_646 { i = add(&i, &Value::Int(1)); } __for_first_646 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_616: bool = true;
+            while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market_symbol", &[]);
@@ -1082,7 +1088,7 @@ impl FoxbitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1090,7 +1096,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut defaultLimit: Value = Value::Int(20);
         let mut request: Value = Value::Map({
@@ -1149,7 +1157,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1199,7 +1209,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: Value = Value::Map({
@@ -1237,7 +1249,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_accounts(&[params.clone()]).await;
         // {
         //     "data": [
@@ -1257,8 +1271,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_647: bool = true;
-            while { if !__for_first_647 { i = add(&i, &Value::Int(1)); } __for_first_647 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "currency_symbol", &[]);
@@ -1350,7 +1364,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1401,7 +1417,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         type_var = to_upper(&type_var);
         if !is_equal(&type_var, &Value::Str("LIMIT".to_string())) && !is_equal(&type_var, &Value::Str("MARKET".to_string())) && !is_equal(&type_var, &Value::Str("STOP_MARKET".to_string())) && !is_equal(&type_var, &Value::Str("STOP_LIMIT".to_string())) && !is_equal(&type_var, &Value::Str("INSTANT".to_string())) {
@@ -1469,12 +1487,14 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
@@ -1572,7 +1592,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.parse_number(id.clone(), &[]));
@@ -1614,7 +1636,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("ALL".to_string()));
@@ -1652,7 +1676,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -1686,7 +1712,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1758,7 +1786,9 @@ impl FoxbitCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1811,7 +1841,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1850,7 +1882,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1911,7 +1945,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2081,7 +2117,9 @@ impl FoxbitCore {
         if !is_equal(&type_var, &Value::Str("LIMIT".to_string())) && !is_equal(&type_var, &Value::Str("MARKET".to_string())) && !is_equal(&type_var, &Value::Str("STOP_MARKET".to_string())) && !is_equal(&type_var, &Value::Str("INSTANT".to_string())) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&add(&Value::Str("Invalid order type: ".to_string()), &type_var), &Value::Str(". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2140,7 +2178,9 @@ impl FoxbitCore {
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2155,7 +2195,7 @@ impl FoxbitCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&networkCode, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("network_code".to_string()), self.network_code_to_id(networkCode.clone(), &[]));
+            add_element_to_object(&mut request, &Value::Str("network_code".to_string()), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         }
         let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v3_private_post_withdrawals(&[__ws_arg_16]).await;
@@ -2183,7 +2223,9 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2297,7 +2339,7 @@ impl FoxbitCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("maker".to_string(), self.safe_number_k(entry.clone(), "maker", &[]));
         m.insert("taker".to_string(), self.safe_number_k(entry.clone(), "taker", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -2374,7 +2416,7 @@ impl FoxbitCore {
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
@@ -2674,8 +2716,8 @@ impl FoxbitCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_649: bool = true;
-                while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&paramKeys)) } {
+                let mut __for_first_619: bool = true;
+                while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &get_array_length(&paramKeys)) } {
                 let mut key: Value = get_value(&paramKeys, &i);
                 let mut key: Value = get_value(&paramKeys, &i);
                 let mut value: Value = self.safe_string(params.clone(), key.clone(), &[]);
@@ -2732,8 +2774,8 @@ impl FoxbitCore {
         if is_true(&details) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_650: bool = true;
-                while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&details)) } {
+                let mut __for_first_620: bool = true;
+                while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&details)) } {
                 detailsString = add(&add(&detailsString, &get_value(&details, &i)), &Value::Str(" ".to_string()));
             }
             }

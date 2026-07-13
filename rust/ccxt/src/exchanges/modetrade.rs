@@ -181,6 +181,7 @@ impl ModetradeCore {
             "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_interval" => self.parse_funding_interval(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -259,6 +260,12 @@ impl crate::exchange::DerivedExchange for ModetradeCore {
         let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
         ModetradeCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on ModetradeCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const ModetradeCore as *mut ModetradeCore) };
+        ModetradeCore::parse_currency(me, currency)
+    }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on ModetradeCore.
         #[allow(invalid_reference_casting)]
@@ -312,7 +319,6 @@ impl ModetradeCore {
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("dex".to_string(), Value::Bool(true));
-        m.insert("hostname".to_string(), Value::Str("trade.mode.network".to_string()));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
@@ -417,7 +423,7 @@ impl ModetradeCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api-evm.orderly.org".to_string()));
@@ -890,7 +896,7 @@ impl ModetradeCore {
         //     "liquidation_tier": "1"
         //   }
         //
-        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&marketId, &Value::Str("_".to_string()));
         let mut marketType: Value = Value::Str("swap".to_string());
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -1039,10 +1045,6 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
         let mut response: Value = self.v1_public_get_public_token(&[params.clone()]).await;
         //
         // {
@@ -1071,33 +1073,33 @@ impl ModetradeCore {
     m
 })]);
         let mut tokenRows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        return self.parse_currencies(tokenRows.clone());
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "token", &[]);
+        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "chain_details", &[Value::List(vec![])]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        let mut minPrecision: Value = Value::Null;
+        let mut resultingNetworks: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_922: bool = true;
-            while { if !__for_first_922 { i = add(&i, &Value::Int(1)); } __for_first_922 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
-            let mut token: Value = get_value(&tokenRows, &i);
-            let mut token: Value = get_value(&tokenRows, &i);
-            let mut currencyId: Value = self.safe_string_k(token.clone(), "token", &[]);
-            let mut networks: Value = self.safe_list_k(token.clone(), "chain_details", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut minPrecision: Value = Value::Null;
-            let mut resultingNetworks: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_921: bool = true;
-                while { if !__for_first_921 { j = add(&j, &Value::Int(1)); } __for_first_921 = false; is_less_than(&j, &get_array_length(&networks)) } {
-                let mut network: Value = get_value(&networks, &j);
-                let mut network: Value = get_value(&networks, &j);
-                // TODO: transform chain id to human readable name
-                let mut networkId: Value = self.safe_string_k(network.clone(), "chain_id", &[]);
-                let mut precision: Value = self.parse_precision(&[self.safe_string_k(network.clone(), "decimals", &[])]);
-                if !is_equal(&precision, &Value::Null) {
-                    minPrecision = ternary(is_true(&(is_equal(&minPrecision, &Value::Null))), precision.clone(), crate::precise::Precise::stringMin(&precision, &minPrecision));
-                }
-                add_element_to_object(&mut resultingNetworks, &networkId, Value::Map({
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_887: bool = true;
+            while { if !__for_first_887 { j = add(&j, &Value::Int(1)); } __for_first_887 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut network: Value = get_value(&networks, &j);
+            let mut network: Value = get_value(&networks, &j);
+            // TODO: transform chain id to human readable name
+            let mut networkId: Value = self.safe_string_k(network.clone(), "chain_id", &[Value::Str("".to_string())]);
+            let mut precision: Value = self.parse_precision(&[self.safe_string_k(network.clone(), "decimals", &[])]);
+            if !is_equal(&precision, &Value::Null) {
+                minPrecision = ternary(is_true(&(is_equal(&minPrecision, &Value::Null))), precision.clone(), crate::precise::Precise::stringMin(&precision, &minPrecision));
+            }
+            add_element_to_object(&mut resultingNetworks, &networkId, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkId.clone());
@@ -1125,9 +1127,9 @@ impl ModetradeCore {
         m.insert("info".to_string(), network.clone());
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("name".to_string(), currencyId.clone());
@@ -1148,18 +1150,15 @@ impl ModetradeCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(token.clone(), "minimum_withdraw_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "minimum_withdraw_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("info".to_string(), token.clone());
+        m.insert("info".to_string(), rawCurrency.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1221,7 +1220,7 @@ impl ModetradeCore {
         let mut order_id: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::Str("fee_asset".to_string()), Value::Str("fee".to_string()));
         let mut feeCost: Value = self.safe_string_k(fee.clone(), "cost", &[]);
-        if !is_equal(&feeCost, &Value::Null) {
+        if is_true(&(!is_equal(&feeCost, &Value::Null))) && is_true(&(!is_equal(&fee, &Value::Null))) {
             add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCost.clone());
         }
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
@@ -1271,7 +1270,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1322,17 +1323,18 @@ impl ModetradeCore {
         //         }
         //
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
-        market = self.market(symbol.clone());
+        market = ternary(is_true(&(is_equal(&symbol, &Value::Null))), market.clone(), self.market(symbol.clone()));
         let mut nextFundingTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "next_funding_time", &[]);
         let mut estFundingRateTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "est_funding_rate_timestamp", &[]);
         let mut lastFundingRateTimestamp: Value = self.safe_integer_k(fundingRate.clone(), "last_funding_rate_timestamp", &[]);
         let mut fundingTimeString: Value = self.safe_string_k(fundingRate.clone(), "last_funding_rate_timestamp", &[]);
         let mut nextFundingTimeString: Value = self.safe_string_k(fundingRate.clone(), "next_funding_time", &[]);
         let mut millisecondsInterval: Value = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString);
+        let mut fundingSymbol: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("symbol".to_string())), Value::Null);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fundingRate.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), fundingSymbol.clone());
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".to_string()), &[]));
@@ -1403,7 +1405,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1451,7 +1455,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.v1_public_get_public_funding_rates(&[params.clone()]).await;
         //
@@ -1502,7 +1508,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1550,8 +1558,8 @@ impl ModetradeCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_923: bool = true;
-            while { if !__for_first_923 { i = add(&i, &Value::Int(1)); } __for_first_923 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_888: bool = true;
+            while { if !__for_first_888 { i = add(&i, &Value::Int(1)); } __for_first_888 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1631,7 +1639,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1705,7 +1715,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v1_private_get_client_info(&[params.clone()]).await;
         //
         // {
@@ -1744,12 +1756,15 @@ impl ModetradeCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_924: bool = true;
-            while { if !__for_first_924 { i = add(&i, &Value::Int(1)); } __for_first_924 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-            let mut symbol: Value = get_value(&self.symbols, &i);
-            add_element_to_object(&mut result, &symbol, Value::Map({
+        let mut symbols: Value = self.symbols.clone();
+        if !is_equal(&symbols, &Value::Null) {
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_889: bool = true;
+                while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut symbol: Value = get_value(&symbols, &i);
+                let mut symbol: Value = get_value(&symbols, &i);
+                add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1759,7 +1774,8 @@ impl ModetradeCore {
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
 }));
-        }
+            }
+            }
         }
         return result;
 
@@ -1774,7 +1790,7 @@ impl ModetradeCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1782,7 +1798,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1849,7 +1867,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2023,6 +2043,9 @@ impl ModetradeCore {
                 m.insert("post_only".to_string(), Value::Str("PO".to_string()));
             m
         });
+        if is_equal(&timeInForce, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(timeInForces.clone(), timeInForce.clone(), &[]);
 
     Value::Null
@@ -2043,6 +2066,9 @@ impl ModetradeCore {
                     m.insert("COMPLETED".to_string(), Value::Str("closed".to_string()));
                 m
             });
+            if is_equal(&status, &Value::Null) {
+                return Value::Null;
+            }
             return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
         }
         return status;
@@ -2058,6 +2084,9 @@ impl ModetradeCore {
                 m.insert("POST_ONLY".to_string(), Value::Str("limit".to_string()));
             m
         });
+        if is_equal(&type_var, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string_lower(types.clone(), type_var.clone(), &[type_var.clone()]);
 
     Value::Null
@@ -2085,6 +2114,9 @@ impl ModetradeCore {
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
         let mut orderType: Value = to_upper(&type_var);
         let mut market: Value = self.market(symbol.clone());
+        if is_equal(&side, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        }
         let mut orderSide: Value = to_upper(&side);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2207,7 +2239,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
@@ -2220,7 +2254,10 @@ impl ModetradeCore {
         }  else {
             response = self.v1_private_post_order(&[request.clone()]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         add_element_to_object(&mut data, &Value::Str("timestamp".to_string()), self.safe_integer_k(response.clone(), "timestamp", &[]));
         let mut order: Value = self.parse_order(data.clone(), &[market.clone()]);
         add_element_to_object(&mut order, &Value::Str("type".to_string()), type_var.clone());
@@ -2243,16 +2280,21 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_925: bool = true;
-            while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_890: bool = true;
+            while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
-            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            if is_equal(&marketId, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrders() requires a symbol for each order".to_string()))));
+            }
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[Value::Str("".to_string())]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
@@ -2330,7 +2372,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2357,7 +2401,9 @@ impl ModetradeCore {
             response = self.v1_private_put_algo_order(&[__ws_arg_7]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-            add_element_to_object(&mut request, &Value::Str("side".to_string()), to_upper(&side));
+            if !is_equal(&side, &Value::Null) {
+                add_element_to_object(&mut request, &Value::Str("side".to_string()), to_upper(&side));
+            }
             let mut orderType: Value = to_upper(&type_var);
             let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
             let mut isMarket: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
@@ -2426,14 +2472,16 @@ impl ModetradeCore {
         if !is_true(&trigger) && is_true(&(is_equal(&symbol, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
             m
         });
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -2520,7 +2568,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2563,7 +2613,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2612,7 +2664,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2704,7 +2758,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
         let mut maxLimit: Value = ternary(is_true(&(isTrigger)), Value::Int(100), Value::Int(500));
@@ -2777,7 +2833,7 @@ impl ModetradeCore {
         //     }
         //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "rows", &[]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2808,7 +2864,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".to_string()));
@@ -2844,7 +2902,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("COMPLETED".to_string()));
@@ -2875,7 +2935,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2939,7 +3001,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3010,8 +3074,8 @@ impl ModetradeCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_926: bool = true;
-            while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_891: bool = true;
+            while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3039,7 +3103,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v1_private_get_client_holding(&[params.clone()]).await;
         //
         // {
@@ -3070,7 +3136,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3249,6 +3317,9 @@ impl ModetradeCore {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -3340,7 +3411,7 @@ impl ModetradeCore {
         let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
         let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
-        let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[]);
+        let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[Value::List(vec![])]);
         return self.parse_transactions(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3410,7 +3481,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_address(&[address.clone()]);
         if !is_equal(&code, &Value::Null) {
             code = to_upper(&code);
@@ -3425,10 +3498,13 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut coinNetwork: Value = self.safe_dict(currencyNetworks.clone(), chainId.clone(), &[Value::Map({
+        let mut coinNetwork: Value = ternary(is_true(&(is_equal(&chainId, &Value::Null))), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}), self.safe_dict(currencyNetworks.clone(), chainId.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
         let mut coinNetworkId: Value = self.safe_number_k(coinNetwork.clone(), "id", &[]);
         if is_equal(&coinNetworkId, &Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" withdraw() require chainId parameter".to_string()))));
@@ -3531,7 +3607,7 @@ impl ModetradeCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("longLeverage".to_string(), leverageValue.clone());
         m.insert("shortLeverage".to_string(), leverageValue.clone());
@@ -3555,7 +3631,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = self.v1_private_get_client_info(&[params.clone()]).await;
         //
@@ -3610,7 +3688,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut isMinLeverage: Value = Value::Bool(is_less_than(&leverage, &Value::Int(1)));
         let mut isMaxLeverage: Value = Value::Bool(is_greater_than(&leverage, &Value::Int(50)));
         if is_true(&isMinLeverage) || is_true(&isMaxLeverage) {
@@ -3717,7 +3797,12 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        if is_equal(&symbol, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPosition() requires a symbol argument".to_string()))));
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3752,7 +3837,10 @@ impl ModetradeCore {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_position(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -3773,7 +3861,9 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v1_private_get_positions(&[params.clone()]).await;
         //
         // {
@@ -3841,8 +3931,7 @@ impl ModetradeCore {
         let mut version: Value = get_value(&section, &Value::Int(0));
         let mut access: Value = get_value(&section, &Value::Int(1));
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &access));
-        url = add(&url, &add(&add(&Value::Str("/".to_string()), &version), &Value::Str("/".to_string())));
+        let mut url: Value = add(&add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &access), &Value::Str("/".to_string())), &version), &Value::Str("/".to_string()));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         params = self.keysort(params.clone(), &[]);
         if is_equal(&access, &Value::Str("public".to_string())) {
@@ -3862,8 +3951,8 @@ impl ModetradeCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_927: bool = true;
-                            while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_892: bool = true;
+                            while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

@@ -406,7 +406,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -443,7 +445,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut watchTickerOptions: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[]);
         let mut name: Value = self.safe_string_k(watchTickerOptions.clone(), "name", &[Value::Str("state".to_string())]); // or price
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("method".to_string()), Value::Str("name".to_string()), &[name.clone()]); name = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -475,7 +479,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut watchTickerOptions: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[]);
         let mut name: Value = self.safe_string_k(watchTickerOptions.clone(), "name", &[Value::Str("state".to_string())]); // or price
@@ -484,8 +490,8 @@ impl P2bCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { i = add(&i, &Value::Int(1)); } __for_first_546 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_539: bool = true;
+            while { if !__for_first_539 { i = add(&i, &Value::Int(1)); } __for_first_539 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
@@ -547,14 +553,16 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut messageHashes: Value = Value::List(vec![]);
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_547: bool = true;
-                while { if !__for_first_547 { i = add(&i, &Value::Int(1)); } __for_first_547 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_540: bool = true;
+                while { if !__for_first_540 { i = add(&i, &Value::Int(1)); } __for_first_540 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 append_to_array(&mut messageHashes, add(&Value::Str("deals::".to_string()), &get_value(&symbols, &i)));
             }
             }
@@ -589,7 +597,7 @@ impl P2bCore {
  * @param {int} [limit] 1-100, default=100
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -597,7 +605,9 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut name: Value = Value::Str("depth.subscribe".to_string());
         let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -698,8 +708,8 @@ impl P2bCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_548: bool = true;
-            while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_541: bool = true;
+            while { if !__for_first_541 { i = add(&i, &Value::Int(1)); } __for_first_541 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut item: Value = get_value(&trades, &i);
             let mut item: Value = get_value(&trades, &i);
             let mut trade: Value = self.parse_trade(item.clone(), &[market.clone()]);
@@ -818,8 +828,8 @@ impl P2bCore {
         if !is_equal(&bids, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_549: bool = true;
-                while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&bids)) } {
+                let mut __for_first_542: bool = true;
+                while { if !__for_first_542 { i = add(&i, &Value::Int(1)); } __for_first_542 = false; is_less_than(&i, &get_array_length(&bids)) } {
                 let mut bid: Value = self.safe_value(bids.clone(), i.clone(), &[]);
                 let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(bid.clone(), Value::Int(1), &[]);
@@ -831,8 +841,8 @@ impl P2bCore {
         if !is_equal(&asks, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_550: bool = true;
-                while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&asks)) } {
+                let mut __for_first_543: bool = true;
+                while { if !__for_first_543 { i = add(&i, &Value::Int(1)); } __for_first_543 = false; is_less_than(&i, &get_array_length(&asks)) } {
                 let mut ask: Value = self.safe_value(asks.clone(), i.clone(), &[]);
                 let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(ask.clone(), Value::Int(1), &[]);

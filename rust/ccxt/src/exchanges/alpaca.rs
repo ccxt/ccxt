@@ -489,7 +489,11 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("defaultExchange".to_string(), Value::Str("CBSE".to_string()));
         m.insert("exchanges".to_string(), Value::List(vec![Value::Str("CBSE".to_string()), Value::Str("FTX".to_string()), Value::Str("GNSS".to_string()), Value::Str("ERSX".to_string())]));
-        m.insert("defaultTimeInForce".to_string(), Value::Str("gtc".to_string()));
+        m.insert("createOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("timeInForce".to_string(), Value::Str("gtc".to_string()));
+    m
+}));
         m.insert("clientOrderId".to_string(), Value::Str("ccxt_{id}".to_string()));
     m
 }));
@@ -658,7 +662,7 @@ impl AlpacaCore {
         let mut jetlagStrStart: Value = subtract(&get_array_length(&timestamp), &Value::Int(6));
         let mut jetlagStrEnd: Value = subtract(&get_array_length(&timestamp), &Value::Int(3));
         let mut jetlag: Value = slice(&timestamp, &jetlagStrStart, &jetlagStrEnd);
-        let mut iso: Value = subtract(&self.parse8601(localTime.clone()), &multiply(&multiply(&self.parse_to_numeric(jetlag.clone()), &Value::Int(3600)), &Value::Int(1000)));
+        let mut iso: Value = subtract(&self.parse_to_int(self.parse8601(localTime.clone())), &multiply(&multiply(&self.parse_to_numeric(jetlag.clone()), &Value::Int(3600)), &Value::Int(1000)));
         return iso;
 
     Value::Null
@@ -817,7 +821,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".to_string())]);
@@ -910,7 +916,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut id: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".to_string())]);
@@ -996,7 +1004,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".to_string())]);
@@ -1125,7 +1135,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_dict(tickers.clone(), symbol.clone(), &[]);
@@ -1152,7 +1164,9 @@ impl AlpacaCore {
         if is_equal(&symbols, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTickers() requires a symbols argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".to_string())]);
         let mut ids: Value = self.market_ids(&[symbols.clone()]);
@@ -1225,8 +1239,8 @@ impl AlpacaCore {
         let mut marketIds: Value = object_keys(&snapshots);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1312,7 +1326,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut req: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
@@ -1339,7 +1355,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut req: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
@@ -1366,7 +1384,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut req: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
@@ -1399,7 +1419,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut id: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut request: Value = Value::Map({
@@ -1430,8 +1452,9 @@ impl AlpacaCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("qty".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        let mut defaultTIF: Value = self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[]);
-        add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), self.safe_string_k(params.clone(), "timeInForce", &[defaultTIF.clone()]));
+        let mut defaultTIF: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("timeInForce".to_string()), &[]); defaultTIF = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), defaultTIF.clone());
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), self.generate_client_order_id(params.clone()));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
@@ -1485,7 +1508,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.trader_private_delete_v2_orders(&[params.clone()]).await;
         if is_true(&Value::Bool(is_array(&response))) {
             return self.parse_orders(response.clone(), &[]);
@@ -1516,7 +1541,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -1551,7 +1578,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("all".to_string()));
@@ -1666,7 +1695,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -1688,7 +1719,7 @@ impl AlpacaCore {
             add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("editOrder".to_string()), Value::Str("timeInForce".to_string()), Value::Str("defaultTimeInForce".to_string()), &[]); timeInForce = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrder".to_string()), Value::Str("timeInForce".to_string()), &[Value::Str("gtc".to_string())]); timeInForce = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&timeInForce, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
         }
@@ -1842,7 +1873,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1951,7 +1984,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2011,7 +2046,9 @@ impl AlpacaCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         if is_true(&tag) {
             address = add(&add(&address, &Value::Str(":".to_string())), &tag);
@@ -2031,7 +2068,9 @@ impl AlpacaCore {
 }
 
     pub async fn fetch_transactions_helper(&mut self, mut type_var: Value, mut code: Value, mut since: Value, mut limit: Value, mut params: Value) -> Value {
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
@@ -2057,8 +2096,8 @@ impl AlpacaCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_178: bool = true;
+            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
@@ -2243,7 +2282,9 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.trader_private_get_v2_account(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 

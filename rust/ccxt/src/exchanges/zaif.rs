@@ -299,7 +299,7 @@ impl ZaifCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Str("https://api.zaif.jp".to_string()));
@@ -611,8 +611,8 @@ impl ZaifCore {
         let mut currencyIds: Value = object_keys(&funds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { i = add(&i, &Value::Int(1)); } __for_first_1109 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i = add(&i, &Value::Int(1)); } __for_first_1045 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -646,7 +646,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_info(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -661,7 +663,7 @@ impl ZaifCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -669,7 +671,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -743,7 +747,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -818,7 +824,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -870,7 +878,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&type_var, &Value::Str("limit".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() allows limit orders only".to_string()))));
         }
@@ -1018,7 +1028,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1054,7 +1066,9 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1091,7 +1105,9 @@ impl ZaifCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         if is_equal(&code, &Value::Str("JPY".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" withdraw() does not allow ".to_string())), &code), &Value::Str(" withdrawals".to_string()))));

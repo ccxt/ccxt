@@ -334,7 +334,9 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut name: Value = Value::Str("SubscribeLevel1".to_string());
         let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &get_value(&market, &Value::Str("id".to_string())));
@@ -418,7 +420,9 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut name: Value = Value::Str("SubscribeTrades".to_string());
@@ -478,11 +482,11 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_499: bool = true;
-            while { if !__for_first_499 { i = add(&i, &Value::Int(1)); } __for_first_499 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { i = add(&i, &Value::Int(1)); } __for_first_492 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut trade: Value = self.parse_trade(get_value(&payload, &i), &[]);
             let mut symbol: Value = get_value(&trade, &Value::Str("symbol".to_string()));
-            let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
+            let mut tradesArray: Value = ternary(is_true(&(is_equal(&symbol, &Value::Null))), Value::Null, self.safe_value(self.trades.clone(), symbol.clone(), &[]));
             if is_equal(&tradesArray, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 tradesArray = ArrayCache::new(limit.clone());
@@ -495,8 +499,8 @@ impl NdaxCore {
         let mut symbols: Value = object_keys(&updates);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_500: bool = true;
-            while { if !__for_first_500 { i = add(&i, &Value::Int(1)); } __for_first_500 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_493: bool = true;
+            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -528,7 +532,9 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut name: Value = Value::Str("SubscribeTicker".to_string());
@@ -593,8 +599,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_502: bool = true;
-            while { if !__for_first_502 { i = add(&i, &Value::Int(1)); } __for_first_502 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_495: bool = true;
+            while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut ohlcv: Value = get_value(&payload, &i);
             let mut ohlcv: Value = get_value(&payload, &i);
             let mut marketId: Value = self.safe_string(ohlcv.clone(), Value::Int(8), &[]);
@@ -611,8 +617,8 @@ impl NdaxCore {
             let mut keys: Value = object_keys(&self.timeframes);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_501: bool = true;
-                while { if !__for_first_501 { j = add(&j, &Value::Int(1)); } __for_first_501 = false; is_less_than(&j, &get_array_length(&keys)) } {
+                let mut __for_first_494: bool = true;
+                while { if !__for_first_494 { j = add(&j, &Value::Int(1)); } __for_first_494 = false; is_less_than(&j, &get_array_length(&keys)) } {
                 let mut timeframe: Value = get_value(&keys, &j);
                 let mut timeframe: Value = get_value(&keys, &j);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -626,7 +632,7 @@ impl NdaxCore {
                     add_element_to_object(&mut stored, &subtract(&length, &Value::Int(1)), Value::List(vec![get_value(&parsed, &Value::Int(0)), get_value(&previous, &Value::Int(1)), crate::runtime::Math::max(&get_value(&parsed, &Value::Int(1)), &get_value(&previous, &Value::Int(1))), crate::runtime::Math::min(&get_value(&parsed, &Value::Int(2)), &get_value(&previous, &Value::Int(2))), get_value(&parsed, &Value::Int(4)), self.sum(&[get_value(&parsed, &Value::Int(5)), get_value(&previous, &Value::Int(5))])]));
                     add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                 }  else {
-                    if is_true(&length) && is_true(&(is_less_than(&get_value(&parsed, &Value::Int(0)), &get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0))))) {
+                    if is_true(&length) && is_true(&(is_less_than(&self.parse_to_int(get_value(&parsed, &Value::Int(0))), &self.parse_to_int(get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0)))))) {
                         continue;
                     }  else {
                         append_to_array(&mut stored, parsed.clone());
@@ -646,15 +652,15 @@ impl NdaxCore {
         let mut marketIds: Value = object_keys(&updates);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_504: bool = true;
-            while { if !__for_first_504 { i = add(&i, &Value::Int(1)); } __for_first_504 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_497: bool = true;
+            while { if !__for_first_497 { i = add(&i, &Value::Int(1)); } __for_first_497 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut timeframes: Value = object_keys(&get_value(&updates, &marketId));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_503: bool = true;
-                while { if !__for_first_503 { j = add(&j, &Value::Int(1)); } __for_first_503 = false; is_less_than(&j, &get_array_length(&timeframes)) } {
+                let mut __for_first_496: bool = true;
+                while { if !__for_first_496 { j = add(&j, &Value::Int(1)); } __for_first_496 = false; is_less_than(&j, &get_array_length(&timeframes)) } {
                 let mut timeframe: Value = get_value(&timeframes, &j);
                 let mut timeframe: Value = get_value(&timeframes, &j);
                 let mut messageHash: Value = add(&add(&add(&add(&name, &Value::Str(":".to_string())), &timeframe), &Value::Str(":".to_string())), &marketId);
@@ -676,7 +682,7 @@ impl NdaxCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -685,7 +691,9 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut name: Value = Value::Str("SubscribeLevel2".to_string());
@@ -766,8 +774,8 @@ impl NdaxCore {
         let mut nonce: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_505: bool = true;
-            while { if !__for_first_505 { i = add(&i, &Value::Int(1)); } __for_first_505 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_498: bool = true;
+            while { if !__for_first_498 { i = add(&i, &Value::Int(1)); } __for_first_498 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut bidask: Value = get_value(&payload, &i);
             let mut bidask: Value = get_value(&payload, &i);
             if is_equal(&timestamp, &Value::Null) {
@@ -854,7 +862,7 @@ impl NdaxCore {
         //
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
         let mut id: Value = self.safe_integer_k(message.clone(), "i", &[]);
-        let mut subscription: Value = self.safe_value(subscriptionsById.clone(), id.clone(), &[]);
+        let mut subscription: Value = ternary(is_true(&(is_equal(&id, &Value::Null))), Value::Null, self.safe_value(subscriptionsById.clone(), id.clone(), &[]));
         if !is_equal(&subscription, &Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
             if !is_equal(&method, &Value::Null) {
@@ -904,7 +912,7 @@ impl NdaxCore {
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "n", &[]);
-        let mut method: Value = self.safe_value(methods.clone(), event.clone(), &[]);
+        let mut method: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
             method.call(&[client.clone(), message.clone()]);
         }

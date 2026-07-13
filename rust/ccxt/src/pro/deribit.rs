@@ -405,8 +405,8 @@ impl DeribitCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = add(&i, &Value::Int(1)); } __for_first_312 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_301: bool = true;
+            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currencyCode: Value = get_value(&currencies, &i);
             let mut currencyCode: Value = get_value(&currencies, &i);
             append_to_array(&mut channels, add(&Value::Str("user.portfolio.".to_string()), &currencyCode));
@@ -506,12 +506,16 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("100ms".to_string())]);
         params = self.omit(params.clone(), Value::Str("interval".to_string()), &[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&interval, &Value::Str("raw".to_string())) {
             self.authenticate(&[]).await;
         }
@@ -550,20 +554,24 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("100ms".to_string())]);
         params = self.omit(params.clone(), Value::Str("interval".to_string()), &[]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&interval, &Value::Str("raw".to_string())) {
             self.authenticate(&[]).await;
         }
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = add(&i, &Value::Int(1)); } __for_first_313 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, add(&add(&add(&Value::Str("ticker.".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(".".to_string())), &interval));
         }
@@ -656,14 +664,16 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i = add(&i, &Value::Int(1)); } __for_first_314 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, add(&Value::Str("quote.".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
         }
@@ -849,8 +859,8 @@ impl DeribitCore {
         let mut stored: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { i = add(&i, &Value::Int(1)); } __for_first_315 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[market.clone()]);
@@ -961,8 +971,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i = add(&i, &Value::Int(1)); } __for_first_316 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut trade: Value = get_value(&parsed, &i);
             let mut trade: Value = get_value(&parsed, &i);
             cachedTrades.append(trade.clone());
@@ -982,7 +992,7 @@ impl DeribitCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1004,7 +1014,7 @@ impl DeribitCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1129,16 +1139,16 @@ impl DeribitCore {
         let mut cleanedBids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { i = add(&i, &Value::Int(1)); } __for_first_317 = false; is_less_than(&i, &get_array_length(&bids)) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&bids)) } {
             append_to_array(&mut cleanedBids, Value::List(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
         }
         }
         let mut cleanedAsks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i = add(&i, &Value::Int(1)); } __for_first_318 = false; is_less_than(&i, &get_array_length(&asks)) } {
+            let mut __for_first_307: bool = true;
+            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&asks)) } {
             append_to_array(&mut cleanedAsks, Value::List(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
         }
         }
@@ -1162,8 +1172,8 @@ impl DeribitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { i = add(&i, &Value::Int(1)); } __for_first_319 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_308: bool = true;
+            while { if !__for_first_308 { i = add(&i, &Value::Int(1)); } __for_first_308 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1188,7 +1198,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[params.clone()]).await;
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
@@ -1279,8 +1291,8 @@ impl DeribitCore {
         let mut cachedOrders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_320: bool = true;
-            while { if !__for_first_320 { i = add(&i, &Value::Int(1)); } __for_first_320 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_309: bool = true;
+            while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&orders)) } {
             cachedOrders.append(get_value(&orders, &i));
         }
         }
@@ -1307,7 +1319,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut ohlcvs: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
         return get_value(&get_value(&ohlcvs, &symbol), &timeframe);
@@ -1423,7 +1437,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut rawSubscriptions: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
@@ -1432,8 +1448,8 @@ impl DeribitCore {
         self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_321: bool = true;
-            while { if !__for_first_321 { i = add(&i, &Value::Int(1)); } __for_first_321 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+            let mut __for_first_310: bool = true;
+            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
             let mut current: Value = get_value(&symbolsArray, &i);
             let mut current: Value = get_value(&symbolsArray, &i);
             let mut market: Value = Value::Null;

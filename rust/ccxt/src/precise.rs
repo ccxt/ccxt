@@ -207,13 +207,17 @@ pub fn reduce_string(s: &str) -> String {
 /// Port of `Precise.stringDiv (a, b, precision)` — truncating
 /// big-integer division to exactly `precision` decimal places.
 pub fn string_div_prec(a: &str, b: &str, precision: i64) -> Option<String> {
+    // Fast path: i128. Any overflow (operand too large to parse, or the
+    // `a_int * 10^distance` intermediate exceeding i128) falls back to the
+    // arbitrary-precision BigInt path so the result matches TS exactly —
+    // NOT to `string_div` (which would silently change the precision).
     let (a_int, a_dec) = match precise_parse(a) {
         Some(v) => v,
-        None => return string_div(a, b),
+        None => return string_div_prec_big(a, b, precision),
     };
     let (b_int, b_dec) = match precise_parse(b) {
         Some(v) => v,
-        None => return string_div(a, b),
+        None => return string_div_prec_big(a, b, precision),
     };
     if b_int == 0 {
         return None;
@@ -225,15 +229,119 @@ pub fn string_div_prec(a: &str, b: &str, precision: i64) -> Option<String> {
     } else if distance < 0 {
         match 10i128.checked_pow((-distance) as u32) {
             Some(exp) => a_int / exp,
-            None => return string_div(a, b),
+            None => return string_div_prec_big(a, b, precision as i64),
         }
     } else {
         match 10i128.checked_pow(distance as u32).and_then(|e| a_int.checked_mul(e)) {
             Some(v) => v,
-            None => return string_div(a, b),
+            None => return string_div_prec_big(a, b, precision as i64),
         }
     };
     Some(precise_to_string(numerator / b_int, precision))
+}
+
+/// BigInt sibling of [`precise_parse`] — no i128 range limit. Splits a
+/// decimal (with optional `e` exponent) into `(integer, decimals)`.
+fn precise_parse_big(s: &str) -> Option<(num_bigint::BigInt, i32)> {
+    let mut num = s.to_lowercase();
+    let mut modifier: i32 = 0;
+    if let Some(epos) = num.find('e') {
+        modifier = num[epos + 1..].parse().ok()?;
+        num = num[..epos].to_string();
+    }
+    let decimals: i32 = match num.find('.') {
+        Some(di) => (num.len() - di - 1) as i32,
+        None => 0,
+    };
+    let integer: num_bigint::BigInt = num.replace('.', "").parse().ok()?;
+    Some((integer, decimals - modifier))
+}
+
+/// Arbitrary-precision port of `Precise.stringDiv (a, b, precision)`.
+/// Mirrors the TS BigInt algorithm exactly; used when the i128 fast path
+/// in [`string_div_prec`] would overflow.
+pub fn string_div_prec_big(a: &str, b: &str, precision: i64) -> Option<String> {
+    use num_bigint::BigInt;
+    use num_traits::Zero;
+    let (a_int, a_dec) = precise_parse_big(a)?;
+    let (b_int, b_dec) = precise_parse_big(b)?;
+    if b_int.is_zero() {
+        return None;
+    }
+    let precision = precision as i32;
+    let distance = precision - a_dec + b_dec;
+    // 10^n as a BigInt via its literal digit string ("1" followed by n
+    // zeros) — avoids depending on a particular `pow` API surface.
+    let pow10 = |n: i32| -> BigInt { format!("1{}", "0".repeat(n as usize)).parse().unwrap() };
+    let numerator: BigInt = if distance == 0 {
+        a_int
+    } else if distance < 0 {
+        a_int / pow10(-distance)
+    } else {
+        a_int * pow10(distance)
+    };
+    // BigInt division truncates toward zero, matching TS `BigInt` `/`.
+    let result = numerator / b_int;
+    // The quotient (a value scaled to `precision` decimals) is almost
+    // always small; reuse the i128 formatter when it fits, else format
+    // the BigInt digits directly.
+    match i128::try_from(result.clone()) {
+        Ok(small) => Some(precise_to_string(small, precision)),
+        Err(_) => Some(bigint_to_precise_string(&result, precision)),
+    }
+}
+
+/// Format `(integer, decimals)` where `integer` is a BigInt — the
+/// arbitrary-precision analogue of [`precise_to_string`]. Reduces trailing
+/// zeros (adjusting `decimals`) then positions the decimal point.
+fn bigint_to_precise_string(integer: &num_bigint::BigInt, decimals: i32) -> String {
+    use num_bigint::Sign;
+    let sign = if integer.sign() == Sign::Minus { "-" } else { "" };
+    let mut abs: String = integer.magnitude().to_string();
+    let mut decimals = decimals;
+    // reduce(): strip trailing zeros from the digit string.
+    let bytes = abs.as_bytes();
+    let start = abs.len() as i32 - 1;
+    if start > 0 {
+        let mut i = start;
+        while i >= 0 && bytes[i as usize] == b'0' {
+            i -= 1;
+        }
+        let difference = start - i;
+        if difference > 0 {
+            abs.truncate((i + 1) as usize);
+            decimals -= difference;
+        }
+    }
+    let pad_len = if decimals > 0 { decimals as usize } else { 0 };
+    let padded = if abs.len() < pad_len {
+        "0".repeat(pad_len - abs.len()) + &abs
+    } else {
+        abs
+    };
+    let arr: Vec<char> = padded.chars().collect();
+    let index = arr.len() as i32 - decimals;
+    let item: String = if index == 0 {
+        "0.".to_string()
+    } else if decimals < 0 {
+        "0".repeat((-decimals) as usize)
+    } else if decimals == 0 {
+        String::new()
+    } else {
+        ".".to_string()
+    };
+    let idx = index.max(0) as usize;
+    let mut result = String::new();
+    for (k, c) in arr.iter().enumerate() {
+        if k == idx {
+            result.push_str(&item);
+        }
+        result.push(*c);
+    }
+    if idx >= arr.len() {
+        result.push_str(&item);
+    }
+    format!("{sign}{result}")
 }
 
 /// A struct wrapper matching CCXT Precise class usage (e.g. `Precise::string_add`).
@@ -307,12 +415,11 @@ impl Precise {
     /// `keepMarginRate` is missing (UTA response uses `mmr` instead), so
     /// `Precise.stringAdd(undefined, feeToClose)` should yield `feeToClose`.
     pub fn stringAdd(a: &crate::Value, b: &crate::Value) -> crate::Value {
-        match (matches!(a, crate::Value::Null), matches!(b, crate::Value::Null)) {
-            (true, true)   => crate::Value::Null,
-            (true, false)  => b.clone(),
-            (false, true)  => a.clone(),
-            (false, false) => Self::vopt(string_add(&Self::vstr(a), &Self::vstr(b))),
+        // Mirrors TS `Precise.stringAdd`: either operand undefined → undefined.
+        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+            return crate::Value::Null;
         }
+        Self::vopt(string_add(&Self::vstr(a), &Self::vstr(b)))
     }
     /// Mirrors TS `Precise.stringSub`: either operand undefined → undefined.
     pub fn stringSub(a: &crate::Value, b: &crate::Value) -> crate::Value {
@@ -345,19 +452,30 @@ impl Precise {
         Self::vopt(string_div_prec(&Self::vstr(a), &Self::vstr(b), prec))
     }
     pub fn stringMod(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::vopt(string_mod(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringEq(a: &crate::Value, b: &crate::Value)  -> crate::Value { Self::vbool(string_eq(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringGt(a: &crate::Value, b: &crate::Value)  -> crate::Value { Self::vbool(string_gt(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringGe(a: &crate::Value, b: &crate::Value)  -> crate::Value { Self::vbool(string_ge(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringLt(a: &crate::Value, b: &crate::Value)  -> crate::Value { Self::vbool(string_lt(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringLe(a: &crate::Value, b: &crate::Value)  -> crate::Value { Self::vbool(string_le(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringEq(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_eq(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringGt(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_gt(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringGe(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_ge(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringLt(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_lt(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringLe(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_le(&Self::vstr(a), &Self::vstr(b))) }
+    /// TS treats the comparison operators as `false` when either operand
+    /// is undefined (they short-circuit before constructing a `Precise`).
+    fn any_null(a: &crate::Value, b: &crate::Value) -> bool { matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) }
     pub fn stringAbs(a: &crate::Value)                   -> crate::Value { Self::vopt(string_abs(&Self::vstr(a))) }
     pub fn stringNeg(a: &crate::Value)                   -> crate::Value { Self::vopt(string_neg(&Self::vstr(a))) }
     pub fn stringMin(a: &crate::Value, b: &crate::Value) -> crate::Value {
+        // Mirrors TS `Precise.stringMin`: either operand undefined → undefined.
+        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+            return crate::Value::Null;
+        }
         let (sa, sb) = (Self::vstr(a), Self::vstr(b));
         let pick = if let Some(true) = string_le(&sa, &sb) { sa } else { sb };
         crate::Value::Str(reduce_string(&pick))
     }
     pub fn stringMax(a: &crate::Value, b: &crate::Value) -> crate::Value {
+        // Mirrors TS `Precise.stringMax`: either operand undefined → undefined.
+        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+            return crate::Value::Null;
+        }
         let (sa, sb) = (Self::vstr(a), Self::vstr(b));
         let pick = if let Some(true) = string_ge(&sa, &sb) { sa } else { sb };
         crate::Value::Str(reduce_string(&pick))

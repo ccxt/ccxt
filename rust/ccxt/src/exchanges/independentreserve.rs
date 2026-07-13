@@ -564,16 +564,16 @@ impl IndependentreserveCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_801: bool = true;
-            while { if !__for_first_801 { i = add(&i, &Value::Int(1)); } __for_first_801 = false; is_less_than(&i, &get_array_length(&baseCurrencies)) } {
+            let mut __for_first_768: bool = true;
+            while { if !__for_first_768 { i = add(&i, &Value::Int(1)); } __for_first_768 = false; is_less_than(&i, &get_array_length(&baseCurrencies)) } {
             let mut baseId: Value = get_value(&baseCurrencies, &i);
             let mut baseId: Value = get_value(&baseCurrencies, &i);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut minAmount: Value = self.safe_number(limits.clone(), baseId.clone(), &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_800: bool = true;
-                while { if !__for_first_800 { j = add(&j, &Value::Int(1)); } __for_first_800 = false; is_less_than(&j, &get_array_length(&quoteCurrencies)) } {
+                let mut __for_first_767: bool = true;
+                while { if !__for_first_767 { j = add(&j, &Value::Int(1)); } __for_first_767 = false; is_less_than(&j, &get_array_length(&quoteCurrencies)) } {
                 let mut quoteId: Value = get_value(&quoteCurrencies, &j);
                 let mut quoteId: Value = get_value(&quoteCurrencies, &j);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -658,8 +658,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_802: bool = true;
-            while { if !__for_first_802 { i = add(&i, &Value::Int(1)); } __for_first_802 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_769: bool = true;
+            while { if !__for_first_769 { i = add(&i, &Value::Int(1)); } __for_first_769 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "CurrencyCode", &[]);
@@ -687,7 +687,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_accounts(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -701,7 +703,7 @@ impl IndependentreserveCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -709,7 +711,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -791,7 +795,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -974,7 +980,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let __ws_arg_2 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderGuid".to_string(), id.clone());
@@ -1008,7 +1016,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1050,7 +1060,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1092,7 +1104,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut pageIndex: Value = self.safe_integer_k(params.clone(), "pageIndex", &[Value::Int(1)]);
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(50);
@@ -1177,7 +1191,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1205,7 +1221,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_brokerage_fees(&[params.clone()]).await;
         //
         //     [
@@ -1222,8 +1240,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_803: bool = true;
-            while { if !__for_first_803 { i = add(&i, &Value::Int(1)); } __for_first_803 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_770: bool = true;
+            while { if !__for_first_770 { i = add(&i, &Value::Int(1)); } __for_first_770 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = get_value(&response, &i);
             let mut fee: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(fee.clone(), "CurrencyCode", &[]);
@@ -1243,8 +1261,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_804: bool = true;
-            while { if !__for_first_804 { i = add(&i, &Value::Int(1)); } __for_first_804 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_771: bool = true;
+            while { if !__for_first_771 { i = add(&i, &Value::Int(1)); } __for_first_771 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_value(fees.clone(), get_value(&market, &Value::Str("base".to_string())), &[Value::Map({
@@ -1286,7 +1304,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = self.capitalize(type_var.clone());
         orderType = add(&orderType, &ternary(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))), Value::Str("Offer".to_string()), Value::Str("Bid".to_string())));
@@ -1333,7 +1353,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderGuid".to_string(), id.clone());
@@ -1360,7 +1382,9 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1421,7 +1445,9 @@ impl IndependentreserveCore {
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1526,8 +1552,8 @@ impl IndependentreserveCore {
             let mut keys: Value = object_keys(&params);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_805: bool = true;
-                while { if !__for_first_805 { i = add(&i, &Value::Int(1)); } __for_first_805 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_772: bool = true;
+                while { if !__for_first_772 { i = add(&i, &Value::Int(1)); } __for_first_772 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = to_string_val(&get_value(&params, &key));
@@ -1545,8 +1571,8 @@ impl IndependentreserveCore {
             add_element_to_object(&mut query, &Value::Str("signature".to_string()), to_upper(&signature));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_806: bool = true;
-                while { if !__for_first_806 { i = add(&i, &Value::Int(1)); } __for_first_806 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_773: bool = true;
+                while { if !__for_first_773 { i = add(&i, &Value::Int(1)); } __for_first_773 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 add_element_to_object(&mut query, &key, get_value(&params, &key));

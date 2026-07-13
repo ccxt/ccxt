@@ -151,6 +151,11 @@ impl HashkeyCore {
         self.call_method(Value::Str("private_get_api_v1_futures_get_best_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetApiV1CoinInfo` implicit endpoint.
+    pub async fn private_get_api_v1_coin_info(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_coin_info".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetApiV1AccountVipInfo` implicit endpoint.
     pub async fn private_get_api_v1_account_vip_info(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_api_v1_account_vip_info".to_string()), optional_args).await
@@ -169,6 +174,11 @@ impl HashkeyCore {
     /// Auto-generated wrapper for the `privateGetApiV1AccountType` implicit endpoint.
     pub async fn private_get_api_v1_account_type(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_api_v1_account_type".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV1AccountChainType` implicit endpoint.
+    pub async fn private_get_api_v1_account_chain_type(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_account_chain_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountCheckApiKey` implicit endpoint.
@@ -259,6 +269,16 @@ impl HashkeyCore {
     /// Auto-generated wrapper for the `privatePostApiV1FuturesOrder` implicit endpoint.
     pub async fn private_post_api_v1_futures_order(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v1_futures_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV1FuturesMarginType` implicit endpoint.
+    pub async fn private_post_api_v1_futures_margin_type(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_futures_margin_type".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV1FuturesPositionMargin` implicit endpoint.
+    pub async fn private_post_api_v1_futures_position_margin(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v1_futures_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesPositionTradingStop` implicit endpoint.

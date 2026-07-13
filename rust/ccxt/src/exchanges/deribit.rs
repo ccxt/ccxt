@@ -1147,7 +1147,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_get_subaccounts(&[params.clone()]).await;
         //
         //     {
@@ -1256,8 +1258,8 @@ impl DeribitCore {
             let mut currenciesResult: Value = self.safe_value_k(currenciesResponse.clone(), "result", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_598: bool = true;
-                while { if !__for_first_598 { i = add(&i, &Value::Int(1)); } __for_first_598 = false; is_less_than(&i, &get_array_length(&currenciesResult)) } {
+                let mut __for_first_568: bool = true;
+                while { if !__for_first_568 { i = add(&i, &Value::Int(1)); } __for_first_568 = false; is_less_than(&i, &get_array_length(&currenciesResult)) } {
                 let mut currencyId: Value = self.safe_string_k(get_value(&currenciesResult, &i), "currency", &[]);
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1345,13 +1347,13 @@ impl DeribitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_600: bool = true;
-            while { if !__for_first_600 { i = add(&i, &Value::Int(1)); } __for_first_600 = false; is_less_than(&i, &get_array_length(&instrumentsResponses)) } {
+            let mut __for_first_570: bool = true;
+            while { if !__for_first_570 { i = add(&i, &Value::Int(1)); } __for_first_570 = false; is_less_than(&i, &get_array_length(&instrumentsResponses)) } {
             let mut instrumentsResult: Value = self.safe_value_k(get_value(&instrumentsResponses, &i), "result", &[Value::List(vec![])]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_599: bool = true;
-                while { if !__for_first_599 { k = add(&k, &Value::Int(1)); } __for_first_599 = false; is_less_than(&k, &get_array_length(&instrumentsResult)) } {
+                let mut __for_first_569: bool = true;
+                while { if !__for_first_569 { k = add(&k, &Value::Int(1)); } __for_first_569 = false; is_less_than(&k, &get_array_length(&instrumentsResult)) } {
                 let mut market: Value = get_value(&instrumentsResult, &k);
                 let mut market: Value = get_value(&instrumentsResult, &k);
                 let mut kind: Value = self.safe_string_k(market.clone(), "kind", &[]);
@@ -1493,8 +1495,8 @@ impl DeribitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i = add(&i, &Value::Int(1)); } __for_first_601 = false; is_less_than(&i, &get_array_length(&summaries)) } {
+            let mut __for_first_571: bool = true;
+            while { if !__for_first_571 { i = add(&i, &Value::Int(1)); } __for_first_571 = false; is_less_than(&i, &get_array_length(&summaries)) } {
             let mut data: Value = get_value(&summaries, &i);
             let mut data: Value = get_value(&summaries, &i);
             let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
@@ -1526,7 +1528,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
         params = self.omit(params.clone(), Value::Str("code".to_string()), &[]);
         let mut request: Value = Value::Map({
@@ -1608,7 +1612,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1662,7 +1668,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1804,7 +1812,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1841,7 +1851,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_ticker(result.clone(), &[market.clone()]);
 
     Value::Null
@@ -1863,7 +1876,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut code: Value = self.safe_string2(params.clone(), Value::Str("code".to_string()), Value::Str("currency".to_string()), &[]);
         let mut type_var: Value = Value::Null;
@@ -1871,8 +1886,8 @@ impl DeribitCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_602: bool = true;
-                while { if !__for_first_602 { i = add(&i, &Value::Int(1)); } __for_first_602 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_572: bool = true;
+                while { if !__for_first_572 { i = add(&i, &Value::Int(1)); } __for_first_572 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 if !is_equal(&code, &Value::Null) && !is_equal(&code, &get_value(&market, &Value::Str("base".to_string()))) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency".to_string()))));
@@ -1945,8 +1960,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i = add(&i, &Value::Int(1)); } __for_first_603 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i = add(&i, &Value::Int(1)); } __for_first_573 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&result, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut tickers, &symbol, ticker.clone());
@@ -1979,7 +1994,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -2162,7 +2179,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2237,7 +2256,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut code: Value = self.code_from_options(Value::Str("fetchTradingFees".to_string()), &[params.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -2316,8 +2337,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i = add(&i, &Value::Int(1)); } __for_first_604 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i = add(&i, &Value::Int(1)); } __for_first_574 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut instrumentType: Value = self.safe_string_k(fee.clone(), "instrument_type", &[]);
@@ -2354,8 +2375,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { i = add(&i, &Value::Int(1)); } __for_first_605 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i = add(&i, &Value::Int(1)); } __for_first_575 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = Value::Map({
@@ -2391,7 +2412,7 @@ impl DeribitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2399,7 +2420,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2625,7 +2648,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -2665,7 +2690,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_order(result.clone(), &[market.clone()]);
 
     Value::Null
@@ -2693,7 +2721,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2873,7 +2903,9 @@ impl DeribitCore {
         if is_equal(&amount, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires an amount argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -2919,7 +2951,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -2952,7 +2986,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2996,7 +3032,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3041,7 +3079,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3091,7 +3131,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -3160,7 +3202,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("include_old".to_string(), Value::Bool(true));
@@ -3260,7 +3304,9 @@ impl DeribitCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDeposits() requires a currency code argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3324,7 +3370,9 @@ impl DeribitCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchWithdrawals() requires a currency code argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3546,7 +3594,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3581,7 +3631,10 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.parse_position(result.clone(), &[]);
 
     Value::Null
@@ -3605,7 +3658,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut code: Value = self.safe_string_k(params.clone(), "currency", &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3667,7 +3722,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3700,8 +3757,8 @@ impl DeribitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { i = add(&i, &Value::Int(1)); } __for_first_606 = false; is_less_than(&i, &get_array_length(&volatilityResult)) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { i = add(&i, &Value::Int(1)); } __for_first_576 = false; is_less_than(&i, &get_array_length(&volatilityResult)) } {
             let mut timestamp: Value = self.safe_integer(get_value(&volatilityResult, &i), Value::Int(0), &[]);
             let mut volatilityObj: Value = self.safe_number(get_value(&volatilityResult, &i), Value::Int(1), &[]);
             append_to_array(&mut result, Value::Map({
@@ -3741,7 +3798,9 @@ impl DeribitCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTransfers() requires a currency code argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3814,7 +3873,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3881,7 +3942,7 @@ impl DeribitCore {
         //         "amount": 13.456
         //     }
         //
-        let mut timestamp: Value = self.safe_timestamp(transfer.clone(), Value::Str("created_timestamp".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "created_timestamp", &[]);
         let mut status: Value = self.safe_string_k(transfer.clone(), "state", &[]);
         let mut account: Value = self.safe_string_k(transfer.clone(), "other_side", &[]);
         let mut direction: Value = self.safe_string_k(transfer.clone(), "direction", &[]);
@@ -3937,7 +3998,9 @@ impl DeribitCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3998,7 +4061,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_get_currencies(&[params.clone()]).await;
         //
         //    {
@@ -4044,7 +4109,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut time: Value = self.milliseconds();
         let mut request: Value = Value::Map({
@@ -4082,7 +4149,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4144,8 +4213,8 @@ impl DeribitCore {
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i = add(&i, &Value::Int(1)); } __for_first_607 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i = add(&i, &Value::Int(1)); } __for_first_577 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut fr: Value = get_value(&result, &i);
             let mut fr: Value = get_value(&result, &i);
             let mut rate: Value = self.parse_funding_rate(fr.clone(), &[market.clone()]);
@@ -4225,7 +4294,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLiquidations".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4324,7 +4395,9 @@ impl DeribitCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMyLiquidations() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets".to_string()))));
@@ -4423,7 +4496,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4576,7 +4651,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4641,7 +4718,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4759,7 +4838,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));

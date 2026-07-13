@@ -646,8 +646,16 @@ impl BitfinexCore {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::SIGNIFICANT_DIGITS));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("fetchOrderBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
         m.insert("precision".to_string(), Value::Str("R0".to_string()));
-        m.insert("defaultCurrencyPrecision".to_string(), Value::Int(8));
+    m
+}));
+        m.insert("fetchCurrencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("defaultPrecision".to_string(), Value::Int(8));
+    m
+}));
         m.insert("exchangeTypes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("MARKET".to_string(), Value::Str("market".to_string()));
@@ -992,8 +1000,8 @@ impl BitfinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_293: bool = true;
-            while { if !__for_first_293 { i = add(&i, &Value::Int(1)); } __for_first_293 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_274: bool = true;
+            while { if !__for_first_274 { i = add(&i, &Value::Int(1)); } __for_first_274 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut pairObj: Value = get_value(&markets, &i);
             let mut pairObj: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_upper(pairObj.clone(), Value::Int(0), &[]);
@@ -1234,8 +1242,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_294: bool = true;
-            while { if !__for_first_294 { i = add(&i, &Value::Int(1)); } __for_first_294 = false; is_less_than(&i, &get_array_length(&get_value(&indexed, &Value::Str("networks".to_string())))) } {
+            let mut __for_first_275: bool = true;
+            while { if !__for_first_275 { i = add(&i, &Value::Int(1)); } __for_first_275 = false; is_less_than(&i, &get_array_length(&get_value(&indexed, &Value::Str("networks".to_string())))) } {
             let mut networkObj: Value = get_value(&get_value(&indexed, &Value::Str("networks".to_string())), &i);
             let mut networkId: Value = self.safe_string(networkObj.clone(), Value::Int(0), &[]);
             let mut valuesList: Value = self.safe_list(networkObj.clone(), Value::Int(1), &[]);
@@ -1256,8 +1264,8 @@ impl BitfinexCore {
         let mut allowedIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_295: bool = true;
-            while { if !__for_first_295 { i = add(&i, &Value::Int(1)); } __for_first_295 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_276: bool = true;
+            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if is_true(&Value::Bool(ends_with(&id, &Value::Str("F0".to_string())))) {
@@ -1273,8 +1281,8 @@ impl BitfinexCore {
         let mut arr: Value = self.to_array(allowedIds.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_296: bool = true;
-            while { if !__for_first_296 { i = add(&i, &Value::Int(1)); } __for_first_296 = false; is_less_than(&i, &get_array_length(&arr)) } {
+            let mut __for_first_277: bool = true;
+            while { if !__for_first_277 { i = add(&i, &Value::Int(1)); } __for_first_277 = false; is_less_than(&i, &get_array_length(&arr)) } {
             let mut parsed: Value = self.parse_currency_custom(get_value(&arr, &i), indexed.clone(), indexedNetworks.clone());
             let mut code: Value = get_value(&parsed, &Value::Str("code".to_string()));
             add_element_to_object(&mut result, &code, parsed.clone());
@@ -1297,7 +1305,8 @@ impl BitfinexCore {
         let mut fees: Value = self.safe_list(feeValues.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut fee: Value = self.safe_number(fees.clone(), Value::Int(1), &[]);
         let mut undl: Value = self.safe_list(get_value(&indexed, &Value::Str("undl".to_string())), id.clone(), &[Value::List(vec![])]);
-        let mut precision: Value = self.safe_string_k(self.options.clone(), "defaultCurrencyPrecision", &[Value::Str("8".to_string())]);
+        let mut defaultCurrencyPrecision: Value = self.safe_string_k(self.options.clone(), "defaultCurrencyPrecision", &[Value::Str("8".to_string())]); // kept here for backward-compatibility
+        let mut precision: Value = self.handle_option(Value::Str("fetchCurrencies".to_string()), Value::Str("defaultPrecision".to_string()), &[defaultCurrencyPrecision.clone()]);
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1305,8 +1314,8 @@ impl BitfinexCore {
         let mut networkIds: Value = self.safe_list(indexedNetworks.clone(), id.clone(), &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_297: bool = true;
-            while { if !__for_first_297 { j = add(&j, &Value::Int(1)); } __for_first_297 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+            let mut __for_first_278: bool = true;
+            while { if !__for_first_278 { j = add(&j, &Value::Int(1)); } __for_first_278 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1386,7 +1395,9 @@ impl BitfinexCore {
 }));
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "v2AccountsByType", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1407,8 +1418,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_279: bool = true;
+            while { if !__for_first_279 { i = add(&i, &Value::Int(1)); } __for_first_279 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut account: Value = self.account();
@@ -1454,7 +1465,9 @@ impl BitfinexCore {
 }));
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "v2AccountsByType", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1619,7 +1632,7 @@ impl BitfinexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1627,8 +1640,10 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
-        let mut precision: Value = self.safe_value_k(self.options.clone(), "precision", &[Value::Str("R0".to_string())]);
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut precision: Value = self.handle_option(Value::Str("fetchOrderBook".to_string()), Value::Str("precision".to_string()), &[Value::Str("R0".to_string())]);
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1655,8 +1670,8 @@ impl BitfinexCore {
         let mut priceIndex: Value = ternary(is_true(&(is_equal(&get_value(&fullRequest, &Value::Str("precision".to_string())), &Value::Str("R0".to_string())))), Value::Int(1), Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { i = add(&i, &Value::Int(1)); } __for_first_299 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
+            let mut __for_first_280: bool = true;
+            while { if !__for_first_280 { i = add(&i, &Value::Int(1)); } __for_first_280 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
             let mut order: Value = get_value(&orderbook, &i);
             let mut order: Value = get_value(&orderbook, &i);
             let mut price: Value = self.safe_number(order.clone(), priceIndex.clone(), &[]);
@@ -1802,7 +1817,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1835,7 +1852,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1960,7 +1979,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1998,8 +2019,8 @@ impl BitfinexCore {
         let mut tradesList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_281: bool = true;
+            while { if !__for_first_281 { i = add(&i, &Value::Int(1)); } __for_first_281 = false; is_less_than(&i, &get_array_length(&trades)) } {
             append_to_array(&mut tradesList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&trades, &i));
@@ -2034,7 +2055,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -2147,8 +2170,8 @@ impl BitfinexCore {
         if !is_equal(&flags, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_301: bool = true;
-                while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&flags)) } {
+                let mut __for_first_282: bool = true;
+                while { if !__for_first_282 { i = add(&i, &Value::Int(1)); } __for_first_282 = false; is_less_than(&i, &get_array_length(&flags)) } {
                 if is_equal(&get_value(&flags, &i), &Value::Str("postOnly".to_string())) {
                     postOnly = Value::Bool(true);
                 }
@@ -2330,7 +2353,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = self.private_post_auth_w_order_submit(&[request.clone()]).await;
@@ -2413,12 +2438,14 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_283: bool = true;
+            while { if !__for_first_283 { i = add(&i, &Value::Int(1)); } __for_first_283 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2469,8 +2496,8 @@ impl BitfinexCore {
         let mut data: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_284: bool = true;
+            while { if !__for_first_284 { i = add(&i, &Value::Int(1)); } __for_first_284 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut individualOrder: Value = get_value(&entry, &Value::Int(4));
@@ -2501,7 +2528,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("all".to_string(), Value::Int(1));
@@ -2513,8 +2542,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_285: bool = true;
+            while { if !__for_first_285 { i = add(&i, &Value::Int(1)); } __for_first_285 = false; is_less_than(&i, &get_array_length(&orders)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&orders, &i));
@@ -2543,7 +2572,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut cid: Value = self.safe_value2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]); // client order id
         let mut request: Value = Value::Null;
         let mut market: Value = Value::Null;
@@ -2598,12 +2629,14 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut numericIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_305: bool = true;
-            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_286: bool = true;
+            while { if !__for_first_286 { i = add(&i, &Value::Int(1)); } __for_first_286 = false; is_less_than(&i, &get_array_length(&ids)) } {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             append_to_array(&mut numericIds, self.parse_to_numeric(get_value(&ids, &i)));
         }
@@ -2673,8 +2706,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_287: bool = true;
+            while { if !__for_first_287 { i = add(&i, &Value::Int(1)); } __for_first_287 = false; is_less_than(&i, &get_array_length(&orders)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&orders, &i));
@@ -2773,7 +2806,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2830,8 +2865,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_307: bool = true;
-            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_288: bool = true;
+            while { if !__for_first_288 { i = add(&i, &Value::Int(1)); } __for_first_288 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -2867,7 +2902,9 @@ impl BitfinexCore {
     m
 }));
         // returns the most recent closed or canceled orders up to circa two weeks ago
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -2936,8 +2973,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_308: bool = true;
-            while { if !__for_first_308 { i = add(&i, &Value::Int(1)); } __for_first_308 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_289: bool = true;
+            while { if !__for_first_289 { i = add(&i, &Value::Int(1)); } __for_first_289 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -2973,7 +3010,9 @@ impl BitfinexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut orderId: Value = crate::runtime::parse_int(&id);
         let mut request: Value = Value::Map({
@@ -2988,8 +3027,8 @@ impl BitfinexCore {
         let mut tradesList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_309: bool = true;
-            while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_290: bool = true;
+            while { if !__for_first_290 { i = add(&i, &Value::Int(1)); } __for_first_290 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut tradesList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -3022,7 +3061,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3048,8 +3089,8 @@ impl BitfinexCore {
         let mut tradesList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_291: bool = true;
+            while { if !__for_first_291 { i = add(&i, &Value::Int(1)); } __for_first_291 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut tradesList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -3076,7 +3117,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op_renew".to_string(), Value::Int(1));
@@ -3102,7 +3145,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
@@ -3271,13 +3316,13 @@ impl BitfinexCore {
             tag = self.safe_string(data.clone(), Value::Int(3), &[]);
             type_var = Value::Str("withdrawal".to_string());
             let mut networkId: Value = self.safe_string(data.clone(), Value::Int(2), &[]);
-            network = self.network_id_to_code(&[to_upper(&networkId)]); // withdraw returns in lowercase
+            network = self.network_id_to_code(&[to_upper(&networkId), code.clone()]); // withdraw returns in lowercase
         }  else if is_equal(&transactionLength, &Value::Int(22)) {
             id = self.safe_string(transaction.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(transaction.clone(), Value::Int(1), &[]);
             code = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
             let mut networkId: Value = self.safe_string(transaction.clone(), Value::Int(2), &[]);
-            network = self.network_id_to_code(&[networkId.clone()]);
+            network = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(5), &[]);
             updated = self.safe_integer(transaction.clone(), Value::Int(6), &[]);
             status = self.parse_transaction_status(self.safe_string(transaction.clone(), Value::Int(9), &[]));
@@ -3345,7 +3390,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_auth_r_summary(&[params.clone()]).await;
         //
         //      Response Spec:
@@ -3433,8 +3480,8 @@ impl BitfinexCore {
         let mut takerFeeDeriv: Value = self.safe_number(takerData.clone(), Value::Int(5), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_311: bool = true;
-            while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_292: bool = true;
+            while { if !__for_first_292 { i = add(&i, &Value::Int(1)); } __for_first_292 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = Value::Map({
@@ -3483,7 +3530,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3529,7 +3578,9 @@ impl BitfinexCore {
     m
 }));
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
@@ -3629,7 +3680,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.private_post_auth_r_positions(&[params.clone()]).await;
         //
@@ -3669,8 +3722,8 @@ impl BitfinexCore {
         let mut positionsList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = add(&i, &Value::Int(1)); } __for_first_312 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_293: bool = true;
+            while { if !__for_first_293 { i = add(&i, &Value::Int(1)); } __for_first_293 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut positionsList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -3943,7 +3996,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3989,8 +4044,8 @@ impl BitfinexCore {
         let mut ledgerObjects: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = add(&i, &Value::Int(1)); } __for_first_313 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_294: bool = true;
+            while { if !__for_first_294 { i = add(&i, &Value::Int(1)); } __for_first_294 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             append_to_array(&mut ledgerObjects, Value::Map({
@@ -4023,7 +4078,9 @@ impl BitfinexCore {
         if is_equal(&symbols, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRates() requires a symbols argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4061,7 +4118,9 @@ impl BitfinexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4112,8 +4171,8 @@ impl BitfinexCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i = add(&i, &Value::Int(1)); } __for_first_314 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_295: bool = true;
+            while { if !__for_first_295 { i = add(&i, &Value::Int(1)); } __for_first_295 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fr: Value = get_value(&response, &i);
             let mut fr: Value = get_value(&response, &i);
             let mut rate: Value = self.parse_funding_rate_history(fr.clone(), &[market.clone()]);
@@ -4125,8 +4184,8 @@ impl BitfinexCore {
         let mut ratesLength: Value = get_array_length(&rawRates);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { i = add(&i, &Value::Int(1)); } __for_first_315 = false; is_less_than(&i, &ratesLength) } {
+            let mut __for_first_296: bool = true;
+            while { if !__for_first_296 { i = add(&i, &Value::Int(1)); } __for_first_296 = false; is_less_than(&i, &ratesLength) } {
             let mut index: Value = subtract(&subtract(&ratesLength, &i), &Value::Int(1));
             let mut valueAtIndex: Value = get_value(&rawRates, &index);
             append_to_array(&mut reversedArray, valueAtIndex.clone());
@@ -4267,7 +4326,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut marketIds: Value = Value::List(vec![Value::Str("ALL".to_string())]);
         if !is_equal(&symbols, &Value::Null) {
@@ -4299,7 +4360,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4366,7 +4429,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenInterestHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4490,7 +4555,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLiquidations".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4577,7 +4644,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMargin() only support swap markets".to_string()))));
@@ -4619,7 +4688,7 @@ impl BitfinexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), Value::Null);
@@ -4651,7 +4720,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::List(vec![self.parse_to_numeric(id.clone())]));
@@ -4745,7 +4816,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -495,6 +495,9 @@ impl BitmartCore {
     m
 }));
         symbols = self.market_symbols(&[symbols.clone(), type_var.clone(), Value::Bool(false), Value::Bool(true)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &type_var), &Value::Str("public".to_string())));
         let mut channelType: Value = ternary(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))), Value::Str("spot".to_string()), Value::Str("futures".to_string()));
         let mut actionType: Value = ternary(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))), Value::Str("op".to_string()), Value::Str("action".to_string()));
@@ -510,8 +513,8 @@ impl BitmartCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_131: bool = true;
-            while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_120: bool = true;
+            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             let mut rawHash: Value = add(&add(&add(&add(&channelType, &Value::Str("/".to_string())), &channel), &Value::Str(":".to_string())), &get_value(&market, &Value::Str("id".to_string())));
             let mut messageHash: Value = add(&add(&add(&prefix, &unifiedName), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -552,7 +555,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Str("spot".to_string());
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.authenticate(type_var.clone(), &[params.clone()]).await;
@@ -663,6 +668,9 @@ impl BitmartCore {
         //    }
         //
         let mut channel: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         if is_equal(&data, &Value::Null) {
             return;
@@ -676,16 +684,16 @@ impl BitmartCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_133: bool = true;
-                while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_122: bool = true;
+                while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut timestamp: Value = self.safe_integer_k(message.clone(), "event_time", &[]);
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("timestamp".to_string()), timestamp.clone());
                 { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
                 let mut balanceDetails: Value = self.safe_list_k(get_value(&data, &i), "balance_details", &[Value::List(vec![])]);
                 {
                                         let mut ii: Value = Value::Int(0);
-                    let mut __for_first_132: bool = true;
-                    while { if !__for_first_132 { ii = add(&ii, &Value::Int(1)); } __for_first_132 = false; is_less_than(&ii, &get_array_length(&balanceDetails)) } {
+                    let mut __for_first_121: bool = true;
+                    while { if !__for_first_121 { ii = add(&ii, &Value::Int(1)); } __for_first_121 = false; is_less_than(&ii, &get_array_length(&balanceDetails)) } {
                     let mut rawBalance: Value = get_value(&balanceDetails, &i);
                     let mut rawBalance: Value = get_value(&balanceDetails, &i);
                     let mut account: Value = self.account();
@@ -754,7 +762,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.get_params_for_multiple_sub(Value::Str("watchTradesForSymbols".to_string()), symbols.clone(), &[limit.clone(), params.clone()]); symbols = get_value(&__destr_tmp, &Value::Int(0)); marketType = get_value(&__destr_tmp, &Value::Int(1)); params = get_value(&__destr_tmp, &Value::Int(2)); }
         let mut channelName: Value = Value::Str("trade".to_string());
@@ -810,7 +820,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.get_params_for_multiple_sub(Value::Str("unWatchTradesForSymbols".to_string()), symbols.clone(), &[Value::Null, params.clone()]); symbols = get_value(&__destr_tmp, &Value::Int(0)); marketType = get_value(&__destr_tmp, &Value::Int(1)); params = get_value(&__destr_tmp, &Value::Int(2)); }
         let mut channelName: Value = Value::Str("trade".to_string());
@@ -858,7 +870,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
@@ -882,7 +896,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchTickers".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -936,7 +952,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchTickers".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -966,8 +984,13 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        if is_equal(&symbols, &Value::Null) {
+            symbols = Value::List(vec![]);
+        }
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[firstMarket.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -978,8 +1001,8 @@ impl BitmartCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_134: bool = true;
-            while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_123: bool = true;
+            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             let mut rawHash: Value = add(&add(&channelType, &Value::Str(":".to_string())), &get_value(&market, &Value::Str("id".to_string())));
             let mut messageHash: Value = add(&Value::Str("bidask::".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -1029,11 +1052,13 @@ impl BitmartCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut __for_first_124: bool = true;
+            while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
             let mut ticker: Value = self.parse_ws_bid_ask(get_value(&rawTickers, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+            }
             let mut messageHash: Value = add(&Value::Str("bidask::".to_string()), &symbol);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
@@ -1082,7 +1107,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("orders".to_string());
         if !is_equal(&symbol, &Value::Null) {
@@ -1096,7 +1123,7 @@ impl BitmartCore {
         let mut request: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
             let mut argsRequest: Value = Value::Str("spot/user/order:".to_string());
-            if !is_equal(&symbol, &Value::Null) {
+            if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(!is_equal(&market, &Value::Null))) {
                 argsRequest = add(&argsRequest, &get_value(&market, &Value::Str("id".to_string())));
             }  else {
                 argsRequest = Value::Str("spot/user/orders:ALL_SYMBOLS".to_string());
@@ -1142,7 +1169,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("unsubscribe::orders".to_string());
         if !is_equal(&symbol, &Value::Null) {
@@ -1159,7 +1188,7 @@ impl BitmartCore {
         let mut request: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
             let mut argsRequest: Value = Value::Str("spot/user/order:".to_string());
-            if !is_equal(&symbol, &Value::Null) {
+            if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(!is_equal(&market, &Value::Null))) {
                 argsRequest = add(&argsRequest, &get_value(&market, &Value::Str("id".to_string())));
             }  else {
                 argsRequest = Value::Str("spot/user/orders:ALL_SYMBOLS".to_string());
@@ -1257,13 +1286,15 @@ impl BitmartCore {
             let mut stored: Value = self.orders.clone();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_136: bool = true;
-                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_125: bool = true;
+                while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut order: Value = self.parse_ws_order(get_value(&orders, &i), &[]);
                 stored.append(order.clone());
                 append_to_array(&mut newOrders, order.clone());
                 let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if !is_equal(&symbol, &Value::Null) {
+                    add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                }
             }
             }
         }
@@ -1271,8 +1302,8 @@ impl BitmartCore {
         let mut symbolKeys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_137: bool = true;
-            while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
+            let mut __for_first_126: bool = true;
+            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbolSpecificMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);
@@ -1382,7 +1413,7 @@ impl BitmartCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut cachedOrder: Value = self.safe_value(orders.clone(), orderId.clone(), &[]);
+            let mut cachedOrder: Value = ternary(is_true(&(is_equal(&orderId, &Value::Null))), Value::Null, self.safe_value(orders.clone(), orderId.clone(), &[]));
             let mut trades: Value = Value::Null;
             if !is_equal(&cachedOrder, &Value::Null) {
                 trades = self.safe_value_k(order.clone(), "trades", &[]);
@@ -1476,7 +1507,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Str("swap".to_string());
         self.authenticate(type_var.clone(), &[params.clone()]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Str("swap".to_string()), Value::Bool(true), Value::Bool(true), Value::Bool(false)]);
@@ -1523,7 +1556,9 @@ impl BitmartCore {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchPositions() does not support a list of symbols, unWatch from all markets only".to_string()))));
             }
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("unsubscribe".to_string()));
@@ -1582,8 +1617,8 @@ impl BitmartCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_138: bool = true;
-            while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_127: bool = true;
+            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawPosition: Value = get_value(&data, &i);
             let mut rawPosition: Value = get_value(&data, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -1594,8 +1629,8 @@ impl BitmartCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_128: bool = true;
+            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1713,8 +1748,8 @@ impl BitmartCore {
         if is_true(&isSwap) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_140: bool = true;
-                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &length) } {
+                let mut __for_first_129: bool = true;
+                while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &length) } {
                 let mut index: Value = subtract(&subtract(&length, &i), &Value::Int(1));
                 symbol = self.handle_trade_loop(get_value(&data, &index));
             }
@@ -1722,18 +1757,23 @@ impl BitmartCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &length) } {
+                let mut __for_first_130: bool = true;
+                while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &length) } {
                 symbol = self.handle_trade_loop(get_value(&data, &i));
             }
             }
         }
-        client.resolve(&[get_value(&self.trades, &symbol), add(&Value::Str("trade::".to_string()), &symbol)]);
+        if !is_equal(&symbol, &Value::Null) {
+            client.resolve(&[get_value(&self.trades, &symbol), add(&Value::Str("trade::".to_string()), &symbol)]);
+        }
 }
 
     pub fn handle_trade_loop(&mut self, mut entry: Value) -> Value {
         let mut trade: Value = self.parse_ws_trade(entry.clone(), &[]);
         let mut symbol: Value = get_value(&trade, &Value::Str("symbol".to_string()));
+        if is_equal(&symbol, &Value::Null) {
+            return symbol;
+        }
         let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
         if is_equal(&self.safe_value(self.trades.clone(), symbol.clone(), &[]), &Value::Null) {
             add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(tradesLimit.clone()));
@@ -1863,11 +1903,13 @@ impl BitmartCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut __for_first_131: bool = true;
+            while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
             let mut ticker: Value = ternary(is_true(&isSpot), self.parse_ticker(get_value(&rawTickers, &i), &[]), self.parse_ws_swap_ticker(get_value(&rawTickers, &i), &[]));
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            }
             let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
@@ -1942,7 +1984,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = Value::Str("spot".to_string());
@@ -1984,7 +2028,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = Value::Str("spot".to_string());
@@ -2046,7 +2092,7 @@ impl BitmartCore {
         //        }
         //    }
         //
-        let mut channel: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[]);
+        let mut channel: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[Value::Str("".to_string())]);
         let mut isSpot: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("spot".to_string())), &Value::Int(0)));
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         if is_equal(&data, &Value::Null) {
@@ -2057,26 +2103,29 @@ impl BitmartCore {
         let mut interval: Value = replace_str(&part1, &Value::Str("kline".to_string()), &Value::Str("".to_string()));
         interval = replace_str(&interval, &Value::Str("Bin".to_string()), &Value::Str("".to_string()));
         let mut intervalParts: Value = split(&interval, &Value::Str(":".to_string()));
-        interval = self.safe_string(intervalParts.clone(), Value::Int(0), &[]);
+        interval = self.safe_string(intervalParts.clone(), Value::Int(0), &[Value::Str("".to_string())]);
         // use a reverse lookup in a static map instead
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[timeframes.clone()]);
+        if is_equal(&timeframe, &Value::Null) {
+            return;
+        }
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut durationInMs: Value = multiply(&duration, &Value::Int(1000));
         if is_true(&isSpot) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_143: bool = true;
-                while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_132: bool = true;
+                while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut marketId: Value = self.safe_string_k(get_value(&data, &i), "symbol", &[]);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut rawOHLCV: Value = self.safe_list_k(get_value(&data, &i), "candle", &[]);
                 let mut parsed: Value = self.parse_ohlcv(rawOHLCV.clone(), &[market.clone()]);
-                { let __be_tmp = multiply(&self.parse_to_int(divide(&get_value(&parsed, &Value::Int(0)), &durationInMs)), &durationInMs); add_element_to_object(&mut parsed, &Value::Int(0), __be_tmp); };
+                { let __be_tmp = multiply(&self.parse_to_int(divide(&self.parse_to_int(get_value(&parsed, &Value::Int(0))), &durationInMs)), &durationInMs); add_element_to_object(&mut parsed, &Value::Int(0), __be_tmp); };
                 { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2109,8 +2158,8 @@ impl BitmartCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_144: bool = true;
-                while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&items)) } {
+                let mut __for_first_133: bool = true;
+                while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&items)) } {
                 let mut candle: Value = get_value(&items, &i);
                 let mut candle: Value = get_value(&items, &i);
                 let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -2132,7 +2181,7 @@ impl BitmartCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.speed] *futures only* '100ms' or '200ms'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2140,7 +2189,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2168,14 +2219,16 @@ impl BitmartCore {
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2207,8 +2260,8 @@ impl BitmartCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_145: bool = true;
-            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -2332,14 +2385,14 @@ impl BitmartCore {
         if is_less_than_or_equal(&length, &Value::Int(0)) {
             return;
         }
-        let mut channelName: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[]);
+        let mut channelName: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[Value::Str("".to_string())]);
         // find limit subscribed to
         let mut limitsToCheck: Value = Value::List(vec![Value::Str("100".to_string()), Value::Str("50".to_string()), Value::Str("20".to_string()), Value::Str("10".to_string()), Value::Str("5".to_string())]);
         let mut limit: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&limitsToCheck)) } {
+            let mut __for_first_135: bool = true;
+            while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&limitsToCheck)) } {
             let mut limitString: Value = get_value(&limitsToCheck, &i);
             let mut limitString: Value = get_value(&limitsToCheck, &i);
             if is_greater_than_or_equal(&get_index_of(&channelName, &limitString), &Value::Int(0)) {
@@ -2351,8 +2404,8 @@ impl BitmartCore {
         if is_true(&isSpot) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_147: bool = true;
-                while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&datas)) } {
+                let mut __for_first_136: bool = true;
+                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &get_array_length(&datas)) } {
                 let mut update: Value = get_value(&datas, &i);
                 let mut update: Value = get_value(&datas, &i);
                 let mut marketId: Value = self.safe_string_k(update.clone(), "symbol", &[]);
@@ -2406,8 +2459,8 @@ impl BitmartCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_148: bool = true;
-                while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&depths)) } {
+                let mut __for_first_137: bool = true;
+                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &get_array_length(&depths)) } {
                 let mut depth: Value = get_value(&depths, &i);
                 let mut depth: Value = get_value(&depths, &i);
                 let mut price: Value = self.safe_number_k(depth.clone(), "price", &[]);
@@ -2438,7 +2491,7 @@ impl BitmartCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2446,7 +2499,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.get_params_for_multiple_sub(Value::Str("watchOrderBookForSymbols".to_string()), symbols.clone(), &[limit.clone(), params.clone()]); symbols = get_value(&__destr_tmp, &Value::Int(0)); type_var = get_value(&__destr_tmp, &Value::Int(1)); params = get_value(&__destr_tmp, &Value::Int(2)); }
         let mut channel: Value = Value::Null;
@@ -2468,14 +2523,16 @@ impl BitmartCore {
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.get_params_for_multiple_sub(Value::Str("unWatchOrderBookForSymbols".to_string()), symbols.clone(), &[Value::Null, params.clone()]); symbols = get_value(&__destr_tmp, &Value::Int(0)); type_var = get_value(&__destr_tmp, &Value::Int(1)); params = get_value(&__destr_tmp, &Value::Int(2)); }
         let mut channel: Value = Value::Null;
@@ -2507,7 +2564,9 @@ impl BitmartCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut fundingRate: Value = self.watch_funding_rates(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&fundingRate, &symbol);
@@ -2533,7 +2592,9 @@ impl BitmartCore {
         if is_equal(&symbols, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchFundingRates() requires an array of symbols".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchFundingRates".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -2573,7 +2634,9 @@ impl BitmartCore {
         })]);
         let mut fundingRate: Value = self.parse_funding_rate(data.clone(), &[]);
         let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        if !is_equal(&symbol, &Value::Null) {
+            add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        }
         let mut messageHash: Value = add(&Value::Str("fundingRate::".to_string()), &symbol);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
@@ -2711,7 +2774,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut messageTopic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("group".to_string()), &[]);
+        let mut messageTopic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("group".to_string()), &[Value::Str("".to_string())]);
         let mut unSubMessageTopic: Value = add(&Value::Str("unsubscribe::".to_string()), &messageTopic);
         // one message includes info about one unsubscription only even if we requested multiple
         // so we can not just create subscription object in unWatch method and use it here
@@ -2728,11 +2791,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn get_un_sub_params(&self, mut messageTopic: Value) -> Value {
         let mut parts: Value = split(&messageTopic, &Value::Str(":".to_string()));
-        let mut channel: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        let mut channel: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".to_string())]);
         let mut marketTypeAndTopic: Value = split(&channel, &Value::Str("/".to_string()));
         let mut rawMarketType: Value = self.safe_string_lower(marketTypeAndTopic.clone(), Value::Int(0), &[]);
         let mut marketType: Value = self.parse_market_type(rawMarketType.clone());
-        let mut topic: Value = self.safe_string(marketTypeAndTopic.clone(), Value::Int(1), &[]);
+        let mut topic: Value = self.safe_string(marketTypeAndTopic.clone(), Value::Int(1), &[Value::Str("".to_string())]);
         let mut thirdPart: Value = self.safe_string(marketTypeAndTopic.clone(), Value::Int(2), &[]);
         if !is_equal(&thirdPart, &Value::Null) {
             topic = add(&topic, &add(&Value::Str("/".to_string()), &thirdPart));
@@ -2896,7 +2959,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }  else {
-            let mut channel: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[]);
+            let mut channel: Value = self.safe_string2(message.clone(), Value::Str("table".to_string()), Value::Str("group".to_string()), &[Value::Str("".to_string())]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("depth".to_string(), Value::Null.clone());
@@ -2912,17 +2975,27 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
             if is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("fundingRate".to_string())), &Value::Int(0)) {
                 self.handle_funding_rate(client.clone(), message.clone());
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("bookTicker".to_string())), &Value::Int(0)) {
+                self.handle_bid_ask(client.clone(), message.clone());
+                return;
             }
             let mut keys: Value = object_keys(&methods);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_149: bool = true;
-                while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_138: bool = true;
+                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 if is_greater_than_or_equal(&get_index_of(&channel, &key), &Value::Int(0)) {
                     let mut method: Value = self.safe_value(methods.clone(), key.clone(), &[]);
                     method.call(&[client.clone(), message.clone()]);
+                    return;
                 }
             }
             }

@@ -121,8 +121,8 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".to_string())), &Value::Null)))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1116: bool = true;
-        while { if !__for_first_1116 { i = add(&i, &Value::Int(1)); } __for_first_1116 = false; is_less_than(&i, &get_array_length(&keys)) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i = add(&i, &Value::Int(1)); } __for_first_0 = false; is_less_than(&i, &get_array_length(&keys)) } {
         let mut key: Value = get_value(&keys, &i);
         let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".to_string())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&userAgent, &Value::Null)))));
@@ -342,7 +342,6 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("timeout".to_string())), &Value::Int(10000))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("verbose".to_string())), &Value::Bool(false))))));
     // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'newUpdates') === true))); // todo WS
-    // assert!(ccxt::runtime::is_true(&(exchange.requiresEddsa === false)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("reloadingMarkets".to_string())))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("marketsLoading".to_string())), &Value::Null)))));
     // undefined or false
@@ -359,55 +358,34 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("balance".to_string()).clone(), exchange.prop(&&Value::Str("balance".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
+    }).clone(), Value::Str("balance".to_string()).clone(), exchange.prop(&&Value::Str("balance".to_string())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("bidsasks".to_string()).clone(), exchange.prop(&&Value::Str("bidsasks".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
+    }).clone(), Value::Str("bidsasks".to_string()).clone(), exchange.prop(&&Value::Str("bidsasks".to_string())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("orderbooks".to_string()).clone(), exchange.prop(&&Value::Str("orderbooks".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
+    }).clone(), Value::Str("orderbooks".to_string()).clone(), exchange.prop(&&Value::Str("orderbooks".to_string())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("tickers".to_string()).clone(), exchange.prop(&&Value::Str("tickers".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
+    }).clone(), Value::Str("tickers".to_string()).clone(), exchange.prop(&&Value::Str("tickers".to_string())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("liquidations".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myLiquidations".to_string())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("orders".to_string())), &Value::Null)))));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("trades".to_string()).clone(), exchange.prop(&&Value::Str("trades".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
+    }).clone(), Value::Str("trades".to_string()).clone(), exchange.prop(&&Value::Str("trades".to_string())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("transactions".to_string()).clone(), exchange.prop(&&Value::Str("transactions".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
+    }).clone(), Value::Str("transactions".to_string()).clone(), exchange.prop(&&Value::Str("transactions".to_string())).clone(), exchange.create_safe_dictionary(&[]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }).clone(), Value::Str("ohlcvs".to_string()).clone(), exchange.prop(&&Value::Str("ohlcvs".to_string())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
-        m
-    }).clone()]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myLiquidations".to_string())), &Value::Null)))));
+    }).clone(), Value::Str("ohlcvs".to_string()).clone(), exchange.prop(&&Value::Str("ohlcvs".to_string())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myTrades".to_string())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("positions".to_string())), &Value::Null)))));
     //
@@ -440,6 +418,9 @@ fn helperTestProperties() {
             m.insert("BCHSV".to_string(), Value::Str("BSV".to_string()));
         m
     }).clone()]);
+    // fetch history
+    let mut fetchHistoryCache: Value = exchange.get_fetch_cache();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&fetchHistoryCache), &Value::Int(0))))));
 }
 pub fn testAfterConstructor() {
     // here should be added all needed tests

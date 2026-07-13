@@ -204,6 +204,7 @@ impl DeltaCore {
             "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
             "safe_market" => self.safe_market(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
             "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "set_margin_mode" => self.set_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             // Fall through to the base Exchange impl so inherited
             // methods (cancelOrderWithClientOrderId, …) dispatch.
@@ -415,7 +416,7 @@ impl DeltaCore {
         m.insert("reduceMargin".to_string(), Value::Bool(true));
         m.insert("setLeverage".to_string(), Value::Bool(true));
         m.insert("setMargin".to_string(), Value::Bool(false));
-        m.insert("setMarginMode".to_string(), Value::Bool(false));
+        m.insert("setMarginMode".to_string(), Value::Bool(true));
         m.insert("setPositionMode".to_string(), Value::Bool(false));
         m.insert("transfer".to_string(), Value::Bool(false));
         m.insert("withdraw".to_string(), Value::Bool(false));
@@ -469,9 +470,9 @@ impl DeltaCore {
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/{order_id}".to_string()), Value::Str("orders/client_order_id/{client_oid}".to_string()), Value::Str("products/{product_id}/orders/leverage".to_string()), Value::Str("positions/margined".to_string()), Value::Str("positions".to_string()), Value::Str("orders/history".to_string()), Value::Str("fills".to_string()), Value::Str("fills/history/download/csv".to_string()), Value::Str("wallet/balances".to_string()), Value::Str("wallet/transactions".to_string()), Value::Str("wallet/transactions/download".to_string()), Value::Str("wallets/sub_accounts_transfer_history".to_string()), Value::Str("users/trading_preferences".to_string()), Value::Str("sub_accounts".to_string()), Value::Str("profile".to_string()), Value::Str("heartbeat".to_string()), Value::Str("deposits/address".to_string())]));
+        m.insert("get".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/{order_id}".to_string()), Value::Str("orders/client_order_id/{client_oid}".to_string()), Value::Str("products/{product_id}/orders/leverage".to_string()), Value::Str("positions/margined".to_string()), Value::Str("positions".to_string()), Value::Str("orders/history".to_string()), Value::Str("fills".to_string()), Value::Str("fills/history/download/csv".to_string()), Value::Str("wallet/balances".to_string()), Value::Str("wallet/transactions".to_string()), Value::Str("wallet/transactions/download".to_string()), Value::Str("wallets/sub_accounts_transfer_history".to_string()), Value::Str("users/trading_preferences".to_string()), Value::Str("sub_accounts".to_string()), Value::Str("profile".to_string()), Value::Str("rate_limits/quota".to_string()), Value::Str("heartbeat".to_string()), Value::Str("deposits/address".to_string())]));
         m.insert("post".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/bracket".to_string()), Value::Str("orders/batch".to_string()), Value::Str("products/{product_id}/orders/leverage".to_string()), Value::Str("positions/change_margin".to_string()), Value::Str("positions/close_all".to_string()), Value::Str("wallets/sub_account_balance_transfer".to_string()), Value::Str("heartbeat/create".to_string()), Value::Str("heartbeat".to_string()), Value::Str("orders/cancel_after".to_string()), Value::Str("orders/leverage".to_string())]));
-        m.insert("put".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/bracket".to_string()), Value::Str("orders/batch".to_string()), Value::Str("positions/auto_topup".to_string()), Value::Str("users/update_mmp".to_string()), Value::Str("users/reset_mmp".to_string())]));
+        m.insert("put".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/bracket".to_string()), Value::Str("orders/batch".to_string()), Value::Str("positions/auto_topup".to_string()), Value::Str("users/update_mmp".to_string()), Value::Str("users/reset_mmp".to_string()), Value::Str("users/margin_mode".to_string())]));
         m.insert("delete".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/all".to_string()), Value::Str("orders/batch".to_string())]));
     m
 }));
@@ -948,12 +949,12 @@ impl DeltaCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_592: bool = true;
-            while { if !__for_first_592 { j = add(&j, &Value::Int(1)); } __for_first_592 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_562: bool = true;
+            while { if !__for_first_562 { j = add(&j, &Value::Int(1)); } __for_first_562 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
@@ -1051,8 +1052,8 @@ impl DeltaCore {
         let mut keys: Value = object_keys(&input);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { i = add(&i, &Value::Int(1)); } __for_first_593 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_563: bool = true;
+            while { if !__for_first_563 { i = add(&i, &Value::Int(1)); } __for_first_563 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
@@ -1264,8 +1265,8 @@ impl DeltaCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_594: bool = true;
-            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_564: bool = true;
+            while { if !__for_first_564 { i = add(&i, &Value::Int(1)); } __for_first_564 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut type_var: Value = self.safe_string_k(market.clone(), "contract_type", &[]);
@@ -1352,7 +1353,7 @@ impl DeltaCore {
                     m.insert("settleId".to_string(), settleId.clone());
                     m.insert("type".to_string(), type_var.clone());
                     m.insert("spot".to_string(), spot.clone());
-                    m.insert("margin".to_string(), ternary(is_true(&spot), Value::Null, Value::Bool(false)));
+                    m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("swap".to_string(), swap.clone());
                     m.insert("future".to_string(), future.clone());
                     m.insert("option".to_string(), option.clone());
@@ -1878,8 +1879,8 @@ impl DeltaCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_595: bool = true;
-            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_565: bool = true;
+            while { if !__for_first_565 { i = add(&i, &Value::Int(1)); } __for_first_565 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -1898,7 +1899,7 @@ impl DeltaCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2200,8 +2201,8 @@ impl DeltaCore {
 })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_596: bool = true;
-            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_566: bool = true;
+            while { if !__for_first_566 { i = add(&i, &Value::Int(1)); } __for_first_566 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset_id", &[]);
@@ -3288,12 +3289,13 @@ impl DeltaCore {
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
         let mut marketId: Value = self.safe_string_k(depositAddress.clone(), "asset_symbol", &[]);
         let mut networkId: Value = self.safe_string_k(depositAddress.clone(), "network", &[]);
+        let mut code: Value = self.safe_currency_code(marketId.clone(), &[currency.clone()]);
         self.check_address(&[address.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), self.safe_currency_code(marketId.clone(), &[currency.clone()]));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone()]));
+        m.insert("currency".to_string(), code.clone());
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone(), code.clone()]));
         m.insert("address".to_string(), address.clone());
         m.insert("tag".to_string(), self.safe_string_k(depositAddress.clone(), "memo", &[]));
     m
@@ -4012,7 +4014,7 @@ impl DeltaCore {
         let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
         let mut settlements: Value = self.parse_settlements(result.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
-        return self.filter_by_symbol_since_limit(sorted.clone(), &[get_value(&market, &Value::Str("symbol".to_string())), since.clone(), limit.clone()]);
+        return self.filter_by_symbol_since_limit(sorted.clone(), &[self.safe_string_k(market.clone(), "symbol", &[]), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -4090,8 +4092,8 @@ impl DeltaCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_597: bool = true;
-            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_567: bool = true;
+            while { if !__for_first_567 { i = add(&i, &Value::Int(1)); } __for_first_567 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), market.clone()));
         }
         }
@@ -4264,7 +4266,7 @@ impl DeltaCore {
         m.insert("bidPrice".to_string(), self.safe_number_k(quotes.clone(), "best_bid", &[]));
         m.insert("askPrice".to_string(), self.safe_number_k(quotes.clone(), "best_ask", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(greeks.clone(), "mark_price", &[]));
-        m.insert("lastPrice".to_string(), Value::Null);
+        m.insert("lastPrice".to_string(), self.safe_number_k(greeks.clone(), "last_price", &[]));
         m.insert("underlyingPrice".to_string(), self.safe_number_k(greeks.clone(), "spot_price", &[]));
         m.insert("info".to_string(), greeks.clone());
     m
@@ -4419,6 +4421,37 @@ impl DeltaCore {
 
 /*
  * @method
+ * @name delta#setMarginMode
+ * @description set margin mode to 'isolated' or 'portfolio'
+ * @see https://docs.delta.exchange/#change-margin-mode
+ * @param {string} marginMode 'isolated' or 'portfolio'
+ * @param {string} [symbol] not used by delta.setMarginMode
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} params.subaccount_user_id the user id of the subaccount
+ * @returns {object} response from the exchange
+ */
+    pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.check_required_argument(Value::Str("setMarginMode".to_string()), marginMode.clone(), Value::Str("marginMode".to_string()), &[Value::List(vec![Value::Str("isolated".to_string()), Value::Str("portfolio".to_string())])]);
+        let mut subaccountUserId: Value = self.safe_string_k(params.clone(), "subaccount_user_id", &[]);
+        self.check_required_argument(Value::Str("setMarginMode".to_string()), subaccountUserId.clone(), Value::Str("params[\"subaccount_user_id\"]".to_string()), &[]);
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("margin_mode".to_string(), marginMode.clone());
+            m
+        });
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_put_users_margin_mode(&[__ws_arg_25]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name delta#fetchOption
  * @description fetches option data that is commonly found in an option chain
  * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
@@ -4438,8 +4471,8 @@ impl DeltaCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_25]).await;
+        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_26]).await;
         //
         //     {
         //         "result": {
@@ -4563,7 +4596,7 @@ impl DeltaCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
-        m.insert("currency".to_string(), Value::Null);
+        m.insert("currency".to_string(), self.safe_string_k(chain.clone(), "currency", &[]));
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -4573,12 +4606,12 @@ impl DeltaCore {
         m.insert("askPrice".to_string(), self.safe_number_k(quotes.clone(), "best_ask", &[]));
         m.insert("midPrice".to_string(), self.safe_number_k(quotes.clone(), "impact_mid_price", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(chain.clone(), "mark_price", &[]));
-        m.insert("lastPrice".to_string(), Value::Null);
+        m.insert("lastPrice".to_string(), self.safe_number_k(chain.clone(), "last_price", &[]));
         m.insert("underlyingPrice".to_string(), self.safe_number_k(chain.clone(), "spot_price", &[]));
-        m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::Null);
+        m.insert("change".to_string(), self.safe_number_k(chain.clone(), "change", &[]));
+        m.insert("percentage".to_string(), self.safe_number_k(chain.clone(), "percentage", &[]));
         m.insert("baseVolume".to_string(), self.safe_number_k(chain.clone(), "volume", &[]));
-        m.insert("quoteVolume".to_string(), Value::Null);
+        m.insert("quoteVolume".to_string(), self.safe_number_k(chain.clone(), "quote_volume", &[]));
     m
 });
 
@@ -4971,7 +5004,10 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
+        let mut headers = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut requestPath: Value = add(&add(&add(&Value::Str("/".to_string()), &self.version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         let mut url: Value = add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api), &requestPath);

@@ -181,6 +181,7 @@ impl WoofiproCore {
             "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_interval" => self.parse_funding_interval(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -259,6 +260,12 @@ impl crate::exchange::DerivedExchange for WoofiproCore {
         let me = unsafe { &mut *(self as *const WoofiproCore as *mut WoofiproCore) };
         WoofiproCore::parse_ledger_entry(me, entry, &[currency.clone()])
     }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WoofiproCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WoofiproCore as *mut WoofiproCore) };
+        WoofiproCore::parse_currency(me, currency)
+    }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on WoofiproCore.
         #[allow(invalid_reference_casting)]
@@ -312,7 +319,6 @@ impl WoofiproCore {
         m.insert("certified".to_string(), Value::Bool(true));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("dex".to_string(), Value::Bool(true));
-        m.insert("hostname".to_string(), Value::Str("dex.woo.org".to_string()));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
@@ -1106,28 +1112,51 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows.clone(), Value::Str("chain_id".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1083: bool = true;
-            while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
+            let mut __for_first_1026: bool = true;
+            while { if !__for_first_1026 { i = add(&i, &Value::Int(1)); } __for_first_1026 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
             let mut token: Value = get_value(&tokenRows, &i);
             let mut token: Value = get_value(&tokenRows, &i);
-            let mut currencyId: Value = self.safe_string_k(token.clone(), "token", &[]);
-            let mut networks: Value = self.safe_list_k(token.clone(), "chain_details", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut resultingNetworks: Value = Value::Map({
+            let mut parsed: Value = self.parse_currency(Value::Map({
                 let mut m = indexmap::IndexMap::new();
+                    m.insert("_token".to_string(), token.clone());
+                    m.insert("_indexedChains".to_string(), indexedChains.clone());
                 m
-            });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_1082: bool = true;
-                while { if !__for_first_1082 { j = add(&j, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&j, &get_array_length(&networks)) } {
-                let mut networkEntry: Value = get_value(&networks, &j);
-                let mut networkEntry: Value = get_value(&networks, &j);
-                let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
-                let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone(), &[]);
-                let mut networkName: Value = self.safe_string_k(networkRow.clone(), "name", &[]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkName.clone(), code.clone()]);
-                add_element_to_object(&mut resultingNetworks, &networkCode, Value::Map({
+            }));
+            add_element_to_object(&mut result, &get_value(&parsed, &Value::Str("code".to_string())), parsed.clone());
+        }
+        }
+        return result;
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut token: Value = self.safe_dict_k(rawCurrency.clone(), "_token", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut currencyId: Value = self.safe_string_k(token.clone(), "token", &[]);
+        let mut networks: Value = self.safe_list_k(token.clone(), "chain_details", &[Value::List(vec![])]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        let mut indexedChains: Value = self.safe_dict_k(rawCurrency.clone(), "_indexedChains", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut resultingNetworks: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_1027: bool = true;
+            while { if !__for_first_1027 { j = add(&j, &Value::Int(1)); } __for_first_1027 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut networkEntry: Value = get_value(&networks, &j);
+            let mut networkEntry: Value = get_value(&networks, &j);
+            let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
+            let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone(), &[]);
+            let mut networkName: Value = self.safe_string_k(networkRow.clone(), "name", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkName.clone(), code.clone()]);
+            add_element_to_object(&mut resultingNetworks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -1152,12 +1181,17 @@ impl WoofiproCore {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(networkEntry.clone(), "withdrawal_fee", &[]));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(networkEntry.clone(), "decimals", &[])]), &[]));
-        m.insert("info".to_string(), Value::List(vec![networkEntry.clone(), networkRow.clone()]));
+        m.insert("info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("network".to_string(), networkEntry.clone());
+        m.insert("networkRow".to_string(), networkRow.clone());
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+    m
+}));
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("name".to_string(), Value::Null);
@@ -1186,10 +1220,7 @@ impl WoofiproCore {
 }));
         m.insert("info".to_string(), token.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1301,7 +1332,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1433,7 +1466,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1481,7 +1516,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.v1_public_get_public_funding_rates(&[params.clone()]).await;
         //
@@ -1532,7 +1569,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1580,8 +1619,8 @@ impl WoofiproCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1084: bool = true;
-            while { if !__for_first_1084 { i = add(&i, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_1028: bool = true;
+            while { if !__for_first_1028 { i = add(&i, &Value::Int(1)); } __for_first_1028 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1661,7 +1700,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1735,7 +1776,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v1_private_get_client_info(&[params.clone()]).await;
         //
         // {
@@ -1776,8 +1819,8 @@ impl WoofiproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1085: bool = true;
-            while { if !__for_first_1085 { i = add(&i, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_1029: bool = true;
+            while { if !__for_first_1029 { i = add(&i, &Value::Int(1)); } __for_first_1029 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1804,7 +1847,7 @@ impl WoofiproCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1812,7 +1855,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1879,7 +1924,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2237,7 +2284,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
@@ -2250,7 +2299,10 @@ impl WoofiproCore {
         }  else {
             response = self.v1_private_post_order(&[request.clone()]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         add_element_to_object(&mut data, &Value::Str("timestamp".to_string()), self.safe_integer_k(response.clone(), "timestamp", &[]));
         let mut order: Value = self.parse_order(data.clone(), &[market.clone()]);
         add_element_to_object(&mut order, &Value::Str("type".to_string()), type_var.clone());
@@ -2273,12 +2325,14 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1086: bool = true;
-            while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1030: bool = true;
+            while { if !__for_first_1030 { i = add(&i, &Value::Int(1)); } __for_first_1030 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2360,7 +2414,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2456,14 +2512,16 @@ impl WoofiproCore {
         if !is_true(&trigger) && is_true(&(is_equal(&symbol, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
             m
         });
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -2550,7 +2608,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2593,7 +2653,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2642,7 +2704,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2734,7 +2798,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
         let mut maxLimit: Value = ternary(is_true(&(isTrigger)), Value::Int(100), Value::Int(500));
@@ -2838,7 +2904,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".to_string()));
@@ -2874,7 +2942,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("COMPLETED".to_string()));
@@ -2905,7 +2975,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2969,7 +3041,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3040,8 +3114,8 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1031: bool = true;
+            while { if !__for_first_1031 { i = add(&i, &Value::Int(1)); } __for_first_1031 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3069,7 +3143,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v1_private_get_client_holding(&[params.clone()]).await;
         //
         // {
@@ -3100,7 +3176,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3440,7 +3518,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_address(&[address.clone()]);
         if !is_equal(&code, &Value::Null) {
             code = to_upper(&code);
@@ -3561,7 +3641,7 @@ impl WoofiproCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("longLeverage".to_string(), leverageValue.clone());
         m.insert("shortLeverage".to_string(), leverageValue.clone());
@@ -3585,7 +3665,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = self.v1_private_get_client_info(&[params.clone()]).await;
         //
@@ -3640,7 +3722,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_true(&(is_less_than(&leverage, &Value::Int(1)))) || is_true(&(is_greater_than(&leverage, &Value::Int(50)))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" leverage should be between 1 and 50".to_string()))));
         }
@@ -3745,7 +3829,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3801,7 +3887,9 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v1_private_get_positions(&[params.clone()]).await;
         //
         // {
@@ -3869,8 +3957,7 @@ impl WoofiproCore {
         let mut version: Value = get_value(&section, &Value::Int(0));
         let mut access: Value = get_value(&section, &Value::Int(1));
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &access));
-        url = add(&url, &add(&add(&Value::Str("/".to_string()), &version), &Value::Str("/".to_string())));
+        let mut url: Value = add(&add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &access), &Value::Str("/".to_string())), &version), &Value::Str("/".to_string()));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         params = self.keysort(params.clone(), &[]);
         if is_equal(&access, &Value::Str("public".to_string())) {
@@ -3888,8 +3975,8 @@ impl WoofiproCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1088: bool = true;
-                            while { if !__for_first_1088 { i = add(&i, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_1032: bool = true;
+                            while { if !__for_first_1032 { i = add(&i, &Value::Int(1)); } __for_first_1032 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

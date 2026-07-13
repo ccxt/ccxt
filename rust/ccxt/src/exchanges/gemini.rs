@@ -789,7 +789,7 @@ impl GeminiCore {
         let mut networkId: Value = self.safe_string(rawCurrency.clone(), Value::Int(9), &[]);
         let mut networkCode: Value = Value::Null;
         if !is_equal(&networkId, &Value::Null) {
-            networkCode = self.network_id_to_code(&[networkId.clone()]);
+            networkCode = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
@@ -900,8 +900,8 @@ impl GeminiCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_681: bool = true;
-            while { if !__for_first_681 { i = add(&i, &Value::Int(1)); } __for_first_681 = false; is_less_than(&i, &numRows) } {
+            let mut __for_first_651: bool = true;
+            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &numRows) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut cells: Value = split(&row, &Value::Str("</td>\n".to_string())); // eslint-disable-line quotes
@@ -1034,8 +1034,8 @@ impl GeminiCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_682: bool = true;
-            while { if !__for_first_682 { i = add(&i, &Value::Int(1)); } __for_first_682 = false; is_less_than(&i, &get_array_length(&fetchUsdtMarkets)) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&fetchUsdtMarkets)) } {
             let mut marketId: Value = get_value(&fetchUsdtMarkets, &i);
             let mut marketId: Value = get_value(&fetchUsdtMarkets, &i);
             let mut request: Value = Value::Map({
@@ -1076,8 +1076,8 @@ impl GeminiCore {
         let mut marketIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_683: bool = true;
-            while { if !__for_first_683 { i = add(&i, &Value::Int(1)); } __for_first_683 = false; is_less_than(&i, &get_array_length(&marketIdsRaw)) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&marketIdsRaw)) } {
             if !is_true(&self.in_array(get_value(&marketIdsRaw, &i), brokenPairs.clone())) {
                 append_to_array(&mut marketIds, get_value(&marketIdsRaw, &i));
             }
@@ -1087,8 +1087,8 @@ impl GeminiCore {
             let mut promises: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_684: bool = true;
-                while { if !__for_first_684 { i = add(&i, &Value::Int(1)); } __for_first_684 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_654: bool = true;
+                while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut request: Value = Value::Map({
@@ -1103,8 +1103,8 @@ impl GeminiCore {
             let mut responses: Value = promise_all(&promises).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_685: bool = true;
-                while { if !__for_first_685 { i = add(&i, &Value::Int(1)); } __for_first_685 = false; is_less_than(&i, &get_array_length(&responses)) } {
+                let mut __for_first_655: bool = true;
+                while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&responses)) } {
                 append_to_array(&mut result, self.parse_market(get_value(&responses, &i)));
             }
             }
@@ -1115,8 +1115,8 @@ impl GeminiCore {
                 let mut indexedTradingPairs: Value = self.index_by(tradingPairs.clone(), Value::Int(0));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_686: bool = true;
-                    while { if !__for_first_686 { i = add(&i, &Value::Int(1)); } __for_first_686 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                    let mut __for_first_656: bool = true;
+                    while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut pairInfo: Value = self.safe_list(indexedTradingPairs.clone(), to_upper(&marketId), &[]);
@@ -1128,8 +1128,8 @@ impl GeminiCore {
             }  else {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_687: bool = true;
-                    while { if !__for_first_687 { i = add(&i, &Value::Int(1)); } __for_first_687 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                    let mut __for_first_657: bool = true;
+                    while { if !__for_first_657 { i = add(&i, &Value::Int(1)); } __for_first_657 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                     if !is_true(&self.in_array(get_value(&marketIds, &i), brokenPairs.clone())) {
                         append_to_array(&mut result, self.parse_market(get_value(&marketIds, &i)));
                     }
@@ -1227,8 +1227,8 @@ impl GeminiCore {
                 let mut quoteCurrencies: Value = self.handle_option(Value::Str("fetchMarketsFromAPI".to_string()), Value::Str("quoteCurrencies".to_string()), &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_688: bool = true;
-                    while { if !__for_first_688 { i = add(&i, &Value::Int(1)); } __for_first_688 = false; is_less_than(&i, &get_array_length(&quoteCurrencies)) } {
+                    let mut __for_first_658: bool = true;
+                    while { if !__for_first_658 { i = add(&i, &Value::Int(1)); } __for_first_658 = false; is_less_than(&i, &get_array_length(&quoteCurrencies)) } {
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
                     if is_true(&Value::Bool(ends_with(&marketIdWithoutPerp, &quoteCurrency))) {
@@ -1332,7 +1332,7 @@ impl GeminiCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1340,7 +1340,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1363,7 +1365,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1382,7 +1386,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1566,7 +1572,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_v1_pricefeed(&[params.clone()]).await;
         //
         //     [
@@ -1678,7 +1686,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1706,8 +1716,8 @@ impl GeminiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_689: bool = true;
-            while { if !__for_first_689 { i = add(&i, &Value::Int(1)); } __for_first_689 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1736,7 +1746,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_v1_notionalvolume(&[params.clone()]).await;
         //
         //      {
@@ -1778,8 +1790,8 @@ impl GeminiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_690: bool = true;
-            while { if !__for_first_690 { i = add(&i, &Value::Int(1)); } __for_first_690 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { i = add(&i, &Value::Int(1)); } __for_first_660 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1811,7 +1823,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_v1_balances(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -2004,7 +2018,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -2036,7 +2052,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_v1_orders(&[params.clone()]).await;
         //
         //      [
@@ -2091,7 +2109,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&type_var, &Value::Str("limit".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() allows limit orders only".to_string()))));
         }
@@ -2170,7 +2190,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -2205,7 +2227,9 @@ impl GeminiCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2245,7 +2269,9 @@ impl GeminiCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2317,7 +2343,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2451,7 +2479,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut groupedByNetwork: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[params.clone()]).await;
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -2476,7 +2506,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         code = get_value(&currency, &Value::Str("code".to_string()));
         let mut networkCode: Value = Value::Null;
@@ -2484,7 +2516,7 @@ impl GeminiCore {
         if is_equal(&networkCode, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDepositAddresses() requires a network parameter".to_string()))));
         }
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[]);
+        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("network".to_string(), networkId.clone());
@@ -2604,7 +2636,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2648,7 +2682,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: Value = Value::Map({
@@ -2678,7 +2714,9 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

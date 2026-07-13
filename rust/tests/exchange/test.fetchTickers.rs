@@ -22,7 +22,7 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
     let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
     let mut method: Value = Value::Str("fetchTickers".to_string());
     let mut response: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_tickers", vec![argSymbols.clone(), argParams.clone()]).await;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_object(&response)))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
     let mut values: Value = object_values(&response);
     let mut checkedSymbol: Value = Value::Null;
     if !is_equal(&argSymbols, &Value::Null) && is_equal(&get_array_length(&argSymbols), &Value::Int(1)) {
@@ -31,11 +31,16 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1171: bool = true;
-        while { if !__for_first_1171 { i = add(&i, &Value::Int(1)); } __for_first_1171 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_55: bool = true;
+        while { if !__for_first_55 { i = add(&i, &Value::Int(1)); } __for_first_55 = false; is_less_than(&i, &get_array_length(&values)) } {
         // todo: symbol check here
         let mut ticker: Value = get_value(&values, &i);
-        testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
+         #[allow(unreachable_code)] { Value::Null }}));
+if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
+            crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone()).await;
+        }
     }
     }
     return response;

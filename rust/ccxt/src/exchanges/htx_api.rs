@@ -866,6 +866,11 @@ impl HtxCore {
         self.call_method(Value::Str("spot_private_get_v2_account_repayment".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `spotPrivateGetV5AccountUniversalTransferRecords` implicit endpoint.
+    pub async fn spot_private_get_v5_account_universal_transfer_records(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_v5_account_universal_transfer_records".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotPrivateGetV1StableCoinQuote` implicit endpoint.
     pub async fn spot_private_get_v1_stable_coin_quote(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_get_v1_stable_coin_quote".to_string()), optional_args).await
@@ -1426,11 +1431,6 @@ impl HtxCore {
         self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_price_limit".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapOpenInterest` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_open_interest(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_open_interest".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `contractPublicGetLinearSwapExMarketDepth` implicit endpoint.
     pub async fn contract_public_get_linear_swap_ex_market_depth(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_public_get_linear_swap_ex_market_depth".to_string()), optional_args).await
@@ -1476,11 +1476,6 @@ impl HtxCore {
         self.call_method(Value::Str("contract_public_get_linear_swap_ex_market_history_trade".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapRiskInfo` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_risk_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_risk_info".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund` implicit endpoint.
     pub async fn contract_public_get_swap_api_v1_linear_swap_api_v1_swap_insurance_fund(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_public_get_swap_api_v1_linear_swap_api_v1_swap_insurance_fund".to_string()), optional_args).await
@@ -1516,16 +1511,6 @@ impl HtxCore {
         self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_api_state".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapCrossTransferState` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_cross_transfer_state(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_cross_transfer_state".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapCrossTradeState` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_cross_trade_state(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_cross_trade_state".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapEliteAccountRatio` implicit endpoint.
     pub async fn contract_public_get_linear_swap_api_v1_swap_elite_account_ratio(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_elite_account_ratio".to_string()), optional_args).await
@@ -1536,29 +1521,9 @@ impl HtxCore {
         self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_elite_position_ratio".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapLiquidationOrders` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_liquidation_orders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_liquidation_orders".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapSettlementRecords` implicit endpoint.
     pub async fn contract_public_get_linear_swap_api_v1_swap_settlement_records(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_settlement_records".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapFundingRate` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_funding_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_funding_rate".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapBatchFundingRate` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_batch_funding_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_batch_funding_rate".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate` implicit endpoint.
-    pub async fn contract_public_get_linear_swap_api_v1_swap_historical_funding_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_historical_funding_rate".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPublicGetLinearSwapApiV3SwapLiquidationOrders` implicit endpoint.
@@ -1586,6 +1551,51 @@ impl HtxCore {
         self.call_method(Value::Str("contract_public_get_linear_swap_api_v1_swap_estimated_settlement_price".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketFundingRate` implicit endpoint.
+    pub async fn contract_public_get_v5_market_funding_rate(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_funding_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketFundingRateHistory` implicit endpoint.
+    pub async fn contract_public_get_v5_market_funding_rate_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_funding_rate_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketOpenInterest` implicit endpoint.
+    pub async fn contract_public_get_v5_market_open_interest(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_open_interest".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketLiquidationOrders` implicit endpoint.
+    pub async fn contract_public_get_v5_market_liquidation_orders(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_liquidation_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketSettlementHistory` implicit endpoint.
+    pub async fn contract_public_get_v5_market_settlement_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_settlement_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketEliteAccountRatio` implicit endpoint.
+    pub async fn contract_public_get_v5_market_elite_account_ratio(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_elite_account_ratio".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketElitePositionRatio` implicit endpoint.
+    pub async fn contract_public_get_v5_market_elite_position_ratio(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_elite_position_ratio".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketEstimatedSettlementPrice` implicit endpoint.
+    pub async fn contract_public_get_v5_market_estimated_settlement_price(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_estimated_settlement_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPublicGetV5MarketPriceLimit` implicit endpoint.
+    pub async fn contract_public_get_v5_market_price_limit(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_public_get_v5_market_price_limit".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `contractPrivateGetApiV1ContractSubAuthList` implicit endpoint.
     pub async fn contract_private_get_api_v1_contract_sub_auth_list(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_get_api_v1_contract_sub_auth_list".to_string()), optional_args).await
@@ -1606,44 +1616,9 @@ impl HtxCore {
         self.call_method(Value::Str("contract_private_get_swap_api_v1_swap_api_trading_status".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV1SwapSubAuthList` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v1_swap_sub_auth_list(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v1_swap_sub_auth_list".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV1SwapApiTradingStatus` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v1_swap_api_trading_status(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v1_swap_api_trading_status".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV1SwapCrossPositionSide` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v1_swap_cross_position_side(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v1_swap_cross_position_side".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV1SwapPositionSide` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v1_swap_position_side(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v1_swap_position_side".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV3UnifiedAccountInfo` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v3_unified_account_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v3_unified_account_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v3_fix_position_margin_change_record(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v3_fix_position_margin_change_record".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v3_swap_unified_account_type(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v3_swap_unified_account_type".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo` implicit endpoint.
-    pub async fn contract_private_get_linear_swap_api_v3_linear_swap_overview_account_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_linear_swap_api_v3_linear_swap_overview_account_info".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `contractPrivateGetV5AccountAssetMode` implicit endpoint.
+    pub async fn contract_private_get_v5_account_asset_mode(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_v5_account_asset_mode".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetV5AccountBalance` implicit endpoint.
@@ -1651,9 +1626,14 @@ impl HtxCore {
         self.call_method(Value::Str("contract_private_get_v5_account_balance".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPrivateGetV5AccountAssetMode` implicit endpoint.
-    pub async fn contract_private_get_v5_account_asset_mode(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_v5_account_asset_mode".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `contractPrivateGetV5AccountBills` implicit endpoint.
+    pub async fn contract_private_get_v5_account_bills(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_v5_account_bills".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetV5AccountFeeDeductionCurrency` implicit endpoint.
+    pub async fn contract_private_get_v5_account_fee_deduction_currency(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_v5_account_fee_deduction_currency".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetV5TradePositionOpens` implicit endpoint.
@@ -1714,6 +1694,21 @@ impl HtxCore {
     /// Auto-generated wrapper for the `contractPrivateGetV5MarketMultiAssetsMargin` implicit endpoint.
     pub async fn contract_private_get_v5_market_multi_assets_margin(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_get_v5_market_multi_assets_margin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetV5AlgoOrderOpens` implicit endpoint.
+    pub async fn contract_private_get_v5_algo_order_opens(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_v5_algo_order_opens".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetV5AlgoOrder` implicit endpoint.
+    pub async fn contract_private_get_v5_algo_order(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_v5_algo_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetV5AlgoOrderHistory` implicit endpoint.
+    pub async fn contract_private_get_v5_algo_order_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_v5_algo_order_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostApiV1ContractBalanceValuation` implicit endpoint.
@@ -2266,541 +2261,6 @@ impl HtxCore {
         self.call_method(Value::Str("contract_private_post_swap_api_v1_swap_track_hisorders".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_lever_position_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_lever_position_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_lever_position_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_lever_position_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapBalanceValuation` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_balance_valuation(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_balance_valuation".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapAccountInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_account_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_account_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_account_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_account_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapPositionInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_position_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_position_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_position_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_position_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_account_position_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_account_position_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_account_position_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_account_position_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSubAuth` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_sub_auth(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_sub_auth".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSubAccountList` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_sub_account_list(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_sub_account_list".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_sub_account_list(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_sub_account_list".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_sub_account_info_list(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_sub_account_info_list".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_sub_account_info_list(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_sub_account_info_list".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSubAccountInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_sub_account_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_sub_account_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_sub_account_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_sub_account_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSubPositionInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_sub_position_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_sub_position_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_sub_position_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_sub_position_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapFinancialRecord` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_financial_record(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_financial_record".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_financial_record_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_financial_record_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_user_settlement_records(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_user_settlement_records".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_user_settlement_records(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_user_settlement_records".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_available_level_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_available_level_rate".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_available_level_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_available_level_rate".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapOrderLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_order_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_order_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapFee` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_fee(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_fee".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTransferLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_transfer_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_transfer_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_transfer_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_transfer_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapPositionLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_position_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_position_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_position_limit(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_position_limit".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_master_sub_transfer(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_master_sub_transfer".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_master_sub_transfer_record(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_master_sub_transfer_record".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTransferInner` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_transfer_inner(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_transfer_inner".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapFinancialRecord` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_financial_record(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_financial_record".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_financial_record_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_financial_record_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapBatchorder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_batchorder(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_batchorder".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossBatchorder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_batchorder(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_batchorder".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_switch_lever_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_switch_lever_rate".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_switch_lever_rate(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_switch_lever_rate".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapLightningClosePosition` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_lightning_close_position(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_lightning_close_position".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_lightning_close_position(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_lightning_close_position".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapOrderInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_order_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_order_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_order_info(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_order_info".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapOrderDetail` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_order_detail(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_order_detail".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_order_detail(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_order_detail".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapHisordersExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_hisorders_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_hisorders_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_hisorders_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_hisorders_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapMatchresults` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_matchresults(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_matchresults".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossMatchresults` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_matchresults(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_matchresults".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapMatchresultsExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_matchresults_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_matchresults_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_matchresults_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_matchresults_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1LinearCancelAfter` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_linear_cancel_after(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_linear_cancel_after".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_switch_position_mode(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_switch_position_mode".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_switch_position_mode(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_switch_position_mode".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapMatchresults` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_matchresults(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_matchresults".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapCrossMatchresults` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_cross_matchresults(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_cross_matchresults".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapMatchresultsExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_matchresults_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_matchresults_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_cross_matchresults_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_cross_matchresults_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapCrossHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_cross_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_cross_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapHisordersExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_hisorders_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_hisorders_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_cross_hisorders_exact(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_cross_hisorders_exact".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3FixPositionMarginChange` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_fix_position_margin_change(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_fix_position_margin_change".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3SwapSwitchAccountType` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_swap_switch_account_type(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_swap_switch_account_type".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v3_linear_swap_fee_switch(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v3_linear_swap_fee_switch".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTriggerOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_trigger_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_trigger_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_trigger_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_trigger_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTriggerCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_trigger_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_trigger_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_trigger_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_trigger_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTriggerCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_trigger_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_trigger_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_trigger_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_trigger_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_trigger_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_trigger_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_trigger_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_trigger_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTriggerHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_trigger_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_trigger_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_trigger_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_trigger_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTpslOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_tpsl_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_tpsl_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_tpsl_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_tpsl_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTpslCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_tpsl_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_tpsl_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_tpsl_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_tpsl_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTpslCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_tpsl_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_tpsl_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_tpsl_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_tpsl_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTpslOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_tpsl_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_tpsl_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_tpsl_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_tpsl_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTpslHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_tpsl_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_tpsl_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_tpsl_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_tpsl_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_relation_tpsl_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_relation_tpsl_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_relation_tpsl_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_relation_tpsl_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTrackOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_track_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_track_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_track_order(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_track_order".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTrackCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_track_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_track_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_track_cancel(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_track_cancel".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTrackCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_track_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_track_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_track_cancelall(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_track_cancelall".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTrackOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_track_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_track_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_track_openorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_track_openorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapTrackHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_track_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_track_hisorders".to_string()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders` implicit endpoint.
-    pub async fn contract_private_post_linear_swap_api_v1_swap_cross_track_hisorders(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_linear_swap_api_v1_swap_cross_track_hisorders".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `contractPrivatePostV5AccountAssetMode` implicit endpoint.
     pub async fn contract_private_post_v5_account_asset_mode(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_v5_account_asset_mode".to_string()), optional_args).await
@@ -2831,6 +2291,11 @@ impl HtxCore {
         self.call_method(Value::Str("contract_private_post_v5_trade_cancel_all_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `contractPrivatePostV5TradeCancelAfter` implicit endpoint.
+    pub async fn contract_private_post_v5_trade_cancel_after(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_v5_trade_cancel_after".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `contractPrivatePostV5TradePosition` implicit endpoint.
     pub async fn contract_private_post_v5_trade_position(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_v5_trade_position".to_string()), optional_args).await
@@ -2851,9 +2316,24 @@ impl HtxCore {
         self.call_method(Value::Str("contract_private_post_v5_position_mode".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `contractPrivatePostV5PositionMargin` implicit endpoint.
+    pub async fn contract_private_post_v5_position_margin(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_v5_position_margin".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `contractPrivatePostV5AccountFeeDeductionCurrency` implicit endpoint.
     pub async fn contract_private_post_v5_account_fee_deduction_currency(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_v5_account_fee_deduction_currency".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostV5AlgoOrder` implicit endpoint.
+    pub async fn contract_private_post_v5_algo_order(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_v5_algo_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostV5AlgoCancelOrders` implicit endpoint.
+    pub async fn contract_private_post_v5_algo_cancel_orders(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_v5_algo_cancel_orders".to_string()), optional_args).await
     }
 
 }

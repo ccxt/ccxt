@@ -629,8 +629,8 @@ impl CoinoneCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_548: bool = true;
-            while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i = add(&i, &Value::Int(1)); } __for_first_519 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut entry: Value = self.safe_value(tickers.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
             let mut baseId: Value = self.safe_string_upper(entry.clone(), Value::Str("target_currency".to_string()), &[]);
@@ -718,8 +718,8 @@ impl CoinoneCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_549: bool = true;
-            while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_520: bool = true;
+            while { if !__for_first_520 { i = add(&i, &Value::Int(1)); } __for_first_520 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut balance: Value = get_value(&balances, &currencyId);
@@ -748,7 +748,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v2_private_post_account_balance(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -763,7 +765,7 @@ impl CoinoneCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -771,7 +773,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -829,7 +833,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -902,7 +908,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1108,7 +1116,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1168,7 +1178,9 @@ impl CoinoneCore {
         if !is_equal(&type_var, &Value::Str("limit".to_string())) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() allows limit orders only".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1203,7 +1215,9 @@ impl CoinoneCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1378,7 +1392,9 @@ impl CoinoneCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOpenOrders() allows fetching closed orders with a specific symbol".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1431,7 +1447,9 @@ impl CoinoneCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1490,7 +1508,9 @@ impl CoinoneCore {
         if is_true(&(is_equal(&price, &Value::Null))) || is_true(&(is_equal(&qty, &Value::Null))) || is_true(&(is_equal(&isAsk, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -1521,7 +1541,9 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v2_private_post_account_deposit_address(&[params.clone()]).await;
         //
         //     {
@@ -1548,8 +1570,8 @@ impl CoinoneCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_550: bool = true;
-            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i = add(&i, &Value::Int(1)); } __for_first_521 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&walletAddress, &key);

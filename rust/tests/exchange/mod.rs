@@ -51,6 +51,8 @@ pub use test_ticker::testTicker;
 pub use test_trade::testTrade;
 #[path = "test.tradingFee.rs"] pub mod test_tradingFee;
 pub use test_tradingFee::testTradingFee;
+#[path = "test.transfer.rs"] pub mod test_transfer;
+pub use test_transfer::testTransfer;
 #[path = "test.afterConstruct.rs"] pub mod test_afterConstruct;
 pub use test_afterConstruct::testAfterConstruct;
 #[path = "test.features.rs"] pub mod test_features;
@@ -123,6 +125,8 @@ pub use test_fetchTradingFee::testFetchTradingFee;
 pub use test_fetchTradingFees::testFetchTradingFees;
 #[path = "test.fetchTransactionFees.rs"] pub mod test_fetchTransactionFees;
 pub use test_fetchTransactionFees::testFetchTransactionFees;
+#[path = "test.fetchTransfers.rs"] pub mod test_fetchTransfers;
+pub use test_fetchTransfers::testFetchTransfers;
 #[path = "test.fetchWithdrawals.rs"] pub mod test_fetchWithdrawals;
 pub use test_fetchWithdrawals::testFetchWithdrawals;
 #[path = "test.loadMarkets.rs"] pub mod test_loadMarkets;
@@ -169,6 +173,7 @@ pub fn available_tests() -> Value {
     m.insert("fetchTradingFee".to_string(), Value::Bool(true));
     m.insert("fetchTradingFees".to_string(), Value::Bool(true));
     m.insert("fetchTransactionFees".to_string(), Value::Bool(true));
+    m.insert("fetchTransfers".to_string(), Value::Bool(true));
     m.insert("fetchWithdrawals".to_string(), Value::Bool(true));
     m.insert("loadMarkets".to_string(), Value::Bool(true));
     m.insert("signIn".to_string(), Value::Bool(true));
@@ -214,6 +219,7 @@ pub async fn call_test(name: &str, exchange: Value, skipped: Value, args: Value)
         "fetchTradingFee" => { testFetchTradingFee(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "fetchTradingFees" => { testFetchTradingFees(exchange, skipped).await; }
         "fetchTransactionFees" => { testFetchTransactionFees(exchange, skipped); }
+        "fetchTransfers" => { testFetchTransfers(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "fetchWithdrawals" => { testFetchWithdrawals(exchange, skipped, get_value(&args, &Value::Int(0))).await; }
         "loadMarkets" => { testLoadMarkets(exchange, skipped).await; }
         "signIn" => { testSignIn(exchange, skipped).await; }

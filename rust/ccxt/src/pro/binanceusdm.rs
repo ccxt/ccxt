@@ -278,7 +278,8 @@ impl BinanceusdmCore {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::binanceusdm::BinanceusdmCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
-        let mut extended: Value = self.deep_extend(self.parent.describe(), &[restDescribe.clone()]);
+        let mut parentWsDescribe: Value = self.parent.describe_data();
+        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
         return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binanceusdm".to_string()));

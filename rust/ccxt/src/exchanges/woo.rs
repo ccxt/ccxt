@@ -200,6 +200,7 @@ impl WooCore {
             "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -294,6 +295,12 @@ impl crate::exchange::DerivedExchange for WooCore {
         #[allow(invalid_reference_casting)]
         let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
         WooCore::parse_transfer(me, transfer, &[currency.clone()])
+    }
+    fn parse_currency(&self, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on WooCore.
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WooCore as *mut WooCore) };
+        WooCore::parse_currency(me, currency)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         // Forward to the inherent method on WooCore.
@@ -1077,7 +1084,7 @@ impl WooCore {
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&marketId, &Value::Str("_".to_string()));
         let mut first: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut marketType: Value = Value::Null;
@@ -1197,7 +1204,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1286,7 +1295,7 @@ impl WooCore {
         let mut order_id: Value = self.safe_string2(trade.clone(), Value::Str("order_id".to_string()), Value::Str("orderId".to_string()), &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::List(vec![Value::Str("fee_asset".to_string()), Value::Str("feeAsset".to_string())]), Value::List(vec![Value::Str("fee".to_string())]));
         let mut feeCost: Value = self.safe_string_k(fee.clone(), "cost", &[]);
-        if !is_equal(&feeCost, &Value::Null) {
+        if is_true(&(!is_equal(&fee, &Value::Null))) && is_true(&(!is_equal(&feeCost, &Value::Null))) {
             add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCost.clone());
         }
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
@@ -1370,7 +1379,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1412,7 +1423,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_account_info(&[params.clone()]).await;
         //
         //     {
@@ -1455,11 +1468,16 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut symbols: Value = self.symbols.clone();
+        if is_equal(&symbols, &Value::Null) {
+            return result;
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { i = add(&i, &Value::Int(1)); } __for_first_1074 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
-            let mut symbol: Value = get_value(&self.symbols, &i);
+            let mut __for_first_1018: bool = true;
+            while { if !__for_first_1018 { i = add(&i, &Value::Int(1)); } __for_first_1018 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut symbol: Value = get_value(&symbols, &i);
+            let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1579,35 +1597,54 @@ impl WooCore {
         let mut currencyIds: Value = object_keys(&tokensById);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1076: bool = true;
-            while { if !__for_first_1076 { i = add(&i, &Value::Int(1)); } __for_first_1076 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
-            let mut currencyId: Value = get_value(&currencyIds, &i);
-            let mut currencyId: Value = get_value(&currencyIds, &i);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut tokensByNetworkId: Value = self.index_by(get_value(&tokensById, &currencyId), Value::Str("network".to_string()));
-            let mut chainsByNetworkId: Value = self.index_by(get_value(&networksById, &currencyId), Value::Str("network".to_string()));
-            let mut keys: Value = object_keys(&chainsByNetworkId);
-            let mut resultingNetworks: Value = Value::Map({
+            let mut __for_first_1019: bool = true;
+            while { if !__for_first_1019 { i = add(&i, &Value::Int(1)); } __for_first_1019 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut id: Value = get_value(&currencyIds, &i);
+            let mut id: Value = get_value(&currencyIds, &i);
+            let mut customCurrency: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
+                    m.insert("_coin_id".to_string(), id.clone());
+                    m.insert("_tokens_by_id".to_string(), get_value(&tokensById, &id));
+                    m.insert("_networks_by_id".to_string(), get_value(&networksById, &id));
                 m
             });
-            {
-                                let mut j: Value = Value::Int(0);
-                let mut __for_first_1075: bool = true;
-                while { if !__for_first_1075 { j = add(&j, &Value::Int(1)); } __for_first_1075 = false; is_less_than(&j, &get_array_length(&keys)) } {
-                let mut networkId: Value = get_value(&keys, &j);
-                let mut networkId: Value = get_value(&keys, &j);
-                let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
+            let mut parsed: Value = self.parse_currency(customCurrency.clone());
+            let mut code: Value = self.safe_string_k(parsed.clone(), "code", &[]);
+            add_element_to_object(&mut result, &code, parsed.clone());
+        }
+        }
+        return result;
+
+    Value::Null
+}
+
+    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+        let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "_coin_id", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+        let mut tokensByNetworkId: Value = self.index_by(get_value(&rawCurrency, &Value::Str("_tokens_by_id".to_string())), Value::Str("network".to_string()));
+        let mut chainsByNetworkId: Value = self.index_by(get_value(&rawCurrency, &Value::Str("_networks_by_id".to_string())), Value::Str("network".to_string()));
+        let mut keys: Value = object_keys(&chainsByNetworkId);
+        let mut resultingNetworks: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut j: Value = Value::Int(0);
+            let mut __for_first_1020: bool = true;
+            while { if !__for_first_1020 { j = add(&j, &Value::Int(1)); } __for_first_1020 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut networkId: Value = get_value(&keys, &j);
+            let mut networkId: Value = get_value(&keys, &j);
+            let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut networkEntry: Value = self.safe_dict(chainsByNetworkId.clone(), networkId.clone(), &[Value::Map({
+            let mut networkEntry: Value = self.safe_dict(chainsByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                let mut specialNetworkId: Value = self.safe_string_k(tokenEntry.clone(), "token", &[]);
-                add_element_to_object(&mut resultingNetworks, &networkCode, Value::Map({
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+            let mut specialNetworkId: Value = self.safe_string_k(tokenEntry.clone(), "token", &[]);
+            add_element_to_object(&mut resultingNetworks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("currencyNetworkId".to_string(), specialNetworkId.clone());
@@ -1633,12 +1670,17 @@ impl WooCore {
 }));
     m
 }));
-        m.insert("info".to_string(), Value::List(vec![networkEntry.clone(), tokenEntry.clone()]));
+        m.insert("info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("network".to_string(), networkEntry.clone());
+        m.insert("token".to_string(), tokenEntry.clone());
     m
 }));
-            }
-            }
-            add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
+    m
+}));
+        }
+        }
+        return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("name".to_string(), Value::Null);
@@ -1666,12 +1708,9 @@ impl WooCore {
 }));
     m
 }));
-        m.insert("info".to_string(), Value::List(vec![tokensByNetworkId.clone(), chainsByNetworkId.clone()]));
+        m.insert("info".to_string(), rawCurrency.clone());
     m
-})));
-        }
-        }
-        return result;
+}));
 
     Value::Null
 }
@@ -1691,7 +1730,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
@@ -1716,7 +1757,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() supports spot orders only".to_string()))));
@@ -1833,7 +1876,9 @@ impl WooCore {
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string())]), &[]);
         let mut orderType: Value = to_upper(&type_var);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut orderSide: Value = to_upper(&side);
         let mut request: Value = Value::Map({
@@ -2025,7 +2070,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2127,7 +2174,9 @@ impl WooCore {
         if !is_true(&isTrigger) && is_true(&(is_equal(&symbol, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2150,7 +2199,7 @@ impl WooCore {
             let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
             response = self.v3_private_delete_trade_algo_order(&[__ws_arg_8]).await;
         }  else {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
             if is_true(&isByClientOrder) {
                 add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderIdExchangeSpecific.clone());
             }  else {
@@ -2200,7 +2249,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2254,7 +2305,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("triggerAfter".to_string(), ternary(is_true(&(is_greater_than(&timeout, &Value::Int(0)))), crate::runtime::Math::min(&timeout, &Value::Int(900000)), Value::Int(0)));
@@ -2285,7 +2338,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2348,7 +2403,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -2419,7 +2476,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".to_string()));
@@ -2455,7 +2514,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("COMPLETED".to_string()));
@@ -2668,7 +2729,7 @@ impl WooCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2676,7 +2737,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2740,7 +2803,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2820,7 +2885,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2876,7 +2943,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3049,7 +3118,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_asset_balances(&[params.clone()]).await;
         //
         //     {
@@ -3089,8 +3160,8 @@ impl WooCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { i = add(&i, &Value::Int(1)); } __for_first_1077 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1021: bool = true;
+            while { if !__for_first_1021 { i = add(&i, &Value::Int(1)); } __for_first_1021 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3120,14 +3191,16 @@ impl WooCore {
     m
 }));
         // this method is TODO because of networks unification
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token".to_string(), get_value(&currency, &Value::Str("id".to_string())));
-                m.insert("network".to_string(), self.network_code_to_id(networkCode.clone(), &[]));
+                m.insert("network".to_string(), self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
             m
         });
         let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
@@ -3191,7 +3264,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3204,7 +3279,7 @@ impl WooCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&networkCode, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(networkCode.clone(), &[]));
+            add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(networkCode.clone(), &[self.safe_string_k(currency.clone(), "code", &[])]));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -3462,7 +3537,7 @@ impl WooCore {
         let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
         let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_24]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
-        let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[]);
+        let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[Value::List(vec![])]);
         return self.parse_transactions(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3524,7 +3599,7 @@ impl WooCore {
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.clone());
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[])]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), code.clone()]));
     m
 });
 
@@ -3563,7 +3638,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3799,7 +3876,9 @@ impl WooCore {
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.check_address(&[address.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -3817,7 +3896,7 @@ impl WooCore {
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         add_element_to_object(&mut request, &Value::Str("token".to_string()), get_value(&currency, &Value::Str("id".to_string())));
-        add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(network.clone(), &[]));
+        add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(network.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
         let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_27]).await;
         //
@@ -3867,7 +3946,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -4092,7 +4173,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4248,7 +4331,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4306,7 +4391,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.v3_public_get_funding_rate(&[params.clone()]).await;
         //
@@ -4360,7 +4447,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4412,8 +4501,8 @@ impl WooCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1078: bool = true;
-            while { if !__for_first_1078 { i = add(&i, &Value::Int(1)); } __for_first_1078 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { i = add(&i, &Value::Int(1)); } __for_first_1022 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -4486,7 +4575,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -4528,8 +4619,8 @@ impl WooCore {
         let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1079: bool = true;
-            while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_1023: bool = true;
+            while { if !__for_first_1023 { i = add(&i, &Value::Int(1)); } __for_first_1023 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4578,7 +4669,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("leverage".to_string(), leverage.clone());
@@ -4588,18 +4681,18 @@ impl WooCore {
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
-        if is_true(&(is_equal(&symbol, &Value::Null))) || is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
+        if is_true(&(is_equal(&symbol, &Value::Null))) || is_true(&self.safe_bool_k(market.clone(), "spot", &[])) {
             let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
             return self.v3_private_post_spot_margin_leverage(&[__ws_arg_36]).await;
-        }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        }  else if is_true(&self.safe_bool_k(market.clone(), "swap", &[])) {
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), self.encode_margin_mode(marginMode.clone()));
             let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
             return self.v3_private_put_futures_leverage(&[__ws_arg_37]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchLeverage() is not supported for ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchLeverage() is not supported for ".to_string())), &self.safe_string_k(market.clone(), "type", &[])), &Value::Str(" markets".to_string()))));
         }
 
     Value::Null
@@ -4652,7 +4745,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4682,7 +4777,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4751,7 +4848,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_futures_positions(&[params.clone()]).await;
         //
         //     {
@@ -4922,7 +5021,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sellToken".to_string(), to_upper(&fromCode));
@@ -4979,7 +5080,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quoteId".to_string(), id.clone());
@@ -5022,7 +5125,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quoteId".to_string(), id.clone());
@@ -5083,7 +5188,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5201,7 +5308,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_convert_asset_info(&[params.clone()]).await;
         //
         //     {
@@ -5223,8 +5332,8 @@ impl WooCore {
         let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1080: bool = true;
-            while { if !__for_first_1080 { i = add(&i, &Value::Int(1)); } __for_first_1080 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1024: bool = true;
+            while { if !__for_first_1024 { i = add(&i, &Value::Int(1)); } __for_first_1024 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
@@ -5289,7 +5398,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut response: Value = self.v3_private_get_futures_positions(&[params.clone()]).await;
         //
@@ -5383,8 +5494,8 @@ impl WooCore {
         let mut networkKeys: Value = object_keys(&networks);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1081: bool = true;
-            while { if !__for_first_1081 { i = add(&i, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
+            let mut __for_first_1025: bool = true;
+            while { if !__for_first_1025 { i = add(&i, &Value::Int(1)); } __for_first_1025 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &Value::Str("ETH".to_string())) {

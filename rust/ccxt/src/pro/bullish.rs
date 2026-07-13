@@ -475,7 +475,9 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("trades::".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut url: Value = Value::Str("/trading-api/v1/market-data/trades".to_string());
@@ -536,8 +538,8 @@ impl BullishCore {
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_190: bool = true;
+            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&trades)) } {
             tradesArray.append(get_value(&trades, &i));
         }
         }
@@ -560,7 +562,9 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut url: Value = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string())), &Value::Str("/trading-api/v1/market-data/tick/".to_string())), &get_value(&market, &Value::Str("id".to_string())));
@@ -623,10 +627,8 @@ impl BullishCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut parsed: Value = Value::Null;
-        if is_true(&(is_equal(&updateType, &Value::Str("snapshot".to_string())))) {
-            parsed = self.parse_ticker(data.clone(), &[market.clone()]);
-        }  else if is_equal(&updateType, &Value::Str("update".to_string())) {
+        let mut parsed: Value = self.parse_ticker(data.clone(), &[market.clone()]);
+        if is_equal(&updateType, &Value::Str("update".to_string())) {
             let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -651,7 +653,7 @@ impl BullishCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -659,7 +661,9 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut url: Value = Value::Str("/trading-api/v1/market-data/orderbook".to_string());
         let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -733,8 +737,8 @@ impl BullishCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &get_array_length(&entry)) } {
+            let mut __for_first_191: bool = true;
+            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&entry)) } {
             if !is_equal(&mod_val(&i, &Value::Int(2)), &Value::Int(0)) {
                 continue;
             }
@@ -768,7 +772,9 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subscribeHash: Value = Value::Str("orders".to_string());
         let mut messageHash: Value = subscribeHash.clone();
         if !is_equal(&symbol, &Value::Null) {
@@ -862,14 +868,16 @@ impl BullishCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_203: bool = true;
-                while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+                let mut __for_first_192: bool = true;
+                while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
                 let mut rawOrder: Value = get_value(&rawOrders, &i);
                 let mut rawOrder: Value = get_value(&rawOrders, &i);
                 let mut parsedOrder: Value = self.parse_order(rawOrder.clone(), &[]);
                 orders.append(parsedOrder.clone());
                 let mut symbol: Value = self.safe_string_k(parsedOrder.clone(), "symbol", &[]);
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if !is_equal(&symbol, &Value::Null) {
+                    add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                }
             }
             }
             let mut messageHash: Value = Value::Str("orders".to_string());
@@ -877,8 +885,8 @@ impl BullishCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_204: bool = true;
-                while { if !__for_first_204 { i = add(&i, &Value::Int(1)); } __for_first_204 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_193: bool = true;
+                while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &hashSymbol);
@@ -908,7 +916,9 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subscribeHash: Value = Value::Str("myTrades".to_string());
         let mut messageHash: Value = subscribeHash.clone();
         if !is_equal(&symbol, &Value::Null) {
@@ -995,14 +1005,16 @@ impl BullishCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_205: bool = true;
-                while { if !__for_first_205 { i = add(&i, &Value::Int(1)); } __for_first_205 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+                let mut __for_first_194: bool = true;
+                while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
                 let mut rawTrade: Value = get_value(&rawTrades, &i);
                 let mut rawTrade: Value = get_value(&rawTrades, &i);
                 let mut parsedTrade: Value = self.parse_trade(rawTrade.clone(), &[]);
                 trades.append(parsedTrade.clone());
                 let mut symbol: Value = self.safe_string_k(parsedTrade.clone(), "symbol", &[]);
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if !is_equal(&symbol, &Value::Null) {
+                    add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                }
             }
             }
             let mut messageHash: Value = Value::Str("myTrades".to_string());
@@ -1010,8 +1022,8 @@ impl BullishCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_206: bool = true;
-                while { if !__for_first_206 { i = add(&i, &Value::Int(1)); } __for_first_206 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_195: bool = true;
+                while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &hashSymbol);
@@ -1035,7 +1047,9 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("assetAccounts".to_string()));
@@ -1096,6 +1110,9 @@ impl BullishCore {
         //     }
         //
         let mut tradingAccountId: Value = self.safe_string_k(message.clone(), "tradingAccountId", &[]);
+        if is_equal(&tradingAccountId, &Value::Null) {
+            return;
+        }
         if !is_true(&(Value::Bool(in_op(&self.balance, &tradingAccountId)))) {
             add_element_to_object(&mut self.balance.clone(), &tradingAccountId, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1145,10 +1162,12 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut subscribeHash: Value = Value::Str("positions".to_string());
         let mut messageHash: Value = subscribeHash.clone();
-        if !is_true(&self.is_empty(symbols.clone())) {
+        if is_true(&(!is_equal(&symbols, &Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = add(&messageHash, &add(&Value::Str("::".to_string()), &join(&symbols, &Value::Str(",".to_string()))));
         }
@@ -1188,8 +1207,8 @@ impl BullishCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_207: bool = true;
-            while { if !__for_first_207 { i = add(&i, &Value::Int(1)); } __for_first_207 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_196: bool = true;
+            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -1200,8 +1219,8 @@ impl BullishCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_208: bool = true;
-            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_197: bool = true;
+            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));

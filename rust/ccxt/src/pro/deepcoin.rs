@@ -430,7 +430,7 @@ impl DeepcoinCore {
         let mut unWatch = get_arg(optional_args, 1, Value::Bool(false));
         let mut marketId: Value = get_value(&market, &Value::Str("symbol".to_string())); // spot markets use symbol with slash
         if is_equal(&get_value(&market, &Value::Str("type".to_string())), &Value::Str("swap".to_string())) {
-            marketId = add(&get_value(&market, &Value::Str("baseId".to_string())), &get_value(&market, &Value::Str("quoteId".to_string()))); // swap markets use symbol without slash
+            marketId = add(&self.safe_string_k(market.clone(), "baseId", &[Value::Str("".to_string())]), &self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".to_string())])); // swap markets use symbol without slash
         }
         let mut action: Value = Value::Str("1".to_string()); // subscribe
         if is_true(&unWatch) {
@@ -578,7 +578,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("ticker".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
         return self.watch_public(market.clone(), messageHash.clone(), Value::Str("7".to_string()), &[params.clone()]).await;
@@ -600,7 +602,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("ticker".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut subscription: Value = Value::Map({
@@ -695,14 +699,14 @@ impl DeepcoinCore {
         let mut ask: Value = self.safe_number_k(ticker.clone(), "AP1", &[]);
         let mut baseVolume: Value = self.safe_number_k(ticker.clone(), "V", &[]);
         let mut quoteVolume: Value = self.safe_number_k(ticker.clone(), "T", &[]);
-        if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
+        if is_true(&self.safe_bool_k(market.clone(), "inverse", &[])) {
             let mut temp: Value = baseVolume.clone();
             baseVolume = quoteVolume.clone();
             quoteVolume = temp.clone();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("high".to_string(), high.clone());
@@ -746,7 +750,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("trades".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut trades: Value = self.watch_public(market.clone(), messageHash.clone(), Value::Str("2".to_string()), &[params.clone()]).await;
@@ -772,7 +778,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("trades".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut subscription: Value = Value::Map({
@@ -884,7 +892,7 @@ impl DeepcoinCore {
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("TradeID".to_string()), Value::Str("TI".to_string()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "OS", &[]));
         m.insert("type".to_string(), Value::Null);
@@ -944,7 +952,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -979,7 +989,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -1072,7 +1084,7 @@ impl DeepcoinCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1080,7 +1092,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut suffix: Value = Value::Str("_0.1".to_string());
@@ -1097,14 +1111,16 @@ impl DeepcoinCore {
  * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut suffix: Value = Value::Str("_0.1".to_string());
@@ -1189,8 +1205,8 @@ impl DeepcoinCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_309: bool = true;
-            while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_298: bool = true;
+            while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&entries)) } {
             let mut entry: Value = get_value(&entries, &i);
             let mut entry: Value = get_value(&entries, &i);
             let mut entryData: Value = self.safe_dict_k(entry.clone(), "d", &[Value::Map({
@@ -1209,14 +1225,14 @@ impl DeepcoinCore {
             }
         }
         }
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "mt", &[]);
+        let mut timestamp: Value = self.safe_integer_k(message.clone(), "mt", &[Value::Int(0)]);
         let mut snapshot: Value = self.parse_order_book(orderedEntries.clone(), symbol.clone(), &[timestamp.clone()]);
         orderbook.reset(snapshot.clone());
         let mut cachedMessages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { j = add(&j, &Value::Int(1)); } __for_first_310 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
+            let mut __for_first_299: bool = true;
+            while { if !__for_first_299 { j = add(&j, &Value::Int(1)); } __for_first_299 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             self.handle_order_book_message(client.clone(), cachedMessage.clone(), orderbook.clone());
@@ -1243,7 +1259,7 @@ impl DeepcoinCore {
         //         "mt": 1760975816446
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "mt", &[]);
+        let mut timestamp: Value = self.safe_integer_k(message.clone(), "mt", &[Value::Int(0)]);
         if is_greater_than(&timestamp, &get_value(&orderbook, &Value::Str("timestamp".to_string()))) {
             let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
             self.handle_deltas(orderbook.clone(), response.clone());
@@ -1291,7 +1307,9 @@ impl DeepcoinCore {
     m
 }));
         let mut messageHash: Value = Value::Str("myTrades".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
             messageHash = add(&messageHash, &add(&Value::Str("::".to_string()), &symbol));
@@ -1383,7 +1401,9 @@ impl DeepcoinCore {
     m
 }));
         let mut messageHash: Value = Value::Str("orders".to_string());
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
             messageHash = add(&messageHash, &add(&Value::Str("::".to_string()), &symbol));
@@ -1490,7 +1510,7 @@ impl DeepcoinCore {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(order.clone(), Value::Str("U".to_string()), &[]));
         m.insert("status".to_string(), self.parse_ws_order_status(state.clone()));
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), self.parse_trade_side(direction.clone()));
@@ -1546,7 +1566,9 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut listenKey: Value = self.authenticate(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut messageHash: Value = Value::Str("positions".to_string());
@@ -1554,8 +1576,8 @@ impl DeepcoinCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_311: bool = true;
-                while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_300: bool = true;
+                while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);
@@ -1646,7 +1668,7 @@ impl DeepcoinCore {
         let mut marginMode: Value = self.safe_string_k(position.clone(), "i", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));

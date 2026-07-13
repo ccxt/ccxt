@@ -465,18 +465,18 @@ impl ToobitCore {
                 m.insert("outboundContractPositionInfo".to_string(), Value::Null.clone());
             m
         });
-        let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
+        let mut method: Value = ternary(is_true(&(is_equal(&topic, &Value::Null))), Value::Null, self.safe_value(methods.clone(), topic.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
             method.call(&[client.clone(), message.clone()]);
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_588: bool = true;
-                while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&message)) } {
+                let mut __for_first_581: bool = true;
+                while { if !__for_first_581 { i = add(&i, &Value::Int(1)); } __for_first_581 = false; is_less_than(&i, &get_array_length(&message)) } {
                 let mut item: Value = get_value(&message, &i);
                 let mut item: Value = get_value(&message, &i);
                 let mut event: Value = self.safe_string_k(item.clone(), "e", &[]);
-                let mut method2: Value = self.safe_value(methods.clone(), event.clone(), &[]);
+                let mut method2: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
                 if !is_equal(&method2, &Value::Null) {
                     method2.call(&[client.clone(), item.clone()]);
                 }
@@ -531,14 +531,16 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut subParams: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_589: bool = true;
-            while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i = add(&i, &Value::Int(1)); } __for_first_582 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -604,8 +606,8 @@ impl ToobitCore {
         let mut parsed: Value = self.parse_ws_trades(data.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_590: bool = true;
-            while { if !__for_first_590 { i = add(&i, &Value::Int(1)); } __for_first_590 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_583: bool = true;
+            while { if !__for_first_583 { i = add(&i, &Value::Int(1)); } __for_first_583 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut trade: Value = get_value(&parsed, &i);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             crate::set_value(&mut parsed, &i, trade.clone());
@@ -668,7 +670,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("common".to_string())), &Value::Str("/quote/ws/v1".to_string()));
         let mut messageHashes: Value = Value::List(vec![]);
         let mut timeframes: Value = self.safe_dict(get_value(&self.options, &Value::Str("ws".to_string())), Value::Str("timeframes".to_string()), &[Value::Map({
@@ -679,8 +683,8 @@ impl ToobitCore {
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_591: bool = true;
-            while { if !__for_first_591 { i = add(&i, &Value::Int(1)); } __for_first_591 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolStr: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
@@ -767,8 +771,8 @@ impl ToobitCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_592: bool = true;
-            while { if !__for_first_592 { i = add(&i, &Value::Int(1)); } __for_first_592 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_585: bool = true;
+            while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut parsed: Value = self.parse_ws_ohlcv(get_value(&data, &i), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -813,7 +817,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
@@ -836,14 +842,16 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut subParams: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { i = add(&i, &Value::Int(1)); } __for_first_593 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -919,8 +927,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_594: bool = true;
-            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { i = add(&i, &Value::Int(1)); } __for_first_587 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = get_value(&data, &i);
             let mut ticker: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ws_ticker(ticker.clone(), &[]);
@@ -949,7 +957,7 @@ impl ToobitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -970,7 +978,7 @@ impl ToobitCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -978,7 +986,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".to_string()), Value::Str("channel".to_string()), &[Value::Str("depth".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -986,8 +996,8 @@ impl ToobitCore {
         let mut subParams: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_595: bool = true;
-            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1045,8 +1055,8 @@ impl ToobitCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_596: bool = true;
-            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut messageHash: Value = add(&add(&add(&Value::Str("orderBook::".to_string()), &symbol), &Value::Str("::".to_string())), &Value::Str("diffDepth".to_string()));
@@ -1071,7 +1081,7 @@ impl ToobitCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[]);
         bookside.store_array(bidAsk.clone());
 }
 
@@ -1109,8 +1119,8 @@ impl ToobitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_597: bool = true;
-            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &length) } {
+            let mut __for_first_590: bool = true;
+            while { if !__for_first_590 { i = add(&i, &Value::Int(1)); } __for_first_590 = false; is_less_than(&i, &length) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "s", &[]);
@@ -1145,7 +1155,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1232,8 +1244,8 @@ impl ToobitCore {
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_598: bool = true;
-            while { if !__for_first_598 { i = add(&i, &Value::Int(1)); } __for_first_598 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_591: bool = true;
+            while { if !__for_first_591 { i = add(&i, &Value::Int(1)); } __for_first_591 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -1291,7 +1303,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut market: Value = self.market_or_null(&[symbol.clone()]);
         symbol = self.safe_string_k(market.clone(), "symbol", &[symbol.clone()]);
@@ -1427,7 +1441,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut market: Value = self.market_or_null(&[symbol.clone()]);
         symbol = self.safe_string_k(market.clone(), "symbol", &[symbol.clone()]);
@@ -1519,7 +1535,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut messageHash: Value = Value::Str("".to_string());
         if !is_true(&self.is_empty(symbols.clone())) {
@@ -1579,8 +1597,8 @@ impl ToobitCore {
         let mut cache: Value = get_value(&self.positions, &type_var);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_599: bool = true;
-            while { if !__for_first_599 { i = add(&i, &Value::Int(1)); } __for_first_599 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_592: bool = true;
+            while { if !__for_first_592 { i = add(&i, &Value::Int(1)); } __for_first_592 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             cache.append(position.clone());
@@ -1636,8 +1654,8 @@ impl ToobitCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_600: bool = true;
-            while { if !__for_first_600 { i = add(&i, &Value::Int(1)); } __for_first_600 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { i = add(&i, &Value::Int(1)); } __for_first_593 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut rawPosition: Value = get_value(&message, &i);
             let mut rawPosition: Value = get_value(&message, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -1651,8 +1669,8 @@ impl ToobitCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&accountType, &Value::Str(":positions::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i = add(&i, &Value::Int(1)); } __for_first_601 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1765,8 +1783,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_602: bool = true;
-                while { if !__for_first_602 { i = add(&i, &Value::Int(1)); } __for_first_602 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+                let mut __for_first_595: bool = true;
+                while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);

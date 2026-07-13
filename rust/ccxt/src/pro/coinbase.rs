@@ -372,7 +372,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut messageHash: Value = name.clone();
         let mut productIds: Value = Value::List(vec![]);
@@ -416,7 +418,9 @@ impl CoinbaseCore {
  */
     pub async fn un_subscribe(&mut self, mut topic: Value, mut name: Value, mut isPrivate: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string()))));
         }
@@ -485,14 +489,16 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut productIds: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_255: bool = true;
-            while { if !__for_first_255 { i = add(&i, &Value::Int(1)); } __for_first_255 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_244: bool = true;
+            while { if !__for_first_244 { i = add(&i, &Value::Int(1)); } __for_first_244 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -540,15 +546,17 @@ impl CoinbaseCore {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string()))));
         }
         add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut productIds: Value = Value::List(vec![]);
         let mut watchMessageHashes: Value = Value::List(vec![]);
         let mut unWatchMessageHashes: Value = Value::List(vec![]);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_256: bool = true;
-            while { if !__for_first_256 { i = add(&i, &Value::Int(1)); } __for_first_256 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_245: bool = true;
+            while { if !__for_first_245 { i = add(&i, &Value::Int(1)); } __for_first_245 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -635,7 +643,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("ticker".to_string());
         return self.subscribe(name.clone(), Value::Bool(false), &[symbol.clone(), params.clone()]).await;
 
@@ -656,7 +666,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("ticker".to_string());
         return self.un_subscribe(Value::Str("ticker".to_string()), name.clone(), Value::Bool(false), &[symbol.clone()]).await;
 
@@ -678,7 +690,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbols, &Value::Null) {
             symbols = self.symbols.clone();
         }
@@ -713,7 +727,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&symbols, &Value::Null) {
             symbols = self.symbols.clone();
         }
@@ -819,15 +835,15 @@ impl CoinbaseCore {
         let mut newTickers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_258: bool = true;
-            while { if !__for_first_258 { i = add(&i, &Value::Int(1)); } __for_first_258 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_247: bool = true;
+            while { if !__for_first_247 { i = add(&i, &Value::Int(1)); } __for_first_247 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut tickersObj: Value = get_value(&events, &i);
             let mut tickersObj: Value = get_value(&events, &i);
             let mut tickers: Value = self.safe_list_k(tickersObj.clone(), "tickers", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_257: bool = true;
-                while { if !__for_first_257 { j = add(&j, &Value::Int(1)); } __for_first_257 = false; is_less_than(&j, &get_array_length(&tickers)) } {
+                let mut __for_first_246: bool = true;
+                while { if !__for_first_246 { j = add(&j, &Value::Int(1)); } __for_first_246 = false; is_less_than(&j, &get_array_length(&tickers)) } {
                 let mut ticker: Value = get_value(&tickers, &j);
                 let mut ticker: Value = get_value(&tickers, &j);
                 let mut wsMarketId: Value = self.safe_string_k(ticker.clone(), "product_id", &[]);
@@ -918,7 +934,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut name: Value = Value::Str("market_trades".to_string());
         let mut trades: Value = self.subscribe(name.clone(), Value::Bool(false), &[symbol.clone(), params.clone()]).await;
@@ -944,7 +962,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("market_trades".to_string());
         return self.un_subscribe(Value::Str("trades".to_string()), name.clone(), Value::Bool(false), &[symbol.clone()]).await;
 
@@ -969,7 +989,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("market_trades".to_string());
         let mut trades: Value = self.subscribe_multiple(name.clone(), Value::Bool(false), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -996,7 +1018,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("market_trades".to_string());
         return self.un_subscribe_multiple(Value::Str("trades".to_string()), name.clone(), Value::Bool(false), &[symbols.clone(), params.clone()]).await;
 
@@ -1022,7 +1046,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("user".to_string());
         let mut orders: Value = self.subscribe(name.clone(), Value::Bool(true), &[symbol.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -1048,7 +1074,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("user".to_string());
         return self.un_subscribe(Value::Str("orders".to_string()), name.clone(), Value::Bool(true), &[self.symbol(symbol.clone())]).await;
 
@@ -1063,7 +1091,7 @@ impl CoinbaseCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1071,7 +1099,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("level2".to_string());
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1088,14 +1118,16 @@ impl CoinbaseCore {
  * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut name: Value = Value::Str("level2".to_string());
         return self.un_subscribe(Value::Str("orderbook".to_string()), name.clone(), Value::Bool(false), &[symbol.clone()]).await;
@@ -1111,7 +1143,7 @@ impl CoinbaseCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1119,7 +1151,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("level2".to_string());
         let mut orderbook: Value = self.subscribe_multiple(name.clone(), Value::Bool(false), &[symbols.clone(), params.clone()]).await;
         return orderbook.limit();
@@ -1166,15 +1200,15 @@ impl CoinbaseCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_260: bool = true;
-            while { if !__for_first_260 { i = add(&i, &Value::Int(1)); } __for_first_260 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_249: bool = true;
+            while { if !__for_first_249 { i = add(&i, &Value::Int(1)); } __for_first_249 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut currentEvent: Value = get_value(&events, &i);
             let mut currentEvent: Value = get_value(&events, &i);
             let mut currentTrades: Value = self.safe_list_k(currentEvent.clone(), "trades", &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_259: bool = true;
-                while { if !__for_first_259 { j = add(&j, &Value::Int(1)); } __for_first_259 = false; is_less_than(&j, &get_array_length(&currentTrades)) } {
+                let mut __for_first_248: bool = true;
+                while { if !__for_first_248 { j = add(&j, &Value::Int(1)); } __for_first_248 = false; is_less_than(&j, &get_array_length(&currentTrades)) } {
                 let mut item: Value = get_value(&currentTrades, &j);
                 let mut item: Value = get_value(&currentTrades, &j);
                 tradesArray.append(self.parse_trade(item.clone(), &[]));
@@ -1223,15 +1257,15 @@ impl CoinbaseCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_262: bool = true;
-            while { if !__for_first_262 { i = add(&i, &Value::Int(1)); } __for_first_262 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_251: bool = true;
+            while { if !__for_first_251 { i = add(&i, &Value::Int(1)); } __for_first_251 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut responseOrders: Value = self.safe_list_k(event.clone(), "orders", &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_261: bool = true;
-                while { if !__for_first_261 { j = add(&j, &Value::Int(1)); } __for_first_261 = false; is_less_than(&j, &get_array_length(&responseOrders)) } {
+                let mut __for_first_250: bool = true;
+                while { if !__for_first_250 { j = add(&j, &Value::Int(1)); } __for_first_250 = false; is_less_than(&j, &get_array_length(&responseOrders)) } {
                 let mut responseOrder: Value = get_value(&responseOrders, &j);
                 let mut responseOrder: Value = get_value(&responseOrders, &j);
                 let mut parsed: Value = self.parse_ws_order(responseOrder.clone(), &[]);
@@ -1247,8 +1281,8 @@ impl CoinbaseCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_263: bool = true;
-            while { if !__for_first_263 { i = add(&i, &Value::Int(1)); } __for_first_263 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_252: bool = true;
+            while { if !__for_first_252 { i = add(&i, &Value::Int(1)); } __for_first_252 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1321,8 +1355,8 @@ impl CoinbaseCore {
     pub fn handle_order_book_helper(&self, mut orderbook: Value, mut updates: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_264: bool = true;
-            while { if !__for_first_264 { i = add(&i, &Value::Int(1)); } __for_first_264 = false; is_less_than(&i, &get_array_length(&updates)) } {
+            let mut __for_first_253: bool = true;
+            while { if !__for_first_253 { i = add(&i, &Value::Int(1)); } __for_first_253 = false; is_less_than(&i, &get_array_length(&updates)) } {
             let mut trade: Value = get_value(&updates, &i);
             let mut trade: Value = get_value(&updates, &i);
             let mut sideId: Value = self.safe_string_k(trade.clone(), "side", &[]);
@@ -1368,8 +1402,8 @@ impl CoinbaseCore {
         let mut datetime: Value = self.safe_string_k(message.clone(), "timestamp", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_265: bool = true;
-            while { if !__for_first_265 { i = add(&i, &Value::Int(1)); } __for_first_265 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_254: bool = true;
+            while { if !__for_first_254 { i = add(&i, &Value::Int(1)); } __for_first_254 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut updates: Value = self.safe_list_k(event.clone(), "updates", &[Value::List(vec![])]);
@@ -1449,8 +1483,8 @@ impl CoinbaseCore {
             let mut subMessageHashes: Value = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_266: bool = true;
-                while { if !__for_first_266 { i = add(&i, &Value::Int(1)); } __for_first_266 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+                let mut __for_first_255: bool = true;
+                while { if !__for_first_255 { i = add(&i, &Value::Int(1)); } __for_first_255 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 let mut subHash: Value = get_value(&subMessageHashes, &i);

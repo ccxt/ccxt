@@ -1172,7 +1172,9 @@ impl ParadexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTradingFee() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1223,7 +1225,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_markets(&[params.clone()]).await;
         //
         //     {
@@ -1251,8 +1255,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_986: bool = true;
-            while { if !__for_first_986 { i = add(&i, &Value::Int(1)); } __for_first_986 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_948: bool = true;
+            while { if !__for_first_948 { i = add(&i, &Value::Int(1)); } __for_first_948 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -1285,7 +1289,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1360,7 +1366,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1410,7 +1418,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1515,7 +1525,7 @@ impl ParadexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1523,7 +1533,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1582,7 +1594,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1623,8 +1637,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_987: bool = true;
-            while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_949: bool = true;
+            while { if !__for_first_949 { i = add(&i, &Value::Int(1)); } __for_first_949 = false; is_less_than(&i, &get_array_length(&trades)) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".to_string()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -1719,7 +1733,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));
@@ -2371,7 +2387,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         request = self.sign_order_request(request.clone(), &[]).await;
@@ -2440,7 +2458,9 @@ impl ParadexCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires a price argument".to_string()))));
         }
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         request = self.omit(request.clone(), Value::List(vec![Value::Str("instruction".to_string()), Value::Str("client_id".to_string()), Value::Str("flags".to_string())]), &[]);
@@ -2468,12 +2488,14 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_988: bool = true;
-            while { if !__for_first_988 { i = add(&i, &Value::Int(1)); } __for_first_988 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_950: bool = true;
+            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2518,8 +2540,8 @@ impl ParadexCore {
         let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_989: bool = true;
-            while { if !__for_first_989 { i = add(&i, &Value::Int(1)); } __for_first_989 = false; is_less_than(&i, &get_array_length(&errors)) } {
+            let mut __for_first_951: bool = true;
+            while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&errors)) } {
             let mut error: Value = get_value(&errors, &i);
             let mut error: Value = get_value(&errors, &i);
             append_to_array(&mut parsedOrders, self.safe_order(Value::Map({
@@ -2554,7 +2576,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2593,7 +2617,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         let mut hasOrderIds: Value = Value::Bool(is_true(&(!is_equal(&ids, &Value::Null))) && is_true(&(Value::Bool(is_array(&ids)))));
@@ -2641,8 +2667,8 @@ impl ParadexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_990: bool = true;
-            while { if !__for_first_990 { i = add(&i, &Value::Int(1)); } __for_first_990 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut result: Value = get_value(&results, &i);
             let mut result: Value = get_value(&results, &i);
             let mut marketId: Value = self.safe_string_k(result.clone(), "market", &[]);
@@ -2691,7 +2717,9 @@ impl ParadexCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2728,7 +2756,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2773,7 +2803,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -2864,7 +2896,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2928,7 +2962,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_balance(&[]).await;
         //
         //     {
@@ -2955,8 +2991,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_991: bool = true;
-            while { if !__for_first_991 { i = add(&i, &Value::Int(1)); } __for_first_991 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_953: bool = true;
+            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2995,7 +3031,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3045,8 +3083,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_992: bool = true;
-            while { if !__for_first_992 { i = add(&i, &Value::Int(1)); } __for_first_992 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_954: bool = true;
+            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&trades)) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".to_string()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3070,7 +3108,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut positions: Value = self.fetch_positions(&[Value::List(vec![get_value(&market, &Value::Str("symbol".to_string()))]), params.clone()]).await;
         return self.safe_dict(positions.clone(), Value::Int(0), &[Value::Map({
@@ -3097,7 +3137,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.private_get_positions(&[]).await;
         //
@@ -3215,7 +3257,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3297,7 +3341,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDeposits".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3341,8 +3387,8 @@ impl ParadexCore {
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_993: bool = true;
-            while { if !__for_first_993 { i = add(&i, &Value::Int(1)); } __for_first_993 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_955: bool = true;
+            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             if is_equal(&get_value(&row, &Value::Str("kind".to_string())), &Value::Str("DEPOSIT".to_string())) {
@@ -3377,7 +3423,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawals".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3421,8 +3469,8 @@ impl ParadexCore {
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_994: bool = true;
-            while { if !__for_first_994 { i = add(&i, &Value::Int(1)); } __for_first_994 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_956: bool = true;
+            while { if !__for_first_956 { i = add(&i, &Value::Int(1)); } __for_first_956 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             if is_equal(&get_value(&row, &Value::Str("kind".to_string())), &Value::Str("WITHDRAWAL".to_string())) {
@@ -3457,7 +3505,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTransfers".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3641,7 +3691,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3676,7 +3728,7 @@ impl ParadexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawMarginMode.clone());
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
     m
 });
@@ -3703,7 +3755,9 @@ impl ParadexCore {
 }));
         self.check_required_argument(Value::Str("setMarginMode".to_string()), symbol.clone(), Value::Str("symbol".to_string()), &[]);
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut leverage: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("setMarginMode".to_string()), Value::Str("leverage".to_string()), &[Value::Int(1)]); leverage = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3735,7 +3789,9 @@ impl ParadexCore {
     m
 }));
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3811,7 +3867,9 @@ impl ParadexCore {
 }));
         self.check_required_argument(Value::Str("setLeverage".to_string()), symbol.clone(), Value::Str("symbol".to_string()), &[]);
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3842,7 +3900,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3910,7 +3970,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4054,7 +4116,9 @@ impl ParadexCore {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
         }
         self.authenticate_rest(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4154,7 +4218,9 @@ impl ParadexCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4197,8 +4263,8 @@ impl ParadexCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_995: bool = true;
-            while { if !__for_first_995 { i = add(&i, &Value::Int(1)); } __for_first_995 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_957: bool = true;
+            while { if !__for_first_957 { i = add(&i, &Value::Int(1)); } __for_first_957 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut rate: Value = get_value(&results, &i);
             let mut rate: Value = get_value(&results, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "created_at", &[]);

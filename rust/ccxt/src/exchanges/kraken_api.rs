@@ -56,11 +56,6 @@ impl KrakenCore {
         self.call_method(Value::Str("public_get_depth".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicGetLevel3` implicit endpoint.
-    pub async fn public_get_level3(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_level3".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `publicGetGroupedBook` implicit endpoint.
     pub async fn public_get_grouped_book(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_grouped_book".to_string()), optional_args).await
@@ -84,6 +79,11 @@ impl KrakenCore {
     /// Auto-generated wrapper for the `publicGetPostTrade` implicit endpoint.
     pub async fn public_get_post_trade(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_post_trade".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLevel3` implicit endpoint.
+    pub async fn private_post_level3(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_level3".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBalance` implicit endpoint.

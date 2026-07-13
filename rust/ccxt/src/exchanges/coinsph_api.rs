@@ -226,6 +226,11 @@ impl CoinsphCore {
         self.call_method(Value::Str("private_post_openapi_v1_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostOpenapiV1OrderCancelReplace` implicit endpoint.
+    pub async fn private_post_openapi_v1_order_cancel_replace(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_v1_order_cancel_replace".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostOpenapiV1CapitalWithdrawApply` implicit endpoint.
     pub async fn private_post_openapi_v1_capital_withdraw_apply(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_openapi_v1_capital_withdraw_apply".to_string()), optional_args).await
@@ -276,14 +281,39 @@ impl CoinsphCore {
         self.call_method(Value::Str("private_post_openapi_convert_v1_get_quote".to_string()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostOpenapiConvertV1AccpetQuote` implicit endpoint.
-    pub async fn private_post_openapi_convert_v1_accpet_quote(&self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_openapi_convert_v1_accpet_quote".to_string()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostOpenapiConvertV1AcceptQuote` implicit endpoint.
+    pub async fn private_post_openapi_convert_v1_accept_quote(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_convert_v1_accept_quote".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiConvertV1QueryOrderHistory` implicit endpoint.
     pub async fn private_post_openapi_convert_v1_query_order_history(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_openapi_convert_v1_query_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiOtcTradeV1GetSupportedTradingPairs` implicit endpoint.
+    pub async fn private_post_openapi_otc_trade_v1_get_supported_trading_pairs(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_otc_trade_v1_get_supported_trading_pairs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiOtcTradeV1CreateRfq` implicit endpoint.
+    pub async fn private_post_openapi_otc_trade_v1_create_rfq(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_otc_trade_v1_create_rfq".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiOtcTradeV1AcceptRfq` implicit endpoint.
+    pub async fn private_post_openapi_otc_trade_v1_accept_rfq(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_otc_trade_v1_accept_rfq".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiOtcTradeV1ManualSettle` implicit endpoint.
+    pub async fn private_post_openapi_otc_trade_v1_manual_settle(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_otc_trade_v1_manual_settle".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiOtcTradeV1QueryOrderHistory` implicit endpoint.
+    pub async fn private_post_openapi_otc_trade_v1_query_order_history(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_otc_trade_v1_query_order_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiFiatV1SupportChannel` implicit endpoint.
@@ -314,6 +344,11 @@ impl CoinsphCore {
     /// Auto-generated wrapper for the `privatePostOpenapiTransferV3Transfers` implicit endpoint.
     pub async fn private_post_openapi_transfer_v3_transfers(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_openapi_transfer_v3_transfers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiTransferV4Transfers` implicit endpoint.
+    pub async fn private_post_openapi_transfer_v4_transfers(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_transfer_v4_transfers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiV1SubAccountCreate` implicit endpoint.

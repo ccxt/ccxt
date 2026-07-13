@@ -432,17 +432,17 @@ impl XtCore {
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut firstDelta: Value = self.safe_value(cache.clone(), Value::Int(0), &[]);
         let mut firstDeltaNonce: Value = self.safe_integer2(firstDelta.clone(), Value::Str("i".to_string()), Value::Str("u".to_string()), &[]);
-        if is_less_than(&nonce, &subtract(&firstDeltaNonce, &Value::Int(1))) {
+        if is_true(&(!is_equal(&nonce, &Value::Null))) && is_true(&(!is_equal(&firstDeltaNonce, &Value::Null))) && is_true(&(is_less_than(&nonce, &subtract(&firstDeltaNonce, &Value::Int(1))))) {
             return negate(&Value::Int(1));
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            let mut __for_first_647: bool = true;
+            while { if !__for_first_647 { i = add(&i, &Value::Int(1)); } __for_first_647 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaNonce: Value = self.safe_integer2(delta.clone(), Value::Str("i".to_string()), Value::Str("u".to_string()), &[]);
-            if is_greater_than_or_equal(&deltaNonce, &nonce) {
+            if is_true(&(!is_equal(&deltaNonce, &Value::Null))) && is_true(&(!is_equal(&nonce, &Value::Null))) && is_true(&(is_greater_than_or_equal(&deltaNonce, &nonce))) {
                 return i;
             }
         }
@@ -460,8 +460,8 @@ impl XtCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&obBids)) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&obBids)) } {
             let mut bid: Value = get_value(&obBids, &i);
             let mut bid: Value = get_value(&obBids, &i);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
@@ -471,8 +471,8 @@ impl XtCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
+            let mut __for_first_649: bool = true;
+            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
             let mut ask: Value = get_value(&obAsks, &i);
             let mut ask: Value = get_value(&obAsks, &i);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
@@ -645,7 +645,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("ticker".to_string())]);
@@ -673,7 +675,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "unWatchTicker", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("ticker".to_string())]);
@@ -703,7 +707,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTickers", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("tickers".to_string())]);
         let mut name: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
@@ -738,7 +744,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "unWatchTickers", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("tickers".to_string())]);
         let mut name: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
@@ -776,7 +784,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut name: Value = add(&add(&add(&Value::Str("kline@".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(",".to_string())), &timeframe);
         let mut ohlcv: Value = self.subscribe(name.clone(), Value::Str("public".to_string()), Value::Str("watchOHLCV".to_string()), &[market.clone(), Value::Null, params.clone()]).await;
@@ -805,7 +815,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut name: Value = add(&add(&add(&Value::Str("kline@".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(",".to_string())), &timeframe);
         let mut messageHash: Value = add(&Value::Str("unsubscribe::".to_string()), &name);
@@ -838,7 +850,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut name: Value = add(&Value::Str("trade@".to_string()), &get_value(&market, &Value::Str("id".to_string())));
         let mut trades: Value = self.subscribe(name.clone(), Value::Str("public".to_string()), Value::Str("watchTrades".to_string()), &[market.clone(), Value::Null, params.clone()]).await;
@@ -865,7 +879,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut name: Value = add(&Value::Str("trade@".to_string()), &get_value(&market, &Value::Str("id".to_string())));
         let mut messageHash: Value = add(&Value::Str("unsubscribe::".to_string()), &name);
@@ -894,7 +910,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut levels: Value = self.safe_string_k(params.clone(), "levels", &[]);
         params = self.omit(params.clone(), Value::Str("levels".to_string()), &[]);
@@ -926,7 +944,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut levels: Value = self.safe_string_k(params.clone(), "levels", &[]);
         params = self.omit(params.clone(), Value::Str("levels".to_string()), &[]);
@@ -960,7 +980,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("order".to_string());
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -995,7 +1017,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("trade".to_string());
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -1024,7 +1048,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut name: Value = Value::Str("balance".to_string());
         return self.subscribe(name.clone(), Value::Str("private".to_string()), Value::Str("watchBalance".to_string()), &[Value::Null, Value::Null, params.clone()]).await;
 
@@ -1050,7 +1076,9 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("contract".to_string())), &Value::Str("/".to_string())), &Value::Str("user".to_string()));
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone());
@@ -1091,12 +1119,12 @@ impl XtCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { i = add(&i, &Value::Int(1)); } __for_first_657 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_650: bool = true;
+            while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
-            if is_greater_than(&contracts, &Value::Int(0)) {
+            if is_true(&(!is_equal(&contracts, &Value::Null))) && is_true(&(is_greater_than(&contracts, &Value::Int(0)))) {
                 cache.append(position.clone());
             }
         }
@@ -1155,8 +1183,8 @@ impl XtCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("position::contract".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { i = add(&i, &Value::Int(1)); } __for_first_658 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_651: bool = true;
+            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1239,7 +1267,9 @@ impl XtCore {
             let mut isSpot: Value = Value::Bool(!is_equal(&cv, &Value::Null));
             let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            }
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
             let mut messageHashTail: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
             let mut messageHash: Value = add(&add(&event, &Value::Str("::".to_string())), &messageHashTail);
@@ -1325,13 +1355,15 @@ impl XtCore {
         let mut newTickers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut tickerData: Value = get_value(&data, &i);
             let mut tickerData: Value = get_value(&data, &i);
             let mut ticker: Value = self.parse_ticker(tickerData.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            }
             append_to_array(&mut newTickers, ticker.clone());
         }
         }
@@ -1339,8 +1371,8 @@ impl XtCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&messageHashStart, &Value::Str("::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i = add(&i, &Value::Int(1)); } __for_first_660 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1404,7 +1436,7 @@ impl XtCore {
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         if !is_equal(&marketId, &Value::Null) {
-            let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[]);
+            let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[Value::Str("".to_string())]);
             let mut tradeType: Value = ternary(is_true(&(Value::Bool(in_op(&data, &Value::Str("q".to_string()))))), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, tradeType.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1547,10 +1579,13 @@ impl XtCore {
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         if !is_equal(&marketId, &Value::Null) {
-            let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
+            let mut event: Value = self.safe_string_k(message.clone(), "event", &[Value::Str("".to_string())]);
             let mut splitEvent: Value = split(&event, &Value::Str(",".to_string()));
-            event = self.safe_string(splitEvent.clone(), Value::Int(0), &[]);
-            let mut tradeType: Value = ternary(is_true(&(Value::Bool(in_op(&data, &Value::Str("fu".to_string()))))), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
+            event = self.safe_string(splitEvent.clone(), Value::Int(0), &[Value::Str("".to_string())]);
+            let mut tradeType: Value = Value::Str("spot".to_string());
+            if is_true(&(!is_equal(&data, &Value::Null))) && is_true(&(Value::Bool(in_op(&data, &Value::Str("fu".to_string()))))) {
+                tradeType = Value::Str("contract".to_string());
+            }
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, tradeType.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut obAsks: Value = self.safe_list_k(data.clone(), "a", &[]);
@@ -1582,8 +1617,8 @@ impl XtCore {
                 let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_661: bool = true;
-                    while { if !__for_first_661 { i = add(&i, &Value::Int(1)); } __for_first_661 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
+                    let mut __for_first_654: bool = true;
+                    while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
                     let mut ask: Value = get_value(&obAsks, &i);
                     let mut ask: Value = get_value(&obAsks, &i);
                     let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
@@ -1596,8 +1631,8 @@ impl XtCore {
                 let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_662: bool = true;
-                    while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&obBids)) } {
+                    let mut __for_first_655: bool = true;
+                    while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&obBids)) } {
                     let mut bid: Value = get_value(&obBids, &i);
                     let mut bid: Value = get_value(&obBids, &i);
                     let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
@@ -1927,7 +1962,11 @@ impl XtCore {
             self.myTrades = stored.clone();
         }
         let mut parsedTrade: Value = self.parse_trade(data.clone(), &[]);
-        let mut market: Value = self.market(get_value(&parsedTrade, &Value::Str("symbol".to_string())));
+        let mut tradeSymbol: Value = get_value(&parsedTrade, &Value::Str("symbol".to_string()));
+        if is_equal(&tradeSymbol, &Value::Null) {
+            return;
+        }
+        let mut market: Value = self.market(tradeSymbol.clone());
         stored.append(parsedTrade.clone());
         let mut tradeType: Value = ternary(is_true(&get_value(&market, &Value::Str("contract".to_string()))), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         client.resolve(&[stored.clone(), add(&Value::Str("trade::".to_string()), &tradeType)]);
@@ -1953,10 +1992,10 @@ impl XtCore {
                     m.insert("position".to_string(), Value::Null.clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
+            let mut method: Value = ternary(is_true(&(is_equal(&topic, &Value::Null))), Value::Null, self.safe_value(methods.clone(), topic.clone(), &[]));
             if is_equal(&topic, &Value::Str("trade".to_string())) {
                 let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-                if is_true(&(Value::Bool(in_op(&data, &Value::Str("oi".to_string()))))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("orderId".to_string()))))) {
+                if is_true(&(!is_equal(&data, &Value::Null))) && is_true(&(is_true(&(Value::Bool(in_op(&data, &Value::Str("oi".to_string()))))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("orderId".to_string()))))))) {
                     method = Value::Null.clone();
                 }  else {
                     method = Value::Null.clone();
@@ -2016,8 +2055,8 @@ impl XtCore {
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { j = add(&j, &Value::Int(1)); } __for_first_663 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { j = add(&j, &Value::Int(1)); } __for_first_656 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut subHash: Value = get_value(&subMessageHashes, &j);

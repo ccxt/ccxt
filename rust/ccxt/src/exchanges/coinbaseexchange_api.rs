@@ -341,6 +341,11 @@ impl CoinbaseexchangeCore {
         self.call_method(Value::Str("private_post_position_close".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostProfiles` implicit endpoint.
+    pub async fn private_post_profiles(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_profiles".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostProfilesMarginTransfer` implicit endpoint.
     pub async fn private_post_profiles_margin_transfer(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_profiles_margin_transfer".to_string()), optional_args).await
@@ -404,6 +409,16 @@ impl CoinbaseexchangeCore {
     /// Auto-generated wrapper for the `privateDeleteOrdersId` implicit endpoint.
     pub async fn private_delete_orders_id(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_orders_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutProfilesIdDeactivate` implicit endpoint.
+    pub async fn private_put_profiles_id_deactivate(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_profiles_id_deactivate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutProfilesId` implicit endpoint.
+    pub async fn private_put_profiles_id(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_profiles_id".to_string()), optional_args).await
     }
 
 }

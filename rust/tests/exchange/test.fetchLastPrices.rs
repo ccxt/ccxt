@@ -12,7 +12,10 @@ use super::*;
 pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchLastprices".to_string());
     // log ('fetching all tickers at once...')
-    let mut response: Value = Value::Null;
+    let mut response: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+        m
+    });
     let mut checkedSymbol: Value = Value::Null;
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![]).await;
@@ -21,14 +24,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::List(vec![symbol.clone()])]).await;
         checkedSymbol = symbol.clone();
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_object(&response)))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
     let mut values: Value = object_values(&response);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     let mut atLeastOnePassed: Value = Value::Bool(false);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1153: bool = true;
-        while { if !__for_first_1153 { i = add(&i, &Value::Int(1)); } __for_first_1153 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_37: bool = true;
+        while { if !__for_first_37 { i = add(&i, &Value::Int(1)); } __for_first_37 = false; is_less_than(&i, &get_array_length(&values)) } {
         // todo: symbol check here
         testLastPrice(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&values, &i), checkedSymbol.clone());
         atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || is_true(&(is_greater_than(&exchange.safe_number(get_value(&values, &i), Value::Str("price".to_string()), &[]), &Value::Int(0)))));

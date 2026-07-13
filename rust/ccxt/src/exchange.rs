@@ -301,6 +301,11 @@ pub struct Exchange {
     pub mock_response:           Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
+    /// Rolling cache of recent fetch results, capped at
+    /// `fetchHistoryCacheSize`. Mirrors `Exchange.ts` `fetchHistoryCache`
+    /// / `fetchHistoryCacheSize` (hand-written, above the transpile marker).
+    pub fetchHistoryCache:      Value,
+    pub fetchHistoryCacheSize:  Value,
 
     // misc
     pub paddingMode:               Value,
@@ -578,6 +583,8 @@ impl Exchange {
             mock_response:              Value::Null,
             last_json_response:         Value::Null,
             lastRestRequestTimestamp:   Value::Int(0),
+            fetchHistoryCache:          Value::List(vec![]),
+            fetchHistoryCacheSize:      Value::Int(0),
 
             paddingMode:                       Value::Null,
             precisionMode:                     Value::Null,
@@ -621,6 +628,8 @@ impl Exchange {
         if matches!(rate_limit, Value::Int(_) | Value::Float(_)) { self.rateLimit = rate_limit; }
         let timeout = crate::get_value(cfg, &Value::Str("timeout".to_string()));
         if matches!(timeout, Value::Int(_) | Value::Float(_)) { self.timeout = timeout; }
+        let fetch_history_cache_size = crate::get_value(cfg, &Value::Str("fetchHistoryCacheSize".to_string()));
+        if matches!(fetch_history_cache_size, Value::Int(_) | Value::Float(_)) { self.fetchHistoryCacheSize = fetch_history_cache_size; }
         let urls = crate::get_value(cfg, &Value::Str("urls".to_string()));
         if let Value::Dict(_) = urls { self.urls = deep_merge(&self.urls, &urls); }
         if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v); }

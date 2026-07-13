@@ -541,6 +541,7 @@ impl CoinsphCore {
         m.insert("openapi/wallet/v1/withdraw/apply".to_string(), Value::Int(600));
         m.insert("openapi/v1/order/test".to_string(), Value::Int(1));
         m.insert("openapi/v1/order".to_string(), Value::Int(1));
+        m.insert("openapi/v1/order/cancelReplace".to_string(), Value::Int(1));
         m.insert("openapi/v1/capital/withdraw/apply".to_string(), Value::Int(1));
         m.insert("openapi/v1/capital/deposit/apply".to_string(), Value::Int(1));
         m.insert("openapi/v3/payment-request/payment-requests".to_string(), Value::Int(1));
@@ -551,14 +552,20 @@ impl CoinsphCore {
         m.insert("merchant-api/v1/invoices-cancel".to_string(), Value::Int(1));
         m.insert("openapi/convert/v1/get-supported-trading-pairs".to_string(), Value::Int(1));
         m.insert("openapi/convert/v1/get-quote".to_string(), Value::Int(1));
-        m.insert("openapi/convert/v1/accpet-quote".to_string(), Value::Int(1));
+        m.insert("openapi/convert/v1/accept-quote".to_string(), Value::Int(1));
         m.insert("openapi/convert/v1/query-order-history".to_string(), Value::Int(1));
+        m.insert("openapi/otc-trade/v1/get-supported-trading-pairs".to_string(), Value::Int(1));
+        m.insert("openapi/otc-trade/v1/create-rfq".to_string(), Value::Int(1));
+        m.insert("openapi/otc-trade/v1/accept-rfq".to_string(), Value::Int(1));
+        m.insert("openapi/otc-trade/v1/manual-settle".to_string(), Value::Int(1));
+        m.insert("openapi/otc-trade/v1/query-order-history".to_string(), Value::Int(1));
         m.insert("openapi/fiat/v1/support-channel".to_string(), Value::Int(1));
         m.insert("openapi/fiat/v1/cash-out".to_string(), Value::Int(1));
         m.insert("openapi/fiat/v1/history".to_string(), Value::Int(1));
         m.insert("openapi/migration/v4/sellorder".to_string(), Value::Int(1));
         m.insert("openapi/migration/v4/validate-field".to_string(), Value::Int(1));
         m.insert("openapi/transfer/v3/transfers".to_string(), Value::Int(1));
+        m.insert("openapi/transfer/v4/transfers".to_string(), Value::Int(1));
         m.insert("openapi/v1/sub-account/create".to_string(), Value::Int(30));
         m.insert("openapi/v1/sub-account/transfer/universal-transfer".to_string(), Value::Int(100));
         m.insert("openapi/v1/sub-account/transfer/sub-to-master".to_string(), Value::Int(100));
@@ -907,12 +914,12 @@ impl CoinsphCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { j = add(&j, &Value::Int(1)); } __for_first_551 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_522: bool = true;
+            while { if !__for_first_522 { j = add(&j, &Value::Int(1)); } __for_first_522 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkItem: Value = get_value(&networkList, &j);
             let mut networkItem: Value = get_value(&networkList, &j);
             let mut network: Value = self.safe_string_k(networkItem.clone(), "network", &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[network.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), networkItem.clone());
@@ -982,8 +989,8 @@ impl CoinsphCore {
             let mut byNumberOfSymbols: Value = get_value(&config, &Value::Str("byNumberOfSymbols".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_552: bool = true;
-                while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&byNumberOfSymbols)) } {
+                let mut __for_first_523: bool = true;
+                while { if !__for_first_523 { i = add(&i, &Value::Int(1)); } __for_first_523 = false; is_less_than(&i, &get_array_length(&byNumberOfSymbols)) } {
                 let mut entry: Value = get_value(&byNumberOfSymbols, &i);
                 let mut entry: Value = get_value(&byNumberOfSymbols, &i);
                 if is_greater_than_or_equal(&symbolsAmount, &get_value(&entry, &Value::Int(0))) {
@@ -996,8 +1003,8 @@ impl CoinsphCore {
             let mut byLimit: Value = get_value(&config, &Value::Str("byLimit".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_553: bool = true;
-                while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_524: bool = true;
+                while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_greater_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {
@@ -1015,7 +1022,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://coins-docs.github.io/rest-api/#test-connectivity
+ * @see https://docs.coins.ph/rest-api/#test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1042,7 +1049,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://coins-docs.github.io/rest-api/#check-server-time
+ * @see https://docs.coins.ph/rest-api/#check-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -1061,7 +1068,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchMarkets
  * @description retrieves data on all markets for coinsph
- * @see https://coins-docs.github.io/rest-api/#exchange-information
+ * @see https://docs.coins.ph/rest-api/#exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1134,8 +1141,8 @@ impl CoinsphCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_554: bool = true;
-            while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_525: bool = true;
+            while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1233,9 +1240,9 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
- * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
- * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+ * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+ * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+ * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1246,7 +1253,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1255,8 +1264,8 @@ impl CoinsphCore {
             let mut ids: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_555: bool = true;
-                while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_526: bool = true;
+                while { if !__for_first_526 { i = add(&i, &Value::Int(1)); } __for_first_526 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 let mut id: Value = get_value(&market, &Value::Str("id".to_string()));
                 append_to_array(&mut ids, id.clone());
@@ -1270,7 +1279,7 @@ impl CoinsphCore {
     m
 })]);
         let mut method: Value = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]);
-        let mut tickers: Value = Value::Null;
+        let mut tickers: Value = Value::List(vec![]);
         if is_equal(&method, &Value::Str("publicGetOpenapiQuoteV1TickerPrice".to_string())) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             tickers = self.public_get_openapi_quote_v1_ticker_price(&[__ws_arg_0]).await;
@@ -1290,9 +1299,9 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
- * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
- * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+ * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+ * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+ * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1302,7 +1311,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1315,7 +1326,10 @@ impl CoinsphCore {
     m
 })]);
         let mut method: Value = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]);
-        let mut ticker: Value = Value::Null;
+        let mut ticker: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if is_equal(&method, &Value::Str("publicGetOpenapiQuoteV1TickerPrice".to_string())) {
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             ticker = self.public_get_openapi_quote_v1_ticker_price(&[__ws_arg_3]).await;
@@ -1419,11 +1433,11 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://coins-docs.github.io/rest-api/#order-book
+ * @see https://docs.coins.ph/rest-api/#order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1431,7 +1445,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1467,7 +1483,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+ * @see https://docs.coins.ph/rest-api/#klinecandlestick-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1484,7 +1500,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]);
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
@@ -1534,7 +1552,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+ * @see https://docs.coins.ph/rest-api/#recent-trades-list
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -1548,7 +1566,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1574,7 +1594,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+ * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
@@ -1592,7 +1612,9 @@ impl CoinsphCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1617,7 +1639,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+ * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1695,7 +1717,10 @@ impl CoinsphCore {
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "qty", &[]);
         let mut type_var: Value = Value::Null;
-        let mut fee: Value = Value::Null;
+        let mut fee: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "commission", &[]);
         if !is_equal(&feeCost, &Value::Null) {
             let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "commissionAsset", &[]);
@@ -1745,7 +1770,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+ * @see https://docs.coins.ph/rest-api/#accept-the-quote
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -1754,7 +1779,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_openapi_v1_account(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -1772,8 +1799,8 @@ impl CoinsphCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_556: bool = true;
-            while { if !__for_first_556 { i = add(&i, &Value::Int(1)); } __for_first_556 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_527: bool = true;
+            while { if !__for_first_527 { i = add(&i, &Value::Int(1)); } __for_first_527 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -1793,7 +1820,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#createOrder
  * @description create a trade order
- * @see https://coins-docs.github.io/rest-api/#new-order--trade
+ * @see https://docs.coins.ph/rest-api/#new-order--trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
  * @param {string} side 'buy' or 'sell'
@@ -1811,7 +1838,9 @@ impl CoinsphCore {
     m
 }));
         // todo: add test order low priority
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
@@ -1881,7 +1910,10 @@ impl CoinsphCore {
         }
         add_element_to_object(&mut request, &Value::Str("newOrderRespType".to_string()), newOrderRespType.clone());
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("quantity".to_string()), Value::Str("quoteOrderQty".to_string())]);
-        let mut response: Value = Value::Null;
+        let mut response: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if is_true(&testOrder) {
             let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_openapi_v1_order_test(&[__ws_arg_11]).await;
@@ -1898,7 +1930,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+ * @see https://docs.coins.ph/rest-api/#query-order-user_data
  * @param {int|string} id order id
  * @param {string} symbol not used by coinsph fetchOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1910,7 +1942,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1933,7 +1967,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+ * @see https://docs.coins.ph/rest-api/#current-open-orders-user_data
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1948,7 +1982,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1969,7 +2005,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+ * @see https://docs.coins.ph/rest-api/#history-orders-user_data
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
@@ -1987,7 +2023,9 @@ impl CoinsphCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2012,7 +2050,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#cancelOrder
  * @description cancels an open order
- * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+ * @see https://docs.coins.ph/rest-api/#cancel-order-trade
  * @param {string} id order id
  * @param {string} symbol not used by coinsph cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2024,7 +2062,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2047,7 +2087,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#cancelAllOrders
  * @description cancel open orders of market
- * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+ * @see https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2061,7 +2101,9 @@ impl CoinsphCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2193,6 +2235,9 @@ impl CoinsphCore {
                 m.insert("SELL".to_string(), Value::Str("sell".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2205,6 +2250,9 @@ impl CoinsphCore {
                 m.insert("sell".to_string(), Value::Str("SELL".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2222,6 +2270,9 @@ impl CoinsphCore {
                 m.insert("TAKE_PROFIT_LIMIT".to_string(), Value::Str("limit".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2239,6 +2290,9 @@ impl CoinsphCore {
                 m.insert("take_profit_limit".to_string(), Value::Str("TAKE_PROFIT_LIMIT".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2255,6 +2309,9 @@ impl CoinsphCore {
                 m.insert("REJECTED".to_string(), Value::Str("rejected".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2268,6 +2325,9 @@ impl CoinsphCore {
                 m.insert("IOC".to_string(), Value::Str("IOC".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2277,7 +2337,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+ * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -2287,7 +2347,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2318,7 +2380,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+ * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -2327,7 +2389,9 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_openapi_v1_asset_trade_fee(&[params.clone()]).await;
         //
         //     [
@@ -2349,11 +2413,13 @@ impl CoinsphCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_557: bool = true;
-            while { if !__for_first_557 { i = add(&i, &Value::Int(1)); } __for_first_557 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_528: bool = true;
+            while { if !__for_first_528 { i = add(&i, &Value::Int(1)); } __for_first_528 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&response, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut result, &symbol, fee.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut result, &symbol, fee.clone());
+            }
         }
         }
         return result;
@@ -2391,7 +2457,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#withdraw
  * @description make a withdrawal to coins_ph account
- * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+ * @see https://docs.coins.ph/rest-api/#withdrawuser_data
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address not used by coinsph withdraw ()
@@ -2411,11 +2477,13 @@ impl CoinsphCore {
             panic!("{}", crate::exchange_errors::invalid_address(add(&self.id, &Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".to_string()))));
         }
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[code.clone()]);
+        let mut networkId: Value = ternary(is_true(&(is_equal(&networkCode, &Value::Null))), Value::Null, self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         if is_equal(&networkId, &Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" withdraw() require network parameter".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2440,7 +2508,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+ * @see https://docs.coins.ph/rest-api/#deposit-history-user_data
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2456,7 +2524,9 @@ impl CoinsphCore {
     m
 }));
         // todo: returns an empty array - find out why
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2483,7 +2553,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+ * @see https://docs.coins.ph/rest-api/#withdraw-history-user_data
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2499,7 +2569,9 @@ impl CoinsphCore {
     m
 }));
         // todo: returns an empty array - find out why
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2633,6 +2705,9 @@ impl CoinsphCore {
                 m.insert("3".to_string(), Value::Str("pending".to_string()));
             m
         });
+        if is_equal(&status, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
 
     Value::Null
@@ -2642,7 +2717,7 @@ impl CoinsphCore {
  * @method
  * @name coinsph#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+ * @see https://docs.coins.ph/rest-api/#deposit-address-user_data
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address
@@ -2654,11 +2729,13 @@ impl CoinsphCore {
     m
 }));
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[code.clone()]);
+        let mut networkId: Value = ternary(is_true(&(is_equal(&networkCode, &Value::Null))), Value::Null, self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         if is_equal(&networkId, &Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchDepositAddress() require network parameter".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2707,8 +2784,8 @@ impl CoinsphCore {
         let mut keys: Value = object_keys(&query);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_558: bool = true;
-            while { if !__for_first_558 { i = add(&i, &Value::Int(1)); } __for_first_558 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { i = add(&i, &Value::Int(1)); } __for_first_529 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_true(&Value::Bool(is_array(&get_value(&query, &key)))) {

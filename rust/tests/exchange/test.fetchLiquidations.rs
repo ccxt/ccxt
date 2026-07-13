@@ -18,8 +18,8 @@ pub async fn testFetchLiquidations(mut exchange: Value, mut skippedProperties: V
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&items)))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1157: bool = true;
-        while { if !__for_first_1157 { i = add(&i, &Value::Int(1)); } __for_first_1157 = false; is_less_than(&i, &get_array_length(&items)) } {
+        let mut __for_first_41: bool = true;
+        while { if !__for_first_41 { i = add(&i, &Value::Int(1)); } __for_first_41 = false; is_less_than(&i, &get_array_length(&items)) } {
         testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&items, &i), code.clone());
     }
     }

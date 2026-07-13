@@ -417,7 +417,9 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -541,7 +543,9 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
@@ -656,8 +660,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut ticker: Value = Value::Null;
@@ -756,7 +760,9 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
         let mut marketType: Value = Value::Null;
         if is_equal(&symbols, &Value::Null) {
@@ -772,8 +778,8 @@ impl MexcCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_true(&isSpot) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -958,7 +964,9 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -1164,7 +1172,7 @@ impl MexcCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1172,7 +1180,9 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
@@ -1220,8 +1230,8 @@ impl MexcCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaNonce: Value = self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
@@ -1347,8 +1357,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_bookside_delta(&self, mut bookside: Value, mut bidasks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_480: bool = true;
+            while { if !__for_first_480 { i = add(&i, &Value::Int(1)); } __for_first_480 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             let mut bidask: Value = get_value(&bidasks, &i);
             let mut bidask: Value = get_value(&bidasks, &i);
             if is_true(&Value::Bool(is_array(&bidask))) {
@@ -1396,7 +1406,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
@@ -1489,8 +1501,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { j = add(&j, &Value::Int(1)); } __for_first_488 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_481: bool = true;
+            while { if !__for_first_481 { j = add(&j, &Value::Int(1)); } __for_first_481 = false; is_less_than(&j, &get_array_length(&trades)) } {
             let mut parsedTrade: Value = Value::Null;
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 parsedTrade = self.parse_ws_trade(get_value(&trades, &j), &[market.clone()]);
@@ -1523,7 +1535,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -1719,7 +1733,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -1826,6 +1842,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsed: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             parsed = self.parse_ws_order(data.clone(), &[market.clone()]);
+            let mut sendTime: Value = self.safe_integer_k(message.clone(), "sendTime", &[]);
+            if !is_equal(&sendTime, &Value::Null) {
+                add_element_to_object(&mut parsed, &Value::Str("lastTradeTimestamp".to_string()), sendTime.clone());
+            }
         }  else {
             parsed = self.parse_order(data.clone(), &[market.clone()]);
         }
@@ -2023,7 +2043,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = add(&Value::Str("balance:".to_string()), &type_var);
@@ -2111,7 +2133,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("fundingRate:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut channel: Value = Value::Str("sub.funding.rate".to_string());
@@ -2139,7 +2163,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("unsubscribe:fundingRate:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut url: Value = Value::Null;
@@ -2195,7 +2221,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("unsubscribe:ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut url: Value = Value::Null;
@@ -2236,7 +2264,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
@@ -2285,7 +2315,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
         let mut marketType: Value = Value::Null;
         if is_equal(&symbols, &Value::Null) {
@@ -2301,8 +2333,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_true(&isSpot) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -2342,7 +2374,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -2382,14 +2416,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("unsubscribe:orderbook:".to_string()), &symbol);
@@ -2432,7 +2468,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("unsubscribe:trades:".to_string()), &symbol);
@@ -2462,8 +2500,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_unsubscriptions(&mut self, mut client: Value, mut messageHashes: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut subMessageHash: Value = replace_str(&messageHash, &Value::Str("unsubscribe:".to_string()), &Value::Str("".to_string()));
@@ -2475,8 +2513,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut symbols: Value = object_keys(&self.tickers);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_490: bool = true;
-                        while { if !__for_first_490 { j = add(&j, &Value::Int(1)); } __for_first_490 = false; is_less_than(&j, &get_array_length(&symbols)) } {
+                        let mut __for_first_483: bool = true;
+                        while { if !__for_first_483 { j = add(&j, &Value::Int(1)); } __for_first_483 = false; is_less_than(&j, &get_array_length(&symbols)) } {
                         remove(&mut self.tickers.clone(), &get_value(&symbols, &j));
                     }
                     }

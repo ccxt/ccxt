@@ -10,8 +10,6 @@ pub mod alpaca;
 #[cfg(feature = "transpiled-ws")]
 pub mod apex;
 #[cfg(feature = "transpiled-ws")]
-pub mod arkham;
-#[cfg(feature = "transpiled-ws")]
 pub mod ascendex;
 #[cfg(feature = "transpiled-ws")]
 pub mod aster;

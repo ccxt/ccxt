@@ -178,6 +178,8 @@ dependencies = [
  "indexmap",
  "k256",
  "md-5",
+ "num-bigint",
+ "num-traits",
  "parking_lot",
  "rand 0.8.6",
  "reqwest",
@@ -914,6 +916,16 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "num-bigint"
+version = "0.4.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c89e69e7e0f03bea5ef08013795c25018e101932225a656383bd384495ecc367"
+dependencies = [
+ "num-integer",
+ "num-traits",
 ]
 
 [[package]]

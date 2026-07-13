@@ -18,10 +18,12 @@ pub async fn testSleep() -> Value {
     exchange.sleep(sleepAmount.clone()).await;
     let mut end: Value = exchange.milliseconds();
     let mut elapsed: Value = subtract(&end, &start);
-    // Allow a small margin of error due to execution time
+    // Allow a small margin of error due to execution time and timer jitter
+    // (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
     let mut marginOfError: Value = Value::Int(20);
+    let mut minElapsed: Value = subtract(&sleepAmount, &marginOfError);
     let mut maxElapsed: Value = add(&sleepAmount, &marginOfError);
-    let mut elapsedBiggerThanSleep: Value = Value::Bool(is_greater_than_or_equal(&elapsed, &sleepAmount));
+    let mut elapsedBiggerThanSleep: Value = Value::Bool(is_greater_than_or_equal(&elapsed, &minElapsed));
     let mut elapsedLessThanMax: Value = Value::Bool(is_less_than_or_equal(&elapsed, &maxElapsed));
     assert!(ccxt::runtime::is_true(&(elapsedBiggerThanSleep.clone())));
     assert!(ccxt::runtime::is_true(&(elapsedLessThanMax.clone())));

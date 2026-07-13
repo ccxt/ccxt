@@ -573,7 +573,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
@@ -597,7 +599,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = get_value(&firstMarket, &Value::Str("contract".to_string()));
@@ -606,8 +610,8 @@ impl WeexCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_609: bool = true;
-            while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_602: bool = true;
+            while { if !__for_first_602 { i = add(&i, &Value::Int(1)); } __for_first_602 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -667,7 +671,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = get_value(&firstMarket, &Value::Str("contract".to_string()));
@@ -677,8 +683,8 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_603: bool = true;
+            while { if !__for_first_603 { i = add(&i, &Value::Int(1)); } __for_first_603 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -838,7 +844,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = get_value(&firstMarket, &Value::Str("contract".to_string()));
@@ -847,8 +855,8 @@ impl WeexCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_604: bool = true;
+            while { if !__for_first_604 { i = add(&i, &Value::Int(1)); } __for_first_604 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -884,7 +892,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
@@ -905,7 +915,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = get_value(&firstMarket, &Value::Str("contract".to_string()));
@@ -915,8 +927,8 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { i = add(&i, &Value::Int(1)); } __for_first_612 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_605: bool = true;
+            while { if !__for_first_605 { i = add(&i, &Value::Int(1)); } __for_first_605 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -972,8 +984,8 @@ impl WeexCore {
         let mut newTrades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_606: bool = true;
+            while { if !__for_first_606 { i = add(&i, &Value::Int(1)); } __for_first_606 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -985,8 +997,8 @@ impl WeexCore {
         let mut sorted: Value = self.sort_by(newTrades.clone(), Value::Str("timestamp".to_string()), &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { j = add(&j, &Value::Int(1)); } __for_first_614 = false; is_less_than(&j, &get_array_length(&sorted)) } {
+            let mut __for_first_607: bool = true;
+            while { if !__for_first_607 { j = add(&j, &Value::Int(1)); } __for_first_607 = false; is_less_than(&j, &get_array_length(&sorted)) } {
             let mut sortedTrade: Value = get_value(&sorted, &j);
             let mut sortedTrade: Value = get_value(&sorted, &j);
             tradesArray.append(sortedTrade.clone());
@@ -1081,7 +1093,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOHLCVForSymbols".to_string())]);
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         let mut channels: Value = Value::List(vec![]);
@@ -1096,8 +1110,8 @@ impl WeexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_608: bool = true;
+            while { if !__for_first_608 { i = add(&i, &Value::Int(1)); } __for_first_608 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString.clone());
@@ -1164,7 +1178,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOHLCVForSymbols".to_string())]);
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         let mut channels: Value = Value::List(vec![]);
@@ -1180,8 +1196,8 @@ impl WeexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_609: bool = true;
+            while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString.clone());
@@ -1261,8 +1277,8 @@ impl WeexCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_610: bool = true;
+            while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1292,7 +1308,7 @@ impl WeexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1319,7 +1335,7 @@ impl WeexCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1327,7 +1343,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = get_value(&firstMarket, &Value::Str("contract".to_string()));
@@ -1339,8 +1357,8 @@ impl WeexCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_611: bool = true;
+            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1369,7 +1387,7 @@ impl WeexCore {
  * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1394,14 +1412,16 @@ impl WeexCore {
  * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = get_value(&firstMarket, &Value::Str("contract".to_string()));
@@ -1414,8 +1434,8 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_612: bool = true;
+            while { if !__for_first_612 { i = add(&i, &Value::Int(1)); } __for_first_612 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1497,7 +1517,7 @@ impl WeexCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_bid_ask(delta.clone(), &[]);
+        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[]);
         bookside.store_array(bidAsk.clone());
 }
 
@@ -1516,7 +1536,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         if is_true(&get_value(&firstMarket, &Value::Str("contract".to_string()))) {
@@ -1526,8 +1548,8 @@ impl WeexCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_613: bool = true;
+            while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1566,7 +1588,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         if is_true(&get_value(&firstMarket, &Value::Str("contract".to_string()))) {
@@ -1577,8 +1601,8 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_614: bool = true;
+            while { if !__for_first_614 { i = add(&i, &Value::Int(1)); } __for_first_614 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1665,7 +1689,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut marketType: Value = Value::Null;
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -1788,8 +1814,8 @@ impl WeexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_615: bool = true;
+            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1808,8 +1834,8 @@ impl WeexCore {
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { j = add(&j, &Value::Int(1)); } __for_first_623 = false; is_less_than(&j, &get_array_length(&symbolKeys)) } {
+            let mut __for_first_616: bool = true;
+            while { if !__for_first_616 { j = add(&j, &Value::Int(1)); } __for_first_616 = false; is_less_than(&j, &get_array_length(&symbolKeys)) } {
             let mut symbol: Value = get_value(&symbolKeys, &j);
             let mut symbol: Value = get_value(&symbolKeys, &j);
             let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);
@@ -1908,7 +1934,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -2031,8 +2059,8 @@ impl WeexCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawOrder: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2051,8 +2079,8 @@ impl WeexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbol: Value = get_value(&symbolKeys, &i);
             let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);
@@ -2235,7 +2263,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isContract: Value = Value::Bool(!is_equal(&type_var, &Value::Str("spot".to_string())));
@@ -2372,8 +2402,8 @@ impl WeexCore {
         let mut balanceUpdates: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&balanceUpdates)) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &get_array_length(&balanceUpdates)) } {
             let mut entry: Value = self.safe_dict(balanceUpdates.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2411,7 +2441,9 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("contract".to_string())), &Value::Str("/private".to_string()));
         self.authenticate(url.clone());
         let mut client: Value = self.client(&[url.clone()]);
@@ -2461,8 +2493,8 @@ impl WeexCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             cache.append(position.clone());
@@ -2558,8 +2590,8 @@ impl WeexCore {
         let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = add(&i, &Value::Int(1)); } __for_first_628 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawPosition: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2572,8 +2604,8 @@ impl WeexCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i = add(&i, &Value::Int(1)); } __for_first_629 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -2646,8 +2678,8 @@ impl WeexCore {
             let mut subHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_630: bool = true;
-                while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+                let mut __for_first_623: bool = true;
+                while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
                 let mut unSubHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[]);
                 let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
                 self.clean_unsubscription(client.clone(), subHash.clone(), unSubHash.clone(), &[subHashIsPrefix.clone()]);

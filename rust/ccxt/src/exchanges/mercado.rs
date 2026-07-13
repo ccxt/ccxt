@@ -550,8 +550,8 @@ impl MercadoCore {
         })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_903: bool = true;
-            while { if !__for_first_903 { i = add(&i, &Value::Int(1)); } __for_first_903 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_869: bool = true;
+            while { if !__for_first_869 { i = add(&i, &Value::Int(1)); } __for_first_869 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut coin: Value = get_value(&response, &i);
             let mut coin: Value = get_value(&response, &i);
             let mut baseId: Value = coin.clone();
@@ -636,7 +636,7 @@ impl MercadoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -644,7 +644,9 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -716,7 +718,9 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -791,7 +795,9 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut method: Value = Value::Str("publicGetCoinTrades".to_string());
         let mut request: Value = Value::Map({
@@ -831,8 +837,8 @@ impl MercadoCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_904: bool = true;
-            while { if !__for_first_904 { i = add(&i, &Value::Int(1)); } __for_first_904 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_870: bool = true;
+            while { if !__for_first_870 { i = add(&i, &Value::Int(1)); } __for_first_870 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -865,7 +871,9 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_account_info(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -890,7 +898,9 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -946,7 +956,9 @@ impl MercadoCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1103,7 +1115,9 @@ impl MercadoCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1142,7 +1156,9 @@ impl MercadoCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1272,7 +1288,9 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1319,7 +1337,9 @@ impl MercadoCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1359,7 +1379,9 @@ impl MercadoCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1400,7 +1422,9 @@ impl MercadoCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1426,13 +1450,13 @@ impl MercadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_906: bool = true;
-            while { if !__for_first_906 { i = add(&i, &Value::Int(1)); } __for_first_906 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_872: bool = true;
+            while { if !__for_first_872 { i = add(&i, &Value::Int(1)); } __for_first_872 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut trades: Value = self.safe_value_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
-                let mut __for_first_905: bool = true;
-                while { if !__for_first_905 { y = add(&y, &Value::Int(1)); } __for_first_905 = false; is_less_than(&y, &get_array_length(&trades)) } {
+                let mut __for_first_871: bool = true;
+                while { if !__for_first_871 { y = add(&y, &Value::Int(1)); } __for_first_871 = false; is_less_than(&y, &get_array_length(&trades)) } {
                 append_to_array(&mut result, get_value(&trades, &y));
             }
             }

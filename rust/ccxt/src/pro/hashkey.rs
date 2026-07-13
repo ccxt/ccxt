@@ -409,7 +409,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -471,8 +473,8 @@ impl HashkeyCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_373: bool = true;
-            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -494,7 +496,7 @@ impl HashkeyCore {
 
 /*
  * @method
- * @name hahskey#watchTicker
+ * @name hashkey#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
  * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -507,7 +509,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut topic: Value = Value::Str("realtimes".to_string());
@@ -573,7 +577,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut topic: Value = Value::Str("trade".to_string());
@@ -625,8 +631,8 @@ impl HashkeyCore {
             data = self.sort_by(data.clone(), Value::Str("t".to_string()), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_374: bool = true;
-                while { if !__for_first_374 { i = add(&i, &Value::Int(1)); } __for_first_374 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_363: bool = true;
+                while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -645,7 +651,7 @@ impl HashkeyCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -653,7 +659,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut topic: Value = Value::Str("depth".to_string());
@@ -733,7 +741,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("orders".to_string());
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
@@ -871,7 +881,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if !is_equal(&symbol, &Value::Null) {
             symbol = self.symbol(symbol.clone());
@@ -954,15 +966,16 @@ impl HashkeyCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "t", &[]);
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "m", &[]);
+        let mut isPublicTrade: Value = Value::Bool(is_equal(&self.safe_string_k(trade.clone(), "e", &[]), &Value::Null));
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         if !is_equal(&isBuyerMaker, &Value::Null) {
-            if is_true(&isBuyerMaker) {
-                side = Value::Str("sell".to_string());
-                takerOrMaker = Value::Str("maker".to_string());
-            }  else {
-                side = Value::Str("buy".to_string());
+            if is_true(&isPublicTrade) {
                 takerOrMaker = Value::Str("taker".to_string());
+                side = ternary(is_true(&isBuyerMaker), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
+            }  else {
+                takerOrMaker = ternary(is_true(&isBuyerMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
+                side = self.safe_string_lower(trade.clone(), Value::Str("S".to_string()), &[]);
             }
         }
         return self.safe_trade(Value::Map({
@@ -971,7 +984,7 @@ impl HashkeyCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("S".to_string()), &[side.clone()]));
+        m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "q", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -1005,7 +1018,9 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut listenKey: Value = self.authenticate(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut messageHash: Value = Value::Str("positions".to_string());
@@ -1015,8 +1030,8 @@ impl HashkeyCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_375: bool = true;
-                while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_364: bool = true;
+                while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str(":".to_string())), &symbol));
@@ -1123,7 +1138,9 @@ impl HashkeyCore {
     m
 }));
         let mut listenKey: Value = self.authenticate(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Str("spot".to_string());
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone(), type_var.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = add(&Value::Str("balance:".to_string()), &type_var);

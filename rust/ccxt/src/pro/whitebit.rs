@@ -389,7 +389,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -436,8 +438,8 @@ impl WhitebitCore {
         let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&params)) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&params)) } {
             let mut data: Value = get_value(&params, &i);
             let mut data: Value = get_value(&params, &i);
             let mut marketId: Value = self.safe_string(data.clone(), Value::Int(7), &[]);
@@ -476,7 +478,7 @@ impl WhitebitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -484,7 +486,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(10); // max 100
@@ -579,8 +583,8 @@ impl WhitebitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -600,7 +604,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut method: Value = Value::Str("market_subscribe".to_string());
@@ -625,7 +631,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut method: Value = Value::Str("market_subscribe".to_string());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -634,8 +642,8 @@ impl WhitebitCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
@@ -692,8 +700,8 @@ impl WhitebitCore {
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i = add(&i, &Value::Int(1)); } __for_first_634 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut currentMessageHash: Value = get_value(&messageHashes, &i);
             let mut currentMessageHash: Value = get_value(&messageHashes, &i);
             if is_greater_than_or_equal(&get_index_of(&currentMessageHash, &Value::Str("tickers".to_string())), &Value::Int(0)) && is_greater_than_or_equal(&get_index_of(&currentMessageHash, &symbol), &Value::Int(0)) {
@@ -733,7 +741,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&add(&Value::Str("trades".to_string()), &Value::Str(":".to_string())), &symbol);
@@ -787,8 +797,8 @@ impl WhitebitCore {
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { j = add(&j, &Value::Int(1)); } __for_first_635 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { j = add(&j, &Value::Int(1)); } __for_first_628 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
             stored.append(get_value(&parsedTrades, &j));
         }
         }
@@ -818,7 +828,9 @@ impl WhitebitCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchMyTrades() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -938,7 +950,9 @@ impl WhitebitCore {
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOrders() requires a symbol argument".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1134,7 +1148,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = Value::Str("wallet:".to_string());
@@ -1216,7 +1232,9 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut id: Value = self.nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone(), &[]);
@@ -1387,7 +1405,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return Value::Bool(false);
             }
         }
-        return message;
+        return Value::Bool(true);
 
     Value::Null
 }
@@ -1440,8 +1458,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut values: Value = object_values(&subs);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { i = add(&i, &Value::Int(1)); } __for_first_636 = false; is_less_than(&i, &get_array_length(&values)) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { i = add(&i, &Value::Int(1)); } __for_first_629 = false; is_less_than(&i, &get_array_length(&values)) } {
             let mut subscription: Value = get_value(&values, &i);
             let mut subscription: Value = get_value(&values, &i);
             if !is_equal(&subscription, &Value::Bool(true)) {

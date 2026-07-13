@@ -47,6 +47,8 @@ pub use test_ethMethods::testEthMethods;
 pub use test_extend::testExtend;
 #[path = "test.extractParams.rs"] pub mod test_extractParams;
 pub use test_extractParams::testExtractParams;
+#[path = "test.fetchHistory.rs"] pub mod test_fetchHistory;
+pub use test_fetchHistory::testFetchHistory;
 #[path = "test.filterBy.rs"] pub mod test_filterBy;
 pub use test_filterBy::testFilterBy;
 #[path = "test.groupBy.rs"] pub mod test_groupBy;

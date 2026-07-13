@@ -399,7 +399,7 @@ impl CexCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://trade.cex.io/api/spot/rest-public".to_string()));
@@ -713,12 +713,12 @@ impl CexCore {
         let mut keys: Value = object_keys(&rawNetworks);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { j = add(&j, &Value::Int(1)); } __for_first_473 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_455: bool = true;
+            while { if !__for_first_455 { j = add(&j, &Value::Int(1)); } __for_first_455 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &networkId);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut deposit: Value = Value::Bool(is_equal(&self.safe_string_k(rawNetwork.clone(), "deposit", &[]), &Value::Str("enabled".to_string())));
             let mut withdraw: Value = Value::Bool(is_equal(&self.safe_string_k(rawNetwork.clone(), "withdrawal", &[]), &Value::Str("enabled".to_string())));
             add_element_to_object(&mut networks, &networkCode, Value::Map({
@@ -908,6 +908,7 @@ impl CexCore {
  * @method
  * @name cex#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -947,7 +948,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_dict(response.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -972,7 +975,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1067,7 +1072,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1157,7 +1164,7 @@ impl CexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1165,7 +1172,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1228,7 +1237,9 @@ impl CexCore {
         if is_equal(&dataType, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1301,7 +1312,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_my_current_fee(&[params.clone()]).await;
         //
         //    {
@@ -1335,8 +1348,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_456: bool = true;
+            while { if !__for_first_456 { i = add(&i, &Value::Int(1)); } __for_first_456 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = Value::Null;
@@ -1349,8 +1362,8 @@ impl CexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_457: bool = true;
+            while { if !__for_first_457 { i = add(&i, &Value::Int(1)); } __for_first_457 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
                 let mut market: Value = self.market(symbol.clone());
@@ -1384,7 +1397,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_get_my_account_status_v3(&[params.clone()]).await;
         //
         //    {
@@ -1513,8 +1528,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_458: bool = true;
+            while { if !__for_first_458 { i = add(&i, &Value::Int(1)); } __for_first_458 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut balance: Value = self.safe_dict(response.clone(), key.clone(), &[Value::Map({
@@ -1557,7 +1572,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1697,7 +1714,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
@@ -1726,7 +1745,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
@@ -1872,7 +1893,9 @@ impl CexCore {
         if is_equal(&accountId, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1970,7 +1993,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
@@ -2007,7 +2032,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_post_do_cancel_all_orders(&[params.clone()]).await;
         //
         //    {
@@ -2027,8 +2054,8 @@ impl CexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_477: bool = true;
-            while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_459: bool = true;
+            while { if !__for_first_459 { i = add(&i, &Value::Int(1)); } __for_first_459 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             append_to_array(&mut orders, Value::Map({
@@ -2063,7 +2090,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2178,7 +2207,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2316,7 +2347,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut fromMain: Value = Value::Bool(is_equal(&fromAccount, &Value::Str("".to_string())));
         let mut targetAccount: Value = ternary(is_true(&fromMain), toAccount.clone(), fromAccount.clone());
@@ -2364,7 +2397,9 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2456,7 +2491,9 @@ impl CexCore {
         if is_equal(&accountId, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut currency: Value = self.currency(code.clone());
@@ -2464,7 +2501,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.clone());
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
-                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[]));
+                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
             m
         });
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
@@ -2499,7 +2536,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress.clone(), "blockchain", &[])]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress.clone(), "blockchain", &[]), get_value(&currency, &Value::Str("code".to_string()))]));
         m.insert("address".to_string(), address.clone());
         m.insert("tag".to_string(), Value::Null);
     m

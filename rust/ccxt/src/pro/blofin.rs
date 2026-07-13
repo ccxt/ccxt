@@ -434,7 +434,9 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut trades: Value = self.watch_multiple_wrapper(Value::Bool(true), Value::Str("trades".to_string()), Value::Str("watchTradesForSymbols".to_string()), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut firstMarket: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
@@ -468,8 +470,8 @@ impl BlofinCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_193: bool = true;
-            while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_182: bool = true;
+            while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut trade: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
@@ -502,7 +504,7 @@ impl BlofinCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -525,7 +527,7 @@ impl BlofinCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -533,7 +535,9 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut callerMethodName: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchOrderBookForSymbols".to_string())]); callerMethodName = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut channelName: Value = Value::Null;
@@ -669,8 +673,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_194: bool = true;
-            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_183: bool = true;
+            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ws_ticker(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -702,20 +706,23 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
-        let mut firstMarket: Value = self.market(get_value(&symbols, &Value::Int(0)));
+        let mut symbolsList: Value = symbols.clone();
+        let mut firstMarket: Value = self.market(get_value(&symbolsList, &Value::Int(0)));
         let mut channel: Value = Value::Str("tickers".to_string());
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[firstMarket.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string())));
+        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string())));
         let mut messageHashes: Value = Value::List(vec![]);
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_195: bool = true;
-            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&symbols)) } {
-            let mut market: Value = self.market(get_value(&symbols, &i));
+            let mut __for_first_184: bool = true;
+            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
+            let mut market: Value = self.market(get_value(&symbolsList, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("bidask:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -745,8 +752,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_185: bool = true;
+            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ws_bid_ask(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
@@ -826,7 +833,9 @@ impl BlofinCore {
         if is_equal(&symbolsLength, &Value::Int(0)) || !is_true(&Value::Bool(is_array(&get_value(&symbolsAndTimeframes, &Value::Int(0))))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string()))));
         }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper(Value::Bool(true), Value::Str("candle".to_string()), Value::Str("watchOHLCVForSymbols".to_string()), &[symbolsAndTimeframes.clone(), params.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
@@ -874,8 +883,8 @@ impl BlofinCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_186: bool = true;
+            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut candle: Value = get_value(&data, &i);
             let mut candle: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -900,7 +909,9 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -914,7 +925,7 @@ impl BlofinCore {
             m
         });
         let mut request: Value = self.get_subscription_request(Value::List(vec![sub.clone()]));
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string())));
+        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string())));
         let __ws_arg_1 = self.deep_extend(request.clone(), &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
 
@@ -997,7 +1008,9 @@ impl BlofinCore {
     m
 }));
         self.authenticate(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut channel: Value = ternary(is_true(&trigger), Value::Str("orders-algo".to_string()), Value::Str("orders".to_string()));
@@ -1032,8 +1045,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_187: bool = true;
+            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = self.parse_ws_order(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -1071,7 +1084,9 @@ impl BlofinCore {
     m
 }));
         self.authenticate(&[]).await;
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut newPositions: Value = self.watch_multiple_wrapper(Value::Bool(false), Value::Str("positions".to_string()), Value::Str("watchPositions".to_string()), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
             return newPositions;
@@ -1100,8 +1115,8 @@ impl BlofinCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_188: bool = true;
+            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut position: Value = self.parse_ws_position(get_value(&data, &i), &[]);
             append_to_array(&mut newPositions, position.clone());
             cache.append(position.clone());
@@ -1132,7 +1147,9 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchFundingRate".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1144,7 +1161,7 @@ impl BlofinCore {
             m
         });
         let mut request: Value = self.get_subscription_request(Value::List(vec![requestParams.clone()]));
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string())));
+        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("public".to_string())));
         let __ws_arg_2 = self.deep_extend(request.clone(), &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
 
@@ -1186,7 +1203,9 @@ impl BlofinCore {
     m
 }));
         // underlier method for all watch-multiple symbols
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[callerMethodName.clone()]); callerMethodName = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         let mut isOHLCV: Value = Value::Bool(is_equal(&channelName, &Value::Str("candle".to_string())));
@@ -1211,8 +1230,8 @@ impl BlofinCore {
         if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_200: bool = true;
-                while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_189: bool = true;
+                while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut current: Value = get_value(&symbols, &i);
                 let mut current: Value = get_value(&symbols, &i);
                 let mut market: Value = Value::Null;
@@ -1255,7 +1274,7 @@ impl BlofinCore {
         }
         let mut request: Value = self.get_subscription_request(rawSubscriptions.clone());
         let mut privateOrPublic: Value = ternary(is_true(&isPublic), Value::Str("public".to_string()), Value::Str("private".to_string()));
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &marketType), &privateOrPublic));
+        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &privateOrPublic));
         let __ws_arg_3 = self.deep_extend(request.clone(), &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
 
@@ -1354,7 +1373,7 @@ impl BlofinCore {
             m
         });
         let mut marketType: Value = Value::Str("swap".to_string()); // for now
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string())));
+        let mut url: Value = self.implode_hostname(get_value(&get_value(&get_value(&(get_value(&self.urls, &Value::Str("api".to_string()))), &Value::Str("ws".to_string())), &marketType), &Value::Str("private".to_string())));
         let __ws_arg_4 = self.deep_extend(request.clone(), &[params.clone()]);
         self.watch(url.clone(), messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
 

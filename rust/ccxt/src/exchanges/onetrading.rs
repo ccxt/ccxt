@@ -389,7 +389,7 @@ impl OnetradingCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.onetrading.com/fast".to_string()));
@@ -539,6 +539,7 @@ impl OnetradingCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("mica".to_string(), Value::Bool(true));
         m.insert("fetchTradingFees".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("fetchPrivateTradingFees".to_string()));
@@ -910,7 +911,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.public_get_fees(&[params.clone()]).await;
         //
         // [
@@ -980,8 +983,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_967: bool = true;
-            while { if !__for_first_967 { i = add(&i, &Value::Int(1)); } __for_first_967 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_929: bool = true;
+            while { if !__for_first_929 { i = add(&i, &Value::Int(1)); } __for_first_929 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut tierObject: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), firstSpotTier.clone(), firstFuturesTier.clone());
@@ -1008,7 +1011,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_account_fees(&[params.clone()]).await;
         //
         // {
@@ -1065,8 +1070,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_968: bool = true;
-            while { if !__for_first_968 { i = add(&i, &Value::Int(1)); } __for_first_968 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_930: bool = true;
+            while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut makerFee: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), spotMakerFee.clone(), futuresMakerFee.clone());
@@ -1095,8 +1100,8 @@ impl OnetradingCore {
         let mut makerFees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_969: bool = true;
-            while { if !__for_first_969 { i = add(&i, &Value::Int(1)); } __for_first_969 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
+            let mut __for_first_931: bool = true;
+            while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
@@ -1190,7 +1195,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1219,7 +1226,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_market_ticker(&[params.clone()]).await;
         //
@@ -1248,8 +1257,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_970: bool = true;
-            while { if !__for_first_970 { i = add(&i, &Value::Int(1)); } __for_first_970 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -1268,7 +1277,7 @@ impl OnetradingCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1276,7 +1285,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1413,7 +1424,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut periodUnit: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]);
         let mut periodunitVariable = split(&periodUnit, &Value::Str("/".to_string()));
@@ -1555,8 +1568,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_971: bool = true;
-            while { if !__for_first_971 { i = add(&i, &Value::Int(1)); } __for_first_971 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_933: bool = true;
+            while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
@@ -1585,7 +1598,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.private_get_account_balances(&[params.clone()]).await;
         return self.parse_balance(response.clone());
 
@@ -1769,7 +1784,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut uppercaseType: Value = to_upper(&type_var);
         let mut request: Value = Value::Map({
@@ -1830,7 +1847,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
         let mut method: Value = Value::Str("privateDeleteAccountOrdersOrderId".to_string());
@@ -1872,7 +1891,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1908,7 +1929,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ids".to_string(), join(&ids, &Value::Str(",".to_string())));
@@ -1947,7 +1970,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -1979,7 +2004,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2136,7 +2163,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
@@ -2206,7 +2235,9 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

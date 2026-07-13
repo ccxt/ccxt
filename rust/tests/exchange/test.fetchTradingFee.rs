@@ -12,7 +12,7 @@ use super::*;
 pub async fn testFetchTradingFee(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchTradingFee".to_string());
     let mut fee: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fee", vec![symbol.clone()]).await;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_object(&fee)))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(fee.clone()))));
     testTradingFee(exchange.clone(), skippedProperties.clone(), method.clone(), symbol.clone(), fee.clone());
     return Value::Bool(true);
 

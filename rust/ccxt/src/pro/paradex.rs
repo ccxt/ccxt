@@ -413,7 +413,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut messageHash: Value = Value::Str("trades.".to_string());
         if !is_equal(&symbol, &Value::Null) {
             let mut market: Value = self.market(symbol.clone());
@@ -493,7 +495,7 @@ impl ParadexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -501,7 +503,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("order_book.".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(".snapshot@15@100ms".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -577,8 +581,8 @@ impl ParadexCore {
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i = add(&i, &Value::Int(1)); } __for_first_560 = false; is_less_than(&i, &get_array_length(&inserts)) } {
+            let mut __for_first_553: bool = true;
+            while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&inserts)) } {
             let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
             let mut side: Value = self.safe_string_k(insert.clone(), "side", &[]);
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
@@ -612,7 +616,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut channel: Value = Value::Str("markets_summary".to_string());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -649,7 +655,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut channel: Value = Value::Str("markets_summary".to_string());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -668,8 +676,8 @@ impl ParadexCore {
         if !is_equal(&symbols, &Value::Null) && is_true(&Value::Bool(is_array(&symbols))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_561: bool = true;
-                while { if !__for_first_561 { i = add(&i, &Value::Int(1)); } __for_first_561 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_554: bool = true;
+                while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &get_value(&symbols, &i));
                 append_to_array(&mut messageHashes, messageHash.clone());
             }
@@ -711,7 +719,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.authenticate(&[]).await;
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut channel: Value = Value::Str("orders.".to_string());
@@ -857,7 +867,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbol = self.symbol(symbol.clone());
         let mut channel: Value = Value::Str("funding_data".to_string());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -894,7 +906,9 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut channel: Value = Value::Str("funding_data".to_string());
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -915,8 +929,8 @@ impl ParadexCore {
             if is_greater_than(&symbolsLength, &Value::Int(0)) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_562: bool = true;
-                    while { if !__for_first_562 { i = add(&i, &Value::Int(1)); } __for_first_562 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                    let mut __for_first_555: bool = true;
+                    while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                     let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &get_value(&symbols, &i));
                     append_to_array(&mut messageHashes, messageHash.clone());
                 }

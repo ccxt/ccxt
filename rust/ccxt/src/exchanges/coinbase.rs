@@ -721,6 +721,7 @@ impl CoinbaseCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("mica".to_string(), Value::Bool(true));
         m.insert("usePrivate".to_string(), Value::Bool(false));
         m.insert("brokerId".to_string(), Value::Str("ccxt".to_string()));
         m.insert("stablePairs".to_string(), Value::List(vec![Value::Str("BUSD-USD".to_string()), Value::Str("CBETH-ETH".to_string()), Value::Str("DAI-USD".to_string()), Value::Str("GUSD-USD".to_string()), Value::Str("GYEN-USD".to_string()), Value::Str("PAX-USD".to_string()), Value::Str("PAX-USDT".to_string()), Value::Str("USDC-EUR".to_string()), Value::Str("USDC-GBP".to_string()), Value::Str("USDT-EUR".to_string()), Value::Str("USDT-GBP".to_string()), Value::Str("USDT-USD".to_string()), Value::Str("USDT-USDC".to_string()), Value::Str("WBTC-BTC".to_string())]));
@@ -941,7 +942,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchAccounts".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1007,7 +1010,10 @@ impl CoinbaseCore {
         let mut accounts: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&accounts);
         let mut lastIndex: Value = subtract(&length, &Value::Int(1));
-        let mut last: Value = self.safe_dict(accounts.clone(), lastIndex.clone(), &[]);
+        let mut last: Value = self.safe_dict(accounts.clone(), lastIndex.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(!is_equal(&cursor, &Value::Str("".to_string())))) {
             add_element_to_object(&mut last, &Value::Str("next_starting_after".to_string()), cursor.clone());
             add_element_to_object(&mut accounts, &lastIndex, last.clone());
@@ -1022,7 +1028,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchAccounts".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -1070,7 +1078,10 @@ impl CoinbaseCore {
         let mut cursor: Value = self.safe_string_k(response.clone(), "cursor", &[]);
         if is_true(&(is_greater_than(&accountsLength, &Value::Int(0)))) && is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(!is_equal(&cursor, &Value::Str("".to_string())))) {
             let mut lastIndex: Value = subtract(&accountsLength, &Value::Int(1));
-            let mut last: Value = self.safe_dict(accounts.clone(), lastIndex.clone(), &[]);
+            let mut last: Value = self.safe_dict(accounts.clone(), lastIndex.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             add_element_to_object(&mut last, &Value::Str("cursor".to_string()), cursor.clone());
             add_element_to_object(&mut accounts, &lastIndex, last.clone());
         }
@@ -1097,8 +1108,8 @@ impl CoinbaseCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_478: bool = true;
-            while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&portfolios)) } {
+            let mut __for_first_460: bool = true;
+            while { if !__for_first_460 { i = add(&i, &Value::Int(1)); } __for_first_460 = false; is_less_than(&i, &get_array_length(&portfolios)) } {
             let mut portfolio: Value = get_value(&portfolios, &i);
             let mut portfolio: Value = get_value(&portfolios, &i);
             append_to_array(&mut result, Value::Map({
@@ -1214,8 +1225,8 @@ impl CoinbaseCore {
             self.load_accounts(&[]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_479: bool = true;
-                while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
+                let mut __for_first_461: bool = true;
+                while { if !__for_first_461 { i = add(&i, &Value::Int(1)); } __for_first_461 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
                 let mut account: Value = get_value(&self.accounts, &i);
                 if is_equal(&get_value(&account, &Value::Str("code".to_string())), &code) && is_equal(&get_value(&account, &Value::Str("type".to_string())), &Value::Str("wallet".to_string())) {
                     accountId = get_value(&account, &Value::Str("id".to_string()));
@@ -1311,7 +1322,9 @@ impl CoinbaseCore {
 }));
         // v2 did't have an endpoint for all historical trades
         let mut request: Value = self.prepare_account_request(&[limit.clone(), params.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         let __ws_arg_3 = self.extend(request.clone(), &[query.clone()]);
         let mut sells: Value = self.v2_private_get_accounts_account_id_sells(&[__ws_arg_3]).await;
@@ -1342,7 +1355,9 @@ impl CoinbaseCore {
 }));
         // v2 did't have an endpoint for all historical trades
         let mut request: Value = self.prepare_account_request(&[limit.clone(), params.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         let __ws_arg_4 = self.extend(request.clone(), &[query.clone()]);
         let mut buys: Value = self.v2_private_get_accounts_account_id_buys(&[__ws_arg_4]).await;
@@ -1361,7 +1376,9 @@ impl CoinbaseCore {
 }));
         let mut request: Value = Value::Null;
         { let __destr_tmp = self.prepare_account_request_with_currency_code(&[code.clone(), limit.clone(), params.clone()]).await; request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.call_method(method.clone(), &[__ws_arg_5]).await;
         return self.parse_transactions(get_value(&response, &Value::Str("data".to_string())), &[Value::Null, since.clone(), limit.clone()]);
@@ -1452,7 +1469,9 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         return self.filter_by_array(results.clone(), Value::Str("type".to_string()), &[Value::List(vec![Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string())]), Value::Bool(false)]);
 
@@ -1673,6 +1692,7 @@ impl CoinbaseCore {
         let mut toObject: Value = self.safe_dict_k(transaction.clone(), "to", &[]);
         let mut addressTo: Value = self.safe_string_k(toObject.clone(), "address", &[]);
         let mut networkId: Value = self.safe_string_k(network.clone(), "network_name", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -1680,7 +1700,7 @@ impl CoinbaseCore {
         m.insert("txid".to_string(), self.safe_string_k(network.clone(), "hash", &[id.clone()]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
         m.insert("datetime".to_string(), datetime.clone());
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone()]));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone(), code.clone()]));
         m.insert("address".to_string(), addressTo.clone());
         m.insert("addressTo".to_string(), addressTo.clone());
         m.insert("addressFrom".to_string(), Value::Null);
@@ -1689,7 +1709,7 @@ impl CoinbaseCore {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.clone());
         m.insert("amount".to_string(), self.parse_number(amountStringAbs.clone(), &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
+        m.insert("currency".to_string(), code.clone());
         m.insert("status".to_string(), status.clone());
         m.insert("updated".to_string(), self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[])));
         m.insert("fee".to_string(), Value::Map({
@@ -1911,8 +1931,8 @@ impl CoinbaseCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_481: bool = true;
-            while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
+            let mut __for_first_463: bool = true;
+            while { if !__for_first_463 { i = add(&i, &Value::Int(1)); } __for_first_463 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -1921,8 +1941,8 @@ impl CoinbaseCore {
             if is_equal(&type_var, &Value::Str("crypto".to_string())) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_480: bool = true;
-                    while { if !__for_first_480 { j = add(&j, &Value::Int(1)); } __for_first_480 = false; is_less_than(&j, &get_array_length(&data)) } {
+                    let mut __for_first_462: bool = true;
+                    while { if !__for_first_462 { j = add(&j, &Value::Int(1)); } __for_first_462 = false; is_less_than(&j, &get_array_length(&data)) } {
                     let mut quoteCurrency: Value = get_value(&data, &j);
                     let mut quoteCurrency: Value = get_value(&data, &j);
                     let mut quoteId: Value = self.safe_string_k(quoteCurrency.clone(), "id", &[]);
@@ -1940,8 +1960,8 @@ impl CoinbaseCore {
         m.insert("type".to_string(), Value::Str("spot".to_string()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(false));
-        m.insert("future".to_string(), Value::Bool(false));
+        m.insert("swap".to_string(), Value::Bool(true));
+        m.insert("future".to_string(), Value::Bool(true));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Null);
         m.insert("contract".to_string(), Value::Bool(false));
@@ -2167,32 +2187,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_482: bool = true;
-            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_464: bool = true;
+            while { if !__for_first_464 { i = add(&i, &Value::Int(1)); } __for_first_464 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_spot_market(get_value(&data, &i), feeTier.clone()));
         }
         }
         let mut futureData: Value = self.safe_list_k(expiringFutures.clone(), "products", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&futureData)) } {
+            let mut __for_first_465: bool = true;
+            while { if !__for_first_465 { i = add(&i, &Value::Int(1)); } __for_first_465 = false; is_less_than(&i, &get_array_length(&futureData)) } {
             append_to_array(&mut result, self.parse_contract_market(get_value(&futureData, &i), expiringFeeTier.clone()));
         }
         }
         let mut perpetualData: Value = self.safe_list_k(perpetualFutures.clone(), "products", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&perpetualData)) } {
+            let mut __for_first_466: bool = true;
+            while { if !__for_first_466 { i = add(&i, &Value::Int(1)); } __for_first_466 = false; is_less_than(&i, &get_array_length(&perpetualData)) } {
             append_to_array(&mut result, self.parse_contract_market(get_value(&perpetualData, &i), perpetualFeeTier.clone()));
         }
         }
         let mut newMarkets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_467: bool = true;
+            while { if !__for_first_467 { i = add(&i, &Value::Int(1)); } __for_first_467 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut market: Value = get_value(&result, &i);
             let mut market: Value = get_value(&result, &i);
             let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
@@ -2687,8 +2707,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_468: bool = true;
+            while { if !__for_first_468 { i = add(&i, &Value::Int(1)); } __for_first_468 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currency: Value = get_value(&currencies, &i);
             let mut currency: Value = get_value(&currencies, &i);
             let mut assetId: Value = self.safe_string_k(currency.clone(), "asset_id", &[]);
@@ -2741,8 +2761,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&ratesIds)) } {
+            let mut __for_first_469: bool = true;
+            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &get_array_length(&ratesIds)) } {
             let mut currencyId: Value = get_value(&ratesIds, &i);
             let mut currencyId: Value = get_value(&ratesIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2807,7 +2827,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2844,8 +2866,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut delimiter: Value = Value::Str("-".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
+            let mut __for_first_470: bool = true;
+            while { if !__for_first_470 { i = add(&i, &Value::Int(1)); } __for_first_470 = false; is_less_than(&i, &get_array_length(&baseIds)) } {
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut baseId: Value = get_value(&baseIds, &i);
             let mut marketId: Value = add(&add(&baseId, &delimiter), &quoteId);
@@ -2865,7 +2887,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2933,8 +2957,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_471: bool = true;
+            while { if !__for_first_471 { i = add(&i, &Value::Int(1)); } __for_first_471 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "product_id", &[]);
@@ -2979,7 +3003,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3027,7 +3053,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3235,8 +3263,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut b: Value = Value::Int(0);
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { b = add(&b, &Value::Int(1)); } __for_first_490 = false; is_less_than(&b, &get_array_length(&balances)) } {
+            let mut __for_first_472: bool = true;
+            while { if !__for_first_472 { b = add(&b, &Value::Int(1)); } __for_first_472 = false; is_less_than(&b, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &b);
             let mut balance: Value = get_value(&balances, &b);
             let mut type_var: Value = self.safe_string_k(balance.clone(), "type", &[]);
@@ -3306,7 +3334,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3426,7 +3456,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3822,12 +3854,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         self.load_accounts(&[Value::Bool(false), params.clone()]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { i = add(&i, &Value::Int(1)); } __for_first_473 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
             let mut account: Value = get_value(&self.accounts, &i);
             if is_equal(&get_value(&account, &Value::Str("code".to_string())), &code) {
                 return get_value(&account, &Value::Str("id".to_string()));
@@ -3908,7 +3942,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
@@ -3954,7 +3990,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut id: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("ccxt".to_string())]);
         let mut request: Value = Value::Map({
@@ -4426,7 +4464,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut orders: Value = self.cancel_orders(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
         return self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4452,7 +4492,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -4478,8 +4520,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orders: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { i = add(&i, &Value::Int(1)); } __for_first_492 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut success: Value = self.safe_bool_k(get_value(&orders, &i), "success", &[]);
             if !is_equal(&success, &Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelOrders() has failed, check your arguments and parameters".to_string()))));
@@ -4513,7 +4555,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4557,7 +4601,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -4638,7 +4684,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4711,7 +4759,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
-        let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut cursor: Value = self.safe_string_k(response.clone(), "cursor", &[]);
         if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(!is_equal(&cursor, &Value::Str("".to_string())))) {
             add_element_to_object(&mut first, &Value::Str("cursor".to_string()), cursor.clone());
@@ -4730,7 +4781,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -4770,7 +4823,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //                     }
         //                 },
         //                 "side": "BUY",
-        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         //                 "status": "FILLED",
         //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
         //                 "created_time": "2023-01-18T01:37:37.975552Z",
@@ -4800,7 +4853,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
-        let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut cursor: Value = self.safe_string_k(response.clone(), "cursor", &[]);
         if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(!is_equal(&cursor, &Value::Str("".to_string())))) {
             add_element_to_object(&mut first, &Value::Str("cursor".to_string()), cursor.clone());
@@ -4832,7 +4888,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4864,7 +4922,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4923,7 +4983,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut maxLimit: Value = Value::Int(300);
         limit = ternary(is_true(&(is_equal(&limit, &Value::Null))), maxLimit.clone(), crate::runtime::Math::min(&limit, &maxLimit));
         let mut paginate: Value = Value::Bool(false);
@@ -5013,7 +5075,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5086,7 +5150,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -5140,7 +5206,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut trades: Value = self.safe_list_k(response.clone(), "fills", &[Value::List(vec![])]);
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut cursor: Value = self.safe_string_k(response.clone(), "cursor", &[]);
         if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(!is_equal(&cursor, &Value::Str("".to_string())))) {
             add_element_to_object(&mut first, &Value::Str("cursor".to_string()), cursor.clone());
@@ -5161,7 +5230,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -5169,7 +5238,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5235,7 +5306,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5296,7 +5369,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5400,7 +5475,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Null;
         { let __destr_tmp = self.prepare_account_request_with_currency_code(&[get_value(&currency, &Value::Str("code".to_string())), Value::Null, params.clone()]).await; request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -5569,7 +5646,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountId: Value = self.safe_string2(params.clone(), Value::Str("account_id".to_string()), Value::Str("accountId".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         if is_equal(&accountId, &Value::Null) {
@@ -5655,7 +5734,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut accountId: Value = self.safe_string2(params.clone(), Value::Str("account_id".to_string()), Value::Str("accountId".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         if is_equal(&accountId, &Value::Null) {
@@ -5734,7 +5815,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut response: Value = self.v3_private_get_brokerage_payment_methods(&[params.clone()]).await;
         //
         //     {
@@ -5775,7 +5858,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("payment_method_id".to_string(), id.clone());
@@ -5817,8 +5902,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let __ws_arg_40 = self.parse_deposit_method_id(get_value(&ids, &i));
             let mut id: Value = self.extend(__ws_arg_40, &[params.clone()]);
             append_to_array(&mut result, id.clone());
@@ -5863,7 +5948,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_account".to_string(), fromCode.clone());
@@ -5900,7 +5987,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("trade_id".to_string(), id.clone());
@@ -5936,7 +6025,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchConvertTrade() requires a code argument".to_string()))));
         }
@@ -6009,7 +6100,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
@@ -6050,7 +6143,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut market: Value = Value::Null;
         if !is_equal(&symbols, &Value::Null) {
@@ -6098,7 +6193,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("future".to_string()))) {
@@ -6308,7 +6405,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
@@ -6348,15 +6447,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut taker_fee: Value = self.safe_number_k(data.clone(), "taker_fee_rate", &[]);
-        let mut marker_fee: Value = self.safe_number_k(data.clone(), "maker_fee_rate", &[]);
+        let mut maker_fee: Value = self.safe_number_k(data.clone(), "maker_fee_rate", &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { i = add(&i, &Value::Int(1)); } __for_first_494 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             if is_true(&(is_true(&isSpot) && is_true(&get_value(&market, &Value::Str("spot".to_string()))))) || is_true(&(!is_true(&isSpot) && !is_true(&get_value(&market, &Value::Str("spot".to_string()))))) {
@@ -6364,8 +6463,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), taker_fee.clone());
-        m.insert("taker".to_string(), marker_fee.clone());
+        m.insert("maker".to_string(), maker_fee.clone());
+        m.insert("taker".to_string(), taker_fee.clone());
         m.insert("percentage".to_string(), Value::Bool(true));
     m
 }));
@@ -6391,7 +6490,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("portfolio_uuid".to_string(), portfolioUuid.clone());
@@ -6417,8 +6518,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsedPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_495: bool = true;
-            while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&spotPositions)) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&spotPositions)) } {
             let mut position: Value = get_value(&spotPositions, &i);
             let mut position: Value = get_value(&spotPositions, &i);
             let mut currencyCode: Value = self.safe_string_k(position.clone(), "asset", &[Value::Str("Unknown".to_string())]);
@@ -6748,7 +6849,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: Value = self.prepare_account_request(&[Value::Null, params.clone()]);
         let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_50]).await;

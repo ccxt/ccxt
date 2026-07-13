@@ -10,6 +10,9 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
+    if is_equal(&entry, &Value::Null) {
+        return;
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("btc".to_string()));
