@@ -348,7 +348,7 @@
                     0.1,
                     10000
                 ],
-                "output": "{\"place_order\":{\"product_id\":2,\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132061784768512\",\"appendix\":\"2748779069441\"},\"signature\":\"\"}}"
+                "output": "{\"place_order\":{\"product_id\":2,\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132061784768512\",\"appendix\":\"1266640143977021441\"},\"signature\":\"\"}}"
             },
             {
                 "description": "create BTC/USDT0:USDT0 trigger order",
@@ -365,7 +365,7 @@
                         "triggerDirection": "up"
                     }
                 ],
-                "output": "{\"place_order\":{\"product_id\":2,\"trigger\":{\"price_trigger\":{\"price_requirement\":{\"oracle_price_up\":\"10010000000000000000000\"}}},\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132253619650560\",\"appendix\":\"2748779073537\"},\"signature\":\"0xc4b9b3af50ee19200d09045293c1af5596dda3de13be48aab07df94f1e31cab2595d769e6d8d9e10e0b118d0bdd6d75f9b55517f249efcc2aef657f8186fda661b\"}}"
+                "output": "{\"place_order\":{\"product_id\":2,\"trigger\":{\"price_trigger\":{\"price_requirement\":{\"oracle_price_up\":\"10010000000000000000000\"}}},\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132253619650560\",\"appendix\":\"1266640143977025537\"},\"signature\":\"0xc4b9b3af50ee19200d09045293c1af5596dda3de13be48aab07df94f1e31cab2595d769e6d8d9e10e0b118d0bdd6d75f9b55517f249efcc2aef657f8186fda661b\"}}"
             },
             {
                 "description": "create BTC/USDT0:USDT0 take profit order",
@@ -381,7 +381,7 @@
                         "takeProfitPrice": 10010
                     }
                 ],
-                "output": "{\"place_order\":{\"product_id\":2,\"trigger\":{\"price_trigger\":{\"price_requirement\":{\"oracle_price_below\":\"10010000000000000000000\"}}},\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132253619650560\",\"appendix\":\"2748779073537\"},\"signature\":\"0xc4b9b3af50ee19200d09045293c1af5596dda3de13be48aab07df94f1e31cab2595d769e6d8d9e10e0b118d0bdd6d75f9b55517f249efcc2aef657f8186fda661b\"}}"
+                "output": "{\"place_order\":{\"product_id\":2,\"trigger\":{\"price_trigger\":{\"price_requirement\":{\"oracle_price_below\":\"10010000000000000000000\"}}},\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132253619650560\",\"appendix\":\"1266640143977025537\"},\"signature\":\"0xc4b9b3af50ee19200d09045293c1af5596dda3de13be48aab07df94f1e31cab2595d769e6d8d9e10e0b118d0bdd6d75f9b55517f249efcc2aef657f8186fda661b\"}}"
             }
         ],
         "cancelAllOrders": [
