@@ -3629,7 +3629,7 @@ class coinbase extends coinbase$1["default"] {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
@@ -3707,7 +3707,7 @@ class coinbase extends coinbase$1["default"] {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
@@ -3858,7 +3858,7 @@ class coinbase extends coinbase$1["default"] {
             'product_id': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeIntegerN(params, ['until', 'end']);
+        const until = this.safeInteger2(params, 'until', 'end');
         params = this.omit(params, ['until']);
         const duration = this.parseTimeframe(timeframe);
         const requestedDuration = limit * duration;
@@ -4025,7 +4025,7 @@ class coinbase extends coinbase$1["default"] {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_sequence_timestamp'] = this.iso8601(until);

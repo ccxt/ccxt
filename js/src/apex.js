@@ -851,12 +851,12 @@ export default class apex extends Exchange {
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return [
-            this.safeIntegerN(ohlcv, ['start', 't']),
-            this.safeNumberN(ohlcv, ['open', 'o']),
-            this.safeNumberN(ohlcv, ['high', 'h']),
-            this.safeNumberN(ohlcv, ['low', 'l']),
-            this.safeNumberN(ohlcv, ['close', 'c']),
-            this.safeNumberN(ohlcv, ['volume', 'v']),
+            this.safeInteger2(ohlcv, 'start', 't'),
+            this.safeNumber2(ohlcv, 'open', 'o'),
+            this.safeNumber2(ohlcv, 'high', 'h'),
+            this.safeNumber2(ohlcv, 'low', 'l'),
+            this.safeNumber2(ohlcv, 'close', 'c'),
+            this.safeNumber2(ohlcv, 'volume', 'v'),
         ];
     }
     /**
