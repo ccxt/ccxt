@@ -1322,9 +1322,6 @@ export default class dreamdex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the unsigned EVM transaction in the info field
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument (newQuantityRemaining)');
         }
@@ -1510,7 +1507,8 @@ export default class dreamdex extends Exchange {
         const nonce = this.safeString (nonceResponse, 'nonce');
         const issuedAt = this.iso8601 (now);
         const url = this.safeString (this.urls['api'], 'rest');
-        const message = url + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI: ' + url + "\n" + 'Version: 1' + "\n" + 'Chain ID: 5031' + "\n" + 'Nonce: ' + nonce + "\n" + 'Issued At: ' + issuedAt; // eslint-disable-line quotes
+        const urlReplaced = url.replace ('https://', '').replace ('http://', '');
+        const message = urlReplaced + ' wants you to sign in with your Ethereum account:' + "\n" + this.walletAddress + "\n" + "\n" + 'Sign in to dreamDEX' + "\n" + "\n" + 'URI: ' + urlReplaced + "\n" + 'Version: 1' + "\n" + 'Chain ID: 5031' + "\n" + 'Nonce: ' + nonce + "\n" + 'Issued At: ' + issuedAt; // eslint-disable-line quotes
         const hash = this.hashMessage (message);
         const sig = this.signHash (hash, this.privateKey);
         const loginRequest: Dict = {
