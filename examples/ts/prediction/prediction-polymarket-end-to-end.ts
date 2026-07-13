@@ -31,7 +31,8 @@ async function main () {
     });
 
     // 1) pick a high-volume event and an outcome with a live two-sided book ----------------
-    const events = await exchange.fetchEvents ({ 'sort': 'volume', 'limit': 15 });
+    // fetchEvents requires a scope (query/queries/tags/eventId/slug); sort/limit apply within it
+    const events = await exchange.fetchEvents ({ 'query': 'fed', 'sort': 'volume', 'limit': 15 });
     let chosen: any = undefined;
     let probes = 0;
     for (const ev of events) {

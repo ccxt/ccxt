@@ -39,7 +39,8 @@ async def main():
     })
     try:
         # 1) pick a high-volume event and an outcome with a live two-sided book ------------
-        events = await exchange.fetch_events({'sort': 'volume', 'limit': 15})
+        # fetch_events requires a scope (query/queries/tags/eventId/slug); sort/limit apply within it
+        events = await exchange.fetch_events({'query': 'fed', 'sort': 'volume', 'limit': 15})
         chosen = None
         probes = 0
         for event in events:

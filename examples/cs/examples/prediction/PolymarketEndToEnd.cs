@@ -35,7 +35,8 @@ partial class Examples
         });
 
         // 1) pick a high-volume event and an outcome with a live two-sided book ------------
-        var events = await exchange.FetchEvents(new Dictionary<string, object>() { { "sort", "volume" }, { "limit", 15 } });
+        // FetchEvents requires a scope (query/queries/tags/eventId/slug); sort/limit apply within it
+        var events = await exchange.FetchEvents(new Dictionary<string, object>() { { "query", "fed" }, { "sort", "volume" }, { "limit", 15 } });
         string symbol = null;
         PredictionOrderBook? chosenBook = null;
         double tick = 0.01;

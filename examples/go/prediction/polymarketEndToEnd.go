@@ -38,7 +38,8 @@ func PolymarketEndToEndExample() {
 	})
 
 	// 1) pick a high-volume event and an outcome with a live two-sided book ----------------
-	events, err := exchange.FetchEvents(map[string]interface{}{"sort": "volume", "limit": 15})
+	// FetchEvents requires a scope (query/queries/tags/eventId/slug); sort/limit apply within it
+	events, err := exchange.FetchEvents(map[string]interface{}{"query": "fed", "sort": "volume", "limit": 15})
 	if err != nil {
 		fmt.Println("fetchEvents failed:", err)
 		return

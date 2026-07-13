@@ -8,7 +8,7 @@ package prediction
 import (
 	"fmt"
 
-	ccxtprediction "ccxt/go/ccxt/prediction"
+	ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 )
 
 func PredictionMarketsExample() {
