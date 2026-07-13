@@ -3149,10 +3149,19 @@ public partial class bingx : Exchange
             object isTrailingAmountOrder = !isEqual(trailingAmount, null);
             object isTrailingPercentOrder = !isEqual(trailingPercent, null);
             object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
-            object stopLoss = this.safeValue(parameters, "stopLoss");
-            object takeProfit = this.safeValue(parameters, "takeProfit");
-            object hasStopLoss = !isEqual(stopLoss, null);
-            object hasTakeProfit = !isEqual(takeProfit, null);
+            object stopLossDict = this.safeDict(parameters, "stopLoss");
+            object takeProfitDict = this.safeDict(parameters, "takeProfit");
+            object hasStopLoss = !isEqual(stopLossDict, null);
+            object hasTakeProfit = !isEqual(takeProfitDict, null);
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if (isTrue(hasStopLoss))
+            {
+                parameters = this.omit(parameters, "stopLoss");
+            }
+            if (isTrue(hasTakeProfit))
+            {
+                parameters = this.omit(parameters, "takeProfit");
+            }
             if (isTrue(isTrue((isTrue(isTrue(isTrue((isEqual(type, "LIMIT"))) || isTrue((isEqual(type, "TRIGGER_LIMIT")))) || isTrue((isEqual(type, "STOP")))) || isTrue((isEqual(type, "TAKE_PROFIT"))))) && !isTrue(isTrailing)))
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
@@ -3210,39 +3219,39 @@ public partial class bingx : Exchange
                 object stringifiedAmount = this.numberToString(amount);
                 if (isTrue(hasStopLoss))
                 {
-                    object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                    object slWorkingType = this.safeString(stopLoss, "workingType", "MARK_PRICE");
-                    object slType = this.safeString(stopLoss, "type", "STOP_MARKET");
+                    object slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
+                    object slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
+                    object slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
                     object slRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, slTriggerPrice)) },
                         { "workingType", slWorkingType },
                         { "type", slType },
                     };
-                    object slPrice = this.safeString(stopLoss, "price");
+                    object slPrice = this.safeString(stopLossDict, "price");
                     if (isTrue(!isEqual(slPrice, null)))
                     {
                         ((IDictionary<string,object>)slRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    object slQuantity = this.safeString(stopLoss, "quantity", stringifiedAmount);
+                    object slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
                     ((IDictionary<string,object>)slRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     ((IDictionary<string,object>)request)["stopLoss"] = this.json(slRequest);
                 }
                 if (isTrue(hasTakeProfit))
                 {
-                    object tkTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                    object tkWorkingType = this.safeString(takeProfit, "workingType", "MARK_PRICE");
-                    object tpType = this.safeString(takeProfit, "type", "TAKE_PROFIT_MARKET");
+                    object tkTriggerPrice = this.safeString2(takeProfitDict, "triggerPrice", "stopPrice");
+                    object tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
+                    object tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
                     object tpRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, tkTriggerPrice)) },
                         { "workingType", tkWorkingType },
                         { "type", tpType },
                     };
-                    object slPrice = this.safeString(takeProfit, "price");
+                    object slPrice = this.safeString(takeProfitDict, "price");
                     if (isTrue(!isEqual(slPrice, null)))
                     {
                         ((IDictionary<string,object>)tpRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    object tkQuantity = this.safeString(takeProfit, "quantity", stringifiedAmount);
+                    object tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
                     ((IDictionary<string,object>)tpRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
                     ((IDictionary<string,object>)request)["takeProfit"] = this.json(tpRequest);
                 }
@@ -3275,7 +3284,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
@@ -3432,8 +3441,11 @@ public partial class bingx : Exchange
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        object stopLossDict = this.safeDict(result, "stopLoss");
         object stopLoss = this.safeString(result, "stopLoss");
-        if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
+        // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
+        // so we need trick to check if it's non-parsed string yet
+        if (isTrue(isTrue(isTrue((isEqual(stopLossDict, null))) && isTrue((!isEqual(stopLoss, null)))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
         {
             ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
         }
