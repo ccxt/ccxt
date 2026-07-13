@@ -858,12 +858,12 @@ class apex extends Exchange {
         //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
         //
         return array(
-            $this->safe_integer_n($ohlcv, array( 'start', 't' )),
-            $this->safe_number_n($ohlcv, array( 'open', 'o' )),
-            $this->safe_number_n($ohlcv, array( 'high', 'h' )),
-            $this->safe_number_n($ohlcv, array( 'low', 'l' )),
-            $this->safe_number_n($ohlcv, array( 'close', 'c' )),
-            $this->safe_number_n($ohlcv, array( 'volume', 'v' )),
+            $this->safe_integer_2($ohlcv, 'start', 't'),
+            $this->safe_number_2($ohlcv, 'open', 'o'),
+            $this->safe_number_2($ohlcv, 'high', 'h'),
+            $this->safe_number_2($ohlcv, 'low', 'l'),
+            $this->safe_number_2($ohlcv, 'close', 'c'),
+            $this->safe_number_2($ohlcv, 'volume', 'v'),
         );
     }
 

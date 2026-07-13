@@ -1516,7 +1516,7 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
+        $isMaker = $this->safe_bool_2($trade, 'isMaker', 'isMarker');
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }

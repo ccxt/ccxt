@@ -3710,7 +3710,7 @@ class coinbase extends Exchange {
             if ($since !== null) {
                 $request['start_date'] = $this->iso8601($since);
             }
-            $until = $this->safe_integer_n($params, array( 'until' ));
+            $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_date'] = $this->iso8601($until);
@@ -3791,7 +3791,7 @@ class coinbase extends Exchange {
             if ($since !== null) {
                 $request['start_date'] = $this->iso8601($since);
             }
-            $until = $this->safe_integer_n($params, array( 'until' ));
+            $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_date'] = $this->iso8601($until);
@@ -3954,7 +3954,7 @@ class coinbase extends Exchange {
                 'product_id' => $market['id'],
                 'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $until = $this->safe_integer_n($params, array( 'until', 'end' ));
+            $until = $this->safe_integer_2($params, 'until', 'end');
             $params = $this->omit($params, array( 'until' ));
             $duration = $this->parse_timeframe($timeframe);
             $requestedDuration = $limit * $duration;
@@ -4123,7 +4123,7 @@ class coinbase extends Exchange {
             if ($since !== null) {
                 $request['start_sequence_timestamp'] = $this->iso8601($since);
             }
-            $until = $this->safe_integer_n($params, array( 'until' ));
+            $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until' ));
                 $request['end_sequence_timestamp'] = $this->iso8601($until);
