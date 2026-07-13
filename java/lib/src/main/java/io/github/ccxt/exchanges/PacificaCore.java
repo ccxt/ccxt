@@ -1671,7 +1671,7 @@ public class PacificaCore extends PacificaApi
         {
             Helpers.addElementToObject(sigPayload, "amount", this.amountToPrecision(symbol, amount));
         }
-        Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
+        Object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(sigPayload, "client_order_id", clientOrderId);
