@@ -94,7 +94,9 @@ public partial class PredictionExchange : BaseExchange
     public virtual object requireEventQuery(object parameters = null)
     {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
-        // entire exchange. require one of query / queries / tags / eventId / slug
+        // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
+        // venue-specific scope params an exchange declares in options['eventScopeParams']
+        // (e.g. kalshi's category / series_ticker)
         parameters ??= new Dictionary<string, object>();
         object query = this.safeString(parameters, "query");
         object queries = this.safeList(parameters, "queries", new List<object>() {});
@@ -103,11 +105,23 @@ public partial class PredictionExchange : BaseExchange
         object slug = this.safeString(parameters, "slug");
         object queriesLength = getArrayLength(queries);
         object tagsLength = getArrayLength(tags);
-        if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(query, null))) && isTrue((isEqual(queriesLength, 0)))) && isTrue((isEqual(tagsLength, 0)))) && isTrue((isEqual(eventId, null)))) && isTrue((isEqual(slug, null)))))
+        if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(query, null))) || isTrue((isGreaterThan(queriesLength, 0)))) || isTrue((isGreaterThan(tagsLength, 0)))) || isTrue((!isEqual(eventId, null)))) || isTrue((!isEqual(slug, null)))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId or slug to scope the search")) ;
+            return null;
         }
-        return null;
+        object extraScopeParams = this.safeList(this.options, "eventScopeParams", new List<object>() {});
+        object extraScopeParamsLength = getArrayLength(extraScopeParams);
+        object extraNames = "";
+        for (object i = 0; isLessThan(i, extraScopeParamsLength); postFixIncrement(ref i))
+        {
+            object scopeKey = getValue(extraScopeParams, i);
+            if (isTrue(inOp(parameters, scopeKey)))
+            {
+                return null;
+            }
+            extraNames = add(add(extraNames, ", "), scopeKey);
+        }
+        throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")) ;
     }
 
     public virtual object applyEventFetchParams(object events, object parameters = null, object queries = null)
@@ -165,6 +179,13 @@ public partial class PredictionExchange : BaseExchange
             }
             if (isTrue(!isEqual(sortKey, null)))
             {
+                // normalize the sort key on every row first — sortBy reads it with a raw
+                // subscript, which raises KeyError/undefined-index in Python/PHP when a
+                // venue's parsed event omits the field (JS alone tolerates the miss)
+                for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+                {
+                    ((IDictionary<string,object>)getValue(result, i))[(string)sortKey] = this.safeNumber(getValue(result, i), sortKey, 0);
+                }
                 result = this.sortBy(result, sortKey, true, 0);
             }
         }
@@ -438,6 +459,22 @@ public partial class PredictionExchange : BaseExchange
         throw new BadSymbol ((string)add(add(add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
+    public virtual object hasOutcome(object outcomeIdOrSymbol)
+    {
+        // sync cache-only membership probe — never throws and never fetches. this is the predicate
+        // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
+        // and outcome (throws on miss) are the accessors
+        if (isTrue(isTrue((!isEqual(this.outcomes, null))) && isTrue((inOp(this.outcomes, outcomeIdOrSymbol)))))
+        {
+            return true;
+        }
+        if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeIdOrSymbol)))))
+        {
+            return true;
+        }
+        return false;
+    }
+
     public virtual object safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
     {
         if (isTrue(!isEqual(outcomeIdOrSymbol, null)))
@@ -679,17 +716,54 @@ public partial class PredictionExchange : BaseExchange
         this.populateOutcomes();
     }
 
-    public async virtual Task<object> loadOutcomes(object reload = null, object parameters = null)
+    public async virtual Task<object> loadOutcomes(object outcomes = null, object reload = null, object parameters = null)
     {
-        // outcome-addressed methods (fetchTicker/createOrder/...) call this first, mirroring how
-        // every regular ccxt method calls loadMarkets(). reload/params mirror loadMarkets: reload
-        // true refetches and rebuilds. idempotent otherwise: once outcomes are populated (here, or
-        // already by an explicit fetchEvents/loadMarkets), later calls no-op and return the cache.
-        // loadMarkets() does the actual fetch; populateOutcomes() then rebuilds the lookup caches
-        // from the loaded markets (the setMarkets override that normally does this is not dispatched
-        // by the base loadMarkets under the Go/C#/Java transpilers).
+        // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+        // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
+        //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+        //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+        // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
+        //   idempotent unless reload; only worth paying on venues whose whole universe is one
+        //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+        // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+        // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+        // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+        // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(outcomes, null)))
+        {
+            object missing = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+            {
+                if (isTrue(isTrue(reload) || !isTrue(this.hasOutcome(getValue(outcomes, i)))))
+                {
+                    ((IList<object>)missing).Add(getValue(outcomes, i));
+                }
+            }
+            object missingLength = getArrayLength(missing);
+            object wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
+            object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            if (isTrue(isTrue(isTrue(isTrue((isGreaterThan(missingLength, 0))) && isTrue(loadAll)) && !isTrue(wasWarm)) && !isTrue(reload)))
+            {
+                await this.loadOutcomes();
+                object stillMissing = new List<object>() {};
+                for (object i = 0; isLessThan(i, missingLength); postFixIncrement(ref i))
+                {
+                    if (!isTrue(this.hasOutcome(getValue(missing, i))))
+                    {
+                        ((IList<object>)stillMissing).Add(getValue(missing, i));
+                    }
+                }
+                missing = stillMissing;
+                missingLength = getArrayLength(missing);
+            }
+            if (isTrue(isGreaterThan(missingLength, 0)))
+            {
+                await this.fetchOutcomes(missing);
+            }
+            return this.outcomes;
+        }
         if (isTrue(isTrue(!isTrue(reload) && isTrue((!isEqual(this.outcomes, null)))) && !isTrue(this.isEmpty(this.outcomes))))
         {
             return this.outcomes;
@@ -699,73 +773,161 @@ public partial class PredictionExchange : BaseExchange
         return this.outcomes;
     }
 
-    public async virtual Task<object> loadOutcome(object outcomeSymbol)
+    /**
+     * @ignore
+     * @method
+     * @name PredictionExchange#fetchOutcomes
+     * @description resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+     * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
+     * @returns {object} the outcome cache
+     */
+    public async virtual Task<object> fetchOutcomes(object outcomeSymbols)
+    {
+        for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
+        {
+            await this.fetchOutcome(getValue(outcomeSymbols, i));
+        }
+        return this.outcomes;
+    }
+
+    public async virtual Task<object> loadOutcome(object outcomeSymbol, object reload = null)
     {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-        // returns at once. on a miss, options.loadAllOutcomes (default true) bulk-loads the whole set
-        // once so later lookups are 0-network hits; exchanges with too many markets to bulk-load
-        // kalshi sets it false and overrides fetchOutcome to fetch just the requested one on demand.
-        if (isTrue(!isEqual(this.outcomes, null)))
-        {
-            if (isTrue(inOp(this.outcomes, outcomeSymbol)))
-            {
-                return getValue(this.outcomes, outcomeSymbol);
-            }
-            if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
-            {
-                return getValue(this.outcomes_by_id, outcomeSymbol);
-            }
-        }
-        object wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
+        // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
+        // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+        // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+        // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
+        // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+        // sane on venues whose full universe is one cheap request (hyperliquid)
         // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
         // but the outcome cache is cold, index them for free before hitting the network — this
         // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-        if (isTrue(isTrue(!isTrue(wasWarm) && isTrue((!isEqual(this.markets, null)))) && !isTrue(this.isEmpty(this.markets))))
+        // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+        // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+        // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+        // the whole listing (which would mask typos and clobber offline-injected markets)
+        reload ??= false;
+        if (!isTrue(reload))
         {
-            this.populateOutcomes();
-            if (isTrue(!isEqual(this.outcomes, null)))
+            if (isTrue(this.hasOutcome(outcomeSymbol)))
             {
-                if (isTrue(inOp(this.outcomes, outcomeSymbol)))
+                return this.safeOutcome(outcomeSymbol);
+            }
+            object wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
+            if (isTrue(isTrue(!isTrue(wasWarm) && isTrue((!isEqual(this.markets, null)))) && !isTrue(this.isEmpty(this.markets))))
+            {
+                this.populateOutcomes();
+                if (isTrue(this.hasOutcome(outcomeSymbol)))
                 {
-                    return getValue(this.outcomes, outcomeSymbol);
-                }
-                if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
-                {
-                    return getValue(this.outcomes_by_id, outcomeSymbol);
+                    return this.safeOutcome(outcomeSymbol);
                 }
             }
-        }
-        object loadAll = this.safeBool(this.options, "loadAllOutcomes", true);
-        if (isTrue(isTrue(loadAll) && !isTrue(wasWarm)))
-        {
-            // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-            // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-            // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-            // the whole listing (which would mask typos and clobber offline-injected markets)
-            await this.loadOutcomes();
-            if (isTrue(!isEqual(this.outcomes, null)))
+            object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            if (isTrue(isTrue(loadAll) && !isTrue(wasWarm)))
             {
-                if (isTrue(inOp(this.outcomes, outcomeSymbol)))
+                await this.loadOutcomes();
+                if (isTrue(this.hasOutcome(outcomeSymbol)))
                 {
-                    return getValue(this.outcomes, outcomeSymbol);
-                }
-                if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeSymbol)))))
-                {
-                    return getValue(this.outcomes_by_id, outcomeSymbol);
+                    return this.safeOutcome(outcomeSymbol);
                 }
             }
         }
         return await this.fetchOutcome(outcomeSymbol);
     }
 
+    public virtual object outcomeSearchQuery(object outcomeSymbol)
+    {
+        // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
+        // cache miss can be resolved through the venue's scoped search instead of a bulk listing
+        // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
+        // carry no searchable words
+        object marketPart = outcomeSymbol;
+        object colonIndex = getIndexOf(outcomeSymbol, ":");
+        if (isTrue(isGreaterThanOrEqual(colonIndex, 0)))
+        {
+            marketPart = slice(outcomeSymbol, 0, colonIndex);
+        }
+        if (isTrue(isEqual(getIndexOf(marketPart, "0x"), 0)))
+        {
+            return null;
+        }
+        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        object normalized = ((string)((string)marketPart).ToLower()).Replace((string)"-", (string)"_");
+        object rawWords = ((string)normalized).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object words = new List<object>() {};
+        object hasLetters = false;
+        object letters = "abcdefghijklmnopqrstuvwxyz";
+        for (object i = 0; isLessThan(i, getArrayLength(rawWords)); postFixIncrement(ref i))
+        {
+            object word = getValue(rawWords, i);
+            // inline .length so the php transpiler emits strlen() — the standalone
+            // `const n = str.length;` statement form wrongly becomes count() (array)
+            if (isTrue(isEqual(getArrayLength(word), 0)))
+            {
+                continue;
+            }
+            object wordHasLetters = false;
+            object chars = this.stringToCharsArray(word);
+            for (object ci = 0; isLessThan(ci, getArrayLength(chars)); postFixIncrement(ref ci))
+            {
+                if (isTrue(isGreaterThanOrEqual(getIndexOf(letters, getValue(chars, ci)), 0)))
+                {
+                    wordHasLetters = true;
+                    break;
+                }
+            }
+            // the query is the handle's letter-bearing words only. standalone numeric tokens
+            // (slug timestamps, strikes, years) are venue artifacts that title searches don't
+            // reliably index — and since the result is re-checked against the EXACT handle,
+            // a broader query only adds recall, never a wrong match
+            if (!isTrue(wordHasLetters))
+            {
+                continue;
+            }
+            ((IList<object>)words).Add(word);
+            hasLetters = true;
+        }
+        object wordsLength = getArrayLength(words);
+        if (isTrue(isTrue((isEqual(wordsLength, 0))) || !isTrue(hasLetters)))
+        {
+            // a purely numeric/symbolic handle is an id, not searchable text
+            return null;
+        }
+        return String.Join(" ", ((IList<object>)words).ToArray());
+    }
+
     public async virtual Task<object> fetchOutcome(object outcomeSymbol)
     {
-        // fetch just one outcome on demand. the base has no generic single-outcome endpoint, so it
-        // resolves from the already-loaded set (loadOutcomes() is a cached no-op once warmed, and
-        // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
-        // override this to fetch and cache only the requested outcome — the "always fetch one" path.
-        await this.loadOutcomes();
-        return this.outcome(outcomeSymbol);
+        // fetch just one outcome on demand — never through a bulk listing download. the base has
+        // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+        // through the venue's own scoped fetchEvents (which caches everything it finds), then
+        // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
+        // token id) override this with a cheaper single fetch and fall back to super on a miss.
+        object searchQuery = this.outcomeSearchQuery(outcomeSymbol);
+        if (isTrue(isTrue((!isEqual(searchQuery, null))) && isTrue(this.safeBool(this.has, "fetchEvents", false))))
+        {
+            object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
+            try
+            {
+                await this.fetchEvents(new Dictionary<string, object>() {
+                    { "query", searchQuery },
+                    { "limit", searchLimit },
+                });
+            } catch(Exception e)
+            {
+                // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                // plain miss (the guidance-rich throw below); let real transport errors propagate
+                if (!isTrue((e is BadSymbol)))
+                {
+                    throw e;
+                }
+            }
+            if (isTrue(this.hasOutcome(outcomeSymbol)))
+            {
+                return this.safeOutcome(outcomeSymbol);
+            }
+        }
+        throw new BadSymbol ((string)add(add(add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
     }
 
     /**
@@ -1164,30 +1326,296 @@ public partial class PredictionExchange : BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchSettlements() is not supported yet")) ;
     }
 
-    public virtual object safePredictionOrder(object order, object market = null)
+    public virtual object safePredictionOrder(object outcomeOrder, object outcomeObj = null)
     {
-        // the prediction identity is the `outcome` handle carried on the raw dict (read by
-        // toPredictionStructure), not a ccxt `symbol`, so don't pass an outcome object as a market
-        object parsed = base.safeOrder(order);
-        return this.toPredictionStructure(parsed, order);
+        // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
+        // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
+        // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
+        // outcome-addressed row). prediction is always linear with a contract size of 1.
+        object amount = this.omitZero(this.safeString(outcomeOrder, "amount"));
+        object filled = this.safeString(outcomeOrder, "filled");
+        object remaining = this.safeString(outcomeOrder, "remaining");
+        object cost = this.safeString(outcomeOrder, "cost");
+        object average = this.omitZero(this.safeString(outcomeOrder, "average"));
+        object price = this.omitZero(this.safeString(outcomeOrder, "price"));
+        object side = this.safeString(outcomeOrder, "side");
+        object status = this.safeString(outcomeOrder, "status");
+        object lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
+        // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
+        object rawTrades = this.safeList(outcomeOrder, "trades", new List<object>() {});
+        object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
+        object tradesLength = getArrayLength(trades);
+        object feeList = new List<object>() {};
+        if (isTrue(isGreaterThan(tradesLength, 0)))
+        {
+            if (isTrue(isEqual(filled, null)))
+            {
+                filled = "0";
+            }
+            if (isTrue(isEqual(cost, null)))
+            {
+                cost = "0";
+            }
+            for (object i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
+            {
+                object trade = getValue(trades, i);
+                object tradeAmount = this.safeString(trade, "amount");
+                if (isTrue(!isEqual(tradeAmount, null)))
+                {
+                    filled = Precise.stringAdd(filled, tradeAmount);
+                }
+                object tradeCost = this.safeString(trade, "cost");
+                if (isTrue(!isEqual(tradeCost, null)))
+                {
+                    cost = Precise.stringAdd(cost, tradeCost);
+                }
+                if (isTrue(isEqual(side, null)))
+                {
+                    side = this.safeString(trade, "side");
+                }
+                object tradeTimestamp = this.safeInteger(trade, "timestamp");
+                if (isTrue(!isEqual(tradeTimestamp, null)))
+                {
+                    if (isTrue(isEqual(lastTradeTimestamp, null)))
+                    {
+                        lastTradeTimestamp = tradeTimestamp;
+                    } else if (isTrue(isGreaterThan(tradeTimestamp, lastTradeTimestamp)))
+                    {
+                        lastTradeTimestamp = tradeTimestamp;
+                    }
+                }
+                object tradeFee = this.safeDict(trade, "fee");
+                if (isTrue(!isEqual(tradeFee, null)))
+                {
+                    ((IList<object>)feeList).Add(tradeFee);
+                }
+            }
+        }
+        // fill any totals the venue left undefined (linear, contract size 1)
+        if (isTrue(isTrue(isTrue((isEqual(filled, null))) && isTrue((!isEqual(amount, null)))) && isTrue((!isEqual(remaining, null)))))
+        {
+            filled = Precise.stringSub(amount, remaining);
+        }
+        if (isTrue(isTrue(isTrue((isEqual(remaining, null))) && isTrue((!isEqual(amount, null)))) && isTrue((!isEqual(filled, null)))))
+        {
+            remaining = Precise.stringSub(amount, filled);
+        }
+        if (isTrue(isTrue(isTrue((isEqual(amount, null))) && isTrue((!isEqual(filled, null)))) && isTrue((!isEqual(remaining, null)))))
+        {
+            amount = Precise.stringAdd(filled, remaining);
+        }
+        if (isTrue(isTrue(isTrue(isTrue((isEqual(average, null))) && isTrue((!isEqual(filled, null)))) && isTrue((!isEqual(cost, null)))) && isTrue(Precise.stringGt(filled, "0"))))
+        {
+            average = Precise.stringDiv(cost, filled);
+        }
+        if (isTrue(isTrue((isEqual(cost, null))) && isTrue((!isEqual(filled, null)))))
+        {
+            object multiplyPrice = ((bool) isTrue((!isEqual(average, null)))) ? average : price;
+            if (isTrue(!isEqual(multiplyPrice, null)))
+            {
+                cost = Precise.stringMul(filled, multiplyPrice);
+            }
+        }
+        object fee = this.safeDict(outcomeOrder, "fee");
+        // own-line length reads so the regex transpiler emits count() (array), not strlen()
+        object feeListLength = getArrayLength(feeList);
+        if (isTrue(isTrue((isEqual(fee, null))) && isTrue((isGreaterThan(feeListLength, 0)))))
+        {
+            object reduced = this.reduceFeesByCurrency(feeList);
+            object reducedLength = getArrayLength(reduced);
+            if (isTrue(isGreaterThan(reducedLength, 0)))
+            {
+                fee = getValue(reduced, 0);
+            }
+        }
+        // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
+        // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
+        object orderType = this.safeString(outcomeOrder, "type");
+        object timeInForce = this.safeString(outcomeOrder, "timeInForce");
+        object postOnly = this.safeBool(outcomeOrder, "postOnly");
+        if (isTrue(isEqual(timeInForce, null)))
+        {
+            if (isTrue(isEqual(orderType, "market")))
+            {
+                timeInForce = "IOC";
+            }
+            if (isTrue(postOnly))
+            {
+                timeInForce = "PO";
+            }
+        } else if (isTrue(isEqual(postOnly, null)))
+        {
+            postOnly = (isEqual(timeInForce, "PO"));
+        }
+        object timestamp = this.safeInteger(outcomeOrder, "timestamp");
+        object datetime = this.safeString(outcomeOrder, "datetime");
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        object result = new Dictionary<string, object>() {
+            { "id", this.safeString(outcomeOrder, "id") },
+            { "clientOrderId", this.safeString(outcomeOrder, "clientOrderId") },
+            { "timestamp", timestamp },
+            { "datetime", datetime },
+            { "lastTradeTimestamp", lastTradeTimestamp },
+            { "lastUpdateTimestamp", this.safeInteger(outcomeOrder, "lastUpdateTimestamp") },
+            { "status", status },
+            { "type", orderType },
+            { "timeInForce", timeInForce },
+            { "side", side },
+            { "price", this.parseNumber(price) },
+            { "average", this.parseNumber(average) },
+            { "amount", this.parseNumber(amount) },
+            { "filled", this.parseNumber(filled) },
+            { "remaining", this.parseNumber(remaining) },
+            { "cost", this.parseNumber(cost) },
+            { "fee", fee },
+            { "reduceOnly", this.safeBool(outcomeOrder, "reduceOnly") },
+            { "postOnly", postOnly },
+            { "trades", trades },
+            { "outcome", this.safeString(outcomeOrder, "outcome") },
+            { "outcomeId", this.safeString(outcomeOrder, "outcomeId") },
+            { "label", this.safeString(outcomeOrder, "label") },
+            { "market", this.safeString(outcomeOrder, "market") },
+            { "event", this.safeString(outcomeOrder, "event") },
+            { "info", this.safeValue(outcomeOrder, "info", outcomeOrder) },
+        };
+        return result;
     }
 
-    public virtual object safePredictionTrade(object trade, object market = null)
+    public virtual object safePredictionTrade(object trade, object outcomeObj = null)
     {
-        object parsed = base.safeTrade(trade);
-        return this.toPredictionStructure(parsed, trade);
+        // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
+        object price = this.safeString(trade, "price");
+        object amount = this.safeString(trade, "amount");
+        object cost = this.safeString(trade, "cost");
+        if (isTrue(isTrue(isTrue((isEqual(cost, null))) && isTrue((!isEqual(price, null)))) && isTrue((!isEqual(amount, null)))))
+        {
+            cost = Precise.stringMul(price, amount);
+        }
+        object timestamp = this.safeInteger(trade, "timestamp");
+        object datetime = this.safeString(trade, "datetime");
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        object result = new Dictionary<string, object>() {
+            { "id", this.safeString(trade, "id") },
+            { "order", this.safeString(trade, "order") },
+            { "timestamp", timestamp },
+            { "datetime", datetime },
+            { "type", this.safeString(trade, "type") },
+            { "side", this.safeString(trade, "side") },
+            { "takerOrMaker", this.safeString(trade, "takerOrMaker") },
+            { "price", this.parseNumber(price) },
+            { "amount", this.parseNumber(amount) },
+            { "cost", this.parseNumber(cost) },
+            { "fee", this.safeDict(trade, "fee") },
+            { "realizedPnl", this.safeNumber(trade, "realizedPnl") },
+            { "outcome", this.safeString(trade, "outcome") },
+            { "outcomeId", this.safeString(trade, "outcomeId") },
+            { "label", this.safeString(trade, "label") },
+            { "market", this.safeString(trade, "market") },
+            { "info", this.safeValue(trade, "info", trade) },
+        };
+        return result;
     }
 
-    public virtual object safePredictionTicker(object ticker, object market = null)
+    public virtual object safePredictionTicker(object ticker, object outcomeObj = null)
     {
-        object parsed = base.safeTicker(ticker);
-        return this.toPredictionStructure(parsed, ticker);
+        // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
+        // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
+        // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
+        object open = this.omitZero(this.safeString(ticker, "open"));
+        object close = this.omitZero(this.safeString2(ticker, "close", "last"));
+        object last = this.omitZero(this.safeString2(ticker, "last", "close"));
+        object change = this.safeString(ticker, "change");
+        object percentage = this.omitZero(this.safeString(ticker, "percentage"));
+        object average = this.omitZero(this.safeString(ticker, "average"));
+        if (isTrue(isTrue(isTrue((isEqual(change, null))) && isTrue((!isEqual(open, null)))) && isTrue((!isEqual(close, null)))))
+        {
+            change = Precise.stringSub(close, open);
+        }
+        if (isTrue(isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(change, null)))) && isTrue((!isEqual(open, null)))) && isTrue(Precise.stringGt(open, "0"))))
+        {
+            percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
+        }
+        if (isTrue(isTrue(isTrue((isEqual(average, null))) && isTrue((!isEqual(open, null)))) && isTrue((!isEqual(close, null)))))
+        {
+            average = Precise.stringDiv(Precise.stringAdd(open, close), "2");
+        }
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        object datetime = this.safeString(ticker, "datetime");
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        object result = new Dictionary<string, object>() {
+            { "timestamp", timestamp },
+            { "datetime", datetime },
+            { "high", this.safeNumber(ticker, "high") },
+            { "low", this.safeNumber(ticker, "low") },
+            { "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))) },
+            { "bidVolume", this.safeNumber(ticker, "bidVolume") },
+            { "ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))) },
+            { "askVolume", this.safeNumber(ticker, "askVolume") },
+            { "open", this.parseNumber(open) },
+            { "close", this.parseNumber(close) },
+            { "last", this.parseNumber(last) },
+            { "change", this.parseNumber(change) },
+            { "percentage", this.parseNumber(percentage) },
+            { "average", this.parseNumber(average) },
+            { "baseVolume", this.safeNumber(ticker, "baseVolume") },
+            { "quoteVolume", this.safeNumber(ticker, "quoteVolume") },
+            { "openInterest", this.safeNumber(ticker, "openInterest") },
+            { "outcome", this.safeString(ticker, "outcome") },
+            { "outcomeId", this.safeString(ticker, "outcomeId") },
+            { "label", this.safeString(ticker, "label") },
+            { "market", this.safeString(ticker, "market") },
+            { "event", this.safeString(ticker, "event") },
+            { "info", this.safeValue(ticker, "info", ticker) },
+        };
+        return result;
     }
 
     public virtual object safePredictionPosition(object position)
     {
-        object parsed = base.safePosition(position);
-        return this.toPredictionStructure(parsed, position);
+        // build the prediction position directly (no crypto safePosition, which carries the whole
+        // leverage/marginMode/liquidation block the prediction type omits)
+        object timestamp = this.safeInteger(position, "timestamp");
+        object datetime = this.safeString(position, "datetime");
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        }
+        object result = new Dictionary<string, object>() {
+            { "id", this.safeString(position, "id") },
+            { "timestamp", timestamp },
+            { "datetime", datetime },
+            { "contracts", this.safeNumber(position, "contracts") },
+            { "contractSize", this.safeNumber(position, "contractSize") },
+            { "side", this.safeString(position, "side") },
+            { "notional", this.safeNumber(position, "notional") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealizedPnl") },
+            { "realizedPnl", this.safeNumber(position, "realizedPnl") },
+            { "collateral", this.safeNumber(position, "collateral") },
+            { "entryPrice", this.safeNumber(position, "entryPrice") },
+            { "markPrice", this.safeNumber(position, "markPrice") },
+            { "lastPrice", this.safeNumber(position, "lastPrice") },
+            { "percentage", this.safeNumber(position, "percentage") },
+            { "resolved", this.safeBool(position, "resolved") },
+            { "won", this.safeBool(position, "won") },
+            { "settleFraction", this.safeNumber(position, "settleFraction") },
+            { "payout", this.safeNumber(position, "payout") },
+            { "outcome", this.safeString(position, "outcome") },
+            { "outcomeId", this.safeString(position, "outcomeId") },
+            { "label", this.safeString(position, "label") },
+            { "market", this.safeString(position, "market") },
+            { "event", this.safeString(position, "event") },
+            { "info", this.safeValue(position, "info", position) },
+        };
+        return result;
     }
 
     public virtual object safePredictionOrderBook(object orderbook, object outcomeObj = null)
@@ -1226,25 +1654,6 @@ public partial class PredictionExchange : BaseExchange
     public virtual object parsePredictionOpenInterest(object interest, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parsePredictionOpenInterest() is not supported yet")) ;
-    }
-
-    public virtual object toPredictionStructure(object parsed, object raw)
-    {
-        // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
-        // and the other prediction fields (raw exchange id, label, parent market/event) that the
-        // base safe* helpers drop. the exchange parser passes them on the raw input dict.
-        ((IDictionary<string,object>)parsed)["outcome"] = this.safeString(raw, "outcome");
-        ((IDictionary<string,object>)parsed)["outcomeId"] = this.safeString(raw, "outcomeId");
-        ((IDictionary<string,object>)parsed)["label"] = this.safeString(raw, "label");
-        ((IDictionary<string,object>)parsed)["market"] = this.safeString(raw, "market");
-        ((IDictionary<string,object>)parsed)["event"] = this.safeString(raw, "event");
-        // guard the delete: a bare `delete` is a no-op on a missing key in JS, but transpiles to
-        // `del`/`unset` which raises in Python when the inherited `symbol` was never set
-        if (isTrue(inOp(parsed, "symbol")))
-        {
-            ((IDictionary<string,object>)parsed).Remove((string)"symbol");
-        }
-        return parsed;
     }
 
     /**
@@ -1546,6 +1955,19 @@ public partial class PredictionExchange
     public Dictionary<string, object> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the outcome cache.</returns>
+    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
+    {
+        var res = await this.fetchOutcomes(outcomeSymbols);
         return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)

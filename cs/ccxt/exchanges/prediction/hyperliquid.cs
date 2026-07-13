@@ -110,6 +110,7 @@ public partial class hyperliquid : PredictionExchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "prediction" },
+                { "loadAllOutcomes", true },
                 { "sandboxMode", false },
                 { "outcomeQuoteCurrency", "USDH" },
                 { "defaultSlippage", 0.05 },
@@ -757,10 +758,13 @@ public partial class hyperliquid : PredictionExchange
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(outcomes, null)))
         {
+            // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
+            // then identities resolve synchronously
+            await this.loadOutcomes(outcomes);
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                object requestedOutcomeObj = await this.loadOutcome(requested);
+                object requestedOutcomeObj = this.safeOutcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
@@ -1089,10 +1093,13 @@ public partial class hyperliquid : PredictionExchange
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(outcomes, null)))
         {
+            // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
+            // then identities resolve synchronously
+            await this.loadOutcomes(outcomes);
             for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                object requestedOutcomeObj = await this.loadOutcome(requested);
+                object requestedOutcomeObj = this.safeOutcome(requested);
                 object requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
@@ -2121,7 +2128,8 @@ public partial class hyperliquid : PredictionExchange
                     for (object wi = 0; isLessThan(wi, wordsLength); postFixIncrement(ref wi))
                     {
                         object word = getValue(words, wi);
-                        if (isTrue(isTrue((!isEqual(word, ""))) && isTrue((isEqual(getIndexOf(haystack, word), -1)))))
+                        // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
+                        if (isTrue(isTrue((!isEqual(word, ""))) && isTrue((isLessThan(getIndexOf(haystack, word), 0)))))
                         {
                             allWords = false;
                             break;

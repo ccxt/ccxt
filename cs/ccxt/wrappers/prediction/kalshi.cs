@@ -52,6 +52,20 @@ public partial class kalshi
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter (100 per request); anything left unresolved (handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/market/get-markets"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the outcome cache.</returns>
+    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
+    {
+        var res = await this.fetchOutcomes(outcomeSymbols);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches the current market price and bid/ask for a single kalshi outcome
     /// </summary>
     /// <remarks>
@@ -112,7 +126,7 @@ public partial class kalshi
         return new PredictionOpenInterest(res);
     }
     /// <summary>
-    /// fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
+    /// fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kalshi.com/api-reference/market/get-markets"/>  <br/>
@@ -650,10 +664,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
     /// <summary>
     /// resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
@@ -739,9 +753,9 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<Dictionary<string, object>> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PredictionEvent(res);
     }
 }

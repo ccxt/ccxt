@@ -117,6 +117,20 @@ public partial class polymarket
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// resolves several uncached outcomes at once — bare CLOB token ids are batched into gamma markets requests (repeated clob_token_ids params, 50 per request to keep the URL bounded); handle-shaped symbols fall back to the single fetch and its search path
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.polymarket.com/api-reference/markets/list-markets"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the outcome cache.</returns>
+    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
+    {
+        var res = await this.fetchOutcomes(outcomeSymbols);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches the current mid-price and best bid/ask for a single outcome token
     /// </summary>
     /// <remarks>
@@ -138,7 +152,7 @@ public partial class polymarket
         return new PredictionTicker(res);
     }
     /// <summary>
-    /// fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
+    /// fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints (200 per request pair)
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body"/>  <br/>
@@ -740,7 +754,7 @@ public partial class polymarket
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
     /// <summary>
-    /// fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
+    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles"/>  <br/>
@@ -794,13 +808,25 @@ public partial class polymarket
     /// string : direct lookup by event slug
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.searchPageSize</term>
+    /// <description>
+    /// int : search page size (gamma limit_per_type, default 100); lower it to shrink the download when a small limit is enough, higher to over-fetch before client-side status/title filtering
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.maxSearchPages</term>
+    /// <description>
+    /// int : max search pages to fetch when no limit is given (default 5), bounding a broad query
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
     /// <summary>
     /// fetches a single prediction-market event by its id or slug
@@ -818,10 +844,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<Dictionary<string, object>> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PredictionEvent(res);
     }
     /// <summary>
     /// creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key

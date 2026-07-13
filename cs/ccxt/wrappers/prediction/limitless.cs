@@ -53,10 +53,10 @@ public partial class limitless
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<Dictionary<string, object>> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PredictionEvent(res);
     }
     /// <summary>
     /// fetches the current price and best bid/ask for a single outcome token, combining the market detail and order book endpoints
@@ -80,7 +80,7 @@ public partial class limitless
         return new PredictionTicker(res);
     }
     /// <summary>
-    /// fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when outcomes is omitted
+    /// fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market (two requests per market: detail + order book)
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.limitless.exchange/api-reference/markets/get-market"/>  <br/>
@@ -559,7 +559,7 @@ public partial class limitless
         return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
-    /// fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
+    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.limitless.exchange/api-reference/markets/search"/>  <br/>
@@ -573,7 +573,7 @@ public partial class limitless
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single search term; when omitted, an eventId/slug does a direct lookup and any other scope (tags) pages the active-markets listing
+    /// string : a single search term; an eventId/slug does a direct lookup and tags resolve to limitless categories, paging only those categories' listings
     /// </description>
     /// </item>
     /// <item>
@@ -591,13 +591,13 @@ public partial class limitless
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
     /// <summary>
-    /// pages the active-markets listing, bounded by limit (or options.fetchMarketsLimit)
+    /// pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
     /// </summary>
     /// <remarks>
     /// <list type="table">
@@ -613,12 +613,43 @@ public partial class limitless
     /// int : max number of raw markets to collect
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>categoryId</term>
+    /// <description>
+    /// string : a limitless category id — pages only that category's listing
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> raw limitless market objects.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchRawActiveMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchRawActiveMarkets(Dictionary<string, object> parameters = null, string categoryId = null)
     {
-        var res = await this.fetchRawActiveMarkets(parameters);
+        var res = await this.fetchRawActiveMarkets(parameters, categoryId);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// resolves the requested tags to limitless categories via GET /categories, then pages only those categories' active listings server-side
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra exchange-specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : max number of raw markets to collect per category
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> raw limitless market objects, deduped by slug.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchRawMarketsByTags(List<string> tags, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchRawMarketsByTags(tags, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
 }

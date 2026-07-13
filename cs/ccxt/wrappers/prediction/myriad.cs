@@ -117,10 +117,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<Dictionary<string, object>> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PredictionEvent(res);
     }
     /// <summary>
     /// fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
@@ -831,7 +831,7 @@ public partial class myriad
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
     /// <summary>
-    /// fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
+    /// fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
@@ -845,7 +845,7 @@ public partial class myriad
     /// <item>
     /// <term>params.query</term>
     /// <description>
-    /// string : a single search term; when omitted, an eventId does a direct lookup and any other scope (tags) pages the markets listing
+    /// string : a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
     /// </description>
     /// </item>
     /// <item>
@@ -869,10 +869,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
     /// <summary>
     /// streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
