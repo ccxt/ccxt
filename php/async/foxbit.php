@@ -14,8 +14,6 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-use const ccxt\DECIMAL_PLACES;
-
 class foxbit extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(

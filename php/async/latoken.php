@@ -13,8 +13,6 @@ use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-use const ccxt\TICK_SIZE;
-
 class latoken extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(

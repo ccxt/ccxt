@@ -19,9 +19,6 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
-use const ccxt\TRUNCATE;
-use const ccxt\TICK_SIZE;
-
 class htx extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(

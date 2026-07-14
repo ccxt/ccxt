@@ -15,11 +15,6 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
-use const ccxt\TRUNCATE;
-use const ccxt\DECIMAL_PLACES;
-use const ccxt\TICK_SIZE;
-use const ccxt\NO_PADDING;
-
 class extended extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
