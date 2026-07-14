@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -12,7 +11,7 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestLiquidation extends BaseTest {
-    public static void testLiquidation(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
+    public static void testLiquidation(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );

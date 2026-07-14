@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,7 +10,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestProxies extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testProxies(BaseExchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testProxies(Exchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -24,7 +23,7 @@ public class TestProxies extends BaseTest {
         });
 
     }
-    public java.util.concurrent.CompletableFuture<Object> testProxyUrl(BaseExchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testProxyUrl(Exchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -40,7 +39,7 @@ public class TestProxies extends BaseTest {
         Object encodedColon = "%3A";
         Object encodedSlash = "%2F";
         Object ipCheckUrl = Helpers.add(Helpers.add(Helpers.add(Helpers.add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
-        Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
+        Object response = (exchange.fetch(ipCheckUrl)).join();
         Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
@@ -48,7 +47,7 @@ public class TestProxies extends BaseTest {
         });
 
     }
-    public java.util.concurrent.CompletableFuture<Object> testHttpProxy(BaseExchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testHttpProxy(Exchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -62,7 +61,7 @@ public class TestProxies extends BaseTest {
         var socksProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
         exchange.httpProxy = Helpers.add(Helpers.add("http://", proxyServerIp), ":8911");
         Object ipCheckUrl = "https://api.ipify.org/";
-        Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
+        Object response = (exchange.fetch(ipCheckUrl)).join();
         Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
@@ -71,7 +70,7 @@ public class TestProxies extends BaseTest {
 
     }
     // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw new RuntimeException(e)xception
-    public java.util.concurrent.CompletableFuture<Object> testProxyForExceptions(BaseExchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testProxyForExceptions(Exchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -96,7 +95,7 @@ public class TestProxies extends BaseTest {
                     Object exceptionCaught = false;
                     try
                     {
-                        ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{"http://example.com"})).join(); // url does not matter, it will not be called
+                        (exchange.fetch("http://example.com")).join(); // url does not matter, it will not be called
                     } catch(Exception e)
                     {
                         exceptionCaught = true;

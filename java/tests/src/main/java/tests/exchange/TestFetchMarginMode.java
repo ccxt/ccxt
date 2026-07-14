@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,13 +10,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchMarginMode extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchMarginMode(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchMarginMode(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchMarginMode";
-        Object marginMode = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginMode", new Object[]{symbol})).join();
+        Object marginMode = (exchange.fetchMarginMode(symbol)).join();
         TestMarginMode.testMarginMode(exchange, skippedProperties, method, marginMode);
         return true;
         });

@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,32 +10,8 @@ import io.github.ccxt.errors.*;
 
 
 public class TestPosition extends BaseTest {
-    public static void testPosition(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
+    public static void testPosition(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
     {
-        // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
-        // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
-        // leverage / margin / mark-price / liquidation / pnl fields that don't apply
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
-        {
-            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
-                put( "symbol", true );
-                put( "timestamp", true );
-                put( "datetime", true );
-                put( "leverage", true );
-                put( "initialMargin", true );
-                put( "initialMarginPercentage", true );
-                put( "maintenanceMargin", true );
-                put( "maintenanceMarginPercentage", true );
-                put( "entryPrice", true );
-                put( "notional", true );
-                put( "unrealizedPnl", true );
-                put( "marginRatio", true );
-                put( "liquidationPrice", true );
-                put( "markPrice", true );
-                put( "collateral", true );
-                put( "percentage", true );
-            }}, skippedProperties);
-        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "XYZ/USDT" );

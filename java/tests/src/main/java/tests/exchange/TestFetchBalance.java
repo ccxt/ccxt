@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,13 +10,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchBalance extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchBalance(BaseExchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testFetchBalance(Exchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchBalance";
-        Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
+        Object response = (exchange.fetchBalance()).join();
         TestBalance.testBalance(exchange, skippedProperties, method, response);
         return true;
         });

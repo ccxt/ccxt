@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,13 +10,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchLedgerEntry extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchLedgerEntry(BaseExchange exchange, Object skippedProperties, Object code)
+    public java.util.concurrent.CompletableFuture<Object> testFetchLedgerEntry(Exchange exchange, Object skippedProperties, Object code)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchLedgerEntry";
-        Object items = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
+        Object items = (exchange.fetchLedger(code)).join();
         Object length = Helpers.getArrayLength(items);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
@@ -26,7 +25,7 @@ public class TestFetchLedgerEntry extends BaseTest {
             Object id = Helpers.GetValue(firstItem, "id");
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
-                Object item = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id})).join();
+                Object item = (exchange.fetchLedgerEntry(id)).join();
                 Object now = exchange.milliseconds();
                 TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
             }

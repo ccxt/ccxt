@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,7 +10,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchPositions extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchPositions(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchPositions(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -19,7 +18,7 @@ public class TestFetchPositions extends BaseTest {
         Object method = "fetchPositions";
         Object now = exchange.milliseconds();
         // without symbol
-        Object positions = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{})).join();
+        Object positions = (exchange.fetchPositions()).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
@@ -27,7 +26,7 @@ public class TestFetchPositions extends BaseTest {
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
-        Object positionsForSymbol = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
+        Object positionsForSymbol = (exchange.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
         Assert(Helpers.isArray(positionsForSymbol), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
         Object positionsForSymbolLength = Helpers.getArrayLength(positionsForSymbol);
         Assert(Helpers.isLessThanOrEqual(positionsForSymbolLength, 4), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbol)));

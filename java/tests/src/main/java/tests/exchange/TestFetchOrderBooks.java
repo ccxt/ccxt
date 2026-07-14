@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,7 +10,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchOrderBooks extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchOrderBooks(BaseExchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testFetchOrderBooks(Exchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -20,7 +19,7 @@ public class TestFetchOrderBooks extends BaseTest {
         Object symbols = exchange.symbols;
         Assert(!Helpers.isEqual(symbols, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
         Object symbol = Helpers.GetValue(symbols, 0);
-        Object orderBooks = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
+        Object orderBooks = (exchange.fetchOrderBooks(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
         Assert(exchange.isDictionary(orderBooks), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a dict. "), exchange.json(orderBooks)));
         Object orderBookKeys = Helpers.objectKeys(orderBooks);
         Assert(Helpers.getArrayLength(orderBookKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " returned 0 length data"));

@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -12,7 +11,7 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestBalance extends BaseTest {
-    public static void testBalance(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testBalance(Exchange exchange, Object skippedProperties, Object method, Object entry)
     {
         Object format = new java.util.HashMap<String, Object>() {{
             put( "free", new java.util.HashMap<String, Object>() {{}} );

@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,13 +10,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchTicker extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchTicker(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchTicker(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchTicker";
-        Object ticker = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
+        Object ticker = (exchange.fetchTicker(symbol)).join();
         TestTicker.testTicker(exchange, skippedProperties, method, ticker, symbol);
         return true;
         });

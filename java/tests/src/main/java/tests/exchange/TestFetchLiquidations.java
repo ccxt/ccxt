@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,7 +10,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchLiquidations extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchLiquidations(BaseExchange exchange, Object skippedProperties, Object code)
+    public java.util.concurrent.CompletableFuture<Object> testFetchLiquidations(Exchange exchange, Object skippedProperties, Object code)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -21,7 +20,7 @@ public class TestFetchLiquidations extends BaseTest {
         {
             return true;
         }
-        Object items = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLiquidations", new Object[]{code})).join();
+        Object items = (exchange.fetchLiquidations(code)).join();
         Assert(Helpers.isArray(items), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)

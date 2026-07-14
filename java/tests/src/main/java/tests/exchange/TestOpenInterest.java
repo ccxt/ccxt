@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,7 +10,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestOpenInterest extends BaseTest {
-    public static void testOpenInterest(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testOpenInterest(Exchange exchange, Object skippedProperties, Object method, Object entry)
     {
         Object format = new java.util.HashMap<String, Object>() {{
             put( "symbol", "BTC/USDT" );

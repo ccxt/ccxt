@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,13 +10,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchBorrowInterest extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchBorrowInterest(BaseExchange exchange, Object skippedProperties, Object code, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchBorrowInterest(Exchange exchange, Object skippedProperties, Object code, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchBorrowInterest";
-        Object borrowInterest = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBorrowInterest", new Object[]{code, symbol})).join();
+        Object borrowInterest = (exchange.fetchBorrowInterest(code, symbol)).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(borrowInterest)); i++)
         {

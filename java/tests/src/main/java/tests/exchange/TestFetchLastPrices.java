@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,7 +10,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchLastPrices extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchLastPrices(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchLastPrices(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -22,10 +21,10 @@ public class TestFetchLastPrices extends BaseTest {
         Object checkedSymbol = null;
         try
         {
-            response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLastPrices", new Object[]{})).join();
+            response = (exchange.fetchLastPrices()).join();
         } catch(Exception e)
         {
-            response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLastPrices", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
+            response = (exchange.fetchLastPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
             checkedSymbol = symbol;
         }
         Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));

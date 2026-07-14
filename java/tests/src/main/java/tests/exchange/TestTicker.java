@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -12,23 +11,8 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestTicker extends BaseTest {
-    public static void testTicker(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
+    public static void testTicker(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
-        // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
-        // books where bid==ask and a stale `last` far from the median are normal — skip the
-        // crypto-oriented price-relationship checks for them. the PredictionTicker type also
-        // omits vwap/previousClose entirely, so their presence must not be Asserted
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
-        {
-            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
-                put( "symbol", true );
-                put( "spread", true );
-                put( "lastBetweenBidAsk", true );
-                put( "maxIncrease", true );
-                put( "vwap", true );
-                put( "previousClose", true );
-            }}, skippedProperties);
-        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "ETH/BTC" );

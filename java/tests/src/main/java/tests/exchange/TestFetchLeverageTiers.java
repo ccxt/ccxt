@@ -2,7 +2,6 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -11,13 +10,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchLeverageTiers extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchLeverageTiers(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchLeverageTiers(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchLeverageTiers";
-        Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol"))})).join();
+        Object tiers = (exchange.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol")))).join();
         // const format = {
         //     'RAY/USDT': [
         //       {},
