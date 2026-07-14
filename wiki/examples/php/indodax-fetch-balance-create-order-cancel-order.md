@@ -1,8 +1,5 @@
-- [Indodax Fetch Balance Create Order Cancel Order](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -64,5 +61,5 @@ $exchange->cancel_order($buy_order1['id'], $symbol);
 $exchange->cancel_order($buy_order2['id'], $symbol);
 $exchange->cancel_order($sell_order1['id'], $symbol);
 $exchange->cancel_order($sell_order2['id'], $symbol);
- 
+
 ```

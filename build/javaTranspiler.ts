@@ -1,15 +1,17 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -19,8 +21,6 @@ import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 ansi.nice
 
 type dict = { [key: string]: string }
-
-const promisedWriteFile = promisify(fs.writeFile);
 
 let exchanges = JSON.parse(fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
@@ -36,7 +36,7 @@ function overwriteFileAndFolder(path: string, content: string) {
         checkCreateFolder(path);
     }
     overwriteFile(path, content);
-    writeFile(path, content);
+    fs.writeFileSync(path, content);
 }
 
 // User-facing typed-wrapper methods that ship BOTH a typed sync overload
@@ -618,6 +618,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -716,7 +718,8 @@ class NewTranspiler {
     }
 
     createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
@@ -889,7 +892,9 @@ class NewTranspiler {
         const javaExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
-        const baseFile: any = this.transpiler.transpileJavaByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // custom transformations needed for Java
@@ -905,6 +910,9 @@ class NewTranspiler {
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
         baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        // Strip invalid parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
+        // (see createJavaClass for the full rationale).
+        baseClass = baseClass.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
         // Null-safe Array.isArray (see Helpers.isArrayJs comment).
         baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
 
@@ -2659,7 +2667,7 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file));
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all(transpiledFiles.map((file, idx) => promisedWriteFile(outDir + file[0] + '.java', file[1])))
+        await Promise.all(transpiledFiles.map((file, idx) => writeFile(outDir + file[0] + '.java', file[1])))
     }
 
     transpileBaseTestsToJava() {
@@ -2701,8 +2709,14 @@ class NewTranspiler {
                 [/\s*public\sObject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
                 [/testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual'], // deepEqual added
             ]).trim()
-            // cast callDynamically to CompletableFuture when .join() is called on the result
-            content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        // cast callDynamically to CompletableFuture when .join() is called on the result
+        content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`.
+        // ast-transpiler 0.0.86 emits this invalid form when destructuring the tuple return
+        // of a method called with its optional trailing arg (handleSubTypeAndParams(..., 'linear')).
+        // Java never needs parens around the callee. Anchored on `)(` right after the name so
+        // it never touches the valid whole-call form `(this.watch(...)).join()`.
+        content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
             // Null-safe Array.isArray (see Helpers.isArrayJs comment).
             content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
@@ -3010,7 +3024,7 @@ class NewTranspiler {
             if (filename === 'test.sharedMethods') {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/public void /g, 'public static void '], // make tests static
-                    [/public java.util.concurrent.CompletableFuture<Object> /g, 'public static java.util.concurrent.CompletableFuture<Object> '], // make tests static
+                    [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
                 // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');

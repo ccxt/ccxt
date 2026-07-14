@@ -29,7 +29,7 @@ export default class bingx extends bingxRest {
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: any): Ticker;
+    parseWsTicker(message: any, market?: Market): Ticker;
     getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     /**
@@ -70,7 +70,7 @@ export default class bingx extends bingxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -82,12 +82,12 @@ export default class bingx extends bingxRest {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method

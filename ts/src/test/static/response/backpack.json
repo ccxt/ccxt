@@ -2106,44 +2106,180 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetch trades with since and limit parameters",
+                "description": "+since +limit",
                 "method": "fetchTrades",
                 "input": [
                     "ETH/USDC",
-                    1757604778000,
-                    1
+                    1770000000000,
+                    5
                 ],
                 "httpResponse": [
                     {
-                        "id": "3530359",
+                        "id": "7558558",
                         "isBuyerMaker": true,
-                        "price": "4423.77",
-                        "quantity": "0.2212",
-                        "quoteQuantity": "978.537924",
-                        "timestamp": "1757619706067"
+                        "price": "1626.15",
+                        "quantity": "0.0333",
+                        "quoteQuantity": "54.150795",
+                        "timestamp": "1781067801978"
+                    },
+                    {
+                        "id": "7558557",
+                        "isBuyerMaker": true,
+                        "price": "1626.24",
+                        "quantity": "0.1311",
+                        "quoteQuantity": "213.200064",
+                        "timestamp": "1781067801927"
+                    },
+                    {
+                        "id": "7558556",
+                        "isBuyerMaker": true,
+                        "price": "1626.3",
+                        "quantity": "0.0005",
+                        "quoteQuantity": "0.81315",
+                        "timestamp": "1781067801813"
+                    },
+                    {
+                        "id": "7558555",
+                        "isBuyerMaker": false,
+                        "price": "1624",
+                        "quantity": "0.0376",
+                        "quoteQuantity": "61.0624",
+                        "timestamp": "1781067762954"
+                    },
+                    {
+                        "id": "7558554",
+                        "isBuyerMaker": false,
+                        "price": "1624",
+                        "quantity": "0.1684",
+                        "quoteQuantity": "273.4816",
+                        "timestamp": "1781067762954"
                     }
                 ],
                 "parsedResponse": [
                     {
                         "info": {
-                            "id": "3530359",
-                            "isBuyerMaker": true,
-                            "price": "4423.77",
-                            "quantity": "0.2212",
-                            "quoteQuantity": "978.537924",
-                            "timestamp": "1757619706067"
+                            "id": "7558554",
+                            "isBuyerMaker": false,
+                            "price": "1624",
+                            "quantity": "0.1684",
+                            "quoteQuantity": "273.4816",
+                            "timestamp": "1781067762954"
                         },
-                        "timestamp": 1757619706067,
-                        "datetime": "2025-09-11T19:41:46.067Z",
+                        "timestamp": 1781067762954,
+                        "datetime": "2026-06-10T05:02:42.954Z",
                         "symbol": "ETH/USDC",
-                        "id": "3530359",
+                        "id": "7558554",
                         "order": null,
                         "type": null,
-                        "side": null,
+                        "side": "buy",
                         "takerOrMaker": "taker",
-                        "price": 4423.77,
-                        "amount": 0.2212,
-                        "cost": 978.537924,
+                        "price": 1624,
+                        "amount": 0.1684,
+                        "cost": 273.4816,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558555",
+                            "isBuyerMaker": false,
+                            "price": "1624",
+                            "quantity": "0.0376",
+                            "quoteQuantity": "61.0624",
+                            "timestamp": "1781067762954"
+                        },
+                        "timestamp": 1781067762954,
+                        "datetime": "2026-06-10T05:02:42.954Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558555",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 1624,
+                        "amount": 0.0376,
+                        "cost": 61.0624,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558556",
+                            "isBuyerMaker": true,
+                            "price": "1626.3",
+                            "quantity": "0.0005",
+                            "quoteQuantity": "0.81315",
+                            "timestamp": "1781067801813"
+                        },
+                        "timestamp": 1781067801813,
+                        "datetime": "2026-06-10T05:03:21.813Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558556",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.3,
+                        "amount": 0.0005,
+                        "cost": 0.81315,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558557",
+                            "isBuyerMaker": true,
+                            "price": "1626.24",
+                            "quantity": "0.1311",
+                            "quoteQuantity": "213.200064",
+                            "timestamp": "1781067801927"
+                        },
+                        "timestamp": 1781067801927,
+                        "datetime": "2026-06-10T05:03:21.927Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558557",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.24,
+                        "amount": 0.1311,
+                        "cost": 213.200064,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "7558558",
+                            "isBuyerMaker": true,
+                            "price": "1626.15",
+                            "quantity": "0.0333",
+                            "quoteQuantity": "54.150795",
+                            "timestamp": "1781067801978"
+                        },
+                        "timestamp": 1781067801978,
+                        "datetime": "2026-06-10T05:03:21.978Z",
+                        "symbol": "ETH/USDC",
+                        "id": "7558558",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1626.15,
+                        "amount": 0.0333,
+                        "cost": 54.150795,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -2705,7 +2841,7 @@
                     "last": 4182.41,
                     "previousClose": null,
                     "change": -20.46,
-                    "percentage": -0.004868,
+                    "percentage": -0.4868,
                     "average": 4192.64,
                     "baseVolume": 6732.4927,
                     "quoteVolume": 28695174.189628,
@@ -2718,6 +2854,60 @@
                         "low": "4161.84",
                         "priceChange": "-20.46",
                         "priceChangePercent": "-0.004868",
+                        "quoteVolume": "28695174.189628",
+                        "symbol": "ETH_USDC",
+                        "trades": "24843",
+                        "volume": "6732.4927"
+                    }
+                }
+            },
+            {
+                "description": "Fetch ticker with a malformed percentage",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "httpResponse": {
+                    "firstPrice": "4202.87",
+                    "high": "4349.75",
+                    "lastPrice": "4182.41",
+                    "low": "4161.84",
+                    "priceChange": "-20.46",
+                    "priceChangePercent": "N/A",
+                    "quoteVolume": "28695174.189628",
+                    "symbol": "ETH_USDC",
+                    "trades": "24843",
+                    "volume": "6732.4927"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 4349.75,
+                    "low": 4161.84,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 4262.1916529709715,
+                    "open": 4202.87,
+                    "close": 4182.41,
+                    "last": 4182.41,
+                    "previousClose": null,
+                    "change": -20.46,
+                    "percentage": -0.4868102035037962,
+                    "average": 4192.64,
+                    "baseVolume": 6732.4927,
+                    "quoteVolume": 28695174.189628,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "firstPrice": "4202.87",
+                        "high": "4349.75",
+                        "lastPrice": "4182.41",
+                        "low": "4161.84",
+                        "priceChange": "-20.46",
+                        "priceChangePercent": "N/A",
                         "quoteVolume": "28695174.189628",
                         "symbol": "ETH_USDC",
                         "trades": "24843",
@@ -2762,7 +2952,7 @@
                         "last": 4178.82,
                         "previousClose": null,
                         "change": -22.77,
-                        "percentage": -0.005419,
+                        "percentage": -0.5419,
                         "average": 4190.2,
                         "baseVolume": 6488.015,
                         "quoteVolume": 27673235.445972,

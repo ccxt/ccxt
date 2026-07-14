@@ -216,7 +216,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();
@@ -312,7 +315,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object request = new Dictionary<string, object>() {
             { "orderIds", ids },
@@ -332,7 +338,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         return await this.tradeRequest("cancelAllOrders", parameters);
     }
@@ -378,7 +387,10 @@ public partial class poloniex : ccxt.poloniex
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         object channel = this.safeString(timeframes, timeframe, timeframe);
         if (isTrue(isEqual(channel, null)))
@@ -405,7 +417,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return this.safeValue(tickers, symbol);
@@ -423,7 +438,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "ticker";
         symbols = this.marketSymbols(symbols);
         object newTickers = await this.subscribe(name, name, false, symbols, parameters);
@@ -465,7 +483,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object name = "trades";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -502,12 +523,15 @@ public partial class poloniex : ccxt.poloniex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
         object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
         var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
@@ -531,7 +555,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "orders";
         await this.authenticate();
         if (isTrue(!isEqual(symbol, null)))
@@ -561,7 +588,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "orders";
         object messageHash = "myTrades";
         await this.authenticate();
@@ -589,7 +619,10 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "balances";
         await this.authenticate();
         return await this.subscribe(name, name, true, null, parameters);
@@ -648,7 +681,7 @@ public partial class poloniex : ccxt.poloniex
         object messageHash = add(add(channel, "::"), symbol);
         object parsed = this.parseWsOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = ((bool) isTrue((isEqual(timeframe, null)))) ? null : this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(!isEqual(symbol, null)))
         {
             if (isTrue(isEqual(stored, null)))
@@ -693,7 +726,7 @@ public partial class poloniex : ccxt.poloniex
                 object symbol = getValue(trade, "symbol");
                 object type = "trades";
                 object messageHash = add(add(type, "::"), symbol);
-                object tradesArray = this.safeValue(this.trades, symbol);
+                object tradesArray = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
                 if (isTrue(isEqual(tradesArray, null)))
                 {
                     object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -896,8 +929,8 @@ public partial class poloniex : ccxt.poloniex
             if (isTrue(!isEqual(marketId, null)))
             {
                 object symbol = this.safeSymbol(marketId);
-                object orderId = this.safeString(order, "orderId");
-                object clientOrderId = this.safeString(order, "clientOrderId");
+                object orderId = this.safeString(order, "orderId", "");
+                object clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (isTrue(isTrue(isEqual(eventType, "place")) || isTrue(isEqual(eventType, "canceled"))))
                 {
                     object parsed = this.parseWsOrder(order);
@@ -947,13 +980,13 @@ public partial class poloniex : ccxt.poloniex
                         ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
                             { "cost", 0 },
-                            { "currency", getValue(getValue(trade, "fee"), "currency") },
+                            { "currency", this.safeString(getValue(trade, "fee"), "currency") },
                         };
                     }
-                    if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(getValue(getValue(trade, "fee"), "cost"), null)))))
+                    if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(this.safeNumber(getValue(trade, "fee"), "cost"), null)))))
                     {
                         object stringOrderCost = this.numberToString(getValue(getValue(previousOrder, "fee"), "cost"));
-                        object stringTradeCost = this.numberToString(getValue(getValue(trade, "fee"), "cost"));
+                        object stringTradeCost = this.numberToString(this.safeNumber(getValue(trade, "fee"), "cost"));
                         ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     object rawState = this.safeString(order, "state");
@@ -1333,7 +1366,7 @@ public partial class poloniex : ccxt.poloniex
             { "cancelAllOrders", this.handleOrderRequest },
             { "auth", this.handleAuthenticate },
         };
-        object method = this.safeValue(methods, type);
+        object method = ((bool) isTrue((isEqual(type, null)))) ? null : this.safeValue(methods, type);
         if (isTrue(isEqual(type, "auth")))
         {
             this.handleAuthenticate(client as WebSocketClient, message);

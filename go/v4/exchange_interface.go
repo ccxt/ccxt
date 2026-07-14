@@ -54,7 +54,7 @@ type IBaseExchange interface {
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
 	Throttle(cost any) <-chan any
-	Close() []error
+	Close(cleanInstanceCache ...any) []error
 	ParseTimeframe(timeframe any) any
 	// methods from base
 }
@@ -120,6 +120,7 @@ type ICoreExchange interface {
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) any
 	Nonce() any
+	Unique(obj any) []any
 	FetchTime(optionalArgs ...any) <-chan any
 	FetchCurrencies(optionalArgs ...any) <-chan any
 	FetchMarkets(optionalArgs ...any) <-chan any
@@ -182,6 +183,7 @@ type ICoreExchange interface {
 	FetchOrderBooks(optionalArgs ...any) <-chan any
 	FetchTickers(optionalArgs ...any) <-chan any
 	FetchTrades(symbol any, optionalArgs ...any) <-chan any
+	FetchTransfers(optionalArgs ...any) <-chan any
 	FetchWithdrawals(optionalArgs ...any) <-chan any
 	Currency(code any) any
 	ParseDate(datetime2 any) any
@@ -190,6 +192,8 @@ type ICoreExchange interface {
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
+	NetworkCodeToId(networkCode any, optionalArgs ...any) any
+	NetworkIdToCode(optionalArgs ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
 	SafeString2(obj any, key any, key2 any, defaultValue ...any) any
@@ -199,7 +203,7 @@ type ICoreExchange interface {
 	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any
 	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any
 	SafeFloat(obj any, key any, defaultValue ...any) any
-	SafeStringLowerN(obj any, keys2 any, defaultValue ...any) any
+	SafeStringLowerN(obj any, keys []any, defaultValue ...any) any
 	SafeStringUpperN(obj any, keys []any, defaultValue ...any) any
 	SafeInteger(obj any, key any, defaultValue ...any) any
 	SafeStringUpper(obj any, key any, defaultValue ...any) any
@@ -325,7 +329,9 @@ type ICoreExchange interface {
 	WatchTrades(symbol any, optionalArgs ...any) <-chan any
 	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any
-	Close() []error
+	Close(cleanInstanceCache ...any) []error
+	CleanWsData()
+	CleanRestData()
 	ParseTimeframe(timeframe any) any
 }
 
@@ -363,7 +369,7 @@ type IDerivedExchange interface {
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	FetchMarginModes(optionalArgs ...any) <-chan any
 	FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
-	ParseBidsAsks(bidasks any, optionalArgs ...any) any
+	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeverages(optionalArgs ...any) <-chan any
 	SafeMarket(optionalArgs ...any) any
 	FetchTickers(optionalArgs ...any) <-chan any

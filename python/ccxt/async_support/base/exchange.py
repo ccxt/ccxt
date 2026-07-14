@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.65'
 
 # -----------------------------------------------------------------------------
 
@@ -42,9 +42,11 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 # -----------------------------------------------------------------------------
 
 try:
-    from aiohttp_socks import ProxyConnector as SocksProxyConnector
+    # patches aiohttp to use zlib-ng for gzip/deflate (~2x faster decompression)
+    import aiohttp_fast_zlib
+    aiohttp_fast_zlib.enable()
 except ImportError:
-    SocksProxyConnector = None
+    pass
 
 # -----------------------------------------------------------------------------
 
@@ -52,15 +54,6 @@ __all__ = [
     'BaseExchange',
     'Exchange',
 ]
-
-# -----------------------------------------------------------------------------
-# --- PROTO BUF IMPORTS
-try:
-    from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
-    from google.protobuf.json_format import MessageToDict
-except ImportError:
-    PushDataV3ApiWrapper_pb2 = None
-    MessageToDict = None
 
 # -----------------------------------------------------------------------------
 
@@ -136,8 +129,10 @@ class Exchange(BaseExchange):
             self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
-    async def close(self):
-        await self.ws_close()
+    async def close(self, clean_instance_data=False):
+        # ##### language-specific cleanup of WS & REST resources #####
+        # [WS]
+        await self.close_ws_clients()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -145,6 +140,11 @@ class Exchange(BaseExchange):
         await self.close_connector()
         await self.close_proxy_sessions()
         await self.sleep(self.timeout_on_exit)
+        if clean_instance_data:
+            self.clean_ws_data()
+        # [REST]
+        if clean_instance_data:
+            self.clean_rest_data()
 
     async def close_connector(self):
         if self.tcp_connector is not None:
@@ -180,8 +180,6 @@ class Exchange(BaseExchange):
         elif httpsProxy:
             final_proxy = httpsProxy
         elif socksProxy:
-            if SocksProxyConnector is None:
-                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # override session
             if (self.socks_proxy_sessions is None):
                 self.socks_proxy_sessions = {}
@@ -300,6 +298,10 @@ class Exchange(BaseExchange):
         if (socksProxy not in self.socks_proxy_sessions):
             reverse_dns = socksProxy.startswith('socks5h://')
             socks_proxy_selected = socksProxy if not reverse_dns else socksProxy.replace('socks5h://', 'socks5://')
+            try:
+                from aiohttp_socks import ProxyConnector as SocksProxyConnector
+            except ImportError:
+                raise NotSupported(self.id + ' - SOCKS proxy requires "aiohttp_socks" module, install it with "pip install aiohttp_socks"')
             self.aiohttp_socks_connector = SocksProxyConnector.from_url(
                 socks_proxy_selected,
                 # extra args copied from self.open()
@@ -576,7 +578,7 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    async def ws_close(self):
+    async def close_ws_clients(self):
         if self.clients:
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
@@ -613,8 +615,11 @@ class Exchange(BaseExchange):
         return format(n, 'g')
 
     def decode_proto_msg(self, data):
-        if not MessageToDict:
-            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
+        try:
+            from google.protobuf.json_format import MessageToDict
+        except ImportError:
+            raise NotSupported(self.id + ' requires protobuf to decode messages, install it with `pip install "protobuf==5.29.5"`')
+        from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
         message.ParseFromString(data)
         dict_msg = MessageToDict(message)
@@ -768,7 +773,7 @@ class Exchange(BaseExchange):
     async def fetch_margin_modes(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
-    async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
+    async def fetch_rest_order_book_safe(self, symbol, limit: Int = None, params={}):
         fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
@@ -1007,15 +1012,26 @@ class Exchange(BaseExchange):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
         retryDelay = None
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
+        fetchData = None
+        fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
+            if fetchDataCacheEnabled:
+                fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
-                self.lastRestRequestTimestamp = self.milliseconds()
+                self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
-                self.last_request_headers = request['headers']
-                self.last_request_body = request['body']
-                self.last_request_url = request['url']
-                return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                if fetchDataCacheEnabled:
+                    fetchData['request'] = request
+                self.set_last_request(request)
+                response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                if fetchDataCacheEnabled:
+                    fetchData['response']['body'] = response
+                    self.add_fetch_cache(fetchData)
+                return response
             except Exception as e:
+                if fetchDataCacheEnabled:
+                    fetchData['error'] = e
+                    self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
@@ -1827,7 +1843,7 @@ class Exchange(BaseExchange):
                 return self.safe_dict(addressStructures, network)
             else:
                 keys = list(addressStructures.keys())
-                key = self.safe_string(keys, 0)
+                key = keys[0]
                 return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
@@ -2015,7 +2031,7 @@ class Exchange(BaseExchange):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
-            request: dict = {
+            request = {
                 'price': 'mark',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -2033,7 +2049,7 @@ class Exchange(BaseExchange):
  @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
-            request: dict = {
+            request = {
                 'price': 'index',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -2051,7 +2067,7 @@ class Exchange(BaseExchange):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
-            request: dict = {
+            request = {
                 'price': 'premiumIndex',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -2129,7 +2145,7 @@ class Exchange(BaseExchange):
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
-                    paginationTimestamp = self.safe_integer(last, 'timestamp') + 1
+                    paginationTimestamp = self.safe_integer(last, 'timestamp', 0) + 1
                     if (until is not None) and (paginationTimestamp >= until):
                         break
             except Exception as e:
@@ -2161,7 +2177,7 @@ class Exchange(BaseExchange):
                     raise e
         return []
 
-    async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
@@ -2194,7 +2210,7 @@ class Exchange(BaseExchange):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
-    async def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since=None, limit=None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -2238,7 +2254,7 @@ class Exchange(BaseExchange):
                     index = responseLength - j - 1
                     entry = self.safe_dict(response, index)
                     info = self.safe_dict(entry, 'info')
-                    cursor = self.safe_value(info, cursorReceived)
+                    cursor = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
                     if cursor is not None:
                         cursorValue = cursor
                         break
@@ -2256,7 +2272,7 @@ class Exchange(BaseExchange):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
 
-    async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since=None, limit=None, params={}, pageKey=None, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -2401,7 +2417,7 @@ class Exchange(BaseExchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
 

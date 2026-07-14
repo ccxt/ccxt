@@ -1,5 +1,8 @@
 name: PHP
 
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
 on:
   workflow_dispatch:
   push:
@@ -33,7 +36,7 @@ jobs:
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
@@ -73,6 +76,8 @@ jobs:
         done
     - name: Post-transpile (syntax check)
       run: npm run check-php-syntax
+    - name: Post-transpile (style check)
+      run: npm run check-php-style
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-php
@@ -123,7 +128,9 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add php/
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
+          git pull origin master
+          git add php/ examples/php
           git commit -m "[Automated changes] PHP files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false

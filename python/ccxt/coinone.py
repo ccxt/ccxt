@@ -374,7 +374,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request: dict = {
+        request = {
             'quote_currency': 'KRW',
         }
         response = self.v2PublicGetTickerNewQuoteCurrency(request)
@@ -473,7 +473,7 @@ class coinone(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
             'result',
@@ -499,7 +499,8 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v2PrivatePostAccountBalance(params)
         return self.parse_balance(response)
 
@@ -512,11 +513,12 @@ class coinone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -560,9 +562,10 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'quote_currency': 'KRW',
         }
         market = None
@@ -621,9 +624,10 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -796,9 +800,10 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -843,9 +848,10 @@ class coinone(Exchange, ImplicitAPI):
         """
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'price': price,
             'currency': market['id'],
             'qty': amount,
@@ -871,9 +877,10 @@ class coinone(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'currency': market['id'],
         }
@@ -902,7 +909,7 @@ class coinone(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -1030,9 +1037,10 @@ class coinone(Exchange, ImplicitAPI):
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = self.privatePostOrderLimitOrders(self.extend(request, params))
@@ -1067,9 +1075,10 @@ class coinone(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
@@ -1105,16 +1114,15 @@ class coinone(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
-            # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
         price = self.safe_number(params, 'price')
         qty = self.safe_number(params, 'qty')
         isAsk = self.safe_integer(params, 'is_ask')
         if (price is None) or (qty is None) or (isAsk is None):
-            # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1137,7 +1145,8 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v2PrivatePostAccountDepositAddress(params)
         #
         #     {
@@ -1155,7 +1164,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         walletAddress = self.safe_dict(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]
@@ -1184,7 +1193,7 @@ class coinone(Exchange, ImplicitAPI):
             result[code] = depositAddress
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'

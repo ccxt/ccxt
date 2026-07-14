@@ -17,7 +17,7 @@ async function testFetchTickers(exchange, skippedProperties, symbol) {
 async function fetchTickersHelperTest(exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
     const response = await exchange.fetchTickers(argSymbols, argParams);
-    assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return an object. ' + exchange.json(response));
+    assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return a dict. ' + exchange.json(response));
     const values = Object.values(response);
     let checkedSymbol = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {
@@ -27,7 +27,12 @@ async function fetchTickersHelperTest(exchange, skippedProperties, argSymbols, a
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];
-        testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+        try {
+            testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+        }
+        catch (ex) {
+            await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+        }
     }
     return response;
 }

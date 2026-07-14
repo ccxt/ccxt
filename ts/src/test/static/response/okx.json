@@ -2004,9 +2004,9 @@
                                     "wdTickSz": "6"
                                 }
                             },
-                            "Plasma": {
+                            "PLASMA": {
                                 "id": "USDT-Plasma",
-                                "network": "Plasma",
+                                "network": "PLASMA",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -2412,9 +2412,9 @@
                                     "wdTickSz": "6"
                                 }
                             },
-                            "OPTIMISM": {
+                            "OP": {
                                 "id": "USDT-Optimism",
-                                "network": "OPTIMISM",
+                                "network": "OP",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -3989,9 +3989,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "OPTIMISM": {
+                            "OP": {
                                 "id": "ETH-Optimism",
-                                "network": "OPTIMISM",
+                                "network": "OP",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -8726,11 +8726,11 @@
                             "selected": true
                         }
                     },
-                    "OPTIMISM": {
+                    "OP": {
                         "currency": "USDT",
                         "address": "add1",
                         "tag": null,
-                        "network": "OPTIMISM",
+                        "network": "OP",
                         "info": {
                             "chain": "USDT-Optimism",
                             "ctAddr": "e58e58",

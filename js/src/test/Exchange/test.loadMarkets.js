@@ -9,7 +9,7 @@ import testMarket from './base/test.market.js';
 async function testLoadMarkets(exchange, skippedProperties) {
     const method = 'loadMarkets';
     const markets = await exchange.loadMarkets();
-    assert(typeof exchange.markets === 'object', '.markets is not an object');
+    assert(exchange.isDictionary(exchange.markets), '.markets is not a dict');
     assert(Array.isArray(exchange.symbols), '.symbols is not an array');
     const symbolsLength = exchange.symbols.length;
     const marketKeys = Object.keys(exchange.markets);

@@ -1,8 +1,5 @@
-- [Fetch Ohlcv Many Exchanges Continuosly](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // fetch and handle constinuosly
 function fetch_ohlcv_continuously($exchange, $symbol) {
     return Async\async(function () use ($exchange, $symbol) {
@@ -71,5 +67,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

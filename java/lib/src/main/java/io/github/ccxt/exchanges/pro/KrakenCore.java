@@ -175,11 +175,11 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
         Object isTrailingLimitAmountOrder = !Helpers.isEqual(trailingLimitAmount, null);
         Object isTrailingLimitPercentOrder = !Helpers.isEqual(trailingLimitPercent, null);
-        Object offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
-        Object trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingAmount)) : null;
-        Object trailingPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))))) ? Helpers.add(offset, this.numberToString(trailingPercent)) : null;
-        Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
-        Object trailingLimitPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitPercent, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitPercent)) : null;
+        Object offset = ((String)this.safeString(parameters, "offset", "")); // can set this to - for minus
+        Object trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingAmount))) : null;
+        Object trailingPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingPercent))) : null;
+        Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingLimitAmount))) : null;
+        Object trailingLimitPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitPercent, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingLimitPercent))) : null;
         Object priceType = ((Helpers.isTrue((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))))) ? "pct" : "quote";
         if (Helpers.isTrue(Helpers.isEqual(method, "createOrderWs")))
         {
@@ -318,7 +318,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#createOrderWs
      * @description create a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -339,7 +339,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object market = this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateV2");
             Object requestId = this.requestId();
-            Object messageHash = this.numberToString(requestId);
+            Object messageHash = ((String)this.numberToString(requestId));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "add_order" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -397,7 +397,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#editOrderWs
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -419,7 +419,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateV2");
             Object requestId = this.requestId();
-            Object messageHash = this.numberToString(requestId);
+            Object messageHash = ((String)this.numberToString(requestId));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "amend_order" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -441,7 +441,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#cancelOrdersWs
      * @description cancel multiple orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -462,7 +462,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateV2");
             Object requestId = this.requestId();
-            Object messageHash = this.numberToString(requestId);
+            Object messageHash = ((String)this.numberToString(requestId));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "cancel_order" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -480,7 +480,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#cancelOrderWs
      * @description cancels an open order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -501,7 +501,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateV2");
             Object requestId = this.requestId();
-            Object messageHash = this.numberToString(requestId);
+            Object messageHash = ((String)this.numberToString(requestId));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "cancel_order" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -537,7 +537,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#cancelAllOrdersWs
      * @description cancel all open orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -557,7 +557,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object token = (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateV2");
             Object requestId = this.requestId();
-            Object messageHash = this.numberToString(requestId);
+            Object messageHash = ((String)this.numberToString(requestId));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "cancel_all" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -614,7 +614,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object ticker = Helpers.GetValue(data, 0);
-        Object symbol = this.safeString(ticker, "symbol");
+        Object symbol = ((String)this.safeString(ticker, "symbol"));
         Object messageHash = this.getMessageHash("ticker", null, symbol);
         Object vwap = this.safeString(ticker, "vwap");
         Object quoteVolume = null;
@@ -674,7 +674,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trade = Helpers.GetValue(data, 0);
-        Object symbol = this.safeString(trade, "symbol");
+        Object symbol = ((String)this.safeString(trade, "symbol"));
         Object messageHash = this.getMessageHash("trade", null, symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -725,7 +725,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
         Object interval = this.safeInteger(first, "interval");
-        Object timeframe = this.findTimeframe(interval);
+        Object timeframe = ((String)this.findTimeframe(interval));
         Object messageHash = this.getMessageHash("ohlcv", null, symbol);
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
@@ -739,7 +739,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
             Object candle = Helpers.GetValue(data, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
-            Object datetime = this.safeString(candle, "timestamp");
+            Object datetime = this.safeString(candle, "interval_begin");
             Object timestamp = this.parse8601(datetime);
             Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -762,7 +762,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -785,7 +785,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -815,7 +815,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -846,7 +846,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -870,7 +870,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -901,11 +901,11 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -923,11 +923,11 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
@@ -960,7 +960,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1017,13 +1017,17 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketsByWsName, null))) || Helpers.isTrue(reload)))
             {
                 marketsByWsName = new java.util.HashMap<String, Object>() {{}};
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+                Object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object symbol = Helpers.GetValue(this.symbols, i);
-                    Object market = Helpers.GetValue(this.markets, symbol);
-                    Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
-                    Object wsName = this.safeString(info, "wsname");
-                    Helpers.addElementToObject(marketsByWsName, wsName, market);
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                    {
+                        Object symbol = Helpers.GetValue(symbols, i);
+                        Object market = Helpers.GetValue(this.markets, symbol);
+                        Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
+                        Object wsName = ((String)this.safeString(info, "wsname"));
+                        Helpers.addElementToObject(marketsByWsName, wsName, market);
+                    }
                 }
                 Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
             }
@@ -1137,7 +1141,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object type = this.safeString(message, "type");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
-        Object symbol = this.safeString(first, "symbol");
+        Object symbol = ((String)this.safeString(first, "symbol"));
         Object a = this.safeValue(first, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object b = this.safeValue(first, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object c = this.safeInteger(first, "checksum");
@@ -1233,8 +1237,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
     public Object formatNumber(Object data)
     {
         Object parts = Helpers.split(data, ".");
-        Object integer = this.safeString(parts, 0);
-        Object decimals = this.safeString(parts, 1, "");
+        Object integer = ((String)this.safeString(parts, 0));
+        Object decimals = ((String)this.safeString(parts, 1, ""));
         Object joinedResult = Helpers.add(integer, decimals);
         Object i = 0;
         while (Helpers.isEqual(Helpers.GetValue(joinedResult, i), "0"))
@@ -1360,7 +1364,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1432,7 +1436,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Object trade = this.safeDict(allTrades, i, new java.util.HashMap<String, Object>() {{}});
                 Object parsed = this.parseWsTrade(trade);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
-                Object symbol = Helpers.GetValue(parsed, "symbol");
+                Object symbol = ((String)Helpers.GetValue(parsed, "symbol"));
                 Helpers.addElementToObject(symbols, symbol, true);
             }
             Object name = "myTrades";
@@ -1514,7 +1518,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1584,8 +1588,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Object id = this.safeString(order, "order_id");
                 Object parsed = this.parseWsOrder(order);
                 Object symbol = this.safeString(order, "symbol");
-                Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol);
-                Object previousOrder = this.safeValue(previousOrders, id);
+                Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, ((String)symbol));
+                Object previousOrder = this.safeValue(previousOrders, ((String)id));
                 Object newOrder = parsed;
                 if (Helpers.isTrue(!Helpers.isEqual(previousOrder, null)))
                 {
@@ -1704,6 +1708,10 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             // symbols are required
             symbols = this.marketSymbols(symbols, null, false, true, false);
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                return null;
+            }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -1736,7 +1744,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
      * @method
      * @name kraken#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1795,7 +1803,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object currencyId = this.safeString(Helpers.GetValue(data, i), "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            Object code = ((String)this.safeCurrencyCode(currencyId));
             Object account = this.account();
             Object eq = this.safeString(Helpers.GetValue(data, i), "balance");
             Helpers.addElementToObject(account, "total", eq);
@@ -1948,7 +1956,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 put( "cancel_all", "handleCancelAllOrders");
                 put( "pong", "handlePong");
             }};
-            Object method = this.safeValue(methods, eventVar);
+            Object method = this.safeValue(methods, ((String)eventVar));
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

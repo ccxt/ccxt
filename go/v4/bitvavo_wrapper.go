@@ -229,7 +229,7 @@ func (this *Bitvavo) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitvavo) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -325,7 +325,7 @@ func (this *Bitvavo) FetchBalance(params ...any) (Balances, error) {
  * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
  * @description fetch all the accounts associated with a profile
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
- * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
 func (this *Bitvavo) FetchAccounts(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
@@ -347,7 +347,7 @@ func (this *Bitvavo) FetchAccounts(params ...any) ([]Account, error) {
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
  * @param {string} [params.subaccountId] the unique identifier for the subaccount
  * @param {string} [params.clientRequestId] client defined unique id
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitvavo) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -379,7 +379,7 @@ func (this *Bitvavo) Transfer(code string, amount float64, fromAccount string, t
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
  * @param {string} [params.subaccountId] the unique identifier for the subaccount
  * @param {int} [params.until] the latest time in ms to fetch transfers for
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitvavo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -423,7 +423,7 @@ func (this *Bitvavo) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @param {string} id transfer id
  * @param {string} [code] unified currency code of the currency transferred
  * @param {object} [params] extra parameters specific to the bitvavo api endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitvavo) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
 

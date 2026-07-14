@@ -1,5 +1,8 @@
 name: Java
 
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
 on:
   workflow_dispatch:
   push:
@@ -27,7 +30,7 @@ jobs:
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
@@ -76,7 +79,7 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run request-java -- $exchange
+          ./java/gradlew -p java :tests:run --args="--requestTests $exchange"
         done
     - name: Response tests
       if: env.important_modified == 'true'
@@ -86,7 +89,7 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run response-java -- $exchange
+          ./java/gradlew -p java :tests:run --args="--responseTests $exchange"
         done
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
@@ -106,6 +109,8 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
+          git pull origin master
           git add java/
           git commit -m "[Automated changes] Java files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}

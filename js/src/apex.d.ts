@@ -1,5 +1,5 @@
 import Exchange from './abstract/apex.js';
-import { MarketInterface, Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, int } from './base/types';
+import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
 /**
  * @class apex
  * @augments Exchange
@@ -10,7 +10,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -20,7 +20,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchBalance
      * @description query for account info
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -30,7 +30,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchAccount
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -39,7 +39,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -49,7 +49,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchMarkets
      * @description retrieves data on all markets for apex
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -60,7 +60,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -70,7 +70,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchTickers
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -80,7 +80,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -95,18 +95,18 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name apex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -121,18 +121,18 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types").OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     /**
      * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -155,7 +155,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#createOrder
      * @description create a trade order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -190,7 +190,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -200,7 +200,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#cancelOrder
      * @description cancels an open order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -211,8 +211,8 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -224,7 +224,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -236,7 +236,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrders
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -254,7 +254,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -267,7 +267,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchMyTrades
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -283,7 +283,7 @@ export default class apex extends Exchange {
      * @method
      * @name apex#fetchFundingHistory
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -293,7 +293,7 @@ export default class apex extends Exchange {
      * @param {boolean} [params.page] Page numbers start from 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types").FundingHistory[]>;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
@@ -308,29 +308,29 @@ export default class apex extends Exchange {
      * @method
      * @name apex#setLeverage
      * @description set the level of leverage for a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<import("./base/types").Dictionary<any>>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     /**
      * @method
      * @name apex#fetchPositions
      * @description fetch all open positions
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

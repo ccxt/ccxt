@@ -971,7 +971,7 @@
                         "liquidationPrice": 86347.44574614352,
                         "entryPrice": 88186.58666666667,
                         "unrealizedPnl": 0.14704,
-                        "percentage": null,
+                        "percentage": 4.16,
                         "contracts": 3,
                         "contractSize": 0.001,
                         "markPrice": 88232.54,

@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
@@ -16,15 +17,14 @@ async function eachRun(exchangeId, symbol) {
 async function main() {
     const streams = {
         'binance': 'BTC/USDT',
-        'bittrex': 'BTC/USDT',
+        'kucoin': 'BTC/USDT',
         'poloniex': 'BTC/USDT',
         'bitfinex': 'BTC/USDT',
         'hitbtc': 'BTC/USDT',
         'upbit': 'BTC/USDT',
-        'coinbasepro': 'BTC/USD',
+        'coinbaseexchange': 'BTC/USD',
         'okx': 'BTC/USDT',
-        'okex': 'BTC/USDT',
-        'gateio': 'BTC/USDT',
+        'gate': 'BTC/USDT',
     };
     await Promise.all(Object.keys(streams).map((exchangeId) => eachRun(exchangeId, streams[exchangeId])));
 }

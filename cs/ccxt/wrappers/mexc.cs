@@ -99,7 +99,7 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -393,8 +393,9 @@ public partial class mexc
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateSpotOrderRequest(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> CreateSpotOrderRequest(object market, object type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
         return ((Dictionary<string, object>)res);
     }
@@ -431,8 +432,9 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateSpotOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(object market, object type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSpotOrder(market, type, side, amount, price, marginMode, parameters);
         return new Order(res);
     }
@@ -514,8 +516,9 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateSwapOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSwapOrder(object market, object type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSwapOrder(market, type, side, amount, price, marginMode, parameters);
         return new Order(res);
     }

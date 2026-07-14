@@ -49,7 +49,7 @@ public partial class testMainClass : BaseTest
             object same_numeric = isTrue(((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double))) && isTrue(((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double)));
             object same_boolean = isTrue((isTrue((isEqual(entryKeyVal, true))) || isTrue((isEqual(entryKeyVal, false))))) && isTrue((isTrue((isEqual(formatKeyVal, true))) || isTrue((isEqual(formatKeyVal, false)))));
             object same_array = isTrue(((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && isTrue(((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
-            object same_object = isTrue(((entryKeyVal is IDictionary<string, object>))) && isTrue(((formatKeyVal is IDictionary<string, object>)));
+            object same_object = isTrue(exchange.isDictionary(entryKeyVal)) && isTrue(exchange.isDictionary(formatKeyVal));
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
@@ -92,7 +92,7 @@ public partial class testMainClass : BaseTest
                 }
             } else
             {
-                assert((entry is IDictionary<string, object>), add("entry is not an object", logText));
+                assert(exchange.isDictionary(entry), add("entry is not a dict", logText));
                 object keys = new List<object>(((IDictionary<string,object>)format).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
@@ -124,7 +124,7 @@ public partial class testMainClass : BaseTest
                         assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                         if (isTrue(deep))
                         {
-                            if (isTrue((value is IDictionary<string, object>)))
+                            if (isTrue(isTrue(exchange.isDictionary(value)) || isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
                             {
                                 assertStructure(exchange, skippedProperties, method, value, getValue(format, key), emptyAllowedFor, deep);
                             }
@@ -391,7 +391,7 @@ public partial class testMainClass : BaseTest
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else
             {
-                assert((entry is IDictionary<string, object>), add("fee container is expected to be an object", logText));
+                assert(exchange.isDictionary(entry), add("fee container is expected to be a dict", logText));
                 assert(inOp(entry, key), add(add(add("fee key \"", key), "\" was expected to be present in entry"), logText));
             }
             object feeObject = exchange.safeValue(entry, key);
@@ -741,6 +741,34 @@ public partial class testMainClass : BaseTest
             // try UpperCase key also, for other langs
             object keyUpper = exchange.capitalize(((object)key).ToString());
             return exchange.getProperty(exchange, keyUpper, defaultValue);
+        }
+        async public Task validateTickerExceptionForPercentage(object ex, Exchange exchange, object ticker)
+        {
+            // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+            object eMessage = exchange.exceptionMessage(ex, false);
+            if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be above"), 0)) || isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be below"), 0))))
+            {
+                object symbol = getValue(ticker, "symbol");
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    // if it's not in markets, then maybe newly added symbol, so can can compromise there
+                    if (!isTrue((inOp(exchange.markets, symbol))))
+                    {
+                        return;
+                    }
+                    // if OHLCV supported
+                    if (isTrue(!isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                    {
+                        object ohlcv = await exchange.fetchOHLCV(symbol, "1d", null, 5);
+                        if (isTrue(isLessThanOrEqual(getArrayLength(ohlcv), 1)))
+                        {
+                            // if only 1 day, then allow it
+                            return;
+                        }
+                    }
+                }
+            }
+            assert(isEqual(eMessage, ""), eMessage); // trigger error
         }
 
     }

@@ -279,7 +279,7 @@ public partial class bithumb : Exchange
             object quote = getValue(quotes, i);
             object quoteId = quote;
             object response = getValue(results, i);
-            object data = this.safeDict(response, "data");
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
             object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
@@ -384,7 +384,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "currency", "ALL" },
         };
@@ -400,12 +403,15 @@ public partial class bithumb : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -503,7 +509,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object result = new Dictionary<string, object>() {};
         object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
         object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
@@ -571,7 +580,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -632,7 +644,10 @@ public partial class bithumb : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -729,7 +744,7 @@ public partial class bithumb : Exchange
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object feeCurrencyId = this.safeString(trade, "fee_currency");
-            object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
+            object feeCurrencyCode = this.commonCurrencyCode(((string)feeCurrencyId));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -766,7 +781,10 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
@@ -813,7 +831,10 @@ public partial class bithumb : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_currency", getValue(market, "id") },
@@ -827,7 +848,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
         } else
         {
-            method = add("privatePostTradeMarket", this.capitalize(side));
+            method = add("privatePostTradeMarket", this.capitalize(((string)side)));
         }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         object id = this.safeString(response, "order_id");
@@ -861,7 +882,10 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
@@ -910,7 +934,7 @@ public partial class bithumb : Exchange
             { "Completed", "closed" },
             { "Cancel", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1036,7 +1060,10 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(isEqual(limit, null)))
         {
@@ -1122,7 +1149,7 @@ public partial class bithumb : Exchange
         object request = new Dictionary<string, object>() {
             { "side", getValue(order, "side") },
         };
-        return await this.cancelOrder(getValue(order, "id"), getValue(order, "symbol"), this.extend(request, parameters));
+        return await this.cancelOrder(((string)getValue(order, "id")), getValue(order, "symbol"), this.extend(request, parameters));
     }
 
     /**
@@ -1144,7 +1171,10 @@ public partial class bithumb : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "units", amount },

@@ -1,5 +1,6 @@
 
-import ts from 'typescript';
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from 'typescript6';
 import fs from 'fs'
 import log from 'ololog'
 
@@ -122,7 +123,7 @@ function main() {
             wsPaths.push(basePath + 'pro/' + exchange + '.d.ts')
         }
     }
-    const program = ts.createProgram([...restPaths, ...wsPaths,basePath + 'base/Exchange.d.ts'], {});
+    const program = ts.createProgram([...restPaths, ...wsPaths,basePath + 'base/Exchange.d.ts'], { strict: false }); // TS >= 6 defaults to strict (undefined kept in unions, aliases preserved); pin pre-6 semantics so type strings compare stably
     
     const sourceOfTruth = extractMethodsInfo(basePath + 'base/Exchange.d.ts', program);
     let foundIssues = false;

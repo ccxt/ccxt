@@ -51,7 +51,7 @@ public class TestSharedMethods extends BaseTest {
         Object same_numeric = Helpers.isTrue(((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double))) && Helpers.isTrue(((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double)));
         Object same_boolean = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(entryKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(entryKeyVal, false))))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(formatKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(formatKeyVal, false)))));
         Object same_array = Helpers.isTrue(Helpers.isArray(entryKeyVal)) && Helpers.isTrue(Helpers.isArray(formatKeyVal));
-        Object same_object = Helpers.isTrue(((entryKeyVal instanceof java.util.Map))) && Helpers.isTrue(((formatKeyVal instanceof java.util.Map)));
+        Object same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue(exchange.isDictionary(formatKeyVal));
         Object result = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryKeyVal, null))) || Helpers.isTrue(same_string)) || Helpers.isTrue(same_numeric)) || Helpers.isTrue(same_boolean)) || Helpers.isTrue(same_array)) || Helpers.isTrue(same_object);
         return result;
     }
@@ -95,7 +95,7 @@ public class TestSharedMethods extends BaseTest {
             }
         } else
         {
-            Assert((entry instanceof java.util.Map), Helpers.add("entry is not an object", logText));
+            Assert(exchange.isDictionary(entry), Helpers.add("entry is not a dict", logText));
             Object keys = Helpers.objectKeys(format);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -127,7 +127,7 @@ public class TestSharedMethods extends BaseTest {
                     Assert(typeAssertion, Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                     if (Helpers.isTrue(deep))
                     {
-                        if (Helpers.isTrue((value instanceof java.util.Map)))
+                        if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value))))
                         {
                             AssertStructure(exchange, skippedProperties, method, value, Helpers.GetValue(format, key), emptyAllowedFor, deep);
                         }
@@ -398,7 +398,7 @@ public class TestSharedMethods extends BaseTest {
             Assert(Helpers.isLessThan(key, Helpers.getArrayLength(entry)), Helpers.add(Helpers.add(Helpers.add("fee key ", keyString), " was expected to be present in entry"), logText));
         } else
         {
-            Assert((entry instanceof java.util.Map), Helpers.add("fee container is expected to be an object", logText));
+            Assert(exchange.isDictionary(entry), Helpers.add("fee container is expected to be a dict", logText));
             Assert(Helpers.inOp(entry, key), Helpers.add(Helpers.add(Helpers.add("fee key \"", key), "\" was expected to be present in entry"), logText));
         }
         Object feeObject = exchange.safeValue(entry, key);
@@ -762,6 +762,40 @@ public class TestSharedMethods extends BaseTest {
         // try UpperCase key also, for other langs
         Object keyUpper = exchange.capitalize(String.valueOf(key));
         return exchange.getProperty(exchange, keyUpper, defaultValue);
+    }
+    public static java.util.concurrent.CompletableFuture<Void> validateTickerExceptionForPercentage(Object ex, Exchange exchange, Object ticker)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+        // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+        Object eMessage = exchange.exceptionMessage(ex, false);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))))
+        {
+            Object symbol = Helpers.GetValue(ticker, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                // if it's not in markets, then maybe newly added symbol, so can can compromise there
+                if (!Helpers.isTrue((Helpers.inOp(exchange.markets, symbol))))
+                {
+                    return null;
+                }
+                // if OHLCV supported
+                if (Helpers.isTrue(!Helpers.isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                {
+                    Object ohlcv = (exchange.fetchOHLCV(symbol, "1d", null, 5)).join();
+                    if (Helpers.isTrue(Helpers.isLessThanOrEqual(Helpers.getArrayLength(ohlcv), 1)))
+                    {
+                        // if only 1 day, then allow it
+                        return null;
+                    }
+                }
+            }
+        }
+        Assert(Helpers.isEqual(eMessage, ""), eMessage); // trigger error
+            return null;
+        });
+
     }
 
 }

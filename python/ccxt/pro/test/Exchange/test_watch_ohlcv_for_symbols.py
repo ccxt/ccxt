@@ -41,10 +41,10 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
             success = False
         if success:
             assertion_message = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosen_timeframe_key + ' | ' + exchange.json(response)
-            assert isinstance(response, dict), 'Response must be a dictionary. ' + assertion_message
+            assert exchange.is_dictionary(response), 'Response must be a dictionary. ' + assertion_message
             assert symbol in response, 'Response should contain the symbol as key. ' + assertion_message
             symbol_obj = response[symbol]
-            assert isinstance(symbol_obj, dict), 'Response.Symbol should be a dictionary. ' + assertion_message
+            assert exchange.is_dictionary(symbol_obj), 'Response.Symbol should be a dictionary. ' + assertion_message
             assert chosen_timeframe_key in symbol_obj, 'Response.symbol should contain the timeframe key. ' + assertion_message
             ohlcvs = symbol_obj[chosen_timeframe_key]
             assert isinstance(ohlcvs, list), 'Response.symbol.timeframe should be an array. ' + assertion_message

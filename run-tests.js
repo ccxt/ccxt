@@ -197,6 +197,17 @@ const exec = (bin, ...args) => {
             return resolver (result) ;
         })
 
+        if (debugKeys['--info']) {
+            psSpawn.on ('error', (err) => {
+                console.log ('RUNTESTS err event:', err);
+            });
+            psSpawn.on ('message', (code, sendHandle) => {
+                console.log ('RUNTESTS message event:', code, sendHandle);
+            });
+            psSpawn.on ('close', (code, signal) => {
+                console.log ('RUNTESTS close event:', code, signal);
+            });
+        }
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {

@@ -103,6 +103,7 @@ type MarketInterface struct {
 	OptionType     *string
 	Taker          *float64
 	Maker          *float64
+	Precision      Precision
 	Limits         Limits
 	Created        *int64
 }
@@ -119,6 +120,12 @@ func NewMarketInterface(data any) MarketInterface {
 	var limits Limits
 	if v, ok := m["limits"]; ok {
 		limits = NewLimits(v)
+	}
+
+	// Handle precision if present
+	var precision Precision
+	if v, ok := m["precision"]; ok && v != nil {
+		precision = NewPrecision(v)
 	}
 
 	return MarketInterface{
@@ -151,6 +158,7 @@ func NewMarketInterface(data any) MarketInterface {
 		OptionType:     SafeStringTyped(m, "optionType"),
 		Taker:          SafeFloatTyped(m, "taker"),
 		Maker:          SafeFloatTyped(m, "maker"),
+		Precision:      precision,
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}
@@ -721,6 +729,12 @@ func NewBalance(balanceData2 any) Balance {
 
 // NewBalances initializes a Balances struct from a map.
 func NewBalances(balancesData2 any) Balances {
+	if balancesData2 == nil {
+		balancesData2 = make(map[string]any)
+	}
+	if dataMap, ok := balancesData2.(*sync.Map); ok {
+		balancesData2 = SafeMapToMap(dataMap)
+	}
 	balancesData := balancesData2.(map[string]any)
 	balancesMap := make(map[string]Balance)
 	freeBalances := make(map[string]*float64)
@@ -2210,6 +2224,34 @@ func NewAccountArray(orders2 any) []Account {
 		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewAccount(tradeMap)
 			result = append(result, order)
+		}
+	}
+	return result
+}
+
+// NewStringArray converts an untyped result holding a list of strings (e.g. the
+// transpiled return of a method typed `Str[]` / `string[]` / `Strings`) into a
+// concrete []string. Mirrors the NewXArray helpers above but for the primitive
+// string element type, which has no struct constructor.
+func NewStringArray(data2 any) []string {
+	if data2 == nil {
+		return nil
+	}
+	if strs, ok := data2.([]string); ok {
+		return strs
+	}
+	var items []any
+	if cache, ok := data2.(*ArrayCache); ok {
+		items = cache.ToArray()
+	} else if arr, ok := data2.([]any); ok {
+		items = arr
+	} else {
+		return nil
+	}
+	result := make([]string, 0, len(items))
+	for _, it := range items {
+		if s, ok := it.(string); ok {
+			result = append(result, s)
 		}
 	}
 	return result

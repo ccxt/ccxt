@@ -1,8 +1,5 @@
-- [Okex Watch Balance And Create Order](./examples/ts/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 import ccxt from '../../js/ccxt.js';
 
@@ -53,5 +50,5 @@ async function createOrder (symbol, type, side, amount, price = undefined, param
 
     await createOrder (symbol, type, side, amount, price);
 }) ();
- 
+
 ```

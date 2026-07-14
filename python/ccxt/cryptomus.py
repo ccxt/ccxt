@@ -159,7 +159,7 @@ class cryptomus(Exchange, ImplicitAPI):
             },
             'timeframes': {},
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7',
+                'logo': 'https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0',
                 'api': {
                     'public': 'https://api.cryptomus.com',
                     'private': 'https://api.cryptomus.com',
@@ -413,8 +413,8 @@ class cryptomus(Exchange, ImplicitAPI):
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
         # currency here is array of networks
-        id: Str = None  # all entried have same id, were grouped by
-        code: Str = None
+        id = None  # all entried have same id, were grouped by
+        code = None
         networks = {}
         for i in range(0, len(rawCurrency)):
             networkEntry = rawCurrency[i]
@@ -423,7 +423,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 id = self.safe_string(networkEntry, 'currency_code')
                 code = self.safe_currency_code(id)
             networkId = self.safe_string(networkEntry, 'network_code')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -461,7 +461,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetV1ExchangeMarketTickers(params)
         #
@@ -525,11 +526,12 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.level]: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         level = 0
@@ -571,9 +573,10 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currencyPair': market['id'],
         }
         response = self.publicGetV1ExchangeMarketTradesCurrencyPair(self.extend(request, params))
@@ -610,7 +613,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'id': self.safe_string(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'side': self.safe_string(trade, 'type'),
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'quote_volume'),  # quote_volume is amount
@@ -634,8 +637,9 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         response = self.privateGetV2UserApiExchangeAccountBalance(self.extend(request, params))
         #
         #     {
@@ -659,7 +663,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #         "held": "0.00000000"
         #     }
         #
-        result: dict = {
+        result = {
             'info': balance,
         }
         for i in range(0, len(balance)):
@@ -689,9 +693,10 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique identifier for the order(optional)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
             'direction': side,
             'tag': 'ccxt',
@@ -705,7 +710,7 @@ class cryptomus(Exchange, ImplicitAPI):
         priceToString = self.number_to_string(price)
         cost = None
         cost, params = self.handle_param_string(params, 'cost')
-        response = None
+        response: dict
         if type == 'market':
             if sideBuy:
                 createMarketBuyOrderRequiresPrice = True
@@ -747,8 +752,9 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         request['orderId'] = id
         response = self.privateDeleteV2UserApiExchangeOrdersOrderId(self.extend(request, params))
         #
@@ -775,8 +781,9 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -847,11 +854,12 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
         }
         if market is not None:
             request['market'] = market['id']
@@ -1061,10 +1069,13 @@ class cryptomus(Exchange, ImplicitAPI):
         makerFee = Precise.string_div(makerFee, '100')
         takerFee = Precise.string_div(takerFee, '100')
         feeTiers = self.safe_list(data, 'tariff_steps', [])
-        result: dict = {}
+        result = {}
         tiers = self.parse_fee_tiers(feeTiers)
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        if symbols is None:
+            return result
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1093,7 +1104,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + '/' + endpoint

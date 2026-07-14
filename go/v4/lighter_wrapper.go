@@ -44,7 +44,7 @@ func (this *Lighter) CreateSubAccount(name string, options ...CreateSubAccountOp
 	}
 	return res.(map[string]any), nil
 }
-func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...FetchNonceOptions) (float64, error) {
+func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...FetchNonceOptions) (int64, error) {
 
 	opts := FetchNonceOptionsStruct{}
 
@@ -58,9 +58,9 @@ func (this *Lighter) FetchNonce(accountIndex any, apiKeyIndex any, options ...Fe
 	}
 	res := <-this.Core.FetchNonce(accountIndex, apiKeyIndex, params)
 	if IsError(res) {
-		return float64(-1), CreateReturnError(res)
+		return -1, CreateReturnError(res)
 	}
-	return (res).(float64), nil
+	return (res).(int64), nil
 }
 
 /**
@@ -223,7 +223,7 @@ func (this *Lighter) FetchCurrencies(params ...any) (Currencies, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Lighter) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 

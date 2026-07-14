@@ -135,7 +135,7 @@ public partial class apex : Exchange
             } },
             { "hostname", "omni.apex.exchange" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00" },
+                { "logo", "https://github.com/user-attachments/assets/8ba7fbfa-0dd0-4ab9-8b72-ff60abe08ac6" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://{hostname}/api" },
                     { "private", "https://{hostname}/api" },
@@ -145,7 +145,7 @@ public partial class apex : Exchange
                     { "private", "https://testnet.omni.apex.exchange/api" },
                 } },
                 { "www", "https://apex.exchange/" },
-                { "doc", "https://api-docs.pro.apex.exchange" },
+                { "doc", "https://api-docs.omni.apex.exchange" },
                 { "fees", "https://apex-pro.gitbook.io/apex-pro/apex-omni-live-now/trading-perpetual-contracts/trading-fees" },
                 { "referral", "https://omni.apex.exchange/trade" },
             } },
@@ -220,7 +220,6 @@ public partial class apex : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
-                { "defaultSlippage", 0.05 },
                 { "brokerId", "6956" },
             } },
             { "features", new Dictionary<string, object>() {
@@ -297,7 +296,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -349,14 +348,17 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchBalance
      * @description query for account info
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetV3AccountBalance(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseBalance(data);
@@ -377,14 +379,17 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchAccount
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async virtual Task<object> fetchAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetV3Account(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseAccount(data);
@@ -394,7 +399,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -413,7 +418,7 @@ public partial class apex : Exchange
         //             "displayName": "Tether USD Coin",
         //             "decimals": 18,
         //             "showStep": "0.01",
-        //             "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        //             "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
         //             "l2WithdrawFee": "0",
         //             "enableCollateral": true,
         //             "enableCrossCollateral": false,
@@ -428,7 +433,7 @@ public partial class apex : Exchange
         //          "chainId": "9",
         //          "chainType": "0",
         //          "l1ChainId": "42161",
-        //          "chainIconUrl": "https://static-pro.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        //          "chainIconUrl": "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
         //          "contractAddress": "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
         //          "swapContractAddress": "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
         //          "stopDeposit": false,
@@ -439,10 +444,10 @@ public partial class apex : Exchange
         //          "gasTokenDecimals": 18,
         //          "feeGasLimit": 300000,
         //          "blockTimeSeconds": 2,
-        //          "rpcUrl": "https://arb.pro.apex.exchange",
+        //          "rpcUrl": "https://arb.omni.apex.exchange",
         //          "minSwapUsdtAmount": "",
         //          "maxSwapUsdtAmount": "",
-        //          "webRpcUrl": "https://arb.pro.apex.exchange",
+        //          "webRpcUrl": "https://arb.omni.apex.exchange",
         //          "webTxUrl": "https://arbiscan.io/tx/",
         //          "backupRpcUrl": "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
         //          "txConfirm": 20,
@@ -450,7 +455,7 @@ public partial class apex : Exchange
         //          "tokens": [
         //              {
         //                  "decimals": 6,
-        //                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
         //                  "token": "USDT",
         //                  "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         //                  "pullOff": false,
@@ -471,7 +476,7 @@ public partial class apex : Exchange
         //              },
         //              {
         //                  "decimals": 6,
-        //                  "iconUrl": "https://static-pro.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        //                  "iconUrl": "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
         //                  "token": "USDC",
         //                  "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
         //                  "pullOff": false,
@@ -520,7 +525,7 @@ public partial class apex : Exchange
                 if (isTrue(isEqual(tokenName, currencyId)))
                 {
                     object networkId = this.safeString(chain, "chainId");
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                         { "info", chain },
                         { "id", networkId },
@@ -581,7 +586,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchMarkets
      * @description retrieves data on all markets for apex
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -624,7 +629,7 @@ public partial class apex : Exchange
         //             "tickSize": "0.1",
         //             "maxMaintenanceMarginRate": "0.5000",
         //             "maxPositionValue": "5000000.0000",
-        //             "tagIconUrl": "https://static-pro.apex.exchange/icon/LABLE_HOT.svg",
+        //             "tagIconUrl": "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
         //             "tag": "HOT",
         //             "riskTip": false,
         //             "defaultInitialMarginRate": "0.05",
@@ -777,7 +782,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -785,7 +790,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id2") },
@@ -800,7 +808,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchTickers
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -808,7 +816,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetV3DataAllTickerInfo(parameters);
         object tickers = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(tickers, symbols);
@@ -818,7 +829,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-data-v3
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -831,7 +842,10 @@ public partial class apex : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
@@ -870,23 +884,26 @@ public partial class apex : Exchange
         //     "turnover": "3"
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
-        return new List<object> {this.safeIntegerN(ohlcv, new List<object>() {"start", "t"}), this.safeNumberN(ohlcv, new List<object>() {"open", "o"}), this.safeNumberN(ohlcv, new List<object>() {"high", "h"}), this.safeNumberN(ohlcv, new List<object>() {"low", "l"}), this.safeNumberN(ohlcv, new List<object>() {"close", "c"}), this.safeNumberN(ohlcv, new List<object>() {"volume", "v"})};
+        return new List<object> {this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o"), this.safeNumber2(ohlcv, "high", "h"), this.safeNumber2(ohlcv, "low", "l"), this.safeNumber2(ohlcv, "close", "c"), this.safeNumber2(ohlcv, "volume", "v")};
     }
 
     /**
      * @method
      * @name apex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id2") },
@@ -934,7 +951,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -946,7 +963,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id2") },
@@ -995,15 +1015,15 @@ public partial class apex : Exchange
         //  }
         //  ]
         //
-        object marketId = this.safeStringN(trade, new List<object>() {"s", "symbol"});
+        object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
-        object id = this.safeStringN(trade, new List<object>() {"i", "id"});
+        object id = this.safeString2(trade, "i", "id");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
-        object priceString = this.safeStringN(trade, new List<object>() {"p", "price"});
-        object amountString = this.safeStringN(trade, new List<object>() {"v", "size"});
-        object side = this.safeStringLowerN(trade, new List<object>() {"S", "side"});
-        object type = this.safeStringN(trade, new List<object>() {"type"});
-        object fee = this.safeStringN(trade, new List<object>() {"fee"});
+        object priceString = this.safeString2(trade, "p", "price");
+        object amountString = this.safeString2(trade, "v", "size");
+        object side = this.safeStringLower2(trade, "S", "side");
+        object type = this.safeString(trade, "type");
+        object fee = this.safeString(trade, "fee");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1025,7 +1045,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -1033,7 +1053,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id2") },
@@ -1082,7 +1105,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1098,7 +1121,10 @@ public partial class apex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = this.market(symbol);
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -1371,7 +1397,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#createOrder
      * @description create a trade order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1390,7 +1416,10 @@ public partial class apex : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderType = ((string)type).ToUpper();
         object orderSide = ((string)side).ToUpper();
@@ -1502,7 +1531,10 @@ public partial class apex : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object configResponse = await this.publicGetV3Symbols(parameters);
         object configData = this.safeDict(configResponse, "data", new Dictionary<string, object>() {});
         object contractConfig = this.safeDict(configData, "contractConfig", new Dictionary<string, object>() {});
@@ -1646,7 +1678,7 @@ public partial class apex : Exchange
         object toAccount = this.safeString(transfer, "toAccount");
         return new Dictionary<string, object>() {
             { "info", transfer },
-            { "id", this.safeStringN(transfer, new List<object>() {"transferId", "id"}) },
+            { "id", this.safeString2(transfer, "transferId", "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -1661,7 +1693,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1669,7 +1701,10 @@ public partial class apex : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -1686,7 +1721,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#cancelOrder
      * @description cancels an open order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1716,8 +1751,8 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-id
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-id
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1727,7 +1762,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
         object response = null;
@@ -1749,7 +1787,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1759,7 +1797,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetV3OpenOrders(parameters);
         object orders = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(orders, null, since, limit);
@@ -1769,7 +1810,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchOrders
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1785,7 +1826,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1817,7 +1861,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1828,7 +1872,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -1849,7 +1896,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchMyTrades
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1863,7 +1910,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1895,7 +1945,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchFundingHistory
      * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve, default 100
@@ -1908,7 +1958,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1972,7 +2025,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#setLeverage
      * @description set the level of leverage for a market
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1985,7 +2038,10 @@ public partial class apex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object leverageString = this.numberToString(leverage);
         object initialMarginRate = Precise.stringDiv("1", leverageString, 4);
@@ -2002,7 +2058,7 @@ public partial class apex : Exchange
      * @method
      * @name apex#fetchPositions
      * @description fetch all open positions
-     * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
+     * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2010,7 +2066,10 @@ public partial class apex : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetV3Account(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object positions = this.safeList(data, "positions", new List<object>() {});
@@ -2041,7 +2100,7 @@ public partial class apex : Exchange
         object quantity = this.safeString(position, "size");
         object timestamp = this.safeInteger(position, "updatedTime");
         object leverage = 20;
-        object customInitialMarginRate = this.safeStringN(position, new List<object>() {"customInitialMarginRate", "customImr"}, "0");
+        object customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
         if (isTrue(!isEqual(this.precisionFromString(customInitialMarginRate), 0)))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));

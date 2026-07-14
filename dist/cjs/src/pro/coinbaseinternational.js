@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseinternational$1 = require('../coinbaseinternational.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
@@ -79,7 +79,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} subscription to a websocket channel
      */
     async subscribe(name, symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkRequiredCredentials();
         let market = undefined;
         let messageHash = name;
@@ -109,7 +111,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const timestamp = this.nonce().toString();
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
             // 'product_ids': productIds,
@@ -138,7 +140,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} subscription to a websocket channel
      */
     async subscribeMultiple(name, symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkRequiredCredentials();
         if (this.isEmpty(symbols)) {
             symbols = this.symbols;
@@ -160,7 +164,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const timestamp = this.numberToString(this.seconds());
         const auth = timestamp + this.apiKey + 'CBINTLMD' + this.password;
-        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
         const subscribe = {
             'type': 'SUBSCRIBE',
             'time': timestamp,
@@ -181,9 +185,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async watchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
-        return await this.subscribe('RISK', [symbol], params);
+    watchFundingRate(symbol, params = {}) {
+        return this.subscribe('RISK', [symbol], params);
     }
     /**
      * @method
@@ -198,7 +201,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchFundingRates() requires an array of symbols');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const fundingRate = await this.subscribeMultiple('RISK', symbols, params);
         const symbol = this.safeString(fundingRate, 'symbol');
         if (this.newUpdates) {
@@ -219,7 +224,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTicker', 'channel', 'LEVEL1');
         return await this.subscribe(channel, [symbol], params);
@@ -247,7 +254,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'LEVEL1');
         const ticker = await this.subscribe(channel, symbols, params);
@@ -450,7 +459,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const options = this.safeDict(this.options, 'timeframes', {});
@@ -510,8 +521,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -524,7 +535,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple('MATCH', symbols, params);
         if (this.newUpdates) {
@@ -602,10 +615,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -615,11 +628,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        return await this.subscribeMultiple('LEVEL2', symbols, params);
+    watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        return this.subscribeMultiple('LEVEL2', symbols, params);
     }
     handleOrderBook(client, message) {
         //

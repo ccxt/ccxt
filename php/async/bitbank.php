@@ -8,11 +8,10 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bitbank as Exchange;
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitbank extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
@@ -265,7 +264,7 @@ class bitbank extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bitbank
@@ -275,7 +274,7 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->marketsGetSpotPairs ($params));
+            $response = Async\await($this->marketsGetSpotPairs($params));
             //
             //     {
             //       "success" => 1,
@@ -306,7 +305,7 @@ class bitbank extends Exchange {
             $data = $this->safe_value($response, 'data');
             $pairs = $this->safe_value($data, 'pairs', array());
             return $this->parse_markets($pairs);
-        }) ();
+        })();
     }
 
     public function parse_market($entry): array {
@@ -396,7 +395,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -407,18 +406,20 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetPairTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetPairTicker($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -428,18 +429,20 @@ class bitbank extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetPairDepth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetPairDepth($this->extend($request, $params)));
             $orderbook = $this->safe_value($response, 'data', array());
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -488,7 +491,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -501,19 +504,21 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetPairTransactions ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetPairTransactions($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
             $trades = $this->safe_list($data, 'transactions', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -523,8 +528,10 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->marketsGetSpotPairs ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->marketsGetSpotPairs($params));
             //
             //     {
             //         "success" => "1",
@@ -571,7 +578,7 @@ class bitbank extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -595,7 +602,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -616,28 +623,30 @@ class bitbank extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $since = $this->milliseconds() - $duration * 1000 * $limit;
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
                 'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'yyyymmdd' => $this->yyyymmdd($since, ''),
             );
-            $response = Async\await($this->publicGetPairCandlestickCandletypeYyyymmdd ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetPairCandlestickCandletypeYyyymmdd($this->extend($request, $params)));
             //
             //     {
             //         "success":1,
             //         "data":{
-            //             "candlestick":[
+            //             "candlestick":array(
             //                 {
             //                     "type":"5min",
-            //                     "ohlcv":[
+            //                     "ohlcv":array(
             //                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
             //                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
             //                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
-            //                     ]
+            //                     )
             //                 }
-            //             ],
+            //             ),
             //             "timestamp":1591508668190
             //         }
             //     }
@@ -647,7 +656,7 @@ class bitbank extends Exchange {
             $first = $this->safe_value($candlestick, 0, array());
             $ohlcv = $this->safe_list($first, 'ohlcv', array());
             return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -671,7 +680,7 @@ class bitbank extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -681,8 +690,10 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetUserAssets ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetUserAssets($params));
             //
             //     {
             //       "success" => "1",
@@ -717,7 +728,7 @@ class bitbank extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -769,7 +780,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -784,7 +795,9 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
@@ -795,13 +808,13 @@ class bitbank extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostUserSpotOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostUserSpotOrder($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -813,13 +826,15 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privatePostUserSpotCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostUserSpotCancelOrder($this->extend($request, $params)));
             //
             //    {
             //        "success" => 1,
@@ -845,10 +860,10 @@ class bitbank extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -860,13 +875,15 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privateGetUserSpotOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetUserSpotOrder($this->extend($request, $params)));
             //
             //    {
             //        "success" => 1,
@@ -891,10 +908,10 @@ class bitbank extends Exchange {
             //
             $data = $this->safe_dict($response, 'data');
             return $this->parse_order($data, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -907,7 +924,9 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
@@ -918,14 +937,14 @@ class bitbank extends Exchange {
             if ($since !== null) {
                 $request['since'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->privateGetUserSpotActiveOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetUserSpotActiveOrders($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
             $orders = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -938,7 +957,9 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -951,14 +972,14 @@ class bitbank extends Exchange {
             if ($since !== null) {
                 $request['since'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->privateGetUserSpotTradeHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetUserSpotTradeHistory($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
             $trades = $this->safe_list($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -969,12 +990,14 @@ class bitbank extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
             );
-            $response = Async\await($this->privateGetUserWithdrawalAccount ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetUserWithdrawalAccount($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data', array());
             // Not sure about this if there could be more than one account...
             $accounts = $this->safe_value($data, 'accounts', array());
@@ -987,10 +1010,10 @@ class bitbank extends Exchange {
                 'address' => $address,
                 'tag' => null,
             );
-        }) ();
+        })();
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1008,13 +1031,15 @@ class bitbank extends Exchange {
             if (!(is_array($params) && array_key_exists('uuid', $params))) {
                 throw new ExchangeError($this->id . ' uuid is required for withdrawal');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
             );
-            $response = Async\await($this->privatePostUserRequestWithdrawal ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostUserRequestWithdrawal($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1034,7 +1059,7 @@ class bitbank extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1084,7 +1109,7 @@ class bitbank extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {

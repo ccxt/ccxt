@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\delta as Exchange;
 
 class delta extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
@@ -85,7 +84,7 @@ class delta extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
@@ -158,6 +157,7 @@ class delta extends Exchange {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'rate_limits/quota',
                         'heartbeat',
                         'deposits/address',
                     ),
@@ -181,6 +181,7 @@ class delta extends Exchange {
                         'positions/auto_topup',
                         'users/update_mmp',
                         'users/reset_mmp',
+                        'users/margin_mode',
                     ),
                     'delete' => array(
                         'orders',
@@ -417,25 +418,25 @@ class delta extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicGetSettings ($params);
+        $response = $this->publicGetSettings($params);
         // full $response sample under `fetchStatus`
         $result = $this->safe_dict($response, 'result', array());
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        $response = $this->publicGetSettings ($params);
+        $response = $this->publicGetSettings($params);
         //
         //     {
         //         "result" => array(
@@ -502,7 +503,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -511,7 +512,7 @@ class delta extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetAssets ($params);
+        $response = $this->publicGetAssets($params);
         //
         //    {
         //        "result" => array(
@@ -573,7 +574,7 @@ class delta extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -618,7 +619,7 @@ class delta extends Exchange {
         ));
     }
 
-    public function load_markets($reload = false, $params = array ()) {
+    public function load_markets($reload = false, $params = array()) {
         $markets = parent::load_markets($reload, $params);
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
         if (($currenciesByNumericId === null) || $reload) {
@@ -649,7 +650,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for delta
          *
@@ -658,11 +659,11 @@ class delta extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetProducts ($params);
+        $response = $this->publicGetProducts($params);
         //
         //     {
         //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
-        //         "result":[
+        //         "result":array(
         //             // the below $response represents item from perpetual $market
         //             array(
         //                 "annualized_funding":"5.475000000000000000",
@@ -833,7 +834,7 @@ class delta extends Exchange {
         //                 "contract_value" => "1",
         //                 "short_description" => "SOL-USDT $spot $market"
         //             ),
-        //         ],
+        //         ),
         //         "success":true
         //     }
         //
@@ -915,7 +916,7 @@ class delta extends Exchange {
                 'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'margin' => $spot ? null : false,
+                'margin' => false,
                 'swap' => $swap,
                 'future' => $future,
                 'option' => $option,
@@ -1106,7 +1107,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1121,7 +1122,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
+        $response = $this->publicGetTickersSymbol($this->extend($request, $params));
         //
         // spot
         //
@@ -1250,7 +1251,7 @@ class delta extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -1262,7 +1263,7 @@ class delta extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetTickers ($params);
+        $response = $this->publicGetTickers($params);
         //
         // spot
         //
@@ -1403,7 +1404,7 @@ class delta extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1412,7 +1413,7 @@ class delta extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1422,7 +1423,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetL2orderbookSymbol ($this->extend($request, $params));
+        $response = $this->publicGetL2orderbookSymbol($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1545,7 +1546,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1562,7 +1563,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTradesSymbol ($this->extend($request, $params));
+        $response = $this->publicGetTradesSymbol($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1603,7 +1604,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -1647,7 +1648,7 @@ class delta extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $params = $this->omit($params, array( 'price', 'until' ));
-        $response = $this->publicGetHistoryCandles ($this->extend($request, $params));
+        $response = $this->publicGetHistoryCandles($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -1679,7 +1680,7 @@ class delta extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -1689,7 +1690,7 @@ class delta extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privateGetWalletBalances ($params);
+        $response = $this->privateGetWalletBalances($params);
         //
         //     {
         //         "result":array(
@@ -1714,7 +1715,7 @@ class delta extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on a single open contract trade position
          *
@@ -1729,7 +1730,7 @@ class delta extends Exchange {
         $request = array(
             'product_id' => $market['numericId'],
         );
-        $response = $this->privateGetPositions ($this->extend($request, $params));
+        $response = $this->privateGetPositions($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -1744,7 +1745,7 @@ class delta extends Exchange {
         return $this->parse_position($result, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -1755,7 +1756,7 @@ class delta extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
-        $response = $this->privateGetPositionsMargined ($params);
+        $response = $this->privateGetPositionsMargined($params);
         //
         //     {
         //         "success" => true,
@@ -1980,7 +1981,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -2022,7 +2023,7 @@ class delta extends Exchange {
             $request['reduce_only'] = $reduceOnly;
             $params = $this->omit($params, 'reduceOnly');
         }
-        $response = $this->privatePostOrders ($this->extend($request, $params));
+        $response = $this->privatePostOrders($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -2063,7 +2064,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edit a trade order
          *
@@ -2092,7 +2093,7 @@ class delta extends Exchange {
         if ($price !== null) {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePutOrders ($this->extend($request, $params));
+        $response = $this->privatePutOrders($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -2114,7 +2115,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -2134,7 +2135,7 @@ class delta extends Exchange {
             'id' => intval($id),
             'product_id' => $market['numericId'],
         );
-        $response = $this->privateDeleteOrders ($this->extend($request, $params));
+        $response = $this->privateDeleteOrders($this->extend($request, $params));
         //
         //     {
         //         "result":array(
@@ -2175,7 +2176,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -2195,7 +2196,7 @@ class delta extends Exchange {
             // 'cancel_limit_orders' => 'true',
             // 'cancel_stop_orders' => 'true',
         );
-        $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersAll($this->extend($request, $params));
         //
         //     {
         //         "result":array(),
@@ -2209,7 +2210,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2233,10 +2234,10 @@ class delta extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
-            $response = $this->privateGetOrdersClientOrderIdClientOid ($this->extend($request, $params));
+            $response = $this->privateGetOrdersClientOrderIdClientOid($this->extend($request, $params));
         } else {
             $request['order_id'] = $id;
-            $response = $this->privateGetOrdersOrderId ($this->extend($request, $params));
+            $response = $this->privateGetOrdersOrderId($this->extend($request, $params));
         }
         //
         //     {
@@ -2266,7 +2267,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2281,7 +2282,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -2296,7 +2297,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $this->load_markets();
         $request = array(
             // 'product_ids' => $market['id'], // comma-separated
@@ -2321,9 +2322,9 @@ class delta extends Exchange {
         }
         $response = null;
         if ($method === 'privateGetOrders') {
-            $response = $this->privateGetOrders ($this->extend($request, $params));
+            $response = $this->privateGetOrders($this->extend($request, $params));
         } elseif ($method === 'privateGetOrdersHistory') {
-            $response = $this->privateGetOrdersHistory ($this->extend($request, $params));
+            $response = $this->privateGetOrdersHistory($this->extend($request, $params));
         }
         //
         //     {
@@ -2352,7 +2353,7 @@ class delta extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -2385,7 +2386,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->privateGetFills ($this->extend($request, $params));
+        $response = $this->privateGetFills($this->extend($request, $params));
         //
         //     {
         //         "meta":array(
@@ -2435,7 +2436,7 @@ class delta extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -2463,7 +2464,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->privateGetWalletTransactions ($this->extend($request, $params));
+        $response = $this->privateGetWalletTransactions($this->extend($request, $params));
         //
         //     {
         //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
@@ -2562,7 +2563,7 @@ class delta extends Exchange {
         ), $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -2580,7 +2581,7 @@ class delta extends Exchange {
             $request['network'] = $this->network_code_to_id($networkCode, $code);
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetDepositsAddress ($this->extend($request, $params));
+        $response = $this->privateGetDepositsAddress($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -2620,17 +2621,18 @@ class delta extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $marketId = $this->safe_string($depositAddress, 'asset_symbol');
         $networkId = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($marketId, $currency);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
-            'network' => $this->network_id_to_code($networkId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
@@ -2648,7 +2650,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
+        $response = $this->publicGetTickersSymbol($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2698,7 +2700,7 @@ class delta extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate for multiple markets
          *
@@ -2713,7 +2715,7 @@ class delta extends Exchange {
         $request = array(
             'contract_types' => 'perpetual_futures',
         );
-        $response = $this->publicGetTickers ($this->extend($request, $params));
+        $response = $this->publicGetTickers($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2834,7 +2836,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -2848,7 +2850,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * remove margin from a position
          *
@@ -2862,7 +2864,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $amount = (string) $amount;
@@ -2873,7 +2875,7 @@ class delta extends Exchange {
             'product_id' => $market['numericId'],
             'delta_margin' => $amount,
         );
-        $response = $this->privatePostPositionsChangeMargin ($this->extend($request, $params));
+        $response = $this->privatePostPositionsChangeMargin($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2938,7 +2940,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * retrieves the open interest of a derivative $market
          *
@@ -2956,7 +2958,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
+        $response = $this->publicGetTickersSymbol($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3077,7 +3079,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -3092,7 +3094,7 @@ class delta extends Exchange {
         $request = array(
             'product_id' => $market['numericId'],
         );
-        $response = $this->privateGetProductsProductIdOrdersLeverage ($this->extend($request, $params));
+        $response = $this->privateGetProductsProductIdOrdersLeverage($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3122,7 +3124,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -3153,10 +3155,10 @@ class delta extends Exchange {
         //         "success" => true
         //     }
         //
-        return $this->privatePostProductsProductIdOrdersLeverage ($this->extend($request, $params));
+        return $this->privatePostProductsProductIdOrdersLeverage($this->extend($request, $params));
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical settlement records
          *
@@ -3179,7 +3181,7 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->publicGetProducts ($this->extend($request, $params));
+        $response = $this->publicGetProducts($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3241,7 +3243,7 @@ class delta extends Exchange {
         $result = $this->safe_list($response, 'result', array());
         $settlements = $this->parse_settlements($result, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_settlement($settlement, $market) {
@@ -3317,7 +3319,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): array {
+    public function fetch_greeks(string $symbol, $params = array()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
@@ -3332,7 +3334,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
+        $response = $this->publicGetTickersSymbol($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3461,13 +3463,13 @@ class delta extends Exchange {
             'bidPrice' => $this->safe_number($quotes, 'best_bid'),
             'askPrice' => $this->safe_number($quotes, 'best_ask'),
             'markPrice' => $this->safe_number($greeks, 'mark_price'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
             'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
             'info' => $greeks,
         );
     }
 
-    public function close_all_positions($params = array ()): array {
+    public function close_all_positions($params = array()): array {
         /**
          * closes all open positions for a market type
          *
@@ -3483,7 +3485,7 @@ class delta extends Exchange {
             'close_all_isolated' => true,
             // 'user_id' => 12345,
         );
-        $response = $this->privatePostPositionsCloseAll ($this->extend($request, $params));
+        $response = $this->privatePostPositionsCloseAll($this->extend($request, $params));
         //
         // array("result":array(),"success":true)
         //
@@ -3491,7 +3493,7 @@ class delta extends Exchange {
         return array( $position );
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of a trading pair
          *
@@ -3506,7 +3508,7 @@ class delta extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privateGetProfile ($params);
+        $response = $this->privateGetProfile($params);
         //
         //     {
         //         "result" => {
@@ -3574,7 +3576,7 @@ class delta extends Exchange {
         return $this->parse_margin_mode($result, $market);
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -3586,7 +3588,28 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): Option {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        /**
+         * set margin mode to 'isolated' or 'portfolio'
+         *
+         * @see https://docs.delta.exchange/#change-margin-mode
+         *
+         * @param {string} $marginMode 'isolated' or 'portfolio'
+         * @param {string} [$symbol] not used by delta.setMarginMode
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} $params->subaccount_user_id the user id of the subaccount
+         * @return {array} response from the exchange
+         */
+        $this->check_required_argument('setMarginMode', $marginMode, 'marginMode', array( 'isolated', 'portfolio' ));
+        $subaccountUserId = $this->safe_string($params, 'subaccount_user_id');
+        $this->check_required_argument('setMarginMode', $subaccountUserId, 'params["subaccount_user_id"]');
+        $request = array(
+            'margin_mode' => $marginMode,
+        );
+        return $this->privatePutUsersMarginMode($this->extend($request, $params));
+    }
+
+    public function fetch_option(string $symbol, $params = array()): array {
         /**
          * fetches option data that is commonly found in an option chain
          *
@@ -3601,7 +3624,7 @@ class delta extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTickersSymbol ($this->extend($request, $params));
+        $response = $this->publicGetTickersSymbol($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -3658,7 +3681,7 @@ class delta extends Exchange {
         return $this->parse_option($result, null, $market);
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "close" => 6793.0,
@@ -3714,7 +3737,7 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($chain, 'timestamp', 0.001);
         return array(
             'info' => $chain,
-            'currency' => null,
+            'currency' => $this->safe_string($chain, 'currency'),
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3724,16 +3747,16 @@ class delta extends Exchange {
             'askPrice' => $this->safe_number($quotes, 'best_ask'),
             'midPrice' => $this->safe_number($quotes, 'impact_mid_price'),
             'markPrice' => $this->safe_number($chain, 'mark_price'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'last_price'),
             'underlyingPrice' => $this->safe_number($chain, 'spot_price'),
-            'change' => null,
-            'percentage' => null,
+            'change' => $this->safe_number($chain, 'change'),
+            'percentage' => $this->safe_number($chain, 'percentage'),
             'baseVolume' => $this->safe_number($chain, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_number($chain, 'quote_volume'),
         );
     }
 
-    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array()): array {
         /**
          * fetches the auto deleveraging rank and risk percentage for a list of $symbols
          *
@@ -3745,7 +3768,7 @@ class delta extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols, null, true, true, true);
-        $response = $this->privateGetPositionsMargined ($params);
+        $response = $this->privateGetPositionsMargined($params);
         //
         //     {
         //         "result":
@@ -3794,7 +3817,7 @@ class delta extends Exchange {
         //                                 "service_id" => 1,
         //                                 "underlying_asset" => "BTC"
         //                             ),
-        //                             "constituent_exchanges" => [
+        //                             "constituent_exchanges" => array(
         //                                 array(
         //                                     "exchange" => "binance",
         //                                     "health_interval" => 3000,
@@ -3912,7 +3935,7 @@ class delta extends Exchange {
         //                     "updated_at" => "2026-01-14T11:24:35.801586Z",
         //                     "user_id" => 30084879
         //                 }
-        //             ],
+        //             ),
         //         "success" => true
         //     }
         //
@@ -4100,7 +4123,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

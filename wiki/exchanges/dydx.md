@@ -52,14 +52,14 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-dydx.fetchTime ([params])
+dydx.fetchTime (params?)
 ```
 
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ### fetchMarkets{docsify-ignore}
-retrieves data on all markets for hyperliquid
+retrieves data on all markets for dydx
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -72,7 +72,7 @@ retrieves data on all markets for hyperliquid
 
 
 ```javascript
-dydx.fetchMarkets ([params])
+dydx.fetchMarkets (params?)
 ```
 
 
@@ -84,7 +84,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://developer.woox.io/api-reference/endpoint/public_data/marketTrades  
+**See**: https://docs.dydx.xyz/indexer-client/http#get-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -95,7 +95,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-dydx.fetchTrades (symbol[, since, limit, params])
+dydx.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -120,7 +120,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-dydx.fetchOHLCV (symbol, timeframe[, since, limit, params])
+dydx.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -144,7 +144,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-dydx.fetchFundingRateHistory (symbol[, since, limit, params])
+dydx.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -166,7 +166,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-dydx.fetchOrder (id, symbol[, params])
+dydx.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -191,7 +191,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-dydx.fetchOrders (symbol[, since, limit, params])
+dydx.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -216,7 +216,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-dydx.fetchOpenOrders (symbol[, since, limit, params])
+dydx.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -241,7 +241,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-dydx.fetchClosedOrders (symbol[, since, limit, params])
+dydx.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -264,7 +264,7 @@ fetch data on an open position
 
 
 ```javascript
-dydx.fetchPosition (symbol[, params])
+dydx.fetchPosition (symbol, params?)
 ```
 
 
@@ -287,7 +287,7 @@ fetch all open positions
 
 
 ```javascript
-dydx.fetchPositions ([symbols, params])
+dydx.fetchPositions (symbols?, params?)
 ```
 
 
@@ -321,7 +321,7 @@ create a trade order
 
 
 ```javascript
-dydx.createOrder (symbol, type, side, amount[, price, params])
+dydx.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -349,7 +349,7 @@ cancels an open order
 
 
 ```javascript
-dydx.cancelOrder (id, symbol[, params])
+dydx.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -372,7 +372,7 @@ cancel multiple orders
 
 
 ```javascript
-dydx.cancelOrders (ids[, symbol, params])
+dydx.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -382,7 +382,7 @@ dydx.cancelOrders (ids[, symbol, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-perpetual-market-orderbook  
 
@@ -394,7 +394,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-dydx.fetchOrderBook (symbol[, limit, params])
+dydx.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -419,7 +419,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-dydx.fetchLedger ([code, since, limit, params])
+dydx.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -443,7 +443,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-dydx.transfer (code, amount, fromAccount, toAccount[, params])
+dydx.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -468,7 +468,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-dydx.fetchTransfers (code[, since, limit, params])
+dydx.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -491,7 +491,7 @@ make a withdrawal
 
 
 ```javascript
-dydx.withdraw (code, amount, address, tag[, params])
+dydx.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -516,7 +516,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-dydx.fetchWithdrawals (code[, since, limit, params])
+dydx.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -541,7 +541,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-dydx.fetchDeposits (code[, since, limit, params])
+dydx.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -566,7 +566,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-dydx.fetchDepositsWithdrawals ([code, since, limit, params])
+dydx.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -587,7 +587,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-dydx.fetchAccounts ([params])
+dydx.fetchAccounts (params?)
 ```
 
 
@@ -607,7 +607,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-dydx.fetchBalance ([params])
+dydx.fetchBalance (params?)
 ```
 
 
@@ -630,7 +630,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-dydx.watchTrades (symbol[, since, limit, params])
+dydx.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -651,7 +651,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-dydx.unWatchTrades (symbol[, params])
+dydx.unWatchTrades (symbol, params?)
 ```
 
 
@@ -661,7 +661,7 @@ dydx.unWatchTrades (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/websockets#orders  
 
@@ -673,7 +673,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-dydx.watchOrderBook (symbol[, limit, params])
+dydx.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -683,7 +683,7 @@ dydx.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/websockets#orders  
 
@@ -694,7 +694,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-dydx.unWatchOrderBook (symbol[, params])
+dydx.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -718,7 +718,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-dydx.watchOHLCV (symbol, timeframe[, since, limit, params])
+dydx.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -741,6 +741,6 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-dydx.unWatchOHLCV (symbol, timeframe[, params])
+dydx.unWatchOHLCV (symbol, timeframe, params?)
 ```
 

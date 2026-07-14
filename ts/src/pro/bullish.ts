@@ -3,7 +3,7 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -129,7 +129,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades::' + market['symbol'];
         const url = '/trading-api/v1/market-data/trades';
@@ -199,7 +201,9 @@ export default class bullish extends bullishRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id'];
@@ -257,10 +261,8 @@ export default class bullish extends bullishRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let parsed = undefined;
-        if ((updateType === 'snapshot')) {
-            parsed = this.parseTicker (data, market);
-        } else if (updateType === 'update') {
+        let parsed = this.parseTicker (data, market);
+        if (updateType === 'update') {
             const ticker = this.safeDict (this.tickers, symbol, {});
             const rawTicker = this.safeDict (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
@@ -279,10 +281,12 @@ export default class bullish extends bullishRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = '/trading-api/v1/market-data/orderbook';
         const messageHash = 'orderbook::' + market['symbol'];
@@ -344,7 +348,7 @@ export default class bullish extends bullishRest {
     }
 
     separateBidsOrAsks (entry) {
-        const result = [];
+        const result: List = [];
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
@@ -372,7 +376,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const subscribeHash = 'orders';
         let messageHash = subscribeHash;
         if (symbol !== undefined) {
@@ -440,12 +446,12 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawOrders = [];
+        let rawOrders: List = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawOrders.push (data); // update is a single order
         } else {
-            rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
+            rawOrders = this.safeList (message, 'data', []) as List; // snapshot is a list of orders
         }
         if (rawOrders.length > 0) {
             if (this.orders === undefined) {
@@ -459,7 +465,9 @@ export default class bullish extends bullishRest {
                 const parsedOrder = this.parseOrder (rawOrder);
                 orders.append (parsedOrder);
                 const symbol = this.safeString (parsedOrder, 'symbol');
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const messageHash = 'orders';
             client.resolve (orders, messageHash);
@@ -485,7 +493,9 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const subscribeHash = 'myTrades';
         let messageHash = subscribeHash;
         if (symbol !== undefined) {
@@ -546,12 +556,12 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawTrades = [];
+        let rawTrades: List = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawTrades.push (data); // update is a single trade
         } else {
-            rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
+            rawTrades = this.safeList (message, 'data', []) as List; // snapshot is a list of trades
         }
         if (rawTrades.length > 0) {
             if (this.myTrades === undefined) {
@@ -565,7 +575,9 @@ export default class bullish extends bullishRest {
                 const parsedTrade = this.parseTrade (rawTrade);
                 trades.append (parsedTrade);
                 const symbol = this.safeString (parsedTrade, 'symbol');
-                symbols[symbol] = true;
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
             const messageHash = 'myTrades';
             client.resolve (trades, messageHash);
@@ -588,7 +600,9 @@ export default class bullish extends bullishRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'topic': 'assetAccounts',
         };
@@ -645,6 +659,9 @@ export default class bullish extends bullishRest {
         //     }
         //
         const tradingAccountId = this.safeString (message, 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            return;
+        }
         if (!(tradingAccountId in this.balance)) {
             this.balance[tradingAccountId] = {};
         }
@@ -681,10 +698,12 @@ export default class bullish extends bullishRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const subscribeHash = 'positions';
         let messageHash = subscribeHash;
-        if (!this.isEmpty (symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
             messageHash += '::' + symbols.join (',');
         }
@@ -703,18 +722,18 @@ export default class bullish extends bullishRest {
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
         const messageType = this.safeString (message, 'type');
-        let rawPositions = [];
+        let rawPositions: List = [];
         if (messageType === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawPositions.push (data);
         } else {
-            rawPositions = this.safeList (message, 'data', []);
+            rawPositions = this.safeList (message, 'data', []) as List;
         }
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const positions = this.positions;
-        const newPositions = [];
+        const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);

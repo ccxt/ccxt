@@ -34,7 +34,7 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 
 		response := (<-exchange.FetchTickers(argSymbols, argParams))
 		PanicOnError(response)
-		Assert(IsObject(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
+		Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dict. "), exchange.Json(response)))
 		var values any = ObjectValues(response)
 		var checkedSymbol any = nil
 		if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
@@ -44,7 +44,29 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 		for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
 			// todo: symbol check here
 			var ticker any = GetValue(values, i)
-			TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+
+			{
+				func() (ret_ any) {
+					defer func() {
+						if ex := recover(); ex != nil {
+							if ex == "break" {
+								return
+							}
+							ret_ = func() any {
+								// catch block:
+
+								retRes3112 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
+								PanicOnError(retRes3112)
+								return nil
+							}()
+						}
+					}()
+					// try block:
+					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+					return nil
+				}()
+
+			}
 		}
 
 		ch <- response

@@ -1,8 +1,5 @@
-- [Fetch First Ohlcv Timestamp](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // ###### Description ######
 //
 // This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.
@@ -104,5 +100,5 @@ if ($run_example) {
     var_dump('- Earliest bar timestamp:', $earliest_timestamp, ', readable: ', $my_ex->iso8601($earliest_timestamp));
     var_dump('- market.created value:', $my_ex->market($symbol)['created']);
 }
- 
+
 ```

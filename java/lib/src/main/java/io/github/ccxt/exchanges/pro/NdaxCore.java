@@ -63,7 +63,10 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object name = "SubscribeLevel1";
             Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
@@ -143,7 +146,10 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object name = "SubscribeTrades";
@@ -201,7 +207,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         {
             Object trade = this.parseTrade(Helpers.GetValue(payload, i));
             Object symbol = Helpers.GetValue(trade, "symbol");
-            Object tradesArray = this.safeValue(this.trades, symbol);
+            Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
                 Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -244,7 +250,10 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object name = "SubscribeTicker";
@@ -328,7 +337,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                     Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(length) && Helpers.isTrue((Helpers.isLessThan(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
+                    if (Helpers.isTrue(Helpers.isTrue(length) && Helpers.isTrue((Helpers.isLessThan(this.parseToInt(Helpers.GetValue(parsed, 0)), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))))
                     {
                         continue;
                     } else
@@ -371,7 +380,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -381,7 +390,10 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object name = "SubscribeLevel2";
@@ -555,7 +567,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object id = this.safeInteger(message, "i");
-        Object subscription = this.safeValue(subscriptionsById, id);
+        Object subscription = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? null : this.safeValue(subscriptionsById, id);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object method = this.safeValue(subscription, "method");
@@ -607,7 +619,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             put( "TickerDataUpdateEvent", "handleOHLCV");
         }};
         Object eventVar = this.safeString(message, "n");
-        Object method = this.safeValue(methods, eventVar);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});

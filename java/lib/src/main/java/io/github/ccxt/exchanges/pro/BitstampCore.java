@@ -62,7 +62,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -71,7 +71,10 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orderbook:", symbol);
@@ -162,7 +165,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
     {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
         {
-            Object bidAsk = this.parseBidAsk(Helpers.GetValue(bidAsks, i));
+            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }
@@ -207,7 +210,10 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trades:", symbol);
@@ -336,7 +342,10 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object channel = "private-my_orders";
@@ -387,7 +396,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object subscription = this.safeValue(client.subscriptions, channel);
+        Object subscription = ((Helpers.isTrue((Helpers.isEqual(channel, null))))) ? null : this.safeValue(client.subscriptions, channel);
         Object symbol = this.safeString(subscription, "symbol");
         Object market = this.market(symbol);
         Helpers.addElementToObject(order, "event", this.safeString(message, "event"));

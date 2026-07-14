@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import { isNumber, isDictionary, isArray } from './type.js';
+import { isNumber, isDict, isArray } from './type.js';
 // ----------------------------------------------------------------------------
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
 const values = (x) => ((!isArray(x)) ? Object.values(x) : x); // don't copy arrays if they're already arrays
@@ -26,7 +26,7 @@ const isEmpty = (object) => {
     if (Array.isArray(object)) {
         return object.length < 1;
     }
-    if (isDictionary(object)) {
+    if (isDict(object)) {
         return Object.keys(object).length < 1;
     }
     return false;

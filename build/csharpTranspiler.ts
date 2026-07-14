@@ -1,15 +1,17 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
+import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -18,8 +20,6 @@ import { unCamelCase } from "../js/src/base/functions.js";
 ansi.nice
 
 type dict = { [key: string]: string }
-
-const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
@@ -35,7 +35,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     overwriteFile (path, content);
-    writeFile (path, content);
+    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -283,6 +283,31 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        // TS >= 5/6 (ast-transpiler 0.0.91) can report dictionary key types like `Str`
+        // (string | undefined) as a union whose first member is not the string one.
+        // The default printer only inspects the first union member, so dictionary
+        // assignments (`result[symbol] = value`) would be wrongly emitted as list index
+        // writes (`((List<object>)result)[Convert.ToInt32(symbol)]`). Handle unions
+        // containing a string member here (matches the previous TS 4.9 output).
+        const csharp = this.transpiler.csharpTranspiler;
+        csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
+            const { expression, argumentExpression } = node;
+            const parent = node.parent;
+            const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
+                && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
+                && parent?.left === node;
+            if (isLeftSideOfAssignment && csharp.ELEMENT_ACCESS_WRAPPER_OPEN && csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
+                const type = (global as any).checker.getTypeAtLocation (argumentExpression);
+                const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray (type.types);
+                if (isUnion && type.types.some ((t: any) => csharp.isStringType (t.flags))) {
+                    const expressionAsString = csharp.printNode (expression, 0);
+                    const argumentAsString = csharp.printNode (argumentExpression, 0);
+                    const cast = ts.isStringLiteralLike (argumentExpression) ? '' : '(string)';
+                    return `((IDictionary<string,object>)${expressionAsString})[${cast}${argumentAsString}]`;
+                }
+            }
+            return undefined;
+        };
     }
 
     createGeneratedHeader() {
@@ -310,7 +335,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'NullableDict') || ((type.startsWith('{')) && (type.endsWith('}')))
     }
 
     isStringType(type: string) {
@@ -348,6 +373,32 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
+        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
+        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            if (wrappedType.trim().endsWith('[]')) {
+                isList = true; // e.g. `{ id: Str; ... }[]` → List<Dictionary<string, object>>
+            }
+            return addTaskIfNeeded('Dictionary<string, object>');
+        }
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
+        // without an explicit annotation (e.g. `OpenInterest | undefined`, `Dict | Leverage`).
+        // Normalize them here: drop undefined/null members and collapse remaining
+        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
+            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
+            wrappedType = members.length > 0 ? members[0] : 'object';
+        }
+
+        // TS >= 5/6 keeps type alias names (e.g. `Market[]`) instead of expanding them;
+        // map the nullable alias back to its concrete interface (matches the previous
+        // TS 4.9 output, e.g. `List<MarketInterface>` in the committed wrappers).
+        if (wrappedType === 'Market' || wrappedType === 'Market[]') {
+            wrappedType = wrappedType.replace ('Market', 'MarketInterface');
+        }
+
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
                 return isPromise ? `Task` : 'void';
@@ -364,6 +415,22 @@ class NewTranspiler {
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
             return addTaskIfNeeded('object'); // default if type is unknown;
+        }
+
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` identifier, which is not a valid C# type without a generic arg.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
+        // Tuple return types like `[Dict, Str]` belong to internal multi-return helpers
+        // (e.g. createOrderRequest) that aren't part of the unified API. C# has no inline
+        // tuple syntax matching `[A, B]`, so treat them as an untyped array — exactly how
+        // they transpiled before being annotated (they were `any[]`). The generated
+        // wrapper only needs to compile; these helpers are never called through it.
+        if (wrappedType.startsWith('[') && wrappedType.endsWith(']')) {
+            wrappedType = 'any[]';
         }
 
         if (wrappedType === 'string[][]') {
@@ -497,6 +564,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -548,8 +617,8 @@ class NewTranspiler {
             return `return (double)res;`;
         }
 
-        // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
+        // handle the typescript type Dict (and its nullable alias from TS >= 5/6 inference)
+        if (unwrappedType === 'Dict' || unwrappedType === 'NullableDict') {
             return `return (Dictionary<string, object>)res;`;
         }
 
@@ -558,6 +627,9 @@ class NewTranspiler {
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
                 returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+            } else if (unwrappedType === 'List<string>' || unwrappedType === 'List<String>') {
+                // string is a primitive with no `new string(object)` constructor — cast each element instead
+                returnStatement = `return ((IList<object>)res).Select(item => (item as string)).ToList();`
             } else {
                 returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
@@ -599,7 +671,8 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
@@ -741,7 +814,9 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileCSharpByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types
@@ -1198,7 +1273,7 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.cs', file[1])))
+        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
     transpileBaseTestsToCSharp () {

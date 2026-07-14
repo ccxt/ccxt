@@ -111,7 +111,7 @@ func (this *KrakenCore) Describe() any {
 				"zendesk": "https://kraken.zendesk.com/api/v2/help_center/en-us/articles",
 			},
 			"www":  "https://www.kraken.com",
-			"doc":  "https://docs.kraken.com/rest/",
+			"doc":  "https://docs.kraken.com/api-reference/",
 			"fees": "https://www.kraken.com/en-us/features/fee-schedule",
 		},
 		"fees": map[string]any{
@@ -140,7 +140,6 @@ func (this *KrakenCore) Describe() any {
 					"Ticker":       1,
 					"OHLC":         1.2,
 					"Depth":        1.2,
-					"Level3":       1.2,
 					"GroupedBook":  1.2,
 					"Trades":       1.2,
 					"Spread":       1,
@@ -150,6 +149,7 @@ func (this *KrakenCore) Describe() any {
 			},
 			"private": map[string]any{
 				"post": map[string]any{
+					"Level3":                1.2,
 					"Balance":               3,
 					"BalanceEx":             3,
 					"CreditLines":           3,
@@ -227,6 +227,7 @@ func (this *KrakenCore) Describe() any {
 			"ZUSD":  "USD",
 		},
 		"options": map[string]any{
+			"mica":                    true,
 			"timeDifference":          0,
 			"adjustForTimeDifference": false,
 			"marketsByAltname":        map[string]any{},
@@ -545,7 +546,7 @@ func (this *KrakenCore) FeeToPrecision(symbol any, fee any) any {
  * @method
  * @name kraken#fetchMarkets
  * @description retrieves data on all markets for kraken
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+ * @see https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -727,7 +728,7 @@ func (this *KrakenCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+ * @see https://docs.kraken.com/api-reference/market-data/get-system-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -767,7 +768,7 @@ func (this *KrakenCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+ * @see https://docs.kraken.com/api-reference/market-data/get-asset-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -899,21 +900,6 @@ func (this *KrakenCore) ParseCurrency(rawCurrency any) any {
 		"networks": map[string]any{},
 	})
 }
-func (this *KrakenCore) AddKeyInArrayItems(obj any, keyName any) any {
-	var result any = []any{}
-	var keys any = ObjectKeys(obj)
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-		var key any = GetValue(keys, i)
-		var item any = GetValue(obj, key)
-		if IsTrue(IsEqual(item, nil)) {
-			continue
-		}
-		var itemWithKey any = this.Extend(map[string]any{}, item)
-		AddElementToObject(itemWithKey, keyName, key)
-		AppendToArray(&result, itemWithKey)
-	}
-	return result
-}
 func (this *KrakenCore) SafeCurrencyCode(currencyId any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
@@ -934,7 +920,7 @@ func (this *KrakenCore) SafeCurrencyCode(currencyId any, optionalArgs ...any) an
  * @method
  * @name kraken#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+ * @see https://docs.kraken.com/api-reference/account-data/get-trade-volume
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -946,9 +932,11 @@ func (this *KrakenCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9458 := (<-this.LoadMarkets())
-		PanicOnError(retRes9458)
+			retRes93012 := (<-this.LoadMarkets())
+			PanicOnError(retRes93012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":     GetValue(market, "id"),
@@ -1008,7 +996,7 @@ func (this *KrakenCore) ParseTradingFee(response any, market any) any {
 		"tierBased":  true,
 	}
 }
-func (this *KrakenCore) ParseBidAsk(bidask any, optionalArgs ...any) any {
+func (this *KrakenCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)
@@ -1025,11 +1013,11 @@ func (this *KrakenCore) ParseBidAsk(bidask any, optionalArgs ...any) any {
  * @method
  * @name kraken#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+ * @see https://docs.kraken.com/api-reference/market-data/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1040,9 +1028,11 @@ func (this *KrakenCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10188 := (<-this.LoadMarkets())
-		PanicOnError(retRes10188)
+			retRes100512 := (<-this.LoadMarkets())
+			PanicOnError(retRes100512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1144,7 +1134,7 @@ func (this *KrakenCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @method
  * @name kraken#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1158,9 +1148,11 @@ func (this *KrakenCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11188 := (<-this.LoadMarkets())
-		PanicOnError(retRes11188)
+			retRes110712 := (<-this.LoadMarkets())
+			PanicOnError(retRes110712)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -1199,7 +1191,7 @@ func (this *KrakenCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1211,9 +1203,11 @@ func (this *KrakenCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11568 := (<-this.LoadMarkets())
-		PanicOnError(retRes11568)
+			retRes114712 := (<-this.LoadMarkets())
+			PanicOnError(retRes114712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1251,7 +1245,7 @@ func (this *KrakenCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @method
  * @name kraken#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
+ * @see https://docs.kraken.com/api-reference/market-data/get-ohlc-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1273,18 +1267,20 @@ func (this *KrakenCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12038 := (<-this.LoadMarkets())
-		PanicOnError(retRes12038)
+			retRes119612 := (<-this.LoadMarkets())
+			PanicOnError(retRes119612)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes120719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
-			PanicOnError(retRes120719)
-			ch <- retRes120719
+			retRes120119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
+			PanicOnError(retRes120119)
+			ch <- retRes120119
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1398,7 +1394,7 @@ func (this *KrakenCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @method
  * @name kraken#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+ * @see https://docs.kraken.com/api-reference/account-data/get-ledgers-info
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -1421,9 +1417,11 @@ func (this *KrakenCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13248 := (<-this.LoadMarkets())
-		PanicOnError(retRes13248)
+			retRes131912 := (<-this.LoadMarkets())
+			PanicOnError(retRes131912)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1433,7 +1431,7 @@ func (this *KrakenCore) FetchLedger(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -1478,9 +1476,11 @@ func (this *KrakenCore) FetchLedgerEntriesByIds(ids any, optionalArgs ...any) <-
 		_ = code
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13658 := (<-this.LoadMarkets())
-		PanicOnError(retRes13658)
+			retRes136212 := (<-this.LoadMarkets())
+			PanicOnError(retRes136212)
+		}
 		ids = Join(ids, ",")
 		var request any = this.Extend(map[string]any{
 			"id": ids,
@@ -1689,7 +1689,7 @@ func (this *KrakenCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name kraken#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+ * @see https://docs.kraken.com/api-reference/market-data/get-recent-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1707,9 +1707,11 @@ func (this *KrakenCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15608 := (<-this.LoadMarkets())
-		PanicOnError(retRes15608)
+			retRes155912 := (<-this.LoadMarkets())
+			PanicOnError(retRes155912)
+		}
 		var market any = this.Market(symbol)
 		var id any = GetValue(market, "id")
 		var request any = map[string]any{
@@ -1781,7 +1783,7 @@ func (this *KrakenCore) ParseBalance(response any) any {
  * @method
  * @name kraken#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+ * @see https://docs.kraken.com/api-reference/account-data/get-extended-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -1792,9 +1794,11 @@ func (this *KrakenCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16298 := (<-this.LoadMarkets())
-		PanicOnError(retRes16298)
+			retRes163012 := (<-this.LoadMarkets())
+			PanicOnError(retRes163012)
+		}
 
 		response := (<-this.PrivatePostBalanceEx(params))
 		PanicOnError(response)
@@ -1825,7 +1829,7 @@ func (this *KrakenCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -1839,17 +1843,19 @@ func (this *KrakenCore) CreateMarketOrderWithCost(symbol any, side any, cost any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16618 := (<-this.LoadMarkets())
-		PanicOnError(retRes16618)
+			retRes166412 := (<-this.LoadMarkets())
+			PanicOnError(retRes166412)
+		}
 		// only buy orders are supported by the endpoint
 		var req any = map[string]any{
 			"cost": cost,
 		}
 
-		retRes166615 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes166615)
-		ch <- retRes166615
+		retRes167015 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes167015)
+		ch <- retRes167015
 		return nil
 
 	}()
@@ -1860,7 +1866,7 @@ func (this *KrakenCore) CreateMarketOrderWithCost(symbol any, side any, cost any
  * @method
  * @name kraken#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol, side and cost
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1873,13 +1879,15 @@ func (this *KrakenCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16808 := (<-this.LoadMarkets())
-		PanicOnError(retRes16808)
+			retRes168512 := (<-this.LoadMarkets())
+			PanicOnError(retRes168512)
+		}
 
-		retRes168115 := (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
-		PanicOnError(retRes168115)
-		ch <- retRes168115
+		retRes168715 := (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
+		PanicOnError(retRes168715)
+		ch <- retRes168715
 		return nil
 
 	}()
@@ -1890,7 +1898,7 @@ func (this *KrakenCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
  * @method
  * @name kraken#createOrder
  * @description create a trade order
- * @see https://docs.kraken.com/api/docs/rest-api/add-order
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1918,9 +1926,11 @@ func (this *KrakenCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17088 := (<-this.LoadMarkets())
-		PanicOnError(retRes17088)
+			retRes171512 := (<-this.LoadMarkets())
+			PanicOnError(retRes171512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":      GetValue(market, "id"),
@@ -1943,7 +1953,7 @@ func (this *KrakenCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		//         }
 		//     }
 		//
-		var result any = this.SafeDict(response, "result")
+		var result any = this.SafeDict(response, "result", map[string]any{})
 		AddElementToObject(result, "usingCost", isUsingCost)
 
 		// it's impossible to know if the order was created using cost or base currency
@@ -1960,7 +1970,7 @@ func (this *KrakenCore) CreateOrder(symbol any, typeVar any, side any, amount an
  * @method
  * @name kraken#createOrders
  * @description create a list of trade orders
- * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+ * @see https://docs.kraken.com/api-reference/trading/add-order-batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1972,9 +1982,11 @@ func (this *KrakenCore) CreateOrders(orders any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17478 := (<-this.LoadMarkets())
-		PanicOnError(retRes17478)
+			retRes175612 := (<-this.LoadMarkets())
+			PanicOnError(retRes175612)
+		}
 		var ordersRequests any = []any{}
 		var orderSymbols any = []any{}
 		var symbol any = nil
@@ -2009,7 +2021,7 @@ func (this *KrakenCore) CreateOrders(orders any, optionalArgs ...any) <-chan any
 		var response any = nil
 		var request any = map[string]any{
 			"orders": ordersRequests,
-			"pair":   GetValue(market, "id"),
+			"pair":   this.SafeString(market, "id"),
 		}
 		request = this.Extend(request, params)
 
@@ -2351,30 +2363,31 @@ func (this *KrakenCore) ParseOrder(order any, optionalArgs ...any) any {
 		isPostOnly = nil
 	}
 	return this.SafeOrder(map[string]any{
-		"id":                 id,
-		"clientOrderId":      clientOrderId,
-		"info":               order,
-		"timestamp":          timestamp,
-		"datetime":           this.Iso8601(timestamp),
-		"lastTradeTimestamp": nil,
-		"status":             status,
-		"symbol":             symbol,
-		"type":               typeParsed,
-		"timeInForce":        nil,
-		"postOnly":           isPostOnly,
-		"side":               side,
-		"price":              price,
-		"triggerPrice":       triggerPrice,
-		"takeProfitPrice":    takeProfitPrice,
-		"stopLossPrice":      stopLossPrice,
-		"cost":               cost,
-		"amount":             amount,
-		"filled":             filled,
-		"average":            average,
-		"remaining":          nil,
-		"reduceOnly":         this.SafeBool2(order, "reduceOnly", "reduce_only"),
-		"fee":                fee,
-		"trades":             trades,
+		"id":                  id,
+		"clientOrderId":       clientOrderId,
+		"info":                order,
+		"timestamp":           timestamp,
+		"datetime":            this.Iso8601(timestamp),
+		"lastTradeTimestamp":  nil,
+		"lastUpdateTimestamp": this.SafeTimestamp(order, "closetm"),
+		"status":              status,
+		"symbol":              symbol,
+		"type":                typeParsed,
+		"timeInForce":         nil,
+		"postOnly":            isPostOnly,
+		"side":                side,
+		"price":               price,
+		"triggerPrice":        triggerPrice,
+		"takeProfitPrice":     takeProfitPrice,
+		"stopLossPrice":       stopLossPrice,
+		"cost":                cost,
+		"amount":              amount,
+		"filled":              filled,
+		"average":             average,
+		"remaining":           nil,
+		"reduceOnly":          this.SafeBool2(order, "reduceOnly", "reduce_only"),
+		"fee":                 fee,
+		"trades":              trades,
 	}, market)
 }
 func (this *KrakenCore) OrderRequest(method any, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
@@ -2474,6 +2487,7 @@ func (this *KrakenCore) OrderRequest(method any, symbol any, typeVar any, reques
 	var close any = this.SafeDict(params, "close")
 	if IsTrue(!IsEqual(close, nil)) {
 		close = this.Extend(map[string]any{}, close)
+		close = Ternary(IsTrue((IsEqual(close, nil))), map[string]any{}, close)
 		var closePrice any = this.SafeValue(close, "price")
 		if IsTrue(!IsEqual(closePrice, nil)) {
 			AddElementToObject(close, "price", this.PriceToPrecision(symbol, closePrice))
@@ -2508,7 +2522,7 @@ func (this *KrakenCore) OrderRequest(method any, symbol any, typeVar any, reques
  * @method
  * @name kraken#editOrder
  * @description edit a trade order
- * @see https://docs.kraken.com/api/docs/rest-api/amend-order
+ * @see https://docs.kraken.com/api-reference/trading/amend-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -2538,9 +2552,11 @@ func (this *KrakenCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		_ = price
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22888 := (<-this.LoadMarkets())
-		PanicOnError(retRes22888)
+			retRes230112 := (<-this.LoadMarkets())
+			PanicOnError(retRes230112)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")))
@@ -2603,7 +2619,7 @@ func (this *KrakenCore) EditOrder(id any, symbol any, typeVar any, side any, opt
  * @method
  * @name kraken#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+ * @see https://docs.kraken.com/api-reference/account-data/query-orders-info
  * @param {string} id order id
  * @param {string} symbol not used by kraken fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2618,9 +2634,11 @@ func (this *KrakenCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23498 := (<-this.LoadMarkets())
-		PanicOnError(retRes23498)
+			retRes236412 := (<-this.LoadMarkets())
+			PanicOnError(retRes236412)
+		}
 		var clientOrderId any = this.SafeValue2(params, "userref", "clientOrderId")
 		var request any = map[string]any{
 			"trades": true,
@@ -2689,7 +2707,7 @@ func (this *KrakenCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+ * @see https://docs.kraken.com/api-reference/account-data/query-trades-info
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2724,9 +2742,11 @@ func (this *KrakenCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
 				}
 			}
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24338 := (<-this.LoadMarkets())
-		PanicOnError(retRes24338)
+			retRes245012 := (<-this.LoadMarkets())
+			PanicOnError(retRes245012)
+		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			symbol = this.Symbol(symbol)
 		}
@@ -2792,7 +2812,7 @@ func (this *KrakenCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
  * @method
  * @name kraken#fetchOrdersByIds
  * @description fetch orders by the list of order id
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+ * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string[]} [ids] list of order id
  * @param {string} [symbol] unified ccxt market symbol
  * @param {object} [params] extra parameters specific to the kraken api endpoint
@@ -2807,9 +2827,11 @@ func (this *KrakenCore) FetchOrdersByIds(ids any, optionalArgs ...any) <-chan an
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24998 := (<-this.LoadMarkets())
-		PanicOnError(retRes24998)
+			retRes251812 := (<-this.LoadMarkets())
+			PanicOnError(retRes251812)
+		}
 
 		response := (<-this.PrivatePostQueryOrders(this.Extend(map[string]any{
 			"trades": true,
@@ -2839,7 +2861,7 @@ func (this *KrakenCore) FetchOrdersByIds(ids any, optionalArgs ...any) <-chan an
  * @method
  * @name kraken#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
+ * @see https://docs.kraken.com/api-reference/account-data/get-trades-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2861,14 +2883,16 @@ func (this *KrakenCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes25308 := (<-this.LoadMarkets())
-		PanicOnError(retRes25308)
+			retRes255112 := (<-this.LoadMarkets())
+			PanicOnError(retRes255112)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -2926,7 +2950,7 @@ func (this *KrakenCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#cancelOrder
  * @description cancels an open order
- * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
+ * @see https://docs.kraken.com/api-reference/trading/cancel-order
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2943,9 +2967,11 @@ func (this *KrakenCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26018 := (<-this.LoadMarkets())
-		PanicOnError(retRes26018)
+			retRes262412 := (<-this.LoadMarkets())
+			PanicOnError(retRes262412)
+		}
 		var response any = nil
 		var requestId any = this.SafeValue(params, "userref", id) // string or integer
 		params = this.Omit(params, "userref")
@@ -3000,7 +3026,7 @@ func (this *KrakenCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+ * @see https://docs.kraken.com/api-reference/trading/cancel-order-batch
  * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3043,7 +3069,7 @@ func (this *KrakenCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+ * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
  * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3057,9 +3083,11 @@ func (this *KrakenCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26778 := (<-this.LoadMarkets())
-		PanicOnError(retRes26778)
+			retRes270212 := (<-this.LoadMarkets())
+			PanicOnError(retRes270212)
+		}
 
 		response := (<-this.PrivatePostCancelAll(params))
 		PanicOnError(response)
@@ -3085,7 +3113,7 @@ func (this *KrakenCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+ * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
@@ -3100,9 +3128,11 @@ func (this *KrakenCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <
 		if IsTrue(IsGreaterThan(timeout, 86400000)) {
 			panic(BadRequest(Add(this.Id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27078 := (<-this.LoadMarkets())
-		PanicOnError(retRes27078)
+			retRes273412 := (<-this.LoadMarkets())
+			PanicOnError(retRes273412)
+		}
 		var request any = map[string]any{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), (this.ParseToInt(Divide(timeout, 1000))), 0),
 		}
@@ -3130,7 +3160,7 @@ func (this *KrakenCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <
  * @method
  * @name kraken#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+ * @see https://docs.kraken.com/api-reference/account-data/get-open-orders
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3152,9 +3182,11 @@ func (this *KrakenCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27388 := (<-this.LoadMarkets())
-		PanicOnError(retRes27388)
+			retRes276712 := (<-this.LoadMarkets())
+			PanicOnError(retRes276712)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
@@ -3236,7 +3268,7 @@ func (this *KrakenCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+ * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3259,9 +3291,11 @@ func (this *KrakenCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28228 := (<-this.LoadMarkets())
-		PanicOnError(retRes28228)
+			retRes285312 := (<-this.LoadMarkets())
+			PanicOnError(retRes285312)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
@@ -3491,7 +3525,7 @@ func (this *KrakenCore) ParseTransactionsByType(typeVar any, transactions any, o
  * @method
  * @name kraken#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+ * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3514,9 +3548,11 @@ func (this *KrakenCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30488 := (<-this.LoadMarkets())
-		PanicOnError(retRes30488)
+			retRes308112 := (<-this.LoadMarkets())
+			PanicOnError(retRes308112)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
 			var currency any = this.Currency(code)
@@ -3526,7 +3562,7 @@ func (this *KrakenCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			var sinceString any = this.NumberToString(since)
 			AddElementToObject(request, "start", Precise.StringDiv(sinceString, "1000"))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -3560,7 +3596,7 @@ func (this *KrakenCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+ * @see https://docs.kraken.com/api-reference/market-data/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -3597,7 +3633,7 @@ func (this *KrakenCore) FetchTime(optionalArgs ...any) <-chan any {
  * @method
  * @name kraken#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+ * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3620,9 +3656,11 @@ func (this *KrakenCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31208 := (<-this.LoadMarkets())
-		PanicOnError(retRes31208)
+			retRes315512 := (<-this.LoadMarkets())
+			PanicOnError(retRes315512)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
@@ -3630,9 +3668,9 @@ func (this *KrakenCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		if IsTrue(paginate) {
 			AddElementToObject(params, "cursor", true)
 
-			retRes312519 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
-			PanicOnError(retRes312519)
-			ch <- retRes312519
+			retRes316119 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
+			PanicOnError(retRes316119)
+			ch <- retRes316119
 			return nil
 		}
 		var request any = map[string]any{}
@@ -3644,7 +3682,7 @@ func (this *KrakenCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			var sinceString any = this.NumberToString(since)
 			AddElementToObject(request, "start", Precise.StringDiv(sinceString, "1000"))
 		}
-		var until any = this.SafeStringN(params, []any{"until", "till"})
+		var until any = this.SafeString2(params, "until", "till")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until", "till"})
 			var untilDivided any = Precise.StringDiv(until, "1000")
@@ -3721,7 +3759,7 @@ func (this *KrakenCore) AddPaginationCursorToResult(result any) any {
  * @method
  * @name kraken#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3737,9 +3775,9 @@ func (this *KrakenCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
 			"new": "true",
 		}
 
-		retRes321615 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
-		PanicOnError(retRes321615)
-		ch <- retRes321615
+		retRes325215 := (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+		PanicOnError(retRes325215)
+		ch <- retRes325215
 		return nil
 
 	}()
@@ -3750,7 +3788,7 @@ func (this *KrakenCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
  * @method
  * @name kraken#fetchDepositMethods
  * @description fetch deposit methods for a currency associated with this account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the kraken api endpoint
  * @returns {object} of deposit methods
@@ -3762,9 +3800,11 @@ func (this *KrakenCore) FetchDepositMethods(code any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32298 := (<-this.LoadMarkets())
-		PanicOnError(retRes32298)
+			retRes326612 := (<-this.LoadMarkets())
+			PanicOnError(retRes326612)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"asset": GetValue(currency, "id"),
@@ -3807,7 +3847,7 @@ func (this *KrakenCore) FetchDepositMethods(code any, optionalArgs ...any) <-cha
  * @method
  * @name kraken#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3819,9 +3859,11 @@ func (this *KrakenCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32718 := (<-this.LoadMarkets())
-		PanicOnError(retRes32718)
+			retRes331012 := (<-this.LoadMarkets())
+			PanicOnError(retRes331012)
+		}
 		var currency any = this.Currency(code)
 		var network any = this.SafeStringUpper(params, "network")
 		var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
@@ -3909,7 +3951,7 @@ func (this *KrakenCore) ParseDepositAddress(depositAddress any, optionalArgs ...
  * @method
  * @name kraken#withdraw
  * @description make a withdrawal
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+ * @see https://docs.kraken.com/api-reference/funding/withdraw-funds
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
@@ -3931,8 +3973,8 @@ func (this *KrakenCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(InOp(params, "key")) {
 
-			retRes336012 := (<-this.LoadMarkets())
-			PanicOnError(retRes336012)
+			retRes340012 := (<-this.LoadMarkets())
+			PanicOnError(retRes340012)
 			var currency any = this.Currency(code)
 			var request any = map[string]any{
 				"asset":  GetValue(currency, "id"),
@@ -3968,7 +4010,7 @@ func (this *KrakenCore) Withdraw(code any, amount any, address any, optionalArgs
  * @method
  * @name kraken#fetchPositions
  * @description fetch all open positions
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+ * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
  * @param {string[]} [symbols] not used by kraken fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3982,9 +4024,11 @@ func (this *KrakenCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33968 := (<-this.LoadMarkets())
-		PanicOnError(retRes33968)
+			retRes343712 := (<-this.LoadMarkets())
+			PanicOnError(retRes343712)
+		}
 		var request any = map[string]any{
 			"docalcs":       "true",
 			"consolidation": "market",
@@ -4110,7 +4154,7 @@ func (this *KrakenCore) ParseAccountType(account any) any {
  * @method
  * @name kraken#transferOut
  * @description transfer from spot wallet to futures wallet
- * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+ * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
  * @param {str} code Unified currency code
  * @param {float} amount Size of the transfer
  * @param {dict} [params] Exchange specific parameters
@@ -4124,9 +4168,9 @@ func (this *KrakenCore) TransferOut(code any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes352315 := (<-this.Transfer(code, amount, "spot", "swap", params))
-		PanicOnError(retRes352315)
-		ch <- retRes352315
+		retRes356515 := (<-this.Transfer(code, amount, "spot", "swap", params))
+		PanicOnError(retRes356515)
+		ch <- retRes356515
 		return nil
 
 	}()
@@ -4136,7 +4180,7 @@ func (this *KrakenCore) TransferOut(code any, amount any, optionalArgs ...any) <
 /**
  * @method
  * @name kraken#transfer
- * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+ * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
  * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
  * @param {string} code Unified currency code
  * @param {float} amount Size of the transfer
@@ -4152,9 +4196,11 @@ func (this *KrakenCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35398 := (<-this.LoadMarkets())
-		PanicOnError(retRes35398)
+			retRes358212 := (<-this.LoadMarkets())
+			PanicOnError(retRes358212)
+		}
 		var currency any = this.Currency(code)
 		var fromAccountParsed any = this.ParseAccountType(fromAccount)
 		var toAccountParsed any = this.ParseAccountType(toAccount)

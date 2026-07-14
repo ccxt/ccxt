@@ -1,8 +1,5 @@
-- [Create Order Ws Example](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\pro\binance(array(
@@ -48,5 +44,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```
