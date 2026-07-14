@@ -576,11 +576,19 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    // NB: case-transform the *found* value only, and return the default
+    // UNCHANGED — matching TS `safeStringLower/Upper` (type.ts), which lower/
+    // upper-cases `String(x)` when the key resolves and otherwise returns
+    // `$default` verbatim. Passing the default through `safe_string` first
+    // (and then casing the result) wrongly lower-cased mixed-case defaults
+    // such as hyperliquid's checksummed builder address.
     pub fn safe_string_upper(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
-        match self.safe_string(obj, key, optional_args) {
-            Value::Str(s) => Value::Str(s.to_uppercase()),
-            other         => other,
+        let v = self.safe_string(obj, key, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v { return Value::Str(s.to_uppercase()); }
+            return v;
         }
+        arg_default(optional_args)
     }
 
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
@@ -610,24 +618,30 @@ impl Exchange {
     }
 
     pub fn safe_string_lower(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
-        match self.safe_string(obj, key, optional_args) {
-            Value::Str(s) => Value::Str(s.to_lowercase()),
-            other         => other,
+        let v = self.safe_string(obj, key, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v { return Value::Str(s.to_lowercase()); }
+            return v;
         }
+        arg_default(optional_args)
     }
 
     pub fn safe_string_lower2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        match self.safe_string2(obj, k1, k2, optional_args) {
-            Value::Str(s) => Value::Str(s.to_lowercase()),
-            other         => other,
+        let v = self.safe_string2(obj, k1, k2, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v { return Value::Str(s.to_lowercase()); }
+            return v;
         }
+        arg_default(optional_args)
     }
 
     pub fn safe_string_upper2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        match self.safe_string2(obj, k1, k2, optional_args) {
-            Value::Str(s) => Value::Str(s.to_uppercase()),
-            other         => other,
+        let v = self.safe_string2(obj, k1, k2, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v { return Value::Str(s.to_uppercase()); }
+            return v;
         }
+        arg_default(optional_args)
     }
 
     /// `super.X(...)` from derived exchanges — routes back to the base
