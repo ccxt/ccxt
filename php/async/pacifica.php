@@ -1463,7 +1463,7 @@ class pacifica extends Exchange {
         if ($amount !== null && ($operationType !== 'create_stop_order' && $operationType !== 'set_position_tpsl')) {
             $sigPayload['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        $clientOrderId = $this->safe_string_n($params, array( 'clientOrderId' ));
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $sigPayload['client_order_id'] = $clientOrderId;
         }

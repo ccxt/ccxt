@@ -2970,7 +2970,7 @@ public partial class aster : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        object clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["origClientOrderId"] = clientOrderId;

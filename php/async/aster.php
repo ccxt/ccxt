@@ -2874,7 +2874,7 @@ class aster extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $clientOrderId = $this->safe_string_n($params, array( 'origClientOrderId', 'clientOrderId' ));
+            $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['origClientOrderId'] = $clientOrderId;
             } else {

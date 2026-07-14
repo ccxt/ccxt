@@ -1138,7 +1138,7 @@ func (this *AlpacaCore) CreateOrder(symbol any, typeVar any, side any, amount an
 			"side":   side,
 			"type":   typeVar,
 		}
-		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stop_price"})
+		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stop_price")
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			var newType any = nil
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
@@ -1554,7 +1554,7 @@ func (this *AlpacaCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 		if IsTrue(!IsEqual(amount, nil)) {
 			AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
 		}
-		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stop_price"})
+		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stop_price")
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
 			params = this.Omit(params, "triggerPrice")

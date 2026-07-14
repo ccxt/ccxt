@@ -3316,7 +3316,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "period", HtxCore.this.safeString(HtxCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object priceType = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceType", "price")));
+            Object priceType = this.safeString2(parameters, "priceType", "price");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("priceType", "price")));
             Object until = null;
             var untilparametersVariable = this.handleParamInteger(parameters, "until");
@@ -5488,7 +5488,7 @@ public class HtxCore extends HtxApi
             type = this.safeString(order, "type");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) || Helpers.isTrue((Helpers.isEqual(type, "tp")))) || Helpers.isTrue((Helpers.isEqual(type, "sl")))) || Helpers.isTrue((Helpers.isEqual(type, "tpsl")))))
             {
-                type = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("tp_type", "sl_type")));
+                type = this.safeString2(order, "tp_type", "sl_type");
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "0")))
             {

@@ -1049,7 +1049,7 @@ class alpaca(Exchange, ImplicitAPI):
             'side': side,
             'type': type,  # market, limit, stop_limit
         }
-        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stop_price')
         if triggerPrice is not None:
             newType: str
             if type.find('limit') >= 0:
@@ -1314,7 +1314,7 @@ class alpaca(Exchange, ImplicitAPI):
             market = self.market(symbol)
         if amount is not None:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stop_price')
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
             params = self.omit(params, 'triggerPrice')

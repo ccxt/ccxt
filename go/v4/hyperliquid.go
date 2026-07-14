@@ -2786,12 +2786,12 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders any, optionalArgs ...any
 		var mainOrderObj any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 			// grouping opposed orders for sl/tp
-			var stopLossOrderTriggerPrice any = this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice"})
+			var stopLossOrderTriggerPrice any = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
 			var stopLossOrderType any = this.SafeString(stopLoss, "type", "limit")
-			var stopLossOrderLimitPrice any = this.SafeStringN(stopLoss, []any{"price", "stopLossPrice"}, stopLossOrderTriggerPrice)
-			var takeProfitOrderTriggerPrice any = this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice"})
+			var stopLossOrderLimitPrice any = this.SafeString2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice)
+			var takeProfitOrderTriggerPrice any = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
 			var takeProfitOrderType any = this.SafeString(takeProfit, "type", "limit")
-			var takeProfitOrderLimitPrice any = this.SafeStringN(takeProfit, []any{"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice)
+			var takeProfitOrderLimitPrice any = this.SafeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 			grouping = this.SafeString(orderParams, "grouping", "normalTpsl")
 			if IsTrue(IsEqual(grouping, "positionTpsl")) {
 				amount = "0"

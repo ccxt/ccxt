@@ -1,6 +1,6 @@
 # CCXT — Repository Guide for Contributors and AI Agents
 
-CCXT is a unified cryptocurrency trading library with one source of truth (TypeScript) **transpiled** to JavaScript, Python, PHP, C#, and Go. The most common contributor mistake — especially by AI agents — is editing a generated file or shipping code without tests in all languages.
+CCXT is a unified cryptocurrency trading library with one source of truth (TypeScript) **transpiled** to JavaScript, Python, PHP, C#, Go and Java. The most common contributor mistake — especially by AI agents — is editing a generated file or shipping code without tests in all languages.
 
 Authoritative rules: `CONTRIBUTING.md` (transpiler conventions), `wiki/Manual.md` (unified API spec), `wiki/Requirements.md` (new-exchange checklist).
 

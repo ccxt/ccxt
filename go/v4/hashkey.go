@@ -1534,7 +1534,7 @@ func (this *HashkeyCore) ParseTrade(trade any, optionalArgs ...any) any {
 		side = Ternary(IsTrue(isBuyer), "buy", "sell")
 	}
 	var takerOrMaker any = nil
-	var isMaker any = this.SafeBoolN(trade, []any{"isMaker", "isMarker"})
+	var isMaker any = this.SafeBool2(trade, "isMaker", "isMarker")
 	if IsTrue(!IsEqual(isMaker, nil)) {
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}

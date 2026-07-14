@@ -882,12 +882,12 @@ class apex extends Exchange {
         //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
         //
         return array(
-            $this->safe_integer_n($ohlcv, array( 'start', 't' )),
-            $this->safe_number_n($ohlcv, array( 'open', 'o' )),
-            $this->safe_number_n($ohlcv, array( 'high', 'h' )),
-            $this->safe_number_n($ohlcv, array( 'low', 'l' )),
-            $this->safe_number_n($ohlcv, array( 'close', 'c' )),
-            $this->safe_number_n($ohlcv, array( 'volume', 'v' )),
+            $this->safe_integer_2($ohlcv, 'start', 't'),
+            $this->safe_number_2($ohlcv, 'open', 'o'),
+            $this->safe_number_2($ohlcv, 'high', 'h'),
+            $this->safe_number_2($ohlcv, 'low', 'l'),
+            $this->safe_number_2($ohlcv, 'close', 'c'),
+            $this->safe_number_2($ohlcv, 'volume', 'v'),
         );
     }
 
@@ -1014,15 +1014,15 @@ class apex extends Exchange {
         //  }
         //  )
         //
-        $marketId = $this->safe_string_n($trade, array( 's', 'symbol' ));
+        $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $id = $this->safe_string_n($trade, array( 'i', 'id' ));
+        $id = $this->safe_string_2($trade, 'i', 'id');
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
-        $priceString = $this->safe_string_n($trade, array( 'p', 'price' ));
-        $amountString = $this->safe_string_n($trade, array( 'v', 'size' ));
-        $side = $this->safe_string_lower_n($trade, array( 'S', 'side' ));
-        $type = $this->safe_string_n($trade, array( 'type' ));
-        $fee = $this->safe_string_n($trade, array( 'fee' ));
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 'v', 'size');
+        $side = $this->safe_string_lower_2($trade, 'S', 'side');
+        $type = $this->safe_string($trade, 'type');
+        $fee = $this->safe_string($trade, 'fee');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
@@ -1626,7 +1626,7 @@ class apex extends Exchange {
         $toAccount = $this->safe_string($transfer, 'toAccount');
         return array(
             'info' => $transfer,
-            'id' => $this->safe_string_n($transfer, array( 'transferId', 'id' )),
+            'id' => $this->safe_string_2($transfer, 'transferId', 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code($currencyId, $currency),
@@ -2017,7 +2017,7 @@ class apex extends Exchange {
         $quantity = $this->safe_string($position, 'size');
         $timestamp = $this->safe_integer($position, 'updatedTime');
         $leverage = 20;
-        $customInitialMarginRate = $this->safe_string_n($position, array( 'customInitialMarginRate', 'customImr' ), '0');
+        $customInitialMarginRate = $this->safe_string_2($position, 'customInitialMarginRate', 'customImr', '0');
         if ($this->precision_from_string($customInitialMarginRate) !== 0) {
             $leverage = $this->parse_to_int(Precise::string_div('1', $customInitialMarginRate, 4));
         }

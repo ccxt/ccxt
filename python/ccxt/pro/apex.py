@@ -167,12 +167,12 @@ class apex(ccxt.async_support.apex):
         #     }
         #
         id = self.safe_string_n(trade, ['i', 'id', 'v'])
-        marketId = self.safe_string_n(trade, ['s', 'symbol'])
+        marketId = self.safe_string_2(trade, 's', 'symbol')
         market = self.safe_market(marketId, market, None)
         symbol = market['symbol']
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
-        side = self.safe_string_lower_n(trade, ['S', 'side'])
-        price = self.safe_string_n(trade, ['p', 'price'])
+        side = self.safe_string_lower_2(trade, 'S', 'side')
+        price = self.safe_string_2(trade, 'p', 'price')
         amount = self.safe_string_n(trade, ['q', 'v', 'size'])
         return self.safe_trade({
             'id': id,
