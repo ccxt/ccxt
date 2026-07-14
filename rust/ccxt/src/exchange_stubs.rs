@@ -903,6 +903,23 @@ impl Exchange {
         Value::Null
     }
 
+    /// `extendedStarknetSign(msgHash, pri)` — starknet-curve signing for the
+    /// `extended` exchange. Stub: starknet crypto (poseidon/stark-curve) is
+    /// not ported to Rust yet, matching `starknet_sign` above.
+    pub fn extended_starknet_sign(&self, _msg_hash: Value, _pri: Value) -> Value {
+        Value::Null
+    }
+
+    /// `extendedStarknetGetSelectorFromName(name)`.
+    pub fn extended_starknet_get_selector_from_name(&self, _name: Value) -> Value {
+        Value::Null
+    }
+
+    /// `extendedStarknetComputePoseidonHashOnElements(data)`.
+    pub fn extended_starknet_compute_poseidon_hash_on_elements(&self, _data: Value) -> Value {
+        Value::Null
+    }
+
     /// `toDydxLong(numStr)`.
     pub fn to_dydx_long(&self, _num_str: Value) -> Value { Value::Null }
 
