@@ -1362,6 +1362,19 @@
                 ]
             }
         ],
+        "closeAllPositions": [
+            {
+                "description": "close all swap positions",
+                "method": "closeAllPositions",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": []
+                },
+                "parsedResponse": []
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "cancel all spot orders without a symbol",

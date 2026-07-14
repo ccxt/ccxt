@@ -423,6 +423,15 @@
                 ]
             }
         ],
+        "closeAllPositions": [
+            {
+                "description": "Close all swap positions",
+                "method": "closeAllPositions",
+                "url": "https://api.mexc.com/api/v1/private/position/close_all",
+                "input": [],
+                "output": "{}"
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "Cancel all spot orders without a symbol",

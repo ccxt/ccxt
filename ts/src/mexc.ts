@@ -38,7 +38,7 @@ export default class mexc extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'closeAllPositions': false,
+                'closeAllPositions': true,
                 'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
@@ -357,7 +357,7 @@ export default class mexc extends Exchange {
                             'position/change_leverage': 2,
                             'position/change_position_mode': 2,
                             'position/reverse': 2,
-                            'position/close_all': 2,
+                            'position/close_all': 10,
                             'order/create': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
@@ -5234,6 +5234,30 @@ export default class mexc extends Exchange {
         };
         const statuses = this.safeValue (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name mexc#closeAllPositions
+     * @description closes all open swap positions
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const response = await this.contractPrivatePostPositionCloseAll (params);
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": []
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data);
     }
 
     /**
