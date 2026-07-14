@@ -24,6 +24,9 @@ public static class Program
     public static string exchangesPath = System.AppDomain.CurrentDomain.BaseDirectory + "../../../../.." + "/exchanges.json"; // when using debugguer
 
     public static List<string> exchangesId;
+    // prediction-only ids (not present in the regular namespace) carry their own watch*
+    // methods, so the ccxt.pro prefix must not be applied to them
+    public static List<string> predictionOnlyIds = new List<string>();
     public static List<Exchange> exchanges = new List<Exchange>();
 
     public static void InitOptions(BaseExchange instance, IEnumerable<string> args)
@@ -123,7 +126,9 @@ public static class Program
             if (converted.ContainsKey("prediction"))
             {
                 var predictionIds = (list)converted["prediction"];
-                strings.AddRange(predictionIds.Select(s => (string)s));
+                var predictionStrings = predictionIds.Select(s => (string)s).ToList();
+                predictionOnlyIds = predictionStrings.Where(s => !strings.Contains(s)).ToList();
+                strings.AddRange(predictionStrings);
             }
             exchangesId = strings;
         }
@@ -192,7 +197,10 @@ public static class Program
         // (e.g. hyperliquid); prediction-only ids resolve there automatically. prediction
         // classes carry their own watch* methods, so the ccxt.pro prefix does not apply
         var forcePrediction = args.Contains("--prediction") || args.Contains("-p");
-        var exchangeNameAdapted = ((isWsMethod || isWsCrudeMethod) && !forcePrediction) ? "ccxt.pro." + exchangeName : exchangeName;
+        // prediction-only ids (e.g. polymarket) resolve from ccxt.prediction and merge REST+WS
+        // in one class — never route them through ccxt.pro even for watch* methods
+        var isPredictionOnly = predictionOnlyIds.Contains(exchangeName);
+        var exchangeNameAdapted = ((isWsMethod || isWsCrudeMethod) && !forcePrediction && !isPredictionOnly) ? "ccxt.pro." + exchangeName : exchangeName;
         var instance = Exchange.DynamicallyCreateInstance(exchangeNameAdapted, null, false, forcePrediction);
 
         InitOptions(instance, flags);
