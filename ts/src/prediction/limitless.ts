@@ -442,7 +442,7 @@ export default class limitless extends Exchange {
         const collateralToken = this.safeDict (raw, 'collateralToken', {});
         const collateralDecimals = this.safeInteger (collateralToken, 'decimals', this.safeInteger (this.options, 'usdcDecimals', 6));
         const precision = {
-            'amount': this.parseNumber (this.parsePrecision (collateralDecimals.toString ())),
+            'amount': this.parseNumber (this.parsePrecision (this.numberToString (collateralDecimals))),
             'price': 0.001,
         };
         const outcomes: any[] = [];
