@@ -37,7 +37,7 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 					}()
 					// try block:
 
-					response = (<-exchange.(ccxt.IWatchTradesForSymbols).WatchTradesForSymbols(symbols))
+					response = (UnWrapType(<-exchange.WatchTradesForSymbols(symbols)))
 					PanicOnError(response)
 					return nil
 				}()

@@ -40,7 +40,7 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 					}()
 					// try block:
 
-					response = (<-exchange.(ccxt.IWatchOrderBookForSymbols).WatchOrderBookForSymbols(symbols))
+					response = (UnWrapType(<-exchange.WatchOrderBookForSymbols(symbols)))
 					PanicOnError(response)
 					return nil
 				}()

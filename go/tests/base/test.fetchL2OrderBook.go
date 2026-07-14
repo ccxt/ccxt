@@ -12,7 +12,7 @@ func TestFetchL2OrderBook(exchange ccxt.ICoreExchange, skippedProperties any, sy
 		defer ReturnPanicError(ch)
 		var method any = "fetchL2OrderBook"
 
-		orderBook := (<-exchange.(ccxt.IFetchL2OrderBook).FetchL2OrderBook(symbol))
+		orderBook := (<-exchange.FetchL2OrderBook(symbol))
 		PanicOnError(orderBook)
 		TestOrderBook(exchange, skippedProperties, method, orderBook, symbol)
 

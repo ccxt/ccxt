@@ -38,7 +38,7 @@ func TestWatchPosition(exchange ccxt.ICoreExchange, skippedProperties any, symbo
 					}()
 					// try block:
 
-					response = (<-exchange.(ccxt.IWatchPosition).WatchPosition(symbol))
+					response = (UnWrapType(<-exchange.WatchPosition(symbol)))
 					PanicOnError(response)
 					return nil
 				}()

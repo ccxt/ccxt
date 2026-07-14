@@ -113,8 +113,8 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	AssertLess(exchange, skippedProperties, method, market, "taker", "100")
 	AssertGreater(exchange, skippedProperties, method, market, "maker", "-100")
 	AssertLess(exchange, skippedProperties, method, market, "maker", "100")
-	// validate type ('prediction' for prediction-market exchanges)
-	var validTypes any = []any{"spot", "margin", "swap", "future", "option", "index", "prediction", "other"}
+	// validate type
+	var validTypes any = []any{"spot", "margin", "swap", "future", "option", "index", "other"}
 	AssertInArray(exchange, skippedProperties, method, market, "type", validTypes)
 	// validate subTypes
 	var validSubTypes any = []any{"linear", "inverse", "quanto", nil}
@@ -146,11 +146,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		AssertInArray(exchange, skippedProperties, method, market, "margin", []any{false, nil})
 	}
 	// check mutually exclusive fields
-	var isPrediction any = (IsEqual(GetValue(market, "type"), "prediction"))
-	if IsTrue(isPrediction) {
-		// prediction markets trade outcome shares — neither spot nor a derivative contract
-		Assert(IsTrue(IsTrue(IsTrue(!IsTrue(spot) && !IsTrue(contract)) && !IsTrue(future)) && !IsTrue(swap)) && !IsTrue(option), Add("for prediction market, none of spot/contract/future/swap/option should be set", logText))
-	} else if IsTrue(spot) {
+	if IsTrue(spot) {
 		Assert(IsTrue(IsTrue(IsTrue(IsTrue(!IsTrue(contract) && IsTrue(IsEqual(linear, nil))) && IsTrue(IsEqual(inverse, nil))) && !IsTrue(option)) && !IsTrue(swap)) && !IsTrue(future), Add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText))
 	} else {
 		// if not spot, any of the below should be true
@@ -255,9 +251,8 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			}
 		}
 	}
-	// check currencies (skip for prediction markets: the "base" is a tradeable outcome,
-	// not a currency, so baseId is the market/outcome id and won't map to a currency code)
-	if IsTrue(!IsTrue(isInactiveMarket) && !IsTrue(isPrediction)) {
+	// check currencies
+	if !IsTrue(isInactiveMarket) {
 		AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "baseId"), GetValue(market, "base"))
 		AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "quoteId"), GetValue(market, "quote"))
 		AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "settleId"), GetValue(market, "settle"))
