@@ -87,7 +87,7 @@ export default class limitless extends Exchange {
                 '1M': '1m',
             },
             'urls': {
-                'logo': 'https://limitless.exchange/favicon.ico',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/621426281-284cf96f-5c17-44b3-8346-23dde85a84d6.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260714%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260714T110240Z&X-Amz-Expires=300&X-Amz-Signature=a24f928f38c2c76cc2e0fef3714021d527425d0cb9f5e659a902a47aa4e9172c&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng',
                 'api': {
                     'limitless': 'https://api.limitless.exchange',
                 },

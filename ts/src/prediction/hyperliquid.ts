@@ -71,7 +71,7 @@ export default class hyperliquid extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://hyperliquid.xyz/favicon.ico',
+                'logo': 'https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8',
                 'api': {
                     'public': 'https://api.hyperliquid.xyz',
                     'private': 'https://api.hyperliquid.xyz',

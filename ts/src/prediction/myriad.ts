@@ -95,7 +95,7 @@ export default class myriad extends Exchange {
                 '1d': '30d',
             },
             'urls': {
-                'logo': 'https://myriad.markets/favicon.ico',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/621425999-59aba5fc-94a6-46cf-a93b-dbc5ee3d8502.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260714%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260714T110031Z&X-Amz-Expires=300&X-Amz-Signature=3c3640032e4a368299dc1c0fc83c3cdf9b7b4dd28b5249e9794f1e369a810251&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng',
                 'api': {
                     'myriad': 'https://api-v2.myriadprotocol.com',
                     'ws': 'wss://ws.myriadprotocol.com/ws',

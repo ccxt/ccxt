@@ -88,7 +88,7 @@ export default class polymarket extends Exchange {
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://polymarket.com/favicon.ico',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/621424101-c6b6df40-bd9c-4dd8-94f6-413066c0b0a1.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260714%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260714T105532Z&X-Amz-Expires=300&X-Amz-Signature=ffebde1b6979b9a6df27a1687196e85d80108cc5aa67c1fbc86890043e0836aa&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng',
                 'api': {
                     'gamma': 'https://gamma-api.polymarket.com',
                     'clob': 'https://clob.polymarket.com',
