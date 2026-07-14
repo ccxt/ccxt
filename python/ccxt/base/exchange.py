@@ -47,29 +47,9 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 # -----------------------------------------------------------------------------
 
 
-# dydx
-try:
-    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
-    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
-        AuthInfo,
-        Fee,
-        ModeInfo,
-        SignDoc,
-        SignerInfo,
-        Tx,
-        TxBody,
-        TxRaw,
-    )
-    from ccxt.static_dependencies.dydx_v4_client.registry import (
-        encode_as_any,
-    )
-except ImportError:
-    encode_as_any = None
-
-
 # lighter
 import os
-from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth, decode_api_key, CreateOrderTxReq
+
 # import ctypes
 
 # -----------------------------------------------------------------------------
@@ -503,7 +483,6 @@ class Exchange(object):
         """
         self._ensure_whitelisted_file(path)
         try:
-            import os
             return os.path.isfile(path)
         except Exception:
             return False
@@ -2174,7 +2153,19 @@ class Exchange(object):
         return num
 
     def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
-        if not encode_as_any:
+        try:
+            from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+            from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+                AuthInfo,
+                ModeInfo,
+                SignerInfo,
+                Tx,
+                TxBody,
+            )
+            from ccxt.static_dependencies.dydx_v4_client.registry import (
+                encode_as_any,
+            )
+        except ImportError:
             raise NotSupported(self.id + ' requires protobuf and pycryptodome to encode messages, please install it with `pip install "protobuf==5.29.5"` and `pycryptodome==3.18.0`')
         messages = [
             encode_as_any(
@@ -2202,7 +2193,20 @@ class Exchange(object):
         return self.binary_to_base64(tx.SerializeToString())
 
     def encode_dydx_tx_for_signing(self, message, memo, chainId, account, authenticators, fee=None):
-        if not encode_as_any:
+        try:
+            from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+            from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+                AuthInfo,
+                Fee,
+                ModeInfo,
+                SignDoc,
+                SignerInfo,
+                TxBody,
+            )
+            from ccxt.static_dependencies.dydx_v4_client.registry import (
+                encode_as_any,
+            )
+        except ImportError:
             raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
         if fee is None:
             fee = {
@@ -2251,7 +2255,11 @@ class Exchange(object):
         return [signingHash, signDoc]
 
     def encode_dydx_tx_raw(self, signDoc, signature):
-        if not encode_as_any:
+        try:
+            from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+                TxRaw,
+            )
+        except ImportError:
             raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
         tx = TxRaw(
             auth_info_bytes=signDoc.auth_info_bytes,
@@ -2273,6 +2281,7 @@ class Exchange(object):
         return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
 
     def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
+        from ccxt.static_dependencies.lighter_client.signer import load_lighter_library
         if path is None:
             raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
         if not os.path.isfile(path):
@@ -2297,7 +2306,9 @@ class Exchange(object):
         return lighterSigner
 
     def lighter_sign_create_grouped_orders(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         orders = request['orders']
+        from ccxt.static_dependencies.lighter_client.signer import CreateOrderTxReq
         arr_type = CreateOrderTxReq * len(orders)
         orders_arr = []
         for order in orders:
@@ -2329,6 +2340,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_create_order(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateOrder(
             int(request['market_index']),
             request['client_order_index'],
@@ -2353,6 +2365,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_order(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelOrder(
             request['market_index'],
             request['order_index'],
@@ -2366,6 +2379,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_withdraw(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignWithdraw(
             request['asset_index'],
             request['route_type'],
@@ -2380,6 +2394,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_create_sub_account(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCreateSubAccount(
             True,
             request['nonce'],
@@ -2391,6 +2406,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_all_orders(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelAllOrders(
             request['time_in_force'],
             request['time'],
@@ -2404,6 +2420,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_modify_order(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignModifyOrder(
             request['market_index'],
             request['index'],
@@ -2423,6 +2440,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_transfer(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignTransfer(
             request['to_account_index'],
             request['asset_index'],
@@ -2441,6 +2459,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_update_leverage(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignUpdateLeverage(
             request['market_index'],
             request['initial_margin_fraction'],
@@ -2455,6 +2474,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_create_auth_token(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_auth
         auth, error = decode_auth(signer.CreateAuthToken(
             request['deadline'],
             request['api_key_index'],
@@ -2465,6 +2485,7 @@ class Exchange(object):
         return auth
 
     def lighter_sign_update_margin(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignUpdateMargin(
             request['market_index'],
             request['usdc_amount'],
@@ -2479,6 +2500,7 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def lighter_sign_approve_integrator(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignApproveIntegrator(
             int(request['integrator_account_index']),
             int(request['integrator_taker_fee']),
@@ -2496,12 +2518,14 @@ class Exchange(object):
         return [tx_type, tx_info, message_to_sign]
 
     def lighter_generate_api_key(self, signer):
+        from ccxt.static_dependencies.lighter_client.signer import decode_api_key
         privateKey, publicKey, error = decode_api_key(signer.GenerateAPIKey())
         if error:
             raise Exception('lighter_generate_api_key() failed with error: ' + str(error))
         return [privateKey, publicKey]
 
     def lighter_sign_change_pubkey(self, signer, request):
+        from ccxt.static_dependencies.lighter_client.signer import decode_tx_info
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignChangePubKey(
             request['pubkey'],
             True,
