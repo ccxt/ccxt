@@ -702,7 +702,12 @@ impl Exchange {
     fn http_client(&mut self) -> &reqwest::Client {
         if self.internals.http_client.is_none() {
             let mut b = reqwest::Client::builder()
-                .timeout(std::time::Duration::from_millis(self.timeout_ms()));
+                .timeout(std::time::Duration::from_millis(self.timeout_ms()))
+                // Transparent gzip: many exchanges return large JSON payloads
+                // (binance spot exchangeInfo is ~17 MB raw vs ~0.3 MB gzipped).
+                // Other CCXT langs request gzip by default; without this rust
+                // downloads the full uncompressed body, dominating load time.
+                .gzip(true);
             if let Some(ua) = self.user_agent_str() { b = b.user_agent(ua); }
             // Apply scheme-specific proxies. Order matters for reqwest's
             // proxy matcher: SOCKS catches everything when set, HTTP/HTTPS

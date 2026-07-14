@@ -26,7 +26,7 @@ transpiled-ws = ["transpiled-base"]
 
 [dependencies]
 # HTTP client (async)
-reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks"], default-features = false }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 # JSON serialisation / deserialisation
