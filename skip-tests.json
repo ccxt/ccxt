@@ -35,7 +35,12 @@
     },
     "alpaca": {
         "skip": "private endpoints, todo",
-        "skipWs": "private endpoints, todo"
+        "skipWs": "private endpoints, todo",
+        "skipMethods": {
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2165"
+            }
+        }
     },
     "arkham": {
         "skip": "exchange closed",
@@ -152,6 +157,9 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2455",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2220"
             },
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:187"
@@ -380,6 +388,9 @@
             },
             "orderBook": {
                 "compareToZero": "frequently, zero amount is set in some orderbook entry"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2264"
             }
         }
     },
@@ -479,6 +490,10 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToSince": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2209",
+                "compareAmountToZero": "sometimes zero amount returned"
             },
             "watchTicker": {
                 "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:1178"
@@ -636,6 +651,9 @@
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2308"
             },
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid"
@@ -862,6 +880,7 @@
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745",
                 "compareOHLC": "todo"
             },
+            "fetchOHLCV": "multiple test failure",
             "fetchTickers": {
                 "checkActiveSymbols": "tmp VXV issue"
             }
@@ -1536,6 +1555,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2309"
+            },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5965"
             }
@@ -1809,7 +1831,8 @@
             },
             "fetchOrderBook": {
                 "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
-            }
+            },
+            "fetchOHLCV": "too many issues in the endpoint, compareAmountToZero, compareToNow, and even string responses"
         }
     },
     "oceanex": {
@@ -1823,7 +1846,10 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
-            "fetchOrderBooks": "fetchOrderBooks returned 0 length"
+            "fetchOrderBooks": "fetchOrderBooks returned 0 length",
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2317"
+            }
         }
     },
     "okcoin": {
@@ -1856,6 +1882,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2237"
             },
             "orderBook":{
                 "compareToNextItem": "messed bids sequence",
@@ -1993,6 +2022,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
+            "fetchOHLCV": {
+                "compareAmountToZero": "sometimes zero amount returned"
+            },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6909"
             }
@@ -2104,6 +2136,9 @@
             },
             "fetchOrderBooks": {
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2396"
             }
         }
     },
