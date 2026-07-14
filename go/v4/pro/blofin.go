@@ -452,7 +452,7 @@ func (this *BlofinCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 		marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 		params = ccxt.GetValue(marketTypeparamsVariable, 1)
-		var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public"))
+		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
 		var messageHashes any = []any{}
 		var args any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsList)); i++ {
@@ -666,7 +666,7 @@ func (this *BlofinCore) WatchBalance(optionalArgs ...any) <-chan any {
 			"channel": "account",
 		}
 		var request any = this.GetSubscriptionRequest([]any{sub})
-		var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private"))
+		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private")
 
 		retRes49415 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 		ccxt.PanicOnError(retRes49415)
@@ -928,7 +928,7 @@ func (this *BlofinCore) WatchFundingRate(symbol any, optionalArgs ...any) <-chan
 			"instId":  ccxt.GetValue(market, "id"),
 		}
 		var request any = this.GetSubscriptionRequest([]any{requestParams})
-		var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public"))
+		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
 
 		retRes67615 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 		ccxt.PanicOnError(retRes67615)
@@ -1037,7 +1037,7 @@ func (this *BlofinCore) WatchMultipleWrapper(isPublic any, channelName any, call
 		}
 		var request any = this.GetSubscriptionRequest(rawSubscriptions)
 		var privateOrPublic any = ccxt.Ternary(ccxt.IsTrue(isPublic), "public", "private")
-		var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), privateOrPublic))
+		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), privateOrPublic)
 
 		retRes76215 := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
 		ccxt.PanicOnError(retRes76215)
@@ -1129,7 +1129,7 @@ func (this *BlofinCore) Authenticate(optionalArgs ...any) <-chan any {
 			}},
 		}
 		var marketType any = "swap" // for now
-		var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private"))
+		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private")
 
 		retRes8488 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 		ccxt.PanicOnError(retRes8488)
