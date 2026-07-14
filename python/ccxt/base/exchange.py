@@ -8,7 +8,6 @@ __version__ = '4.5.65'
 
 # -----------------------------------------------------------------------------
 
-from traceback import format_exception
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -47,25 +46,6 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 
 # -----------------------------------------------------------------------------
 
-# ecdsa signing
-from ccxt.static_dependencies import keccak
-
-try:
-    import coincurve
-except ImportError:
-    coincurve = None
-
-# eth signing
-from ccxt.static_dependencies import ethabi
-from ccxt.static_dependencies.msgpack import packb
-
-# starknet
-from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
-from ccxt.static_dependencies.starknet.hash.address import compute_address
-from ccxt.static_dependencies.starknet.hash.poseidon import poseidon_hash_many
-from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
-from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
-from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # dydx
 try:
@@ -86,10 +66,6 @@ try:
 except ImportError:
     encode_as_any = None
 
-try:
-    import apexpro.zklink_sdk as zklink_sdk
-except ImportError:
-    zklink_sdk = None
 
 # lighter
 import os
@@ -1376,6 +1352,7 @@ class Exchange(object):
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
+            from ccxt.static_dependencies import keccak
             binary = bytes(keccak.SHA3(request))
         else:
             h = hashlib.new(algorithm, request)
@@ -1491,18 +1468,23 @@ class Exchange(object):
 
     @staticmethod
     def eth_abi_encode(types, args):
+        from ccxt.static_dependencies import ethabi
         return ethabi.encode(types, args)
 
     @staticmethod
     def eth_encode_structured_data(domain, messageTypes, message):
+        from ccxt.static_dependencies import ethabi
         encodedData = ethabi.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
     def secp256k1_uncompressed_public_key(private_key_bytes):
+        try:
+            import coincurve
         # returns the 64-byte uncompressed public key (X || Y), no 0x04 prefix
-        if coincurve is not None:
             return coincurve.PrivateKey(private_key_bytes).public_key.format(compressed=False)[1:]
+        except ImportError:
+            pass
         private_value = int.from_bytes(private_key_bytes, 'big')
         public_key = ec.derive_private_key(private_value, ec.SECP256K1()).public_key()
         return public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)[1:]
@@ -1517,6 +1499,7 @@ class Exchange(object):
         # 64-byte uncompressed public key (X || Y), no 0x04 prefix
         public_key_bytes = Exchange.secp256k1_uncompressed_public_key(private_key_bytes)
         # Hash the public key with Keccak256
+        from ccxt.static_dependencies import keccak
         address_bytes = keccak.SHA3(public_key_bytes)[-20:]
         # Convert to hex and add 0x prefix
         address_hex = '0x' + address_bytes.hex()
@@ -1524,16 +1507,19 @@ class Exchange(object):
 
     @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
+        from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
+        from ccxt.static_dependencies.starknet.hash.utils import private_to_stark_key
         privateKey = get_private_key_from_eth_signature(signature)
         publicKey = private_to_stark_key(privateKey)
         calldata = [
             int(accountClassHash, 16),
-            get_selector_from_name("initialize"),
+            Exchange.extended_starknet_get_selector_from_name("initialize"),
             2,
             publicKey,
             0,
         ]
 
+        from ccxt.static_dependencies.starknet.hash.address import compute_address
         address = compute_address(
             class_hash=int(accountProxyClassHash, 16),
             constructor_calldata=calldata,
@@ -1547,6 +1533,7 @@ class Exchange(object):
 
     @staticmethod
     def starknet_encode_structured_data (domain, messageTypes, messageData, address):
+        from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
         types = list(messageTypes.keys())
         if len(types) > 1:
             raise NotSupported('starknetEncodeStructuredData only support single type')
@@ -1570,6 +1557,7 @@ class Exchange(object):
     @staticmethod
     def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
+        from ccxt.static_dependencies.starknet.hash.utils import message_signature
         if isinstance(pri, str):
             pri = int(pri, 16)
         r, s = message_signature(msg_hash, pri)
@@ -1577,6 +1565,7 @@ class Exchange(object):
 
     @staticmethod
     def extended_starknet_sign (msg_hash, pri):
+        from ccxt.static_dependencies.starknet.hash.utils import message_signature
         if isinstance(msg_hash, str):
             msg_hash = int(msg_hash, 0)
         if isinstance(pri, str):
@@ -1586,15 +1575,18 @@ class Exchange(object):
 
     @staticmethod
     def extended_starknet_get_selector_from_name (name):
+        from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
         return get_selector_from_name(name)
 
     @staticmethod
     def extended_starknet_compute_poseidon_hash_on_elements (data):
         values = [int(x, 0) if isinstance(x, str) else int(x) for x in data]
+        from ccxt.static_dependencies.starknet.hash.poseidon import poseidon_hash_many
         return hex(poseidon_hash_many(values))
 
     @staticmethod
     def packb(o):
+        from ccxt.static_dependencies.msgpack import packb
         return packb(o)
 
     @staticmethod
@@ -1645,10 +1637,10 @@ class Exchange(object):
         if algorithm not in Exchange.ecdsa_curves:
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         # Use coincurve for SECP256K1 if available
-        if algorithm == 'secp256k1' and coincurve is not None:
+        if algorithm == 'secp256k1':
             try:
                 return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
-            except Exception:
+            except ImportError:
                 # If coincurve fails, fall back to the cryptography implementation
                 pass
         curve_class, order = Exchange.ecdsa_curves[algorithm]
@@ -1724,6 +1716,7 @@ class Exchange(object):
             # Assume hex format
             secret = base64.b16decode(secret, casefold=True)
         # Create coincurve PrivateKey
+        import coincurve
         private_key = coincurve.PrivateKey(secret)
         # Sign the digest using sign_recoverable which produces deterministic signatures (RFC 6979)
         # The signature format is: 32 bytes r + 32 bytes s + 1 byte recovery_id (v)
@@ -1896,6 +1889,7 @@ class Exchange(object):
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
         public_key_bytes = Exchange.secp256k1_uncompressed_public_key(private_key_bytes)
+        from ccxt.static_dependencies import keccak
         public_key_hash = keccak.SHA3(public_key_bytes)
         return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
@@ -2046,6 +2040,7 @@ class Exchange(object):
         setattr(obj, property, value)
 
     def exception_message(self, exc, include_stack=True):
+        from traceback import format_exception
         message = '[' + type(exc).__name__ + '] ' + (str(exc) if include_stack else "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6)))
         length = min(100000, len(message))
         return message[0:length]
@@ -2090,7 +2085,9 @@ class Exchange(object):
         return len(binary)
 
     def get_zk_contract_signature_obj(self, seeds: str, params={}):
-        if zklink_sdk is None:
+        try:
+            import apexpro.zklink_sdk as zklink_sdk
+        except ImportError:
             raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
 
         slotId = self.safe_string(params, 'slotId')
@@ -2123,7 +2120,9 @@ class Exchange(object):
         return signature
 
     def get_zk_transfer_signature_obj(self, seeds: str, params={}):
-        if zklink_sdk is None:
+        try:
+            import apexpro.zklink_sdk as zklink_sdk
+        except ImportError:
             raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
 
         nonce = self.safe_string(params, 'nonce', '0')
@@ -2155,7 +2154,9 @@ class Exchange(object):
         return isinstance(message, bytes) or isinstance(message, bytearray)
 
     def retrieve_dydx_credentials(self, privateKey):
-        if coincurve is None:
+        try:
+            import coincurve
+        except ImportError:
             raise NotSupported(self.id + ' retrieve_dydx_credentials() requires the coincurve library, please install it with `pip install coincurve`')
         clean_private_key = Exchange.remove0x_prefix(privateKey)
         private_key_bytes = bytes.fromhex(clean_private_key)
