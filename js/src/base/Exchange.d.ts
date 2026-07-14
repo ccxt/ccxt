@@ -8,7 +8,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 /**
  * @class Exchange
  */
-export declare class BaseExchange {
+export default class Exchange {
     static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
@@ -479,6 +479,7 @@ export declare class BaseExchange {
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
     close(cleanInstanceCache?: boolean): Promise<void>;
+    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
     valueIsDefined<T>(value: T): value is NonNullable<T>;
@@ -592,23 +593,34 @@ export declare class BaseExchange {
         body: any;
     };
     fetchAccounts(params?: {}): Promise<Account[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    fetchRestOrderBookSafe(symbol: any, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
@@ -658,6 +670,7 @@ export declare class BaseExchange {
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
     signIn(params?: {}): Promise<{}>;
     fetchPaymentMethods(params?: {}): Promise<{}>;
@@ -738,7 +751,7 @@ export declare class BaseExchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
-    createCcxtTradeId(timestamp?: Int, side?: OrderSide, amount?: any, price?: any, takerOrMaker?: any): Str;
+    createCcxtTradeId(timestamp?: Int, side?: OrderSide, amount?: any, price?: any, takerOrMaker?: any): any;
     parsedFeeAndFees(container: any): (any[] | Dictionary<any>)[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
@@ -771,7 +784,7 @@ export declare class BaseExchange {
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): Strings;
     marketCodes(codes?: Strings): any[];
     parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
-    filterByKey(objects: any, key: IndexType, value?: Str): any;
+    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     safeNetwork(network: any): {
@@ -849,6 +862,23 @@ export declare class BaseExchange {
     loadAccounts(reload?: boolean, params?: {}): Promise<Account[]>;
     buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
+    editLimitBuyOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editLimitSellOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editLimitOrder(id: string, symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWithClientOrderId(clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPositionWs(symbol: string, params?: {}): Promise<Position[]>;
+    watchPosition(symbol?: Str, params?: {}): Promise<Position>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositionForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbolWs(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositionsWs(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositionsRisk(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<LedgerEntry>;
@@ -885,11 +915,35 @@ export declare class BaseExchange {
     findBroadlyMatchedKey(broad: any, string: any): string;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchSpotTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickersWs(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<OrderBooks>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
+    fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createTwapOrder(symbol: string, side: OrderSide, amount: number, duration: number, params?: {}): Promise<Order>;
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
@@ -898,17 +952,76 @@ export declare class BaseExchange {
     fetchADLRank(symbol: string, params?: {}): Promise<ADL>;
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     fetchPositionADLRank(symbol: string, params?: {}): Promise<ADL>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketOrderWithCostWs(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
+    createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createTriggerOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopLossOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
+    createStopLossOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
+    createTakeProfitOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
+    createTakeProfitOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
+    createOrderWithTakeProfitAndStopLoss(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
     setTakeProfitAndStopLossParams(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): {};
+    createOrderWithTakeProfitAndStopLossWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createSpotOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createContractOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelSpotOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelContractOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllSpotOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllContractOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
     fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
@@ -921,6 +1034,9 @@ export declare class BaseExchange {
     fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closeAllPositions(params?: {}): Promise<Position[]>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseLastPrice(price: any, market?: Market): LastPrice;
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchContractDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -931,6 +1047,18 @@ export declare class BaseExchange {
     createExpiredOptionMarket(symbol: string): MarketInterface;
     isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: Dict): boolean;
     handleWithdrawTagAndParams(tag: any, params: any): any;
+    createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
+    createMarketOrder(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createMarketOrderWs(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createLimitBuyOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitBuyOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitSellOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createLimitSellOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
+    createMarketBuyOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createMarketSellOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
+    createMarketSellOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
     costToPrecision(symbol: string, cost: any): string;
     priceToPrecision(symbol: string, price: any): string;
     amountToPrecision(symbol: string, amount: any): string;
@@ -947,6 +1075,16 @@ export declare class BaseExchange {
     loadTimeDifference(params?: {}): Promise<any>;
     implodeHostname(url: string): string;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
+    createPostOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createPostOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createReduceOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createReduceOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     createSubAccount(name: string, params?: {}): Promise<{}>;
     safeCurrencyCode(currencyId: Str, currency?: Currency): string;
     filterBySymbolSinceLimit(array: any, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any;
@@ -974,6 +1112,7 @@ export declare class BaseExchange {
     fetchLastPrices(symbols?: Strings, params?: {}): Promise<LastPrices>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchTradingFeesWs(params?: {}): Promise<TradingFees>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     parseOpenInterests(response: any, symbols?: Strings): OpenInterests;
@@ -1027,166 +1166,24 @@ export declare class BaseExchange {
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     loadMarketsAndSignIn(): Promise<void>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<{}>;
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
+    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
     timeframeFromMilliseconds(ms: number): string;
     isUTAEnabled(params?: {}): Promise<boolean>;
-}
-export default class Exchange extends BaseExchange {
-    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
-    closeAllPositions(params?: {}): Promise<Position[]>;
-    editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositionsRisk(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
-    fetchPositionsForSymbolWs(symbol: string, params?: {}): Promise<Position[]>;
-    watchPosition(symbol?: Str, params?: {}): Promise<Position>;
-    watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
-    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
-    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
-    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    createLimitBuyOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitSellOrderWs(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createMarketBuyOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createMarketOrderWithCostWs(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
-    createMarketOrderWs(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createMarketSellOrderWs(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createOrderWithTakeProfitAndStopLossWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createPostOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createReduceOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
-    createStopLossOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
-    createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
-    createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createTakeProfitOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTriggerOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchPositionWs(symbol: string, params?: {}): Promise<Position[]>;
-    fetchPositionsWs(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickersWs(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchRestOrderBookSafe(symbol: any, limit?: Int, params?: {}): Promise<OrderBook>;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
-    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    editLimitBuyOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editLimitSellOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editLimitOrder(id: string, symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderWithClientOrderId(clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    watchPositionForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    /**
-     * @method
-     * @name fetchOrderWithClientOrderId
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} clientOrderId client order Id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
-    fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createTriggerOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createStopLossOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopLossPrice?: Num, params?: {}): Promise<Order>;
-    createTakeProfitOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
-    createOrderWithTakeProfitAndStopLoss(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): Promise<Order>;
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    /**
-     * @method
-     * @name cancelOrderWithClientOrderId
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string} clientOrderId client order Id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    cancelOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    /**
-     * @method
-     * @name cancelOrdersWithClientOrderIds
-     * @description create a market order by providing the symbol, side and cost
-     * @param {string[]} clientOrderIds client order Ids
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
-    createMarketOrder(symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createLimitBuyOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createLimitSellOrder(symbol: string, amount: number, price: number, params?: {}): Promise<Order>;
-    createMarketBuyOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createMarketSellOrder(symbol: string, amount: number, params?: {}): Promise<Order>;
-    createPostOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createReduceOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
-    createStopLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
-    createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
 }
 export { Exchange, };

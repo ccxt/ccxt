@@ -8,13 +8,6 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 function testTicker(exchange, skippedProperties, method, entry, symbol) {
-    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
-    // books where bid==ask and a stale `last` far from the median are normal — skip the
-    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
-    // omits vwap/previousClose entirely, so their presence must not be asserted
-    if (exchange.safeBool(exchange.has, 'prediction', false)) {
-        skippedProperties = exchange.extend({ 'symbol': true, 'spread': true, 'lastBetweenBidAsk': true, 'maxIncrease': true, 'vwap': true, 'previousClose': true }, skippedProperties);
-    }
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',

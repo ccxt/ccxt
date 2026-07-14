@@ -6,11 +6,6 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
-    // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
-    // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
-    if (exchange.safeBool(exchange.has, 'prediction', false)) {
-        skippedProperties = exchange.extend({ 'symbol': true, 'fees': true }, skippedProperties);
-    }
     const format = {
         'info': {},
         'id': '12345-67890:09876/54321', // string trade id
