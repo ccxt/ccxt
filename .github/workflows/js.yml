@@ -16,6 +16,8 @@ jobs:
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - name: Print vars
+      env:
+        HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
       run: |
         echo "GitHub Actor: $GITHUB_ACTOR"
         echo "Repository: $GITHUB_REPOSITORY"
@@ -26,7 +28,7 @@ jobs:
         echo "Job Name: $GITHUB_JOB"
         echo "Ref: $GITHUB_REF"
         echo "SHA: $GITHUB_SHA"
-        echo "Head Commit: ${{ github.event.head_commit.message }}"
+        echo "Head Commit: $HEAD_COMMIT_MESSAGE"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
@@ -39,8 +41,10 @@ jobs:
         fetch-depth: 2
     - name: Skip Automated Push Commits
       id: check_commit
+      env:
+        HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
@@ -149,11 +153,12 @@ jobs:
       if: github.ref == 'refs/heads/master'
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
       run: |
         cd build/ccxt.wiki
         cp -R ../../wiki/* .
         git add .
-        git commit -a -m "[Automated changes] ${{ github.event.head_commit.message }}" || true
+        git commit -a -m "[Automated changes] $HEAD_COMMIT_MESSAGE" || true
         git remote remove origin
         git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
         git push origin HEAD:master
