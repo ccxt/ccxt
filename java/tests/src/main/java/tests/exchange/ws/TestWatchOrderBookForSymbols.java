@@ -40,7 +40,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(succeeded, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return a dictionary. "), exchange.json(response)));
                 currentTime = exchange.milliseconds();
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
