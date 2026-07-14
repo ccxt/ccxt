@@ -272,11 +272,12 @@ export default class mexc extends Exchange {
                         'delete': {
                             'order': 1,
                             'openOrders': 1,
+                            'order/all': 1,
                             'sub-account/apiKey': 1,
                             'strategy/group': 1,
                             'strategy/group/uid': 1,
                             'margin/order': 1,
-                            'margin/openOrders': 1,
+                            'margin/openOrders': 1, // deprecated
                             'userDataStream': 1,
                             'capital/withdraw': 1,
                         },
@@ -3393,36 +3394,38 @@ export default class mexc extends Exchange {
      * @name mexc#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {};
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument on spot');
+                await this.spotPrivateDeleteOrderAll (params);
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "success",
+                //         "timestamp": 1778744778528
+                //     }
+                //
+                return [];
             }
             request['symbol'] = this.safeString (market, 'id');
-            let response: Dict;
-            if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                response = await this.spotPrivateDeleteMarginOpenOrders (this.extend (request, query));
-            } else {
-                response = await this.spotPrivateDeleteOpenOrders (this.extend (request, query));
-            }
+            const response = await this.spotPrivateDeleteOpenOrders (this.extend (request, params));
             //
             // spot
             //
@@ -3437,28 +3440,6 @@ export default class mexc extends Exchange {
             //         },
             //     ]
             //
-            // margin
-            //
-            //     [
-            //         {
-            //             "symbol": "BTCUSDT",
-            //             "orderId": "762640232574226432",
-            //             "orderListId": "-1",
-            //             "clientOrderId": null,
-            //             "price": "18000",
-            //             "origQty": "0.00147",
-            //             "executedQty": "0",
-            //             "cummulativeQuoteQty": "0",
-            //             "status": "NEW",
-            //             "type": "LIMIT",
-            //             "side": "BUY",
-            //             "isIsolated": true,
-            //             "isWorking": true,
-            //             "time": 1661994066000,
-            //             "updateTime": 1661994066000
-            //         }
-            //     ]
-            //
             return this.parseOrders (response, market);
         } else {
             if (symbol !== undefined) {
@@ -3467,12 +3448,12 @@ export default class mexc extends Exchange {
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString (this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
-            method = this.safeString (query, 'method', method);
+            method = this.safeString (params, 'method', method);
             let response: Dict = {};
             if (method === 'contractPrivatePostOrderCancelAll') {
-                response = await this.contractPrivatePostOrderCancelAll (this.extend (request, query));
+                response = await this.contractPrivatePostOrderCancelAll (this.extend (request, params));
             } else if (method === 'contractPrivatePostPlanorderCancelAll') {
-                response = await this.contractPrivatePostPlanorderCancelAll (this.extend (request, query));
+                response = await this.contractPrivatePostPlanorderCancelAll (this.extend (request, params));
             }
             //
             //     {

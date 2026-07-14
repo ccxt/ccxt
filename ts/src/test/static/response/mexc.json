@@ -1362,6 +1362,19 @@
                 ]
             }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all spot orders without a symbol",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "success",
+                    "timestamp": 1778744778528
+                },
+                "parsedResponse": []
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetchTransfers",

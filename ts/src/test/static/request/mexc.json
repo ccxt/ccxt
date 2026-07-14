@@ -425,6 +425,12 @@
         ],
         "cancelAllOrders": [
             {
+                "description": "Cancel all spot orders without a symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.mexc.com/api/v3/order/all?timestamp=1778744778528&recvWindow=5000&signature=5ca1ab1e33db4b85afac529a3da095c0055e5ff9275288e2b4f776f19c94763d",
+                "input": []
+            },
+            {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",
                 "url": "https://api.mexc.com/api/v1/private/order/cancel_all",
