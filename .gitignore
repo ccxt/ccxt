@@ -4,6 +4,7 @@
 #
 .vs
 .vscode
+build/lib/
 build/ccxt.wiki
 node_modules/
 npm-debug.log
