@@ -1,5 +1,8 @@
 name: Js
 
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
 on:
   workflow_dispatch:
   push:
@@ -16,8 +19,6 @@ jobs:
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - name: Print vars
-      env:
-        HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
       run: |
         echo "GitHub Actor: $GITHUB_ACTOR"
         echo "Repository: $GITHUB_REPOSITORY"
@@ -41,8 +42,6 @@ jobs:
         fetch-depth: 2
     - name: Skip Automated Push Commits
       id: check_commit
-      env:
-        HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
       run: |
         if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
@@ -153,7 +152,6 @@ jobs:
       if: github.ref == 'refs/heads/master'
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
       run: |
         cd build/ccxt.wiki
         cp -R ../../wiki/* .
