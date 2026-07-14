@@ -11,7 +11,6 @@ __version__ = '4.5.59'
 from ccxt.async_support.base.exchange import Exchange    # noqa: F401
 from ccxt.base.precise import Precise                    # noqa: F401
 from ccxt.base import errors                             # noqa: F401
-from ccxt.base.errors import error_hierarchy             # noqa: F401
 
 # DO_NOT_REMOVE__ERROR_IMPORTS_START
 from ccxt.base.errors import BaseError                                # noqa: F401
@@ -55,6 +54,7 @@ from ccxt.base.errors import BadResponse                              # noqa: F4
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import CancelPending                            # noqa: F401
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
+from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
 
 from ccxt.prediction.hyperliquid import hyperliquid                             # noqa: F401
