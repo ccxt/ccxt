@@ -258,37 +258,6 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#slugifyUpper
-     * @description converts a name into an upper-case slug of alphanumeric parts joined by underscores
-     * @param {string} name the raw name to slugify
-     * @returns {string} the upper-case slug
-     */
-    slugifyUpper (name: string): string {
-        const upper = (name === undefined) ? '' : name.toUpperCase ();
-        const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const chars = this.stringToCharsArray (upper);
-        let s = '';
-        for (let i = 0; i < chars.length; i++) {
-            const ch = chars[i];
-            if (allowed.indexOf (ch) >= 0) {
-                s = s + ch;
-            } else {
-                s = s + '_';
-            }
-        }
-        const rawParts = s.split ('_');
-        const parts = [];
-        for (let i = 0; i < rawParts.length; i++) {
-            if (rawParts[i].length > 0) {
-                parts.push (rawParts[i]);
-            }
-        }
-        return parts.join ('_');
-    }
-
-    /**
-     * @ignore
-     * @method
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
@@ -364,9 +333,9 @@ export default class hyperliquid extends Exchange {
         }
         const questionName = this.safeString (question, 'name');
         if (questionName) {
-            const questionSlug = this.slugifyUpper (questionName);
+            const questionSlug = this.shortenSlug (questionName);
             if (questionSlug) {
-                let outcomeSlug = this.slugifyUpper (name);
+                let outcomeSlug = this.shortenSlug (name);
                 const genericOutcomeNames = {
                     'RECURRING': true,
                     'RECURRING_FALLBACK': true,
@@ -387,7 +356,7 @@ export default class hyperliquid extends Exchange {
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (name) {
-            return this.slugifyUpper (name) + '_' + outcomeId.toString ();
+            return this.shortenSlug (name) + '_' + outcomeId.toString ();
         }
         return 'OUTCOME_' + outcomeId.toString ();
     }

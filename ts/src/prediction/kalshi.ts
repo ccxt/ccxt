@@ -597,7 +597,7 @@ export default class kalshi extends Exchange {
         let resolvedOutcome = undefined;
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
-            const outcomeHandle = marketSymbol + ':' + label;
+            const outcomeHandle = this.slugToOutcomeSymbol (eventTicker, subtitleOrTicker, label);
             let winnerRaw = undefined;
             let settleFractionRaw = undefined;
             if (resolved && (result !== undefined) && (result !== '')) {

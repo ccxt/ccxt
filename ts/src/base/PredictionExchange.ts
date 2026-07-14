@@ -507,8 +507,33 @@ export default class PredictionExchange extends BaseExchange {
 
     slugToOutcomeSymbol (eventSlug: Str, marketSlug: string, outcome: string): string {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
-        return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + outcome.toUpperCase ();
+        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
+        // the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
+        // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
+        // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
+        // instead of leaking raw text into the outcome handle
+        const upper = outcome.toUpperCase ();
+        const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const chars = this.stringToCharsArray (upper);
+        let label = '';
+        let pendingSep = false;
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (allowed.indexOf (ch) >= 0) {
+                if (pendingSep && (label !== '')) {
+                    label = label + '_';
+                }
+                label = label + ch;
+                pendingSep = false;
+            } else {
+                pendingSep = true;
+            }
+        }
+        if (label === '') {
+            // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
+            label = upper;
+        }
+        return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
     setMarkets (markets, currencies = undefined) {

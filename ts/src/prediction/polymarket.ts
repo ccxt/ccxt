@@ -728,7 +728,7 @@ export default class polymarket extends Exchange {
                 if (!clobTokenId) {
                     continue;
                 }
-                const outcomeHandle = marketSymbol + ':' + outcomeLabel.toUpperCase ();
+                const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, marketSlug, outcomeLabel);
                 let winnerRaw = undefined;
                 let settleFractionRaw = undefined;
                 if (marketResolved && (outcomePrice !== undefined)) {
