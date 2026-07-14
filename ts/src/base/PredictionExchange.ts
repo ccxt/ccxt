@@ -716,7 +716,7 @@ export default class PredictionExchange extends BaseExchange {
         if (marketPart.indexOf ('0x') === 0) {
             return undefined;
         }
-        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
         const normalized = marketPart.toLowerCase ().replaceAll ('-', '_');
         const rawWords = normalized.split ('_');
         const words = [];

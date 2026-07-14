@@ -451,7 +451,7 @@ exchange = ccxt.apex({
 
 ## How to use the Prediction Exchanges in CCXT?
 
-Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
+Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
 
 The namespace per language:
 

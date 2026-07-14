@@ -22,7 +22,7 @@
                 "description": "fetch trades",
                 "method": "fetchTrades",
                 "input": [
-                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                     null,
                     1,
                     {
@@ -75,10 +75,10 @@
                         },
                         "timestamp": 1783054567825,
                         "datetime": "2026-07-03T04:56:07.825Z",
-                        "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                        "outcome": "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                         "outcomeId": "#1720",
                         "label": "YES",
-                        "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
+                        "market": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
                         "order": null,
                         "type": "limit",
                         "side": "sell",
@@ -97,7 +97,7 @@
                 "description": "fetch OB by outcome label",
                 "method": "fetchOrderBook",
                 "input": [
-                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES"
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES"
                 ],
                 "httpResponse": {
                     "coin": "#1720",
@@ -169,9 +169,9 @@
                     "timestamp": 1783249884567,
                     "datetime": "2026-07-05T11:11:24.567Z",
                     "nonce": null,
-                    "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "outcome": "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                     "outcomeId": "#1720",
-                    "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172"
+                    "market": "2026_WORLD_CUP_CHAMPION_ALGERIA_172"
                 }
             },
             {
@@ -250,9 +250,9 @@
                     "timestamp": 1783249885125,
                     "datetime": "2026-07-05T11:11:25.125Z",
                     "nonce": null,
-                    "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "outcome": "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                     "outcomeId": "#1720",
-                    "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172"
+                    "market": "2026_WORLD_CUP_CHAMPION_ALGERIA_172"
                 }
             }
         ],
@@ -261,7 +261,7 @@
                 "description": "create order",
                 "method": "createOrder",
                 "input": [
-                    "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                     "market",
                     "sell",
                     21,
@@ -307,10 +307,10 @@
                     "timestamp": 1783249885448,
                     "datetime": "2026-07-05T11:11:25.448Z",
                     "status": "closed",
-                    "outcome": "2026-WORLD-CUP-CHAMPION-ALGERIA-172:YES",
+                    "outcome": "2026_WORLD_CUP_CHAMPION_ALGERIA_172:YES",
                     "outcomeId": "#1720",
                     "label": "YES",
-                    "market": "2026-WORLD-CUP-CHAMPION-ALGERIA-172",
+                    "market": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
                     "type": "market",
                     "side": "sell",
                     "price": 0.52,

@@ -232,7 +232,7 @@ export default class hyperliquid extends Exchange {
      * @ignore
      * @method
      * @name hyperliquid#buildOutcomeSymbol
-     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
+     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC_ABOVE_78213_20260503:YES for side 0 and BTC_ABOVE_78213_20260503:NO for side 1
      * @param {object} desc parsed outcome description
      * @param {int} side outcome side, 0 = YES, 1 = NO
      * @param {int} outcomeId integer outcome id
@@ -247,10 +247,10 @@ export default class hyperliquid extends Exchange {
         const label = (side === 0) ? 'YES' : 'NO';
         let base = underlying.toUpperCase ();
         if (targetPrice) {
-            base = base + '-ABOVE-' + targetPrice;
+            base = base + '_ABOVE_' + targetPrice;
         }
         if (expiryDate) {
-            base = base + '-' + expiryDate;
+            base = base + '_' + expiryDate;
         }
         return base + ':' + label;
     }
@@ -259,7 +259,7 @@ export default class hyperliquid extends Exchange {
      * @ignore
      * @method
      * @name hyperliquid#slugifyUpper
-     * @description converts a name into an upper-case slug of alphanumeric parts joined by hyphens
+     * @description converts a name into an upper-case slug of alphanumeric parts joined by underscores
      * @param {string} name the raw name to slugify
      * @returns {string} the upper-case slug
      */
@@ -273,24 +273,24 @@ export default class hyperliquid extends Exchange {
             if (allowed.indexOf (ch) >= 0) {
                 s = s + ch;
             } else {
-                s = s + '-';
+                s = s + '_';
             }
         }
-        const rawParts = s.split ('-');
+        const rawParts = s.split ('_');
         const parts = [];
         for (let i = 0; i < rawParts.length; i++) {
             if (rawParts[i].length > 0) {
                 parts.push (rawParts[i]);
             }
         }
-        return parts.join ('-');
+        return parts.join ('_');
     }
 
     /**
      * @ignore
      * @method
      * @name hyperliquid#buildOutcomeParentSymbol
-     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
+     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
      * @param {int} outcomeId integer outcome id
      * @param {string} [name] outcome name
@@ -305,10 +305,10 @@ export default class hyperliquid extends Exchange {
             const expiryDate = expiry ? expiry.split ('-')[0] : '';
             let base = underlying.toUpperCase ();
             if (targetPrice) {
-                base = base + '-ABOVE-' + targetPrice;
+                base = base + '_ABOVE_' + targetPrice;
             }
             if (expiryDate) {
-                base = base + '-' + expiryDate;
+                base = base + '_' + expiryDate;
             }
             return base;
         }
@@ -338,25 +338,25 @@ export default class hyperliquid extends Exchange {
                     if (thresholdsLength > 0 && index !== undefined) {
                         let bucketLabel: string;
                         if (index <= 0) {
-                            bucketLabel = 'BELOW-' + thresholds[0];
+                            bucketLabel = 'BELOW_' + thresholds[0];
                         } else if (index >= thresholdsLength) {
                             const lastIdx = thresholdsLength - 1;
-                            bucketLabel = 'ABOVE-' + thresholds[lastIdx];
+                            bucketLabel = 'ABOVE_' + thresholds[lastIdx];
                         } else {
-                            bucketLabel = 'BETWEEN-' + thresholds[index - 1] + '-' + thresholds[index];
+                            bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        let base = questionUnderlying.toUpperCase () + '-' + bucketLabel;
+                        let base = questionUnderlying.toUpperCase () + '_' + bucketLabel;
                         if (expiryDate) {
-                            base = base + '-' + expiryDate;
+                            base = base + '_' + expiryDate;
                         }
                         return base;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf ('fallback') >= 0) || (nameLower.indexOf ('other') >= 0);
                 if (questionUnderlying && isFallbackLike) {
-                    let base = questionUnderlying.toUpperCase () + '-OTHER';
+                    let base = questionUnderlying.toUpperCase () + '_OTHER';
                     if (expiryDate) {
-                        base = base + '-' + expiryDate;
+                        base = base + '_' + expiryDate;
                     }
                     return base;
                 }
@@ -369,8 +369,8 @@ export default class hyperliquid extends Exchange {
                 let outcomeSlug = this.slugifyUpper (name);
                 const genericOutcomeNames = {
                     'RECURRING': true,
-                    'RECURRING-FALLBACK': true,
-                    'RECURRING-NAMED-OUTCOME': true,
+                    'RECURRING_FALLBACK': true,
+                    'RECURRING_NAMED_OUTCOME': true,
                 };
                 if (outcomeSlug in genericOutcomeNames) {
                     if (outcomeSlug.indexOf ('FALLBACK') >= 0) {
@@ -380,16 +380,16 @@ export default class hyperliquid extends Exchange {
                     }
                 }
                 if (outcomeSlug) {
-                    return questionSlug + '-' + outcomeSlug + '-' + outcomeId.toString ();
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString ();
                 }
-                return questionSlug + '-' + outcomeId.toString ();
+                return questionSlug + '_' + outcomeId.toString ();
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (name) {
-            return this.slugifyUpper (name) + '-' + outcomeId.toString ();
+            return this.slugifyUpper (name) + '_' + outcomeId.toString ();
         }
-        return 'OUTCOME-' + outcomeId.toString ();
+        return 'OUTCOME_' + outcomeId.toString ();
     }
 
     /**
@@ -651,7 +651,7 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#fetchTicker
      * @description fetches a ticker for a single outcome market using the L2 order book snapshot
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
-     * @param {string} outcome unified outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
+     * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
@@ -1837,7 +1837,7 @@ export default class hyperliquid extends Exchange {
     /**
      * @method
      * @name hyperliquid#fetchEvents
-     * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+     * @description Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
      * @param {object} [params] extra parameters
      * @param {string} [params.query] a single query string to filter by (matches description/outcome)
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
@@ -1872,8 +1872,8 @@ export default class hyperliquid extends Exchange {
                 const description = this.safeString (info, 'description', '').toLowerCase ();
                 const parentSymbolOrEmpty = (parentSymbol !== undefined) ? parentSymbol : '';
                 const symLower = parentSymbolOrEmpty.toLowerCase ();
-                // the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
-                // and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
+                // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 const haystack = description + ' ' + symLower;
                 let matches = false;
                 for (let qi = 0; qi < lowerQueries.length; qi++) {

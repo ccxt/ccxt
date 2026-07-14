@@ -54,7 +54,7 @@ fetches a ticker for a single outcome market using the L2 order book snapshot
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol (e.g. 'BTC-ABOVE-78213-20260503:YES') |
+| symbol | <code>string</code> | Yes | unified outcome symbol (e.g. 'BTC_ABOVE_78213_20260503:YES') |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -351,7 +351,7 @@ hyperliquid.fetchMyTrades (symbol?, since?, limit?, params?)
 <a name="fetchEvents" id="fetchevents"></a>
 
 ### fetchEvents{docsify-ignore}
-Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>Array&lt;PredictionEvent&gt;</code> - array of event structures
