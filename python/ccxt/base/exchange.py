@@ -1619,7 +1619,7 @@ class Exchange(object):
         if algorithm == 'secp256k1':
             try:
                 return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
-            except ImportError:
+            except Exception:
                 # If coincurve fails, fall back to the cryptography implementation
                 pass
         curve_class, order = Exchange.ecdsa_curves[algorithm]
