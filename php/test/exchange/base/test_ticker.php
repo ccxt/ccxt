@@ -10,20 +10,6 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
-    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
-    // books where bid==ask and a stale `last` far from the median are normal — skip the
-    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
-    // omits vwap/previousClose entirely, so their presence must not be asserted
-    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
-        $skipped_properties = $exchange->extend(array(
-            'symbol' => true,
-            'spread' => true,
-            'lastBetweenBidAsk' => true,
-            'maxIncrease' => true,
-            'vwap' => true,
-            'previousClose' => true,
-        ), $skipped_properties);
-    }
     $format = array(
         'info' => array(),
         'symbol' => 'ETH/BTC',

@@ -117,8 +117,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_less($exchange, $skipped_properties, $method, $market, 'taker', '100');
     assert_greater($exchange, $skipped_properties, $method, $market, 'maker', '-100');
     assert_less($exchange, $skipped_properties, $method, $market, 'maker', '100');
-    // validate type ('prediction' for prediction-market exchanges)
-    $valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other'];
+    // validate type
+    $valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other'];
     assert_in_array($exchange, $skipped_properties, $method, $market, 'type', $valid_types);
     // validate subTypes
     $valid_sub_types = ['linear', 'inverse', 'quanto', null];
@@ -150,11 +150,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_in_array($exchange, $skipped_properties, $method, $market, 'margin', [false, null]);
     }
     // check mutually exclusive fields
-    $is_prediction = ($market['type'] === 'prediction');
-    if ($is_prediction) {
-        // prediction markets trade outcome shares — neither spot nor a derivative contract
-        assert(!$spot && !$contract && !$future && !$swap && !$option, 'for prediction market, none of spot/contract/future/swap/option should be set' . $log_text);
-    } elseif ($spot) {
+    if ($spot) {
         assert(!$contract && $linear === null && $inverse === null && !$option && !$swap && !$future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' . $log_text);
     } else {
         // if not spot, any of the below should be true
@@ -259,9 +255,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             }
         }
     }
-    // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
-    // not a currency, so baseId is the market/outcome id and won't map to a currency code)
-    if (!$is_inactive_market && !$is_prediction) {
+    // check currencies
+    if (!$is_inactive_market) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
