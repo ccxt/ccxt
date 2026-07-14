@@ -350,12 +350,49 @@ function mapParamType(p: any): ParamInfo | null {
 // Parse Exchange.ts → MethodInfo[]
 // ──────────────────────────────────────────────────────────────────────────────
 
+// Strip TypeScript method *overload signatures* — bodyless class-member
+// declarations like `safeDictN (a, b): Dictionary<any>;` that precede the
+// real implementation. The ast-transpiler's `printFunctionBody` assumes every
+// method has a body and crashes (`Cannot read properties of undefined
+// (reading 'statements')`) on these. Mirrors `stripTsOverloadSignatures` in
+// build/rustTranspiler.ts.
+function stripTsOverloadSignatures(content: string): string {
+    const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
+    return content
+        .split('\n')
+        .filter((line) => {
+            if (!sigRe.test(line)) {
+                return true;
+            }
+            if (line.indexOf('=>') !== -1 || line.indexOf(' = ') !== -1) {
+                return true;
+            }
+            return false;
+        })
+        .join('\n');
+}
+
 function parseMethodsFromTS(): MethodInfo[] {
     const transpiler = new Transpiler({
         verbose: false,
         csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } },
     });
-    const baseFile: any = transpiler.transpileJavaByPath(TS_BASE_FILE);
+    // Parse a temp copy with overload signatures stripped (kept in the same
+    // directory so the relative imports in Exchange.ts still resolve).
+    const rawTs = fs.readFileSync(TS_BASE_FILE, 'utf-8');
+    const cleanedTs = stripTsOverloadSignatures(rawTs);
+    let baseFile: any;
+    if (cleanedTs !== rawTs) {
+        const tmpFile = path.join(path.dirname(TS_BASE_FILE), '.__ExchangeNoOverloadsRustWrap.ts');
+        fs.writeFileSync(tmpFile, cleanedTs);
+        try {
+            baseFile = transpiler.transpileJavaByPath(tmpFile);
+        } finally {
+            fs.unlinkSync(tmpFile);
+        }
+    } else {
+        baseFile = transpiler.transpileJavaByPath(TS_BASE_FILE);
+    }
     const methodsTypes = baseFile.methodsTypes || [];
 
     const methods: MethodInfo[] = [];
