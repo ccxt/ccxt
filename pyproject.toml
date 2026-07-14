@@ -138,6 +138,14 @@ ccxt = [
     "static_dependencies/lighter_client/*",
 ]
 
+# Redirect setuptools' intermediate build tree away from the repo-root `build/`
+# directory (which holds the JS/TS build scripts). Without this, `python -m build`
+# writes into `build/lib/ccxt/`, which collides with that tree and was once
+# committed by the release workflow's `git add . -A`. Keep in sync with
+# setup.cfg's [build] build_base.
+[tool.distutils.build]
+build_base = "python/build"
+
 [tool.ruff]
 preview = true
 select = ["W", "F", "E"]
