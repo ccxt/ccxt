@@ -115,7 +115,6 @@
         ],
         "createOrder": [
             {
-                "disabled": true,
                 "description": "with stopLoss (exchange-specific)",
                 "disabledGO": true,
                 "disabledJava": true,
@@ -1397,6 +1396,7 @@
         ],
         "editOrder": [
             {
+                "disabled": true,
                 "description": "trgger order with stoploss & takeprofit",
                 "method": "editOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?0=%7B&1=%27&2=t&3=r&4=i&5=g&6=g&7=e&8=r&9=P&10=r&11=i&12=c&13=e&14=%27&15=%3A&16=7&17=9&18=%2C&19=%27&20=s&21=t&22=o&23=p&24=L&25=o&26=s&27=s&28=%27&29=%3A&30=%7B&31=%27&32=t&33=r&34=i&35=g&36=g&37=e&38=r&39=P&40=r&41=i&42=c&43=e&44=%27&45=%3A&46=7&47=5&48=%7D&49=%2C&50=%27&51=t&52=a&53=k&54=e&55=P&56=r&57=o&58=f&59=i&60=t&61=%27&62=%3A&63=%7B&64=%27&65=t&66=r&67=i&68=g&69=g&70=e&71=r&72=P&73=r&74=i&75=c&76=e&77=%27&78=%3A&79=8&80=7&81=%7D&cancelOrderId=2077102896528859136&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&quantity=0.6&side=BUY&symbol=SOL-USDT&timestamp=1784054924793&type=MARKET&signature=bbdadfd58ec2869fdb3bc092b72412fb9bd54b259483b705175b330c36be2fb7",
