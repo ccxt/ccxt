@@ -354,7 +354,7 @@ export default class dydx extends Exchange {
     nonce(): number;
     getWalletAddress(): string;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
+        url: any;
         method: string;
         body: string;
         headers: Dict;
