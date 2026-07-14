@@ -52,13 +52,7 @@ def assert_type(exchange, skipped_properties, entry, key, format):
     same_numeric = (isinstance(entry_key_val, numbers.Real)) and (isinstance(format_key_val, numbers.Real))
     same_boolean = ((entry_key_val) or (entry_key_val is False)) and ((format_key_val) or (format_key_val is False))
     same_array = isinstance(entry_key_val, list) and isinstance(format_key_val, list)
-    # PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
-    # returns false for an empty {} format marker — accept a dict entry against an empty-array format
-    format_is_empty_array = False
-    if isinstance(format_key_val, list):
-        format_len = len(format_key_val)
-        format_is_empty_array = (format_len == 0)
-    same_object = exchange.is_dictionary(entry_key_val) and (exchange.is_dictionary(format_key_val) or format_is_empty_array)
+    same_object = exchange.is_dictionary(entry_key_val) and exchange.is_dictionary(format_key_val)
     result = (entry_key_val is None) or same_string or same_numeric or same_boolean or same_array or same_object
     return result
 

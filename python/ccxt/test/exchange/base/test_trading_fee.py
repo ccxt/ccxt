@@ -15,11 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_trading_fee(exchange, skipped_properties, method, symbol, entry):
-    # prediction-market fee structures are keyed by an outcome handle, not a `symbol`
-    if exchange.safe_bool(exchange.has, 'prediction', False):
-        skipped_properties = exchange.extend({
-            'symbol': True,
-        }, skipped_properties)
     format = {
         'info': {},
         'symbol': 'ETH/BTC',

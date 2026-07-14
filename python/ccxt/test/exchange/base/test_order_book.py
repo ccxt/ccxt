@@ -16,11 +16,6 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
-    # prediction-market structures are keyed by an outcome handle, not a `symbol`
-    if exchange.safe_bool(exchange.has, 'prediction', False):
-        skipped_properties = exchange.extend({
-            'symbol': True,
-        }, skipped_properties)
     format = {
         'symbol': 'ETH/BTC',
         'asks': [[exchange.parse_number('1.24'), exchange.parse_number('0.453')], [exchange.parse_number('1.25'), exchange.parse_number('0.157')]],

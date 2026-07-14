@@ -15,28 +15,6 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_position(exchange, skipped_properties, method, entry, symbol, now):
-    # a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
-    # `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
-    # leverage / margin / mark-price / liquidation / pnl fields that don't apply
-    if exchange.safe_bool(exchange.has, 'prediction', False):
-        skipped_properties = exchange.extend({
-            'symbol': True,
-            'timestamp': True,
-            'datetime': True,
-            'leverage': True,
-            'initialMargin': True,
-            'initialMarginPercentage': True,
-            'maintenanceMargin': True,
-            'maintenanceMarginPercentage': True,
-            'entryPrice': True,
-            'notional': True,
-            'unrealizedPnl': True,
-            'marginRatio': True,
-            'liquidationPrice': True,
-            'markPrice': True,
-            'collateral': True,
-            'percentage': True,
-        }, skipped_properties)
     format = {
         'info': {},
         'symbol': 'XYZ/USDT',
