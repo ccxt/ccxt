@@ -132,7 +132,7 @@ jobs:
                echo "Creating GitHub release from ${VERSION}…"
                gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
       - name: Deploy Python Package
-        run: python -m build --outdir python/dist
+        run: cd python && python -m build --outdir dist
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
