@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchLeverageTiers(BaseExchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchLeverageTiers(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchLeverageTiers";
-        object tiers = await ((dynamic)exchange).fetchLeverageTiers(new List<object>() {"symbol"});
+        object tiers = await exchange.fetchLeverageTiers(new List<object>() {"symbol"});
         // const format = {
         //     'RAY/USDT': [
         //       {},

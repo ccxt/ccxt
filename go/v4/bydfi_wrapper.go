@@ -1207,7 +1207,7 @@ func (this *Bydfi) FetchTransactionsHelper(typeVar any, code any, since any, lim
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 // missing typed methods from base

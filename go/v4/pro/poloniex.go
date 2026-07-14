@@ -1558,7 +1558,7 @@ func (this *PoloniexCore) HandleErrorMessage(client any, message any) any {
 	//    {
 	//        "orderId": 0,
 	//        "clientOrderId": null,
-	//        "message": "Currency trade disabled",
+	//        "message": "ccxt.Currency trade disabled",
 	//        "code": 21352
 	//    }
 	//

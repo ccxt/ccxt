@@ -752,8 +752,8 @@ func (this *WoofiproCore) Authenticate(optionalArgs ...any) <-chan any {
 			var ts any = ccxt.ToString(this.Nonce())
 			var auth any = ts
 			var secret any = this.Secret
-			if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(secret, "ed25519:"), 0)) {
-				var parts any = ccxt.Split(secret, "ed25519:")
+			if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(secret, "ccxt.Ed25519:"), 0)) {
+				var parts any = ccxt.Split(secret, "ccxt.Ed25519:")
 				secret = ccxt.GetValue(parts, 1)
 			}
 			var signature any = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)

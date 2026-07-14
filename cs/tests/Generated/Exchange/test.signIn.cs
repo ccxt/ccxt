@@ -7,12 +7,12 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testSignIn(BaseExchange exchange, object skippedProperties)
+    async static public Task<object> testSignIn(Exchange exchange, object skippedProperties)
     {
         object method = "signIn";
         if (isTrue(getValue(exchange.has, method)))
         {
-            await ((dynamic)exchange).signIn();
+            await exchange.signIn();
         }
         return true;
     }

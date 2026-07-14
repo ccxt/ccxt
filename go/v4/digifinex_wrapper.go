@@ -65,14 +65,14 @@ func (this *Digifinex) FetchMarketsV2(params ...any) ([]map[string]any, error) {
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 func (this *Digifinex) FetchMarketsV1(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsV1(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**

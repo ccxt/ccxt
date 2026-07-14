@@ -370,7 +370,7 @@ func (this *BitmexCore) HandleTicker(client any, message any) any {
 	//                 "hasLiquidity": true,
 	//                 "openInterest": 967826984,
 	//                 "openValue": 10432207060536,
-	//                 "fairMethod": "FundingRate",
+	//                 "fairMethod": "ccxt.FundingRate",
 	//                 "fairBasisRate": 0.6537149999999999,
 	//                 "fairBasis": 0.33,
 	//                 "fairPrice": 9277.2,
@@ -1428,7 +1428,7 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
 	//                 "pegPriceType":"",
 	//                 "currency":"USD",
 	//                 "settlCurrency":"XBt",
-	//                 "execType":"Trade",
+	//                 "execType":"ccxt.Trade",
 	//                 "ordType":"Limit",
 	//                 "timeInForce":"ImmediateOrCancel",
 	//                 "execInst":"",
@@ -1446,7 +1446,7 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
 	//                 "commission":0.00075,
 	//                 "tradePublishIndicator":"DoNotPublishTrade",
 	//                 "multiLegReportingType":"SingleSecurity",
-	//                 "text":"Liquidation",
+	//                 "text":"ccxt.Liquidation",
 	//                 "trdMatchID":"7f4ab7f6-0006-3234-76f4-ae1385aad00f",
 	//                 "execCost":88155,
 	//                 "execComm":66,
@@ -1461,7 +1461,7 @@ func (this *BitmexCore) HandleMyTrades(client any, message any) {
 	var messageHash any = this.SafeString(message, "table")
 	var data any = this.SafeValue(message, "data", []any{})
 	var dataByExecType any = this.GroupBy(data, "execType")
-	var rawTrades any = this.SafeValue(dataByExecType, "Trade", []any{})
+	var rawTrades any = this.SafeValue(dataByExecType, "ccxt.Trade", []any{})
 	var trades any = this.ParseTrades(rawTrades)
 	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)

@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchL2OrderBook(BaseExchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchL2OrderBook(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchL2OrderBook";
-        object orderBook = await ((dynamic)exchange).fetchL2OrderBook(symbol);
+        object orderBook = await exchange.fetchL2OrderBook(symbol);
         testOrderBook(exchange, skippedProperties, method, orderBook, symbol);
         return true;
     }

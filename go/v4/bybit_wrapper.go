@@ -2367,7 +2367,7 @@ func (this *Bybit) FetchVolatilityHistory(code string, options ...FetchVolatilit
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**

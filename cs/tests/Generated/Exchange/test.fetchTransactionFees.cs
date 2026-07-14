@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchTransactionFees(BaseExchange exchange, object skippedProperties)
+    async static public Task<object> testFetchTransactionFees(Exchange exchange, object skippedProperties)
     {
         // const method = 'fetchTransactionFees';
         // const fees = await exchange.fetchTransactionFees ();

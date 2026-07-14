@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testLoadMarkets(BaseExchange exchange, object skippedProperties)
+    async static public Task<object> testLoadMarkets(Exchange exchange, object skippedProperties)
     {
         object method = "loadMarkets";
-        object markets = await ((dynamic)exchange).loadMarkets();
+        object markets = await exchange.loadMarkets();
         assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
         object symbolsLength = getArrayLength(exchange.symbols);

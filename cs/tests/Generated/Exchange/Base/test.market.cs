@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testMarket(BaseExchange exchange, object skippedProperties, object method, object market)
+    public static void testMarket(Exchange exchange, object skippedProperties, object method, object market)
     {
         if (isTrue(isEqual(market, null)))
         {
@@ -122,8 +122,8 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "taker", "100");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "maker", "100");
-        // validate type ('prediction' for prediction-market exchanges)
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "prediction", "other"};
+        // validate type
+        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "other"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         object validSubTypes = new List<object>() {"linear", "inverse", "quanto", null};
@@ -162,12 +162,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "margin", new List<object>() {false, null});
         }
         // check mutually exclusive fields
-        object isPrediction = (isEqual(getValue(market, "type"), "prediction"));
-        if (isTrue(isPrediction))
-        {
-            // prediction markets trade outcome shares — neither spot nor a derivative contract
-            assert(isTrue(isTrue(isTrue(!isTrue(spot) && !isTrue(contract)) && !isTrue(future)) && !isTrue(swap)) && !isTrue(option), add("for prediction market, none of spot/contract/future/swap/option should be set", logText));
-        } else if (isTrue(spot))
+        if (isTrue(spot))
         {
             assert(isTrue(isTrue(isTrue(isTrue(!isTrue(contract) && isTrue(isEqual(linear, null))) && isTrue(isEqual(inverse, null))) && !isTrue(option)) && !isTrue(swap)) && !isTrue(future), add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText));
         } else
@@ -292,9 +287,8 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
-        // not a currency, so baseId is the market/outcome id and won't map to a currency code)
-        if (isTrue(!isTrue(isInactiveMarket) && !isTrue(isPrediction)))
+        // check currencies
+        if (!isTrue(isInactiveMarket))
         {
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));

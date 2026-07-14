@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOHLCV(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testOHLCV(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
         object format = new List<object>() {1638230400000, exchange.parseNumber("0.123"), exchange.parseNumber("0.125"), exchange.parseNumber("0.121"), exchange.parseNumber("0.122"), exchange.parseNumber("123.456")};
         object emptyNotAllowedFor = new List<object>() {0, 1, 2, 3, 4, 5};

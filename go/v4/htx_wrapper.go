@@ -191,7 +191,7 @@ func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, op
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**
@@ -1506,7 +1506,7 @@ func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAdd
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**
@@ -2294,7 +2294,7 @@ func (this *Htx) FetchSettlementHistory(options ...FetchSettlementHistoryOptions
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**

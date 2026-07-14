@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testLeverageTier(BaseExchange exchange, object skippedProperties, object method, object entry)
+    public static void testLeverageTier(Exchange exchange, object skippedProperties, object method, object entry)
     {
         object format = new Dictionary<string, object>() {
             { "tier", exchange.parseNumber("1") },

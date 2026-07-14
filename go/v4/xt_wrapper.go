@@ -79,14 +79,14 @@ func (this *Xt) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 func (this *Xt) FetchSwapAndFutureMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSwapAndFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testStatus(BaseExchange exchange, object skippedProperties, object method, object entry, object now)
+    public static void testStatus(Exchange exchange, object skippedProperties, object method, object entry, object now)
     {
         assert(true, "testStatus");
     }

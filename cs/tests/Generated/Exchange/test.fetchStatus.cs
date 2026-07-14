@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchStatus(BaseExchange exchange, object skippedProperties)
+    async static public Task<object> testFetchStatus(Exchange exchange, object skippedProperties)
     {
         object method = "fetchStatus";
-        object status = await ((dynamic)exchange).fetchStatus();
+        object status = await exchange.fetchStatus();
         testStatus(exchange, skippedProperties, method, status, exchange.milliseconds());
         return true;
     }

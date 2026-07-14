@@ -7,15 +7,8 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOrderBook(BaseExchange exchange, object skippedProperties, object method, object orderbook, object symbol)
+    public static void testOrderBook(Exchange exchange, object skippedProperties, object method, object orderbook, object symbol)
     {
-        // prediction-market structures are keyed by an outcome handle, not a `symbol`
-        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
-        {
-            skippedProperties = exchange.extend(new Dictionary<string, object>() {
-                { "symbol", true },
-            }, skippedProperties);
-        }
         object format = new Dictionary<string, object>() {
             { "symbol", "ETH/BTC" },
             { "asks", new List<object>() {new List<object> {exchange.parseNumber("1.24"), exchange.parseNumber("0.453")}, new List<object> {exchange.parseNumber("1.25"), exchange.parseNumber("0.157")}} },

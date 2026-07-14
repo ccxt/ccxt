@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchLastPrices(BaseExchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchLastPrices(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchLastprices";
         // log ('fetching all tickers at once...')
@@ -15,10 +15,10 @@ public partial class testMainClass : BaseTest
         object checkedSymbol = null;
         try
         {
-            response = await ((dynamic)exchange).fetchLastPrices();
+            response = await exchange.fetchLastPrices();
         } catch(Exception e)
         {
-            response = await ((dynamic)exchange).fetchLastPrices(new List<object>() {symbol});
+            response = await exchange.fetchLastPrices(new List<object>() {symbol});
             checkedSymbol = symbol;
         }
         assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " must return a dict. "), exchange.json(response)));

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testDepositWithdrawal(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode, object now)
+    public static void testDepositWithdrawal(Exchange exchange, object skippedProperties, object method, object entry, object requestedCode, object now)
     {
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },

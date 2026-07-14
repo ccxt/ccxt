@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testCurrency(BaseExchange exchange, object skippedProperties, object method, object entry)
+    public static void testCurrency(Exchange exchange, object skippedProperties, object method, object entry)
     {
         if (isTrue(isEqual(entry, null)))
         {

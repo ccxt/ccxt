@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTransfer(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode)
+    public static void testTransfer(Exchange exchange, object skippedProperties, object method, object entry, object requestedCode)
     {
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },

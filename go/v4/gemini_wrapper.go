@@ -77,21 +77,21 @@ func (this *Gemini) FetchMarketsFromWeb(params ...any) ([]map[string]any, error)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 func (this *Gemini) FetchUSDTMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchUSDTMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsFromAPI(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**

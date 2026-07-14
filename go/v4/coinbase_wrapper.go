@@ -1417,7 +1417,7 @@ func (this *Coinbase) FetchDepositMethodIds(params ...any) ([]map[string]any, er
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return res.([]map[string]any), nil
 }
 
 /**

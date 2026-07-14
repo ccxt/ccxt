@@ -1028,7 +1028,7 @@ func (this *ExtendedCore) FindSubscription(client any, name any) any {
 }
 func (this *ExtendedCore) HandleErrorMessage(client any, message any) any {
 	//
-	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
+	//     { "status": "ERROR", "error": { "code": 1001, "message": "ccxt.Market not found." } }
 	//
 	var error any = this.SafeValue(message, "error")
 	if ccxt.IsTrue(ccxt.IsEqual(error, nil)) {

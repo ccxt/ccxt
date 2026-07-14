@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testBorrowInterest(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode, object requestedSymbol)
+    public static void testBorrowInterest(Exchange exchange, object skippedProperties, object method, object entry, object requestedCode, object requestedSymbol)
     {
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },

@@ -133,7 +133,7 @@ func (this *BybitCore) DescribeData() any {
 				"awaitPositionsSnapshot": true,
 			},
 			"watchMyTrades": map[string]any{
-				"filterExecTypes": []any{"Trade", "AdlTrade", "BustTrade", "Settle"},
+				"filterExecTypes": []any{"ccxt.Trade", "AdlTrade", "BustTrade", "Settle"},
 			},
 			"spot": map[string]any{
 				"timeframes": map[string]any{
@@ -1834,7 +1834,7 @@ func (this *BybitCore) HandleMyTrades(client any, message any) {
 	//                 "execId": "7e2ae69c-4edf-5800-a352-893d52b446aa",
 	//                 "execPrice": "0.3374",
 	//                 "execQty": "25",
-	//                 "execType": "Trade",
+	//                 "execType": "ccxt.Trade",
 	//                 "execValue": "8.435",
 	//                 "isMaker": false,
 	//                 "feeRate": "0.0006",
@@ -1849,7 +1849,7 @@ func (this *BybitCore) HandleMyTrades(client any, message any) {
 	//                 "orderLinkId": "",
 	//                 "orderPrice": "0.3207",
 	//                 "orderQty": "25",
-	//                 "orderType": "Market",
+	//                 "orderType": "ccxt.Market",
 	//                 "stopOrderType": "UNKNOWN",
 	//                 "side": "Sell",
 	//                 "execTime": "1672364174443",
@@ -1903,7 +1903,7 @@ func (this *BybitCore) HandleMyTrades(client any, message any) {
 			// filter unified trades
 			var execType any = this.SafeString(rawTrade, "execType", "")
 			if ccxt.IsTrue(executionFast) {
-				execType = "Trade"
+				execType = "ccxt.Trade"
 			}
 			if !ccxt.IsTrue(this.InArray(execType, filterExecTypes)) {
 				continue
@@ -2519,7 +2519,7 @@ func (this *BybitCore) HandleOrder(client any, message any) {
 	//                 "symbol": "ETH-30DEC22-1400-C",
 	//                 "orderId": "5cf98598-39a7-459e-97bf-76ca765ee020",
 	//                 "side": "Sell",
-	//                 "orderType": "Market",
+	//                 "orderType": "ccxt.Market",
 	//                 "cancelType": "UNKNOWN",
 	//                 "price": "72.5",
 	//                 "qty": "1",

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testMarginMode(BaseExchange exchange, object skippedProperties, object method, object entry)
+    public static void testMarginMode(Exchange exchange, object skippedProperties, object method, object entry)
     {
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
