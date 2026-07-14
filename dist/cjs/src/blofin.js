@@ -428,7 +428,6 @@ class blofin extends blofin$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -468,28 +467,13 @@ class blofin extends blofin$1["default"] {
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC', // UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -1602,7 +1586,7 @@ class blofin extends blofin$1["default"] {
         const request = {
             'instId': market['id'],
         };
-        const isTrigger = this.safeBoolN(params, ['trigger'], false);
+        const isTrigger = this.safeBool(params, 'trigger', false);
         const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2083,9 +2067,7 @@ class blofin extends blofin$1["default"] {
         }
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeDict(this.options, 'cancelOrders', {});
-        const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
-        let method = this.safeString(params, 'method', defaultMethod);
+        let method = this.handleOption('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
         const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
@@ -2655,7 +2637,7 @@ class blofin extends blofin$1["default"] {
         }
         const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        [method, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {

@@ -1489,7 +1489,7 @@ class bingx(Exchange, ImplicitAPI):
             volume = self.safe_string(trade, 'volume')
             amount = Precise.string_mul(volume, contractSize)
         return self.safe_trade({
-            'id': self.safe_string_n(trade, ['id', 't']),
+            'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
@@ -3025,10 +3025,15 @@ class bingx(Exchange, ImplicitAPI):
             isTrailingAmountOrder = trailingAmount is not None
             isTrailingPercentOrder = trailingPercent is not None
             isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-            stopLoss = self.safe_value(params, 'stopLoss')
-            takeProfit = self.safe_value(params, 'takeProfit')
-            hasStopLoss = stopLoss is not None
-            hasTakeProfit = takeProfit is not None
+            stopLossDict = self.safe_dict(params, 'stopLoss')
+            takeProfitDict = self.safe_dict(params, 'takeProfit')
+            hasStopLoss = stopLossDict is not None
+            hasTakeProfit = takeProfitDict is not None
+            # only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if hasStopLoss:
+                params = self.omit(params, 'stopLoss')
+            if hasTakeProfit:
+                params = self.omit(params, 'takeProfit')
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -3063,33 +3068,33 @@ class bingx(Exchange, ImplicitAPI):
             if hasStopLoss or hasTakeProfit:
                 stringifiedAmount = self.number_to_string(amount)
                 if hasStopLoss:
-                    slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                    slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
-                    slType = self.safe_string(stopLoss, 'type', 'STOP_MARKET')
+                    slTriggerPrice = self.safe_string_2(stopLossDict, 'triggerPrice', 'stopPrice')
+                    slWorkingType = self.safe_string(stopLossDict, 'workingType', 'MARK_PRICE')
+                    slType = self.safe_string(stopLossDict, 'type', 'STOP_MARKET')
                     slRequest = {
                         'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, slTriggerPrice)),
                         'workingType': slWorkingType,
                         'type': slType,
                     }
-                    slPrice = self.safe_string(stopLoss, 'price')
+                    slPrice = self.safe_string(stopLossDict, 'price')
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
+                    slQuantity = self.safe_string(stopLossDict, 'quantity', stringifiedAmount)
                     slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
                     request['stopLoss'] = self.json(slRequest)
                 if hasTakeProfit:
-                    tkTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                    tkWorkingType = self.safe_string(takeProfit, 'workingType', 'MARK_PRICE')
-                    tpType = self.safe_string(takeProfit, 'type', 'TAKE_PROFIT_MARKET')
+                    tkTriggerPrice = self.safe_string_2(takeProfitDict, 'triggerPrice', 'stopPrice')
+                    tkWorkingType = self.safe_string(takeProfitDict, 'workingType', 'MARK_PRICE')
+                    tpType = self.safe_string(takeProfitDict, 'type', 'TAKE_PROFIT_MARKET')
                     tpRequest = {
                         'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, tkTriggerPrice)),
                         'workingType': tkWorkingType,
                         'type': tpType,
                     }
-                    slPrice = self.safe_string(takeProfit, 'price')
+                    slPrice = self.safe_string(takeProfitDict, 'price')
                     if slPrice is not None:
                         tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
-                    tkQuantity = self.safe_string(takeProfit, 'quantity', stringifiedAmount)
+                    tkQuantity = self.safe_string(takeProfitDict, 'quantity', stringifiedAmount)
                     tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
@@ -3109,7 +3114,7 @@ class bingx(Exchange, ImplicitAPI):
                 if not market['inverse']:
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
                 request['quantity'] = amountReq  # precision not available for inverse contracts
-        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
+        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -3245,8 +3250,11 @@ class bingx(Exchange, ImplicitAPI):
         else:
             result = data
         # when the response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        stopLossDict = self.safe_dict(result, 'stopLoss')
         stopLoss = self.safe_string(result, 'stopLoss')
-        if (stopLoss is not None) and (stopLoss.find('{') == 0):
+        # for py fix, the SL is already parsed(instead of stringified,'s provided)
+        # so we need trick to check if it's non-parsed string yet
+        if (stopLossDict is None) and (stopLoss is not None) and (stopLoss.find('{') == 0):
             result['stopLoss'] = self.parse_json(stopLoss)
         takeProfit = self.safe_string(result, 'takeProfit')
         if (takeProfit is not None) and (takeProfit.find('{') == 0):

@@ -202,10 +202,6 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.subscribe("RISK", new List<object>() {symbol}, parameters);
     }
 
@@ -711,10 +707,6 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.subscribeMultiple("LEVEL2", symbols, parameters);
     }
 

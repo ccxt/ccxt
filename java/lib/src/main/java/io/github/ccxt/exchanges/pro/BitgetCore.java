@@ -155,7 +155,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -196,7 +199,6 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
             return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters)).join();
         });
 
@@ -221,7 +223,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -486,7 +491,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -592,7 +600,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes");
@@ -655,7 +666,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object timeframes = this.safeDict(this.options, "timeframes");
             Object interval = this.safeString(timeframes, timeframe);
             Object channel = null;
@@ -880,7 +894,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "books";
             Object limit = this.safeInteger(parameters, "limit");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, 1))) || Helpers.isTrue((Helpers.isEqual(limit, 5)))) || Helpers.isTrue((Helpers.isEqual(limit, 15)))) || Helpers.isTrue((Helpers.isEqual(limit, 50)))))
@@ -899,7 +916,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:", messageHashTopic), ":"), Helpers.GetValue(market, "symbol"));
             Object instType = null;
@@ -953,7 +973,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object channel = "books";
             Object incrementalFeed = true;
@@ -1224,7 +1247,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object uta = null;
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
@@ -1533,7 +1559,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "";
             Object subscriptionHash = "positions";
@@ -1831,7 +1860,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object marketId = null;
             Object isTrigger = null;
@@ -2419,7 +2451,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))

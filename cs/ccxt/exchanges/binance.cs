@@ -1353,18 +1353,27 @@ public partial class binance : Exchange
                 { "fetchMargins", true },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "linear", "inverse"} },
+                    { "loadAllOptions", false },
                 } },
-                { "loadAllOptions", false },
                 { "fetchCurrencies", true },
-                { "defaultTimeInForce", "GTC" },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "timeInForce", "GTC" },
+                    { "warnOnSTPForInverse", true },
+                    { "quoteOrderQty", true },
+                } },
                 { "defaultType", "spot" },
                 { "defaultSubType", null },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
-                { "warnOnFetchOpenOrdersWithoutSymbol", true },
-                { "warnOnSTPForInverse", true },
+                { "fetchOpenOrders", new Dictionary<string, object>() {
+                    { "warnWithoutSymbol", true },
+                } },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
-                { "throwMarginModeAlreadySet", false },
-                { "fetchPositions", "positionRisk" },
+                { "setMarginMode", new Dictionary<string, object>() {
+                    { "throwMarginModeAlreadySet", true },
+                } },
+                { "fetchPositions", new Dictionary<string, object>() {
+                    { "method", "positionRisk" },
+                } },
                 { "recvWindow", multiply(10, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
@@ -1372,7 +1381,6 @@ public partial class binance : Exchange
                     { "market", "FULL" },
                     { "limit", "FULL" },
                 } },
-                { "quoteOrderQty", true },
                 { "broker", new Dictionary<string, object>() {
                     { "spot", "x-TKT5PX2F" },
                     { "margin", "x-TKT5PX2F" },
@@ -3185,8 +3193,7 @@ public partial class binance : Exchange
             // for backward-compatibility
             rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        // handle loadAllOptions option
-        object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
+        object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions", false);
         if (isTrue(loadAllOptions))
         {
             if (!isTrue(this.inArray("option", rawFetchMarkets)))
@@ -5391,19 +5398,59 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         parameters = this.omit(parameters, new List<object>() {"until", "fetchTradesMethod"});
+        if (isTrue(isEqual(method, null)))
+        {
+            if (isTrue(getValue(market, "option")))
+            {
+                method = "eapiPublicGetTrades";
+            } else if (isTrue(getValue(market, "linear")))
+            {
+                method = "fapiPublicGetAggTrades";
+            } else if (isTrue(getValue(market, "inverse")))
+            {
+                method = "dapiPublicGetAggTrades";
+            } else
+            {
+                method = "publicGetAggTrades";
+            }
+        }
         object response = null;
-        if (isTrue(isTrue(getValue(market, "option")) || isTrue(isEqual(method, "eapiPublicGetTrades"))))
-        {
-            response = await this.eapiPublicGetTrades(this.extend(request, parameters));
-        } else if (isTrue(isTrue(getValue(market, "linear")) || isTrue(isEqual(method, "fapiPublicGetAggTrades"))))
-        {
-            response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
-        } else if (isTrue(isTrue(getValue(market, "inverse")) || isTrue(isEqual(method, "dapiPublicGetAggTrades"))))
-        {
-            response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
-        } else
+        if (isTrue(isEqual(method, "publicGetAggTrades")))
         {
             response = await this.publicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicGetTrades")))
+        {
+            response = await this.publicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicGetHistoricalTrades")))
+        {
+            response = await this.publicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetAggTrades")))
+        {
+            response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetTrades")))
+        {
+            response = await this.fapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetHistoricalTrades")))
+        {
+            response = await this.fapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetAggTrades")))
+        {
+            response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetTrades")))
+        {
+            response = await this.dapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetHistoricalTrades")))
+        {
+            response = await this.dapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "eapiPublicGetTrades")))
+        {
+            response = await this.eapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "eapiPublicGetHistoricalTrades")))
+        {
+            response = await this.eapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTrades() does not support this method")) ;
         }
         //
         // Caveats:
@@ -5623,7 +5670,7 @@ public partial class binance : Exchange
         object quantityIsRequired = false;
         if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
-            object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
+            object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
             if (isTrue(quoteOrderQty))
             {
                 object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
@@ -5679,7 +5726,7 @@ public partial class binance : Exchange
         }
         if (isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            ((IDictionary<string,object>)request)["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (isTrue(triggerPriceIsRequired))
         {
@@ -7096,7 +7143,7 @@ public partial class binance : Exchange
         {
             if (isTrue(getValue(market, "spot")))
             {
-                object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
+                object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (isTrue(quoteOrderQty))
                 {
                     object quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
@@ -7225,7 +7272,7 @@ public partial class binance : Exchange
         }
         if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = this.safeString(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            ((IDictionary<string,object>)request)["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (isTrue(isTrue(!isTrue(isPortfolioMargin) && isTrue(getValue(market, "contract"))) && isTrue(postOnly)))
         {
@@ -7253,9 +7300,10 @@ public partial class binance : Exchange
         parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
         if (isTrue(!isEqual(selfTradePrevention, null)))
         {
-            if (isTrue(isTrue(getValue(market, "inverse")) && isTrue(getValue(this.options, "warnOnSTPForInverse"))))
+            object warnOnStpForInverse = this.handleOption("createOrder", "warnOnSTPForInverse");
+            if (isTrue(isTrue(getValue(market, "inverse")) && isTrue(warnOnStpForInverse)))
             {
-                throw new NotSupported ((string)add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the \"warnOnSTPForInverse\" option to false.")) ;
+                throw new NotSupported ((string)add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.")) ;
             }
             ((IDictionary<string,object>)request)["selfTradePreventionMode"] = ((string)selfTradePrevention).ToUpper(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
@@ -7831,13 +7879,18 @@ public partial class binance : Exchange
             object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
             object marketType = ((bool) isTrue((inOp(market, "type")))) ? getValue(market, "type") : defaultType;
             type = this.safeString(parameters, "type", marketType);
-        } else if (isTrue(getValue(this.options, "warnOnFetchOpenOrdersWithoutSymbol")))
-        {
-            throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.")) ;
         } else
         {
-            object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            type = this.safeString(parameters, "type", defaultType);
+            object warnWithoutSymbol = this.safeBool(getValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
+            object optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
+            if (isTrue(isTrue(optValue) || isTrue((isTrue(isEqual(optValue, null)) && isTrue(warnWithoutSymbol)))))
+            {
+                throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
+            } else
+            {
+                object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
+                type = this.safeString(parameters, "type", defaultType);
+            }
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
@@ -11766,15 +11819,18 @@ public partial class binance : Exchange
         object defaultMethod = null;
         var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method");
         defaultMethod = ((IList<object>)defaultMethodparametersVariable)[0];
-        parameters = ((IList<object>)defaultMethodparametersVariable)[1];
+        parameters = ((IList<object>)defaultMethodparametersVariable)[1]; // check if there is a key in options|params
         if (isTrue(isEqual(defaultMethod, null)))
         {
+            // check if .options['fetchPositions'] dict exist at all
             object options = this.safeDict(this.options, "fetchPositions");
             if (isTrue(isEqual(options, null)))
             {
+                // if undefined, for backward compatibility, check if it is a string
                 defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
             } else
             {
+                // if it is a dict, then it doesn't seem to have any 'method', so set default value
                 defaultMethod = "positionRisk";
             }
         }
@@ -12269,7 +12325,7 @@ public partial class binance : Exchange
             // binanceusdm
             if (isTrue(e is MarginModeAlreadySet))
             {
-                object throwMarginModeAlreadySet = this.safeBool(this.options, "throwMarginModeAlreadySet", false);
+                object throwMarginModeAlreadySet = this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
                 if (isTrue(throwMarginModeAlreadySet))
                 {
                     throw e;

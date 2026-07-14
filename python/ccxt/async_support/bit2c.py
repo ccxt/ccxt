@@ -213,7 +213,9 @@ class bit2c(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'fetchTrades': {
+                    'method': 'public_get_exchanges_pair_trades',
+                },
             },
             'features': {
                 'spot': {
@@ -446,7 +448,8 @@ class bit2c(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility  #29154
+        method = self.handle_option('fetchTrades', 'method', optionValue)  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         request = {
             'pair': market['id'],
         }

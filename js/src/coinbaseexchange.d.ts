@@ -312,7 +312,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(transaction: any): "canceled" | "pending" | "ok" | "failed";
+    parseTransactionStatus(transaction: any): "canceled" | "failed" | "ok" | "pending";
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method

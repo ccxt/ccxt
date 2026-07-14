@@ -939,12 +939,12 @@ public partial class lighter : Exchange
             {
                 triggerOrderSide = "buy";
             }
-            object stopLossOrderTriggerPrice = this.safeNumberN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
+            object stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
             object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-            object stopLossOrderLimitPrice = this.safeNumberN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
-            object takeProfitOrderTriggerPrice = this.safeNumberN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
+            object stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+            object takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
             object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-            object takeProfitOrderLimitPrice = this.safeNumberN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
+            object takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (isTrue(!isEqual(stopLoss, null)))
             {

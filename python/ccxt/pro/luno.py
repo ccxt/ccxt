@@ -137,6 +137,9 @@ class luno(ccxt.async_support.luno):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.luno.com/en/developers/api#tag/Streaming-API
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the exchange API endpoint

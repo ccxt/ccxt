@@ -98,7 +98,7 @@ class krakenfutures extends Exchange {
                 'api' => array(
                     'charts' => 'https://futures.kraken.com/api/charts/',
                     'history' => 'https://futures.kraken.com/api/history/',
-                    'feeschedules' => 'https://futures.kraken.com/api/feeschedules/',
+                    'feeschedules' => 'https://futures.kraken.com/api/feeschedules/', // deprecated
                     'public' => 'https://futures.kraken.com/derivatives/api/',
                     'private' => 'https://futures.kraken.com/derivatives/api/',
                 ),
@@ -112,7 +112,7 @@ class krakenfutures extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'feeschedules',
+                        'feeschedules', // deprecated
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -122,7 +122,7 @@ class krakenfutures extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'feeschedules/volumes',
+                        'feeschedules/volumes', // deprecated
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -1613,7 +1613,8 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * @see https://docs.kraken.com/api-reference/account-history/get-$order-events
+             * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
              *
              * Gets all closed orders, including trigger orders, for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
@@ -2125,7 +2126,7 @@ class krakenfutures extends Exchange {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId' => $this->safe_string_n($orderDictFromFetchOrder, array( 'cliOrdId' )),
+                'clientOrderId' => $this->safe_string($orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
                 'lastTradeTimestamp' => null,

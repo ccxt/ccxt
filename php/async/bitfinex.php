@@ -344,8 +344,12 @@ class bitfinex extends Exchange {
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
-                'precision' => 'R0', // P0, P1, P2, P3, P4, R0
-                'defaultCurrencyPrecision' => 8, // default currency precision
+                'fetchOrderBook' => array(
+                    'precision' => 'R0', // P0, P1, P2, P3, P4, R0
+                ),
+                'fetchCurrencies' => array(
+                    'defaultPrecision' => 8, // default currency precision
+                ),
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -900,7 +904,8 @@ class bitfinex extends Exchange {
         $fees = $this->safe_list($feeValues, 1, array());
         $fee = $this->safe_number($fees, 1);
         $undl = $this->safe_list($indexed['undl'], $id, array());
-        $precision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8');
+        $defaultCurrencyPrecision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
+        $precision = $this->handle_option('fetchCurrencies', 'defaultPrecision', $defaultCurrencyPrecision);
         $networks = array();
         $networkIds = $this->safe_list($indexedNetworks, $id, array());
         for ($j = 0; $j < count($networkIds); $j++) {
@@ -1168,7 +1173,7 @@ class bitfinex extends Exchange {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
-            $precision = $this->safe_value($this->options, 'precision', 'R0');
+            $precision = $this->handle_option('fetchOrderBook', 'precision', 'R0');
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],

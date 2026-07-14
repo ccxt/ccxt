@@ -6,6 +6,7 @@ import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsL
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
+import { spawnSync } from 'child_process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
@@ -29,10 +30,42 @@ let __dirname = new URL('.', import.meta.url).pathname;
 
 let shouldTranspileTests = true;
 
+let gofmtMissingWarned = false;
+
+// gofmt indents with tabs while the transpiler emits 4-space indentation, so
+// we run the generated code through gofmt at write time: the emitted .go files
+// already have tabs and running gofmt over the tree afterwards does nothing
+function formatGoSource (filePath: string, content: string): string {
+    if (!filePath.endsWith ('.go')) {
+        return content;
+    }
+    const gofmt = spawnSync ('gofmt', [], {
+        'input': content,
+        'encoding': 'utf8',
+        'maxBuffer': 256 * 1024 * 1024,
+        'windowsHide': true,
+    });
+    if (gofmt.error) {
+        // gofmt is not installed; keep the previous behavior (unformatted output)
+        if (!gofmtMissingWarned) {
+            gofmtMissingWarned = true;
+            log.bright.yellow ('gofmt not found (' + gofmt.error.message + '), writing go files with the default 4-space indentation');
+        }
+        return content;
+    }
+    if (gofmt.status !== 0) {
+        // the generated code is not valid go; write it unformatted so it can be inspected
+        log.bright.yellow ('gofmt failed for ' + filePath + '\n' + (gofmt.stderr || ''));
+        return content;
+    }
+    return gofmt.stdout;
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    content = formatGoSource (path, content);
     overwriteFile (path, content);
     fs.writeFileSync (path, content);
 }
@@ -853,6 +886,25 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
+        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
+        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            if (wrappedType.trim().endsWith('[]')) {
+                isList = true; // e.g. `{ id: Str; ... }[]` → []map[string]any
+            }
+            return addTaskIfNeeded('map[string]any');
+        }
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
+        // without an explicit annotation (e.g. `Position | undefined`, `Dict | Leverage`).
+        // Normalize them here: drop undefined/null members and collapse remaining
+        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
+            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
+            wrappedType = members.length > 0 ? members[0] : 'any';
+        }
+
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
                 return isPromise ? `<- chan` : '<- chan';
@@ -865,6 +917,10 @@ class NewTranspiler {
         const goReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
+            // TS >= 5/6 (ast-transpiler 0.0.91) prints this alias by name instead of
+            // expanding it to `Dict | undefined` like TS 4.9 did
+            'NullableDict': 'map[string]any',
+            'Market': 'MarketInterface',
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -1102,6 +1158,9 @@ class NewTranspiler {
         if (unwrappedType === 'float64') {
             return `(res).(float64)`;
         }
+        if (unwrappedType === 'int64') {
+            return `(res).(int64)`;
+        }
         if (methodName.startsWith('watchOrderBook')) {
             return `NewOrderBookFromWs(res)`;
         }
@@ -1286,7 +1345,8 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const isExchange = exchangeName === 'Exchange';
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
@@ -1700,7 +1760,7 @@ ${constStatements.join('\n')}
             ]).join("\n");
 
             const file = fileHeader + baseMethods + "\n";
-            fs.writeFileSync (goExchangeBase, file);
+            fs.writeFileSync (goExchangeBase, formatGoSource (goExchangeBase, file));
         }
     }
 
@@ -1734,7 +1794,7 @@ ${caseStatements.join('\n')}
             functionDecl,
         ].join('\n');
 
-        fs.writeFileSync (dynamicInstanceFile, file);
+        fs.writeFileSync (dynamicInstanceFile, formatGoSource (dynamicInstanceFile, file));
     }
 
 
@@ -1785,7 +1845,7 @@ type IExchange interface {
             functionDecl,
         ].join('\n');
 
-        fs.writeFileSync (TYPED_INTERFACE_FILE, file);
+        fs.writeFileSync (TYPED_INTERFACE_FILE, formatGoSource (TYPED_INTERFACE_FILE, file));
     }
 
     // ----- WS specific ----- //
@@ -1830,7 +1890,7 @@ ${caseStatements.join('\n')}
             functionDecl,
         ].join('\n');
 
-        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, file);
+        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, file));
     }
 
 
@@ -2005,7 +2065,7 @@ ${caseStatements.join('\n')}
             file.push('');
         }
 
-        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
+        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, formatGoSource (EXCHANGE_OPTIONS_FILE, file.join('\n')));
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
@@ -2717,7 +2777,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             }
         }
 
-        fs.writeFileSync(GO_TYPES_FILE_PRO, output.join("\n") + "\n", "utf8");
+        fs.writeFileSync(GO_TYPES_FILE_PRO, formatGoSource(GO_TYPES_FILE_PRO, output.join("\n") + "\n"), "utf8");
     }
     
 }

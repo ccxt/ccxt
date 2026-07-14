@@ -203,7 +203,9 @@ export default class bigone extends Exchange {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'fund': 'FUND',
@@ -1629,7 +1631,7 @@ export default class bigone extends Exchange {
         }
         else {
             if (isBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
+                let createMarketBuyOrderRequiresPrice = undefined;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber(params, 'cost');
                 params = this.omit(params, 'cost');

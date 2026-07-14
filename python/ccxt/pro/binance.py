@@ -261,7 +261,7 @@ class binance(ccxt.async_support.binance):
             return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
         return self.urls['api']['ws'][type] + '/' + listenKey
 
-    async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -274,7 +274,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        return await self.watch_liquidations_for_symbols([symbol], since, limit, params)
+        return self.watch_liquidations_for_symbols([symbol], since, limit, params)
 
     async def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
@@ -475,7 +475,7 @@ class binance(ccxt.async_support.binance):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the private liquidations of a trading pair
 
@@ -590,7 +590,7 @@ class binance(ccxt.async_support.binance):
         client.resolve([liquidation], 'myLiquidations')
         client.resolve([liquidation], 'myLiquidations::' + symbol)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -644,7 +644,7 @@ class binance(ccxt.async_support.binance):
         # 8. If the quantity is 0, remove the price level.
         # 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
         #
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -770,7 +770,7 @@ class binance(ccxt.async_support.binance):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -785,7 +785,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.un_watch_order_book_for_symbols([symbol], params)
+        return self.un_watch_order_book_for_symbols([symbol], params)
 
     async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1171,7 +1171,7 @@ class binance(ccxt.async_support.binance):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, query), messageHashes, subscription)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unsubscribes from the trades channel
 
@@ -1185,9 +1185,7 @@ class binance(ccxt.async_support.binance):
         :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1866,7 +1864,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         return await self.watch_multi_ticker_helper('unWatchMarkPrices', channelName, symbols, params, True)
 
-    async def un_watch_mark_price(self, symbol: str, params={}) -> Any:
+    def un_watch_mark_price(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -1876,9 +1874,9 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_mark_prices([symbol], params)
+        return self.un_watch_mark_prices([symbol], params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -1893,7 +1891,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers([symbol], params)
+        return self.un_watch_tickers([symbol], params)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -2661,7 +2659,7 @@ class binance(ccxt.async_support.binance):
         parsedBalances = self.parseBalanceCustom(result)
         client.resolve(parsedBalances, messageHash)
 
-    async def fetch_position_ws(self, symbol: str, params={}) -> List[Position]:
+    def fetch_position_ws(self, symbol: str, params={}) -> List[Position]:
         """
         fetch data on an open position
 
@@ -2671,7 +2669,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        return await self.fetch_positions_ws([symbol], params)
+        return self.fetch_positions_ws([symbol], params)
 
     async def fetch_positions_ws(self, symbols: Strings = None, params={}) -> List[Position]:
         """

@@ -3466,7 +3466,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until'])
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['end_date'] = self.iso8601(until)
@@ -3537,7 +3537,7 @@ class coinbase(Exchange, ImplicitAPI):
         request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until'])
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['end_date'] = self.iso8601(until)
@@ -3680,7 +3680,7 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        until = self.safe_integer_n(params, ['until', 'end'])
+        until = self.safe_integer_2(params, 'until', 'end')
         params = self.omit(params, ['until'])
         duration = self.parse_timeframe(timeframe)
         requestedDuration = limit * duration
@@ -3828,7 +3828,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_sequence_timestamp'] = self.iso8601(since)
-        until = self.safe_integer_n(params, ['until'])
+        until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, ['until'])
             request['end_sequence_timestamp'] = self.iso8601(until)

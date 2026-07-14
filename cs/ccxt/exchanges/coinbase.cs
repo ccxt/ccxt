@@ -3867,7 +3867,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -3955,7 +3955,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -4133,7 +4133,7 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "end"});
+        object until = this.safeInteger2(parameters, "until", "end");
         parameters = this.omit(parameters, new List<object>() {"until"});
         object duration = this.parseTimeframe(timeframe);
         object requestedDuration = multiply(limit, duration);
@@ -4323,7 +4323,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_sequence_timestamp"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});

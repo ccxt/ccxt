@@ -361,14 +361,26 @@ public partial class bittrade : Exchange
                     { "HT", "hrc20" },
                     { "ALGO", "algo" },
                 } },
-                { "fetchOrdersByStatesMethod", "private_get_order_orders" },
-                { "fetchOpenOrdersMethod", "fetch_open_orders_v1" },
-                { "createMarketBuyOrderRequiresPrice", true },
-                { "fetchMarketsMethod", "publicGetCommonSymbols" },
-                { "fetchBalanceMethod", "privateGetAccountAccountsIdBalance" },
-                { "createOrderMethod", "privatePostOrderOrdersPlace" },
+                { "fetchOrdersByStates", new Dictionary<string, object>() {
+                    { "method", "private_get_order_orders" },
+                } },
+                { "fetchOpenOrders", new Dictionary<string, object>() {
+                    { "method", "fetch_open_orders_v1" },
+                } },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "createMarketBuyOrderRequiresPrice", true },
+                    { "method", "privatePostOrderOrdersPlace" },
+                } },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "method", "publicGetCommonSymbols" },
+                } },
+                { "fetchBalance", new Dictionary<string, object>() {
+                    { "method", "privateGetAccountAccountsIdBalance" },
+                } },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
-                { "language", "en-US" },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "language", "en-US" },
+                } },
                 { "broker", new Dictionary<string, object>() {
                     { "id", "AA03022abc" },
                 } },
@@ -491,7 +503,7 @@ public partial class bittrade : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = getValue(this.options, "fetchMarketsMethod");
+        object method = ((string)this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols"));
         object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
         //
         //    {
@@ -1139,7 +1151,7 @@ public partial class bittrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
-            { "language", getValue(this.options, "language") },
+            { "language", ((string)this.handleOption("fetchCurrencies", "language", "en-US")) },
         };
         object response = await this.publicGetSettingsCurrencys(this.extend(request, parameters));
         //
@@ -1274,7 +1286,7 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        object method = getValue(this.options, "fetchBalanceMethod");
+        object method = ((string)this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance"));
         object request = new Dictionary<string, object>() {
             { "id", getValue(getValue(this.accounts, 0), "id") },
         };
@@ -1298,7 +1310,7 @@ public partial class bittrade : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object method = this.safeString(this.options, "fetchOrdersByStatesMethod", "private_get_order_orders");
+        object method = ((string)this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders"));
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         //     { "status":   "ok",
@@ -1373,7 +1385,7 @@ public partial class bittrade : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeString(this.options, "fetchOpenOrdersMethod", "fetch_open_orders_v1");
+        object method = ((string)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
         return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
     }
 

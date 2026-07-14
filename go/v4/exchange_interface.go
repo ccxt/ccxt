@@ -120,6 +120,7 @@ type ICoreExchange interface {
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) any
 	Nonce() any
+	Unique(obj any) []any
 	FetchTime(optionalArgs ...any) <-chan any
 	FetchCurrencies(optionalArgs ...any) <-chan any
 	FetchMarkets(optionalArgs ...any) <-chan any
@@ -202,7 +203,7 @@ type ICoreExchange interface {
 	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any
 	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any
 	SafeFloat(obj any, key any, defaultValue ...any) any
-	SafeStringLowerN(obj any, keys2 any, defaultValue ...any) any
+	SafeStringLowerN(obj any, keys []any, defaultValue ...any) any
 	SafeStringUpperN(obj any, keys []any, defaultValue ...any) any
 	SafeInteger(obj any, key any, defaultValue ...any) any
 	SafeStringUpper(obj any, key any, defaultValue ...any) any

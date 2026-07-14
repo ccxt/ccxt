@@ -1576,7 +1576,7 @@ export default class mexc extends Exchange {
         }
         let trades = [];
         if (market['spot']) {
-            const until = this.safeIntegerN(params, ['endTime', 'until']);
+            const until = this.safeInteger2(params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
                 if (until === undefined) {
@@ -1839,7 +1839,7 @@ export default class mexc extends Exchange {
             'interval': timeframeValue,
         };
         let candles = [];
-        const until = this.safeIntegerN(params, ['until', 'endTime']);
+        const until = this.safeInteger2(params, 'until', 'endTime');
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
             params = this.omit(params, ['until']);

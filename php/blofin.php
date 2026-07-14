@@ -422,7 +422,6 @@ class blofin extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'brokerId' => 'ec6dd3a7dd982d0b',
                 'accountsByType' => array(
                     'swap' => 'futures',
                     'funding' => 'funding',
@@ -462,28 +461,13 @@ class blofin extends Exchange {
                         '1D' => '1D',
                     ),
                 ),
-                'fetchOHLCV' => array(
-                    // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone' => 'UTC', // UTC, HK
-                ),
-                'fetchPositions' => array(
-                    'method' => 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                ),
-                'createOrder' => 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice' => false,
-                'fetchMarkets' => array( 'swap' ),
                 'defaultType' => 'swap',
-                'fetchLedger' => array(
-                    'method' => 'privateGetAssetBills',
-                ),
+                'brokerId' => 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders' => array(
                     'method' => 'privateGetTradeOrdersPending',
                 ),
                 'cancelOrders' => array(
                     'method' => 'privatePostTradeCancelBatchOrders',
-                ),
-                'fetchCanceledOrders' => array(
-                    'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 ),
                 'fetchClosedOrders' => array(
                     'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -1605,7 +1589,7 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $isTrigger = $this->safe_bool_n($params, array( 'trigger' ), false);
+        $isTrigger = $this->safe_bool($params, 'trigger', false);
         $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -2091,9 +2075,7 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array();
-        $options = $this->safe_dict($this->options, 'cancelOrders', array());
-        $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
-        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $method = $this->handle_option('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
         $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
         $tpslIds = $this->parse_ids($this->safe_value($params, 'tpslId'));
         $trigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
@@ -2667,7 +2649,7 @@ class blofin extends Exchange {
         }
         $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory($this->extend($request, $query));

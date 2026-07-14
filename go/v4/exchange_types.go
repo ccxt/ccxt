@@ -103,6 +103,7 @@ type MarketInterface struct {
 	OptionType     *string
 	Taker          *float64
 	Maker          *float64
+	Precision      Precision
 	Limits         Limits
 	Created        *int64
 }
@@ -119,6 +120,12 @@ func NewMarketInterface(data any) MarketInterface {
 	var limits Limits
 	if v, ok := m["limits"]; ok {
 		limits = NewLimits(v)
+	}
+
+	// Handle precision if present
+	var precision Precision
+	if v, ok := m["precision"]; ok && v != nil {
+		precision = NewPrecision(v)
 	}
 
 	return MarketInterface{
@@ -151,6 +158,7 @@ func NewMarketInterface(data any) MarketInterface {
 		OptionType:     SafeStringTyped(m, "optionType"),
 		Taker:          SafeFloatTyped(m, "taker"),
 		Maker:          SafeFloatTyped(m, "maker"),
+		Precision:      precision,
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}

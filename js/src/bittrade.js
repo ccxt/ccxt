@@ -381,14 +381,26 @@ export default class bittrade extends Exchange {
                     'ALGO': 'algo',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates': {
+                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                },
+                'fetchOpenOrders': {
+                    'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                },
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                    'method': 'privatePostOrderOrdersPlace',
+                },
+                'fetchMarkets': {
+                    'method': 'publicGetCommonSymbols',
+                },
+                'fetchBalance': {
+                    'method': 'privateGetAccountAccountsIdBalance',
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'language': 'en-US',
+                'fetchCurrencies': {
+                    'language': 'en-US',
+                },
                 'broker': {
                     'id': 'AA03022abc',
                 },
@@ -498,7 +510,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.options['fetchMarketsMethod'];
+        const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
         const response = await this[method](params);
         //
         //    {
@@ -1090,7 +1102,7 @@ export default class bittrade extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         const request = {
-            'language': this.options['language'],
+            'language': this.handleOption('fetchCurrencies', 'language', 'en-US'),
         };
         const response = await this.publicGetSettingsCurrencys(this.extend(request, params));
         //
@@ -1214,7 +1226,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const method = this.options['fetchBalanceMethod'];
+        const method = this.handleOption('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         const request = {
             'id': this.accounts[0]['id'],
         };
@@ -1233,7 +1245,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.safeString(this.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
         const response = await this[method](this.extend(request, params));
         //
         //     { "status":   "ok",
@@ -1298,7 +1310,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.safeString(this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
+        const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
         return await this[method](symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -48,6 +48,7 @@
 * [fetchPositions](#fetchpositions)
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
 * [transfer](#transfer)
+* [fetchTransfer](#fetchtransfer)
 * [fetchTransfers](#fetchtransfers)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
@@ -227,7 +228,11 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book  
+**See**
+
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -337,6 +342,7 @@ get the list of most recent trades for a particular symbol
 **See**
 
 - https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+- https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
 - https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
 
 
@@ -1202,6 +1208,28 @@ transfer currency internally between wallets on the same account
 
 ```javascript
 okx.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="fetchTransfer" id="fetchtransfer"></a>
+
+### fetchTransfer{docsify-ignore}
+fetch a transfer
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | transfer id |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.fetchTransfer (id, code?, params?)
 ```
 
 
@@ -2423,6 +2451,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2446,6 +2475,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2467,6 +2497,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2489,6 +2520,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2752,7 +2784,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade  
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2775,7 +2807,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order  
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2797,7 +2829,7 @@ cancel all open orders of a type. Only applicable to Option in Portfolio Margin 
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.okx.com/websockets/#message-cancelAll  
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

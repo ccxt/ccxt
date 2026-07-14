@@ -1086,6 +1086,7 @@ public partial class okx : ccxt.okx
      * @method
      * @name okx#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1116,6 +1117,7 @@ public partial class okx : ccxt.okx
      * @method
      * @name okx#unWatchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1125,10 +1127,6 @@ public partial class okx : ccxt.okx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
     }
 
@@ -1136,6 +1134,7 @@ public partial class okx : ccxt.okx
      * @method
      * @name okx#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -1192,6 +1191,7 @@ public partial class okx : ccxt.okx
      * @method
      * @name okx#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2502,7 +2502,7 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#cancelOrderWs
-     * @see https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order
      * @description cancel multiple orders
      * @param {string} id order id
      * @param {string} symbol unified market symbol, default is undefined
@@ -2549,7 +2549,7 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#cancelOrdersWs
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
@@ -2599,7 +2599,7 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#cancelAllOrdersWs
-     * @see https://docs.okx.com/websockets/#message-cancelAll
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
      * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint

@@ -729,16 +729,9 @@ class coinex extends Exchange {
 
     public function parse_currency($coin): array {
         $asset = $this->safe_dict($coin, 'asset', array());
-        $chains = $this->safe_list($coin, 'chains', array());
         $currencyId = $this->safe_string($asset, 'ccy');
-        if ($currencyId === null) {
-            return null; // coinex returns empty structures for some reason
-        }
+        $chains = $this->safe_list($coin, 'chains', array());
         $code = $this->safe_currency_code($currencyId);
-        $canDeposit = $this->safe_bool($asset, 'deposit_enabled');
-        $canWithdraw = $this->safe_bool($asset, 'withdraw_enabled');
-        $firstChain = $this->safe_dict($chains, 0, array());
-        $firstPrecisionString = $this->parse_precision($this->safe_string($firstChain, 'withdrawal_precision'));
         $networks = array();
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
@@ -747,32 +740,26 @@ class coinex extends Exchange {
             if ($networkId === null) {
                 continue;
             }
-            $precisionString = $this->parse_precision($this->safe_string($chain, 'withdrawal_precision'));
-            $feeString = $this->safe_string($chain, 'withdrawal_fee');
-            $minNetworkDepositString = $this->safe_string($chain, 'min_deposit_amount');
-            $minNetworkWithdrawString = $this->safe_string($chain, 'min_withdraw_amount');
-            $canDepositChain = $this->safe_bool($chain, 'deposit_enabled');
-            $canWithdrawChain = $this->safe_bool($chain, 'withdraw_enabled');
             $network = array(
                 'id' => $networkId,
                 'network' => $networkCode,
                 'name' => null,
-                'active' => $canDepositChain && $canWithdrawChain,
-                'deposit' => $canDepositChain,
-                'withdraw' => $canWithdrawChain,
-                'fee' => $this->parse_number($feeString),
-                'precision' => $this->parse_number($precisionString),
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'deposit_enabled'),
+                'withdraw' => $this->safe_bool($chain, 'withdraw_enabled'),
+                'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawal_precision'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $this->parse_number($minNetworkDepositString),
+                        'min' => $this->safe_number($chain, 'min_deposit_amount'),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->parse_number($minNetworkWithdrawString),
+                        'min' => $this->safe_number($chain, 'min_withdraw_amount'),
                         'max' => null,
                     ),
                 ),
@@ -784,11 +771,11 @@ class coinex extends Exchange {
             'id' => $currencyId,
             'code' => $code,
             'name' => null,
-            'active' => $canDeposit && $canWithdraw,
-            'deposit' => $canDeposit,
-            'withdraw' => $canWithdraw,
+            'active' => null,
+            'deposit' => $this->safe_bool($asset, 'deposit_enabled'),
+            'withdraw' => $this->safe_bool($asset, 'withdraw_enabled'),
             'fee' => null,
-            'precision' => $this->parse_number($firstPrecisionString),
+            'precision' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,

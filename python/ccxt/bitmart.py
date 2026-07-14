@@ -735,7 +735,9 @@ class bitmart(Exchange, ImplicitAPI):
                     'spot': 'spot',
                     'swap': 'swap',
                 },
-                'createMarketBuyOrderRequiresPrice': True,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                },
                 'brokerId': 'CCXTxBitmart000',
             },
             'features': {
@@ -3051,7 +3053,7 @@ class bitmart(Exchange, ImplicitAPI):
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (notional is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument or in the "notional" extra parameter(the exchange-specific behaviour)')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice to False in options["createOrder"] or in params and pass the cost to spend in the amount argument or in the "notional" extra parameter(the exchange-specific behaviour)')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)

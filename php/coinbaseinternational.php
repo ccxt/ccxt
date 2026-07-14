@@ -2233,7 +2233,7 @@ class coinbaseinternational extends Exchange {
         if ($since !== null) {
             $request['time_from'] = $this->iso8601($since);
         }
-        $until = $this->safe_string_n($params, array( 'until' ));
+        $until = $this->safe_string($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['ref_datetime'] = $this->iso8601($until);

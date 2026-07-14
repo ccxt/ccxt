@@ -32,7 +32,7 @@ class kucoin(ccxt.async_support.kucoin):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchPosition': True,
-                'watchPositions': False,
+                'watchPositions': True,
                 'watchMyTrades': True,
                 'watchTickers': True,
                 'watchTicker': True,
@@ -47,7 +47,7 @@ class kucoin(ccxt.async_support.kucoin):
                 'unWatchOHLCV': True,
                 'unWatchOrderBook': True,
                 'unWatchTrades': True,
-                'unWatchhTradesForSymbols': True,
+                'unWatchTradesForSymbols': True,
             },
             'urls': {
                 # only for pro(uta) accounts
@@ -262,8 +262,8 @@ class kucoin(ccxt.async_support.kucoin):
                     client.reject(e, messageHash)
         return self.safe_string(self.options, 'utaToken')
 
-    async def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None):
-        return await self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
+    def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None) -> Any:
+        return self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
 
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
         requestId = str(self.request_id())
@@ -1342,10 +1342,13 @@ class kucoin(ccxt.async_support.kucoin):
     async def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
 
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        https://www.kucoin.com/docs-new/3470069w0  # spot level 5
+        https://www.kucoin.com/docs-new/3470070w0  # spot level 50
+        https://www.kucoin.com/docs-new/3470068w0  # spot incremental
+        https://www.kucoin.com/docs-new/3470083w0  # futures level 5
+        https://www.kucoin.com/docs-new/3470097w0  # futures level 50
+        https://www.kucoin.com/docs-new/3470082w0  # futures incremental
+        https://www.kucoin.com/docs-new/3470221w0  # uta
 
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
