@@ -453,6 +453,24 @@ exchange = ccxt.apex({
 
 Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
 
+Everything on a prediction venue is organized as a three-level hierarchy — **Event → Markets → Outcomes**:
+
+- an **event** is the real-world topic being traded ("US Presidential Election 2024")
+- each event contains one or more **markets** — a concrete yes/no or multi-choice question within the topic ("Will Trump win?")
+- each market contains its **outcomes** — the individual sides you can actually buy and sell (`YES` / `NO`, or one outcome per candidate)
+
+```text
+Event    "US Presidential Election 2024"
+├── Market    "Will Trump win?"
+│   ├── Outcome    TRUMP_WIN_2024:YES
+│   └── Outcome    TRUMP_WIN_2024:NO
+└── Market    "Will Biden win?"
+    ├── Outcome    BIDEN_WIN_2024:YES
+    └── Outcome    BIDEN_WIN_2024:NO
+```
+
+`fetchEvents` returns this full hierarchy (events carrying their markets, markets carrying their outcomes), and all trading and market-data methods operate at the bottom level — the outcome handle is what you pass wherever a regular exchange would take a symbol.
+
 The namespace per language:
 
 ```Python
