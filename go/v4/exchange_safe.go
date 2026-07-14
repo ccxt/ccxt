@@ -650,8 +650,7 @@ func (this *BaseExchange) SafeStringN(obj any, keys2 any, defaultValue ...any) a
 	return SafeStringN(obj, keys, defVal)
 }
 
-func (this *BaseExchange) SafeStringLowerN(obj any, keys2 any, defaultValue ...any) any {
-	keys := keys2.([]any)
+func (this *BaseExchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
