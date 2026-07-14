@@ -1432,7 +1432,7 @@ public partial class mexc : Exchange
         object trades = new List<object>() {};
         if (isTrue(getValue(market, "spot")))
         {
-            object until = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
+            object until = this.safeInteger2(parameters, "endTime", "until");
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1687,7 +1687,7 @@ public partial class mexc : Exchange
             { "interval", timeframeValue },
         };
         object candles = new List<object>() {};
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime"});
+        object until = this.safeInteger2(parameters, "until", "endTime");
         object start = since;
         if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isEqual(since, null)))))
         {

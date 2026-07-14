@@ -3162,7 +3162,7 @@ public partial class htx : Exchange
         object request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object priceType = this.safeStringN(parameters, new List<object>() {"priceType", "price"});
+        object priceType = this.safeString2(parameters, "priceType", "price");
         parameters = this.omit(parameters, new List<object>() {"priceType", "price"});
         object until = null;
         var untilparametersVariable = this.handleParamInteger(parameters, "until");
@@ -5228,7 +5228,7 @@ public partial class htx : Exchange
             type = this.safeString(order, "type");
             if (isTrue(isTrue(isTrue(isTrue((isEqual(type, null))) || isTrue((isEqual(type, "tp")))) || isTrue((isEqual(type, "sl")))) || isTrue((isEqual(type, "tpsl")))))
             {
-                type = this.safeStringN(order, new List<object>() {"tp_type", "sl_type"});
+                type = this.safeString2(order, "tp_type", "sl_type");
             }
             if (isTrue(isEqual(type, "0")))
             {

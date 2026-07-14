@@ -7125,7 +7125,7 @@ export default class bitget extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                 }
-                const endTime = this.safeIntegerN (params, [ 'endTime', 'until' ]);
+                const endTime = this.safeInteger2 (params, 'endTime', 'until');
                 params = this.omit (params, [ 'until' ]);
                 if (since === undefined) {
                     since = now - 7776000000;

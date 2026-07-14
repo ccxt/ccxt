@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // eslint-disable-next-line no-shadow
-import WebSocket from 'ws';
+import WebSocket, { createWebSocketStream } from 'ws';
 import Client from './Client.js';
 import { sleep, isNode, isBun, milliseconds, selfIsDefined, } from '../../base/functions.js';
 import { Future } from './Future.js';
@@ -50,18 +50,34 @@ export default class WsClient extends Client {
             this.connection.binaryType = 'nodebuffer'; // bun extension, keeps binary messages as Buffer like the 'ws' package
         }
         else if (isNode) {
-            // this patch yields the event loop between messages
-            // which prevents starving futures with multiple synchronous message events
             this.options = this.options || {};
-            this.options['allowSynchronousEvents'] = false;
             this.connection = new WebSocketPlatform(this.url, this.protocols, this.options);
+            // message delivery goes through a duplex stream wrapper instead of
+            // per-message deferred events (the old allowSynchronousEvents:false
+            // patch): ws emits all messages of a socket chunk synchronously on
+            // one stack; the stream parks them in its internal buffer (O(1)
+            // push) and the async iterator in deliverLoop delivers exactly one
+            // message per step on a fresh stack, so consumer code never runs
+            // inside ws's emission stack. readableObjectMode keeps
+            // 1 chunk = 1 message (byte mode would fuse frames once anything
+            // buffers); readableHighWaterMark (counted in messages) is a
+            // memory circuit breaker: past it the socket is paused (TCP
+            // backpressure to the server) until reads drain. the duplex must
+            // be attached synchronously with the socket - messages emitted
+            // between 'open' and a later attachment would be dropped silently
+            this.duplex = createWebSocketStream(this.connection, { 'readableObjectMode': true, 'readableHighWaterMark': 1024 });
+            this.duplex.on('error', () => { }); // teardown surfaces via the socket error/close handlers
         }
         else {
             this.connection = new WebSocketPlatform(this.url, this.protocols);
             this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default
         }
-        this.connection.onopen = this.onOpen.bind(this);
-        this.connection.onmessage = this.onMessage.bind(this);
+        this.connection.onopen = this.onConnectionOpen.bind(this);
+        if (!isNode || isBun) {
+            // browsers and bun deliver through native WebSocket events; on
+            // node the duplex deliverLoop above owns message delivery
+            this.connection.onmessage = this.onMessage.bind(this);
+        }
         this.connection.onerror = this.onError.bind(this);
         this.connection.onclose = this.onClose.bind(this);
         if (isNode && !isBun) {
@@ -72,6 +88,59 @@ export default class WsClient extends Client {
         }
         // this.connection.terminate () // debugging
         // this.connection.close () // debugging
+    }
+    onConnectionOpen() {
+        if (isNode && !isBun) {
+            // under bun there is no duplex - messages arrive through the
+            // native WebSocket onmessage handler instead
+            this.deliverLoop();
+        }
+        this.onOpen();
+    }
+    // one message per async-iterator step: between chunks the loop parks on
+    // the iterator until the next socket event (a macrotask), so a consumer
+    // awaiting a just-resolved future always drains its re-arm microtask
+    // chain (watchX -> loadMarkets -> watch -> client.future) before the
+    // next delivery can happen - no explicit hop between deliveries needed
+    async deliverLoop() {
+        try {
+            for await (const message of this.duplex) {
+                this.onMessage({ 'data': message });
+                // release valve: when the server sends faster than the paced
+                // delivery below drains, messages pile up inside the duplex
+                // buffer - flush them synchronously through onMessage, the
+                // same way the php client flushes its backlog in on_message
+                // (php/pro/Client.php) and the python client drains the
+                // aiohttp buffer in receive_loop (async_support/base/ws/
+                // client.py). this keeps queueing latency and memory bounded
+                // under bursts at the cost of per-message consumer wakeups
+                // (consumers awaiting futures observe the merged/cached
+                // state on their next wakeup - identical cross-language
+                // semantics)
+                while (this.duplex.readableLength > 0) {
+                    const queued = this.duplex.read();
+                    if (queued === null) {
+                        break;
+                    }
+                    this.onMessage({ 'data': queued });
+                }
+            }
+        }
+        catch (e) {
+            // nothing escapes the loop body: onMessage handles all of its
+            // dispatch errors internally (Client.ts), so the only way into
+            // this catch is a rejection of the iterator itself. that happens
+            // when ws destroys the duplex with an error (ws/lib/stream.js) on
+            // WebSocket 'error' events - protocol violations such as
+            // malformed frames, invalid UTF-8 or oversized payloads - and by
+            // the time the rejection lands here the socket error/close
+            // handlers wired in createConnection have already applied the
+            // full error semantics (this.error set, pending futures rejected,
+            // exchange notified). the rejection is a duplicate signal from
+            // the already-destroyed stream - swallow it: deliverLoop is
+            // fire-and-forget, so an escaping rejection would crash the
+            // process as an unhandled promise rejection
+        }
     }
     connect(backoffDelay = 0) {
         if (!this.startedConnecting) {

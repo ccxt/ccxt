@@ -1368,7 +1368,7 @@ class pacifica(Exchange, ImplicitAPI):
             sigPayload['price'] = self.price_to_precision(symbol, price)
         if amount is not None and (operationType != 'create_stop_order' and operationType != 'set_position_tpsl'):
             sigPayload['amount'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string_n(params, ['clientOrderId'])
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             sigPayload['client_order_id'] = clientOrderId
         request = self.post_action_request(operationType, sigPayload, params)

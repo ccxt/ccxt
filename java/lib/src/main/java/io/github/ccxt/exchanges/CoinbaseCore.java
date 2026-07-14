@@ -4146,7 +4146,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Helpers.addElementToObject(request, "start_date", this.iso8601(since));
             }
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
+            Object until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -4242,7 +4242,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Helpers.addElementToObject(request, "start_date", this.iso8601(since));
             }
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
+            Object until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -4451,7 +4451,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "product_id", Helpers.GetValue(market, "id") );
                 put( "granularity", CoinbaseCore.this.safeString(CoinbaseCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "end")));
+            Object until = this.safeInteger2(parameters, "until", "end");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             Object duration = this.parseTimeframe(timeframe);
             Object requestedDuration = Helpers.multiply(limit, duration);
@@ -4657,7 +4657,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Helpers.addElementToObject(request, "start_sequence_timestamp", this.iso8601(since));
             }
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
+            Object until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));

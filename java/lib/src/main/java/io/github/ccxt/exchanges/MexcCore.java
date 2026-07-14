@@ -1493,7 +1493,7 @@ public class MexcCore extends MexcApi
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
-                Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
+                Object until = this.safeInteger2(parameters, "endTime", "until");
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     Helpers.addElementToObject(request, "startTime", since);
@@ -1767,7 +1767,7 @@ public class MexcCore extends MexcApi
                 put( "interval", timeframeValue );
             }};
             Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "endTime")));
+            Object until = this.safeInteger2(parameters, "until", "endTime");
             Object start = since;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isEqual(since, null)))))
             {

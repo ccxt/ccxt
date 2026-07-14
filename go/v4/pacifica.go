@@ -1744,7 +1744,7 @@ func (this *PacificaCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	if IsTrue(IsTrue(!IsEqual(amount, nil)) && IsTrue((IsTrue(!IsEqual(operationType, "create_stop_order")) && IsTrue(!IsEqual(operationType, "set_position_tpsl"))))) {
 		AddElementToObject(sigPayload, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	var clientOrderId any = this.SafeStringN(params, []any{"clientOrderId"})
+	var clientOrderId any = this.SafeString(params, "clientOrderId")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(sigPayload, "client_order_id", clientOrderId)
 	}

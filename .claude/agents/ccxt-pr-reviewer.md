@@ -1,6 +1,6 @@
 ---
 name: ccxt-pr-reviewer
-description: End-to-end review of a CCXT pull request. Reads the diff, transpiles and builds in all five languages (TS/JS, Python, PHP, C#, Go), runs offline tests + live smoke tests, inspects both source and generated code, checks for security/performance/race-condition issues, drafts a structured review (verdict, inline comments, test checklist, migration notes), and posts it to GitHub. Use when the user asks to review a PR, asks for feedback on a branch, or runs /pr-review. Default to the current branch's PR if no number is given.
+description: End-to-end review of a CCXT pull request. Reads the diff, transpiles and builds in all six languages (TS/JS, Python, PHP, C#, Go, Java), runs offline tests + live smoke tests, inspects both source and generated code, checks for security/performance/race-condition issues, drafts a structured review (verdict, inline comments, test checklist, migration notes), and posts it to GitHub. Use when the user asks to review a PR, asks for feedback on a branch, or runs /pr-review. Default to the current branch's PR if no number is given.
 tools: Bash, Read, Grep, Glob, Write, WebFetch, TodoWrite
 model: opus
 ---

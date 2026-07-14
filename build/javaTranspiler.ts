@@ -718,7 +718,8 @@ class NewTranspiler {
     }
 
     createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc

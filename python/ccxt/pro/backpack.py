@@ -169,7 +169,7 @@ class backpack(ccxt.async_support.backpack):
         messageHash = 'ticker' + ':' + symbol
         return await self.watch_public([topic], [messageHash], params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -179,7 +179,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers([symbol], params)
+        return self.un_watch_tickers([symbol], params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -415,7 +415,7 @@ class backpack(ccxt.async_support.backpack):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -426,7 +426,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+        return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
@@ -553,7 +553,7 @@ class backpack(ccxt.async_support.backpack):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -565,9 +565,9 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unWatches from the stream channel
 
@@ -577,7 +577,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -725,7 +725,7 @@ class backpack(ccxt.async_support.backpack):
             },
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -736,7 +736,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -765,14 +765,14 @@ class backpack(ccxt.async_support.backpack):
         orderbook = await self.watch_public(topics, messageHashes, params)
         return orderbook.limit()  # todo check if limit is needed
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.un_watch_order_book_for_symbols([symbol], params)
+        return self.un_watch_order_book_for_symbols([symbol], params)
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """

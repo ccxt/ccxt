@@ -388,7 +388,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**

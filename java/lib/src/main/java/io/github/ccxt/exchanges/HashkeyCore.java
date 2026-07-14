@@ -1527,7 +1527,7 @@ public class HashkeyCore extends HashkeyApi
             side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
         }
         Object takerOrMaker = null;
-        Object isMaker = this.safeBoolN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("isMaker", "isMarker")));
+        Object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
@@ -4895,7 +4895,7 @@ final Object finalI = i;
         } else
         {
             query = this.urlencode(parameters);
-            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }

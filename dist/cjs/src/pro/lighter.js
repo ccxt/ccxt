@@ -399,8 +399,8 @@ class lighter extends lighter$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrice(symbol, params = {}) {
-        return await this.watchTicker(symbol, params);
+    watchMarkPrice(symbol, params = {}) {
+        return this.watchTicker(symbol, params);
     }
     /**
      * @method
@@ -411,8 +411,8 @@ class lighter extends lighter$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrices(symbols = undefined, params = {}) {
-        return await this.watchTickers(symbols, params);
+    watchMarkPrices(symbols = undefined, params = {}) {
+        return this.watchTickers(symbols, params);
     }
     /**
      * @method
@@ -423,8 +423,8 @@ class lighter extends lighter$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrice(symbol, params = {}) {
-        return await this.unWatchTicker(symbol, params);
+    unWatchMarkPrice(symbol, params = {}) {
+        return this.unWatchTicker(symbol, params);
     }
     /**
      * @method
@@ -435,8 +435,8 @@ class lighter extends lighter$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrices(symbols = undefined, params = {}) {
-        return await this.unWatchTickers(symbols, params);
+    unWatchMarkPrices(symbols = undefined, params = {}) {
+        return this.unWatchTickers(symbols, params);
     }
     parseWsTrade(trade, market = undefined) {
         //

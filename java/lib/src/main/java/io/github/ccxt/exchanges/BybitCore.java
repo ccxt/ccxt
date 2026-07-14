@@ -5733,7 +5733,7 @@ public class BybitCore extends BybitApi
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+                Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
@@ -5959,7 +5959,7 @@ public class BybitCore extends BybitApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported for spot markets")) ;
             }
             Helpers.addElementToObject(request, "category", type);
-            Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(isTrigger))
             {
@@ -6070,7 +6070,7 @@ public class BybitCore extends BybitApi
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+                Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
@@ -6118,7 +6118,7 @@ public class BybitCore extends BybitApi
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+                Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
@@ -6182,7 +6182,7 @@ public class BybitCore extends BybitApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Helpers.addElementToObject(request, "category", type);
-            Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(isTrigger))
             {
@@ -7833,11 +7833,11 @@ public class BybitCore extends BybitApi
         Object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         Object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         Object maintenanceMarginString = this.safeString(position, "positionMM");
-        Object timestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("createdTime", "createdAt")));
+        Object timestamp = this.safeInteger2(position, "createdTime", "createdAt");
         Object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
         if (Helpers.isTrue(Helpers.isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("updatedTime", "updatedAt", "updatedTime")));
+            lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
         }
         Object collateralString = this.safeString(position, "positionBalance");
         Object entryPrice = this.omitZero(this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
@@ -8744,7 +8744,7 @@ public class BybitCore extends BybitApi
             //
             Object timestamp = this.safeInteger(response, "time");
             Object transfer = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object statusRaw = this.safeStringN(response, new java.util.ArrayList<Object>(java.util.Arrays.asList("retCode", "retMsg")));
+            Object statusRaw = this.safeString2(response, "retCode", "retMsg");
             Object status = this.parseTransferStatus(statusRaw);
             return this.extend(this.parseTransfer(transfer, currency), new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );

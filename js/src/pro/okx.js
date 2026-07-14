@@ -183,8 +183,8 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -288,8 +288,8 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        return await this.unWatchTradesForSymbols([symbol], params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unWatchTradesForSymbols([symbol], params);
     }
     handleTrades(client, message) {
         //
@@ -458,8 +458,8 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unWatchTickers([symbol], params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -1011,11 +1011,8 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        return this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
     }
     /**
      * @method
@@ -1160,7 +1157,7 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
+    watchOrderBook(symbol, limit = undefined, params = {}) {
         //
         // bbo-tbt
         // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -1184,7 +1181,7 @@ export default class okx extends okxRest {
         // 2. Public depth channel, verification not required
         // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
         //
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -1309,8 +1306,8 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook(symbol, params = {}) {
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+    unWatchOrderBook(symbol, params = {}) {
+        return this.unWatchOrderBookForSymbols([symbol], params);
     }
     handleDelta(bookside, delta) {
         //

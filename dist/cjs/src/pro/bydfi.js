@@ -167,8 +167,8 @@ class bydfi extends bydfi$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unWatchTickers([symbol], params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -315,8 +315,8 @@ class bydfi extends bydfi$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        return this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
     }
     /**
      * @method
@@ -334,9 +334,7 @@ class bydfi extends bydfi$1["default"] {
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new errors.ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
+        await this.loadMarkets();
         const channels = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -370,9 +368,7 @@ class bydfi extends bydfi$1["default"] {
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new errors.ArgumentsRequired(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
+        await this.loadMarkets();
         const channels = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -436,8 +432,8 @@ class bydfi extends bydfi$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -448,8 +444,8 @@ class bydfi extends bydfi$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook(symbol, params = {}) {
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+    unWatchOrderBook(symbol, params = {}) {
+        return this.unWatchOrderBookForSymbols([symbol], params);
     }
     /**
      * @method

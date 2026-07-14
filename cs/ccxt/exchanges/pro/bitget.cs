@@ -179,10 +179,6 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters);
     }
 

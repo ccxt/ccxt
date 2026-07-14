@@ -1000,12 +1000,12 @@ public class LighterCore extends LighterApi
             {
                 triggerOrderSide = "buy";
             }
-            Object stopLossOrderTriggerPrice = this.safeNumberN(stopLoss, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice")));
+            Object stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
             Object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-            Object stopLossOrderLimitPrice = this.safeNumberN(stopLoss, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "stopLossPrice")), stopLossOrderTriggerPrice);
-            Object takeProfitOrderTriggerPrice = this.safeNumberN(takeProfit, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice")));
+            Object stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+            Object takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
             Object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-            Object takeProfitOrderLimitPrice = this.safeNumberN(takeProfit, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "takeProfitPrice")), takeProfitOrderTriggerPrice);
+            Object takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
             {

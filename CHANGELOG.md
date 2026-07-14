@@ -1,3 +1,109 @@
+<a id="v4.5.65"></a>
+# [v4.5.65](https://github.com/ccxt/ccxt/releases/tag/v4.5.65) - 2026-07-13
+
+## What's Changed
+* test: add atom/cosmos networkcode by [@ttodua](https://github.com/ttodua) in [#29060](https://github.com/ccxt/ccxt/pull/29060)
+* chore(build): replace python setup.py with root pyproject.toml, pin python dependencies by [@carlotestor](https://github.com/carlotestor) in [#29093](https://github.com/ccxt/ccxt/pull/29093)
+* refactor: remove SPL network by [@ttodua](https://github.com/ttodua) in [#29096](https://github.com/ccxt/ccxt/pull/29096)
+* feat(python): uvloop/winloop/orjson accelerators with safe defaults by [@carlotestor](https://github.com/carlotestor) in [#29098](https://github.com/ccxt/ccxt/pull/29098)
+* perf(python): uvloop/winloop/orjson accelerators + precision-safe JSON handling by [@carlotestor](https://github.com/carlotestor) in [#29100](https://github.com/ccxt/ccxt/pull/29100)
+* release.yml: push back exchanges.json (force-add past .gitignore) by [@carlotestor](https://github.com/carlotestor) in [#29109](https://github.com/ccxt/ccxt/pull/29109)
+* fix(26168): deribit parseTransfer timestamp parsing (already in milliseconds) by [@carlotestor](https://github.com/carlotestor) in [#29102](https://github.com/ccxt/ccxt/pull/29102)
+* fix(26731): mexc pro - map sendTime to lastTradeTimestamp in watchOrders by [@carlotestor](https://github.com/carlotestor) in [#29103](https://github.com/ccxt/ccxt/pull/29103)
+* fix(base): safeTicker - preserve legitimate zero change (fixes [#25971](https://github.com/ccxt/ccxt/issues/25971)) by [@carlotestor](https://github.com/carlotestor) in [#29105](https://github.com/ccxt/ccxt/pull/29105)
+* fix(base): reduce strictNullChecks errors in base infra, functions, and coinex by [@carlotestor](https://github.com/carlotestor) in [#28960](https://github.com/ccxt/ccxt/pull/28960)
+* fix(okx): reduce strictNullChecks errors + transpiler-safe ternaries by [@carlotestor](https://github.com/carlotestor) in [#28965](https://github.com/ccxt/ccxt/pull/28965)
+* fix(base): position percentage derivation in safePosition (unrealisedPnl -> unrealizedPnl typo) by [@carlotestor](https://github.com/carlotestor) in [#29110](https://github.com/ccxt/ccxt/pull/29110)
+* fix(27152): gate parsePosition maps initialMargin from margin field by [@carlotestor](https://github.com/carlotestor) in [#29104](https://github.com/ccxt/ccxt/pull/29104)
+* feat(bitget): auto detect UTA account by [@carlosmiei](https://github.com/carlosmiei) in [#29051](https://github.com/ccxt/ccxt/pull/29051)
+* feat(kucoin): update by [@yzh-pelle](https://github.com/yzh-pelle) in [#29042](https://github.com/ccxt/ccxt/pull/29042)
+* fix(28709): bingx - omit quantity from swap order request when closePosition is true by [@carlotestor](https://github.com/carlotestor) in [#29106](https://github.com/ccxt/ccxt/pull/29106)
+* fix(28622): add quant-backtest-utils to Awesome CCXT wiki by [@carlotestor](https://github.com/carlotestor) in [#29113](https://github.com/ccxt/ccxt/pull/29113)
+* feat(hyperliquid): remove WebData2 stream by [@sc0Vu](https://github.com/sc0Vu) in [#29030](https://github.com/ccxt/ccxt/pull/29030)
+* fix(gate): static response fixture percentage misplaced by [#29104](https://github.com/ccxt/ccxt/issues/29104)/[#29110](https://github.com/ccxt/ccxt/issues/29110) auto-merge by [@carlotestor](https://github.com/carlotestor) in [#29114](https://github.com/ccxt/ccxt/pull/29114)
+* Replace ethereum and toolz static dependencies with hand-rolled ABI + EIP-712 encoder by [@carlotestor](https://github.com/carlotestor) in [#29112](https://github.com/ccxt/ccxt/pull/29112)
+* fix(gate): regenerate stale Go output for parsePosition/safePosition by [@carlotestor](https://github.com/carlotestor) in [#29116](https://github.com/ccxt/ccxt/pull/29116)
+* fix(exchanges): reduce strictNullChecks errors across exchanges and tests by [@carlotestor](https://github.com/carlotestor) in [#28966](https://github.com/ccxt/ccxt/pull/28966)
+* fix(base): go Precise.Div must truncate toward zero like JS BigInt division by [@carlotestor](https://github.com/carlotestor) in [#29118](https://github.com/ccxt/ccxt/pull/29118)
+* feat(base): replace node-fetch with native fetch (undici), HTTP/1.1 keep-alive pooling by [@carlotestor](https://github.com/carlotestor) in [#29084](https://github.com/ccxt/ccxt/pull/29084)
+* chore(deps): bump undici from 7.27.2 to 7.28.0 by [@dependabot](https://github.com/dependabot)[bot] in [#29120](https://github.com/ccxt/ccxt/pull/29120)
+* base: parseJson fast path — requote numbers only when an unsafe integer is present by [@carlotestor](https://github.com/carlotestor) in [#29119](https://github.com/ccxt/ccxt/pull/29119)
+* fix(mudrex): logo by [@kroitor](https://github.com/kroitor) in [#29121](https://github.com/ccxt/ccxt/pull/29121)
+* php: remove quoteJsonNumbers regex pass, use JSON_BIGINT_AS_STRING by [@carlotestor](https://github.com/carlotestor) in [#29123](https://github.com/ccxt/ccxt/pull/29123)
+* refactor: guard loadMarkets calls  by [@carlotestor](https://github.com/carlotestor) in [#29111](https://github.com/ccxt/ccxt/pull/29111)
+* refactor(dydx): remove bip dependencies, support hex private keys only by [@carlotestor](https://github.com/carlotestor) in [#29124](https://github.com/ccxt/ccxt/pull/29124)
+* fix(aftermath)!: delist by [@ttodua](https://github.com/ttodua) in [#29125](https://github.com/ccxt/ccxt/pull/29125)
+* refactor(pro): drop vendored fflate, use node:zlib in node with fflate fallback by [@carlotestor](https://github.com/carlotestor) in [#29014](https://github.com/ccxt/ccxt/pull/29014)
+* test(fetchTickers): enhance tickers change & precentage accuracy by [@ttodua](https://github.com/ttodua) in [#27763](https://github.com/ccxt/ccxt/pull/27763)
+* edit postinstall by [@frosty00](https://github.com/frosty00) in [#29128](https://github.com/ccxt/ccxt/pull/29128)
+* refactor(static-updater) - some updates by [@ttodua](https://github.com/ttodua) in [#25268](https://github.com/ccxt/ccxt/pull/25268)
+* fix(coinex): fetchCurrencies & static tests all by [@ttodua](https://github.com/ttodua) in [#25987](https://github.com/ccxt/ccxt/pull/25987)
+* feat(ai): add ccxt-cli skill by [@pcriadoperez](https://github.com/pcriadoperez) in [#29129](https://github.com/ccxt/ccxt/pull/29129)
+* Remove vendored ecdsa static dependency, use coincurve + cryptography by [@carlotestor](https://github.com/carlotestor) in [#29131](https://github.com/ccxt/ccxt/pull/29131)
+* feat(hibachi): add methods by [@sc0Vu](https://github.com/sc0Vu) in [#29137](https://github.com/ccxt/ccxt/pull/29137)
+* fix(binance): fetchTradesMethod by [@sc0Vu](https://github.com/sc0Vu) in [#29138](https://github.com/ccxt/ccxt/pull/29138)
+* refactor(bitmex)!: fetchOHLCVOpenTimestamp > useOpenTimestamp by [@ttodua](https://github.com/ttodua) in [#29142](https://github.com/ccxt/ccxt/pull/29142)
+* docs(kraken): update [@see](https://github.com/see) by [@sc0Vu](https://github.com/sc0Vu) in [#29136](https://github.com/ccxt/ccxt/pull/29136)
+* chore(go): add unique in interface by [@ttodua](https://github.com/ttodua) in [#29126](https://github.com/ccxt/ccxt/pull/29126)
+* feat(kucoin): add reduceMargin by [@sc0Vu](https://github.com/sc0Vu) in [#29135](https://github.com/ccxt/ccxt/pull/29135)
+* feat(docs): add survey pop up by [@carlosmiei](https://github.com/carlosmiei) in [#29145](https://github.com/ccxt/ccxt/pull/29145)
+* fix(cli): --no-send and --no-load-markets were silently ignored by [@pcriadoperez](https://github.com/pcriadoperez) in [#29141](https://github.com/ccxt/ccxt/pull/29141)
+* feat(docs): add survey pop up change location by [@carlosmiei](https://github.com/carlosmiei) in [#29147](https://github.com/ccxt/ccxt/pull/29147)
+* feat(docs): add blog to docs.ccxt.com by [@pcriadoperez](https://github.com/pcriadoperez) in [#29150](https://github.com/ccxt/ccxt/pull/29150)
+* refactor(bitmex): api-expires > recvWindow by [@ttodua](https://github.com/ttodua) in [#29143](https://github.com/ccxt/ccxt/pull/29143)
+* refactor(bigone): normalize options by [@ttodua](https://github.com/ttodua) in [#29151](https://github.com/ccxt/ccxt/pull/29151)
+* refactor(apex): remove odd opt by [@ttodua](https://github.com/ttodua) in [#29146](https://github.com/ccxt/ccxt/pull/29146)
+* refactor(alpaca): normalize options by [@ttodua](https://github.com/ttodua) in [#29144](https://github.com/ccxt/ccxt/pull/29144)
+* refactor(aster): normalize options by [@ttodua](https://github.com/ttodua) in [#29148](https://github.com/ccxt/ccxt/pull/29148)
+* refactor(bitmart): normalize options by [@ttodua](https://github.com/ttodua) in [#29157](https://github.com/ccxt/ccxt/pull/29157)
+* refactor(bitopro): normalize options by [@ttodua](https://github.com/ttodua) in [#29158](https://github.com/ccxt/ccxt/pull/29158)
+* refactor(bit2c): normalize options by [@ttodua](https://github.com/ttodua) in [#29154](https://github.com/ccxt/ccxt/pull/29154)
+* refactor(bitfinex): normalize options by [@ttodua](https://github.com/ttodua) in [#29155](https://github.com/ccxt/ccxt/pull/29155)
+* refactor(bitget): normalize options by [@ttodua](https://github.com/ttodua) in [#29156](https://github.com/ccxt/ccxt/pull/29156)
+* refactor(bitrue): normalize options by [@ttodua](https://github.com/ttodua) in [#29159](https://github.com/ccxt/ccxt/pull/29159)
+* Add Dependabot configuration for Go modules by [@kroitor](https://github.com/kroitor) in [#29161](https://github.com/ccxt/ccxt/pull/29161)
+* fix(go): dependabot security fixes by [@kroitor](https://github.com/kroitor) in [#29163](https://github.com/ccxt/ccxt/pull/29163)
+* chore(deps): bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /go/tests/profile by [@dependabot](https://github.com/dependabot)[bot] in [#29164](https://github.com/ccxt/ccxt/pull/29164)
+* chore(deps): go/tests/types fixes by [@kroitor](https://github.com/kroitor) in [#29165](https://github.com/ccxt/ccxt/pull/29165)
+* chore(deps): dependabot go cli fixes by [@kroitor](https://github.com/kroitor) in [#29166](https://github.com/ccxt/ccxt/pull/29166)
+* feat(okx): update docs by [@sc0Vu](https://github.com/sc0Vu) in [#29168](https://github.com/ccxt/ccxt/pull/29168)
+* refactor(alpaca): remove gtc by [@ttodua](https://github.com/ttodua) in [#29170](https://github.com/ccxt/ccxt/pull/29170)
+* feat(ndax): add apis by [@sc0Vu](https://github.com/sc0Vu) in [#29167](https://github.com/ccxt/ccxt/pull/29167)
+* feat(bitso): implement fetchCurrencies; fix fetchMarkets; normalize options by [@ttodua](https://github.com/ttodua) in [#29169](https://github.com/ccxt/ccxt/pull/29169)
+* refactor(bitteam): normalize options by [@ttodua](https://github.com/ttodua) in [#29172](https://github.com/ccxt/ccxt/pull/29172)
+* fix(java): lang specific test by [@carlosmiei](https://github.com/carlosmiei) in [#29173](https://github.com/ccxt/ccxt/pull/29173)
+* fix(alpaca): default gtc by [@ttodua](https://github.com/ttodua) in [#29174](https://github.com/ccxt/ccxt/pull/29174)
+* fix: [#28494](https://github.com/ccxt/ccxt/issues/28494) use native WebSocket under Bun runtime by [@carlotestor](https://github.com/carlotestor) in [#29171](https://github.com/ccxt/ccxt/pull/29171)
+* fix(tests): avoid Windows Defender false positive in test.watchOrderBookForSymbols.ts by [@carlotestor](https://github.com/carlotestor) in [#29177](https://github.com/ccxt/ccxt/pull/29177)
+* refactor(binance): normalize options by [@ttodua](https://github.com/ttodua) in [#29152](https://github.com/ccxt/ccxt/pull/29152)
+* build: bump TypeScript to 7.0.2 with typescript6 alias for compiler-API consumers by [@carlotestor](https://github.com/carlotestor) in [#29176](https://github.com/ccxt/ccxt/pull/29176)
+* refactor(bittrade): normalize options by [@ttodua](https://github.com/ttodua) in [#29178](https://github.com/ccxt/ccxt/pull/29178)
+* fix(go): add Precision to marketinterface struct by [@carlosmiei](https://github.com/carlosmiei) in [#29180](https://github.com/ccxt/ccxt/pull/29180)
+* chore(aster): skip withdraw by [@ttodua](https://github.com/ttodua) in [#29183](https://github.com/ccxt/ccxt/pull/29183)
+* refactor: normalize options by [@ttodua](https://github.com/ttodua) in [#29181](https://github.com/ccxt/ccxt/pull/29181)
+* fix(build): run gofmt after Go transpile by [@pcriadoperez](https://github.com/pcriadoperez) in [#29184](https://github.com/ccxt/ccxt/pull/29184)
+* chore(deps): bump mistune from 3.2.1 to 3.3.0 by [@dependabot](https://github.com/dependabot)[bot] in [#29186](https://github.com/ccxt/ccxt/pull/29186)
+* fix(java): regex concurrent by [@carlosmiei](https://github.com/carlosmiei) in [#29189](https://github.com/ccxt/ccxt/pull/29189)
+* Go transpiler: emit gofmt-formatted output, drop formatGO step by [@carlotestor](https://github.com/carlotestor) in [#29191](https://github.com/ccxt/ccxt/pull/29191)
+* fix(go): unblock Send when the websocket is not connected by [@vsaraikin](https://github.com/vsaraikin) in [#29187](https://github.com/ccxt/ccxt/pull/29187)
+* perf(pro): convert pure WS delegators to non-async pass-through by [@carlotestor](https://github.com/carlotestor) in [#29122](https://github.com/ccxt/ccxt/pull/29122)
+* fix(backpack): normalize ticker percentage with Precise.stringMul by [@Functionhx](https://github.com/Functionhx) in [#29192](https://github.com/ccxt/ccxt/pull/29192)
+* fix(go): safeFloatN default assertion by [@carlosmiei](https://github.com/carlosmiei) in [#29193](https://github.com/ccxt/ccxt/pull/29193)
+* perf(pro): deliver ws messages through a duplex stream instead of per-message deferred events by [@carlotestor](https://github.com/carlotestor) in [#29117](https://github.com/ccxt/ccxt/pull/29117)
+* fix(docs): add java reference by [@carlosmiei](https://github.com/carlosmiei) in [#29194](https://github.com/ccxt/ccxt/pull/29194)
+* refactor(php): allow sync only guarding async require statements fix [#29196](https://github.com/ccxt/ccxt/issues/29196) by [@kroitor](https://github.com/kroitor) in [#29197](https://github.com/ccxt/ccxt/pull/29197)
+* feat(binance): add binance skills by [@pcriadoperez](https://github.com/pcriadoperez) in [#29160](https://github.com/ccxt/ccxt/pull/29160)
+* fix(bingx): takeProfit & stopLoss fix by [@ttodua](https://github.com/ttodua) in [#29185](https://github.com/ccxt/ccxt/pull/29185)
+
+## New Contributors
+* [@vsaraikin](https://github.com/vsaraikin) made their first contribution in [#29187](https://github.com/ccxt/ccxt/pull/29187)
+* [@Functionhx](https://github.com/Functionhx) made their first contribution in [#29192](https://github.com/ccxt/ccxt/pull/29192)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.64...v4.5.65
+
+[Changes][v4.5.65]
+
+
 <a id="v4.5.64"></a>
 # [v4.5.64](https://github.com/ccxt/ccxt/releases/tag/v4.5.64) - 2026-07-03
 
@@ -13597,6 +13703,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.65]: https://github.com/ccxt/ccxt/compare/v4.5.64...v4.5.65
 [v4.5.64]: https://github.com/ccxt/ccxt/compare/v4.5.63...v4.5.64
 [v4.5.63]: https://github.com/ccxt/ccxt/compare/v4.5.62...v4.5.63
 [v4.5.62]: https://github.com/ccxt/ccxt/compare/v4.5.61...v4.5.62

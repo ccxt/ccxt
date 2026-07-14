@@ -1460,7 +1460,7 @@ public partial class hashkey : Exchange
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         object takerOrMaker = null;
-        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker"});
+        object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -4537,7 +4537,7 @@ public partial class hashkey : Exchange
         } else
         {
             query = this.urlencode(parameters);
-            if (isTrue(!isEqual(((string)query).Length, 0)))
+            if (isTrue(!isEqual(getArrayLength(query), 0)))
             {
                 url = add(url, add("?", query));
             }

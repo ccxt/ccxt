@@ -1534,7 +1534,7 @@ func (this *HashkeyCore) ParseTrade(trade any, optionalArgs ...any) any {
 		side = Ternary(IsTrue(isBuyer), "buy", "sell")
 	}
 	var takerOrMaker any = nil
-	var isMaker any = this.SafeBoolN(trade, []any{"isMaker", "isMarker"})
+	var isMaker any = this.SafeBool2(trade, "isMaker", "isMarker")
 	if IsTrue(!IsEqual(isMaker, nil)) {
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
@@ -5022,7 +5022,7 @@ func (this *HashkeyCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "broker_sign", signature)
 	} else {
 		query = this.Urlencode(params)
-		if IsTrue(!IsEqual(GetLength(query), 0)) {
+		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

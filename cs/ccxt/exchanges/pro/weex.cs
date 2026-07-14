@@ -465,10 +465,6 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 

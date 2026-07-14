@@ -4,6 +4,7 @@
 #
 .vs
 .vscode
+build/lib/
 build/ccxt.wiki
 node_modules/
 npm-debug.log
@@ -26,8 +27,8 @@ keys.local.json
 nbproject/
 vendor/
 .php-cs-fixer.cache
-python/build
-python/dist
+python/build/
+python/dist/
 python/package-lock.json
 python/package.json
 python/keys.json

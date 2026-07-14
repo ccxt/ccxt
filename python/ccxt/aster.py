@@ -2705,7 +2705,7 @@ class aster(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        clientOrderId = self.safe_string_n(params, ['origClientOrderId', 'clientOrderId'])
+        clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:

@@ -978,7 +978,7 @@ func (this *ApexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []any{this.SafeIntegerN(ohlcv, []any{"start", "t"}), this.SafeNumberN(ohlcv, []any{"open", "o"}), this.SafeNumberN(ohlcv, []any{"high", "h"}), this.SafeNumberN(ohlcv, []any{"low", "l"}), this.SafeNumberN(ohlcv, []any{"close", "c"}), this.SafeNumberN(ohlcv, []any{"volume", "v"})}
+	return []any{this.SafeInteger2(ohlcv, "start", "t"), this.SafeNumber2(ohlcv, "open", "o"), this.SafeNumber2(ohlcv, "high", "h"), this.SafeNumber2(ohlcv, "low", "l"), this.SafeNumber2(ohlcv, "close", "c"), this.SafeNumber2(ohlcv, "volume", "v")}
 }
 
 /**
@@ -1137,15 +1137,15 @@ func (this *ApexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeStringN(trade, []any{"s", "symbol"})
+	var marketId any = this.SafeString2(trade, "s", "symbol")
 	market = this.SafeMarket(marketId, market)
-	var id any = this.SafeStringN(trade, []any{"i", "id"})
+	var id any = this.SafeString2(trade, "i", "id")
 	var timestamp any = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
-	var priceString any = this.SafeStringN(trade, []any{"p", "price"})
-	var amountString any = this.SafeStringN(trade, []any{"v", "size"})
-	var side any = this.SafeStringLowerN(trade, []any{"S", "side"})
-	var typeVar any = this.SafeStringN(trade, []any{"type"})
-	var fee any = this.SafeStringN(trade, []any{"fee"})
+	var priceString any = this.SafeString2(trade, "p", "price")
+	var amountString any = this.SafeString2(trade, "v", "size")
+	var side any = this.SafeStringLower2(trade, "S", "side")
+	var typeVar any = this.SafeString(trade, "type")
+	var fee any = this.SafeString(trade, "fee")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -1839,7 +1839,7 @@ func (this *ApexCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var toAccount any = this.SafeString(transfer, "toAccount")
 	return map[string]any{
 		"info":        transfer,
-		"id":          this.SafeStringN(transfer, []any{"transferId", "id"}),
+		"id":          this.SafeString2(transfer, "transferId", "id"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    this.SafeCurrencyCode(currencyId, currency),
@@ -2404,7 +2404,7 @@ func (this *ApexCore) ParsePosition(position any, optionalArgs ...any) any {
 	var quantity any = this.SafeString(position, "size")
 	var timestamp any = this.SafeInteger(position, "updatedTime")
 	var leverage any = 20
-	var customInitialMarginRate any = this.SafeStringN(position, []any{"customInitialMarginRate", "customImr"}, "0")
+	var customInitialMarginRate any = this.SafeString2(position, "customInitialMarginRate", "customImr", "0")
 	if IsTrue(!IsEqual(this.PrecisionFromString(customInitialMarginRate), 0)) {
 		leverage = this.ParseToInt(Precise.StringDiv("1", customInitialMarginRate, 4))
 	}

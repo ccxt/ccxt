@@ -1812,11 +1812,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "info", data);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "timestamp", timestamp);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
-        Object currencyId = this.safeStringN(data, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency", "vcoinName")));
+        Object currencyId = this.safeString2(data, "currency", "vcoinName");
         Object code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString2(data, "balanceAmount", "availableBalance"));
-        Helpers.addElementToObject(account, "used", this.safeStringN(data, new java.util.ArrayList<Object>(java.util.Arrays.asList("frozenBalance", "frozenAmount"))));
+        Helpers.addElementToObject(account, "used", this.safeString2(data, "frozenBalance", "frozenAmount"));
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
         Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
         client.resolve(Helpers.GetValue(this.balance, type), messageHash);

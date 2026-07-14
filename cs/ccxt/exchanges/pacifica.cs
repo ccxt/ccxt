@@ -1552,7 +1552,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)sigPayload)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientOrderId"});
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)sigPayload)["client_order_id"] = clientOrderId;

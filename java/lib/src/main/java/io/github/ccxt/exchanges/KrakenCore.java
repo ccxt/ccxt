@@ -1418,7 +1418,7 @@ public class KrakenCore extends KrakenApi
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -2927,7 +2927,7 @@ final Object finalId = id;
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3555,7 +3555,7 @@ final Object finalId = id;
                 Object sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3659,7 +3659,7 @@ final Object finalId = id;
                 Object sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
-            Object until = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
+            Object until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));

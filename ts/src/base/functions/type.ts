@@ -72,8 +72,6 @@ const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string)
     const x = prop (o, k);
     if (isStringCoercible (x)) {
         return String (x).toLowerCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toLowerCase ();
     }
     return $default;
 };
@@ -82,8 +80,6 @@ const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string)
     const x = prop (o, k)
     if (isStringCoercible (x)) {
         return String (x).toUpperCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toUpperCase ();
     }
     return $default;
 };
@@ -127,8 +123,6 @@ const safeStringLower2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $
     const x = prop2 (o, k1, k2);
     if (isStringCoercible (x)) {
         return String (x).toLowerCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toLowerCase ();
     }
     return $default;
 };
@@ -137,8 +131,6 @@ const safeStringUpper2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $
     const x = prop2 (o, k1, k2);
     if (isStringCoercible (x)) {
         return String (x).toUpperCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toUpperCase ();
     }
     return $default;
 };
@@ -190,8 +182,6 @@ const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: st
     const x = getValueFromKeysInArray (o, k);
     if (isStringCoercible (x)) {
         return String (x).toLowerCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toLowerCase ();
     }
     return $default;
 };
@@ -200,8 +190,6 @@ const safeStringUpperN = (o: implicitReturnType, k: (IndexType)[], $default?: st
     const x = getValueFromKeysInArray (o, k);
     if (isStringCoercible (x)) {
         return String (x).toUpperCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toUpperCase ();
     }
     return $default;
 };

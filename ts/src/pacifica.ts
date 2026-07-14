@@ -1441,7 +1441,7 @@ export default class pacifica extends Exchange {
         if (amount !== undefined && (operationType !== 'create_stop_order' && operationType !== 'set_position_tpsl')) {
             sigPayload['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const clientOrderId = this.safeStringN (params, [ 'clientOrderId' ]);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         }

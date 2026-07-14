@@ -1520,7 +1520,7 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        isTrigger = self.safe_bool_n(params, ['trigger'], False)
+        isTrigger = self.safe_bool(params, 'trigger', False)
         isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:

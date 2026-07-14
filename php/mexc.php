@@ -1575,7 +1575,7 @@ class mexc extends Exchange {
         }
         $trades = array();
         if ($market['spot']) {
-            $until = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+            $until = $this->safe_integer_2($params, 'endTime', 'until');
             if ($since !== null) {
                 $request['startTime'] = $since;
                 if ($until === null) {
@@ -1834,7 +1834,7 @@ class mexc extends Exchange {
             'interval' => $timeframeValue,
         );
         $candles = array();
-        $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
+        $until = $this->safe_integer_2($params, 'until', 'endTime');
         $start = $since;
         if (($until !== null) && ($since === null)) {
             $params = $this->omit($params, array( 'until' ));

@@ -2731,7 +2731,7 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...any) <-chan
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "time_from", this.Iso8601(since))
 		}
-		var until any = this.SafeStringN(params, []any{"until"})
+		var until any = this.SafeString(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "ref_datetime", this.Iso8601(until))

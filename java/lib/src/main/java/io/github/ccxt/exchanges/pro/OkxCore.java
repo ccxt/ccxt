@@ -1262,10 +1262,6 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
             return (this.unWatchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), parameters)).join();
         });
 

@@ -1711,11 +1711,11 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
         ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
-        object currencyId = this.safeStringN(data, new List<object>() {"currency", "vcoinName"});
+        object currencyId = this.safeString2(data, "currency", "vcoinName");
         object code = this.safeCurrencyCode(currencyId);
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString2(data, "balanceAmount", "availableBalance");
-        ((IDictionary<string,object>)account)["used"] = this.safeStringN(data, new List<object>() {"frozenBalance", "frozenAmount"});
+        ((IDictionary<string,object>)account)["used"] = this.safeString2(data, "frozenBalance", "frozenAmount");
         ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), messageHash});

@@ -232,10 +232,6 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
             return (this.subscribe("RISK", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -794,10 +790,6 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
-            {
-                (this.loadMarkets()).join();
-            }
             return (this.subscribeMultiple("LEVEL2", symbols, parameters)).join();
         });
 

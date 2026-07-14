@@ -346,8 +346,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        return await this.fetchOrdersByStatusWs ('open', symbol, since, limit, params) as Order[];
+    fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        return this.fetchOrdersByStatusWs ('open', symbol, since, limit, params);
     }
 
     /**
@@ -361,8 +361,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        return await this.fetchOrdersByStatusWs ('finished', symbol, since, limit, params) as Order[];
+    fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        return this.fetchOrdersByStatusWs ('finished', symbol, since, limit, params);
     }
 
     /**
@@ -750,8 +750,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        return await this.subscribeWatchTickersAndBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
+    watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return this.subscribeWatchTickersAndBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
     }
 
     handleTicker (client: Client, message) {
@@ -787,8 +787,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        return await this.subscribeWatchTickersAndBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
+    watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return this.subscribeWatchTickersAndBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
     }
 
     handleBidAsk (client: Client, message) {
@@ -886,8 +886,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -964,8 +964,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    unWatchTrades (symbol: string, params = {}): Promise<any> {
+        return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     handleTrades (client: Client, message) {
@@ -1647,7 +1647,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 

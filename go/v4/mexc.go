@@ -1522,7 +1522,7 @@ func (this *MexcCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		}
 		var trades any = []any{}
 		if IsTrue(GetValue(market, "spot")) {
-			var until any = this.SafeIntegerN(params, []any{"endTime", "until"})
+			var until any = this.SafeInteger2(params, "endTime", "until")
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "startTime", since)
 				if IsTrue(IsEqual(until, nil)) {
@@ -1785,7 +1785,7 @@ func (this *MexcCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			"interval": timeframeValue,
 		}
 		var candles any = []any{}
-		var until any = this.SafeIntegerN(params, []any{"until", "endTime"})
+		var until any = this.SafeInteger2(params, "until", "endTime")
 		var start any = since
 		if IsTrue(IsTrue((!IsEqual(until, nil))) && IsTrue((IsEqual(since, nil)))) {
 			params = this.Omit(params, []any{"until"})
