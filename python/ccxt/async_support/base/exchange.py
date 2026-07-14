@@ -618,7 +618,7 @@ class Exchange(BaseExchange):
         try:
             from google.protobuf.json_format import MessageToDict
         except ImportError:
-            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
+            raise NotSupported(self.id + ' requires protobuf to decode messages, install it with `pip install "protobuf==5.29.5"`')
         from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
         message.ParseFromString(data)
