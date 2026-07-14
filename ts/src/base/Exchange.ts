@@ -165,6 +165,11 @@ const {
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
+//
+const dynamicImport = async (moduleName: string) => await import (/* webpackIgnore: true */ moduleName);
+//
+// ----------------------------------------------------------------------------
+//
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
 let AuthInfo = undefined;
@@ -734,16 +739,16 @@ export default class Exchange {
                 // fetchImplementation and ws connections) and are optional user-installed packages
                 try {
                     // @ts-ignore
-                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                    this.httpProxyAgentModule = await dynamicImport ('http-proxy-agent');
                     // @ts-ignore
-                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+                    this.httpsProxyAgentModule = await dynamicImport ('https-proxy-agent');
                 } catch (e) {
-                    // optional modules, setProxyAgents raises NotSupported with install instructions when they are actually needed
+                    //  when they are actually needed (in setProxyAgents) 'NotSupported' exception with install instructions is already raised
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
-                        this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+                        this.socksProxyAgentModule = await dynamicImport ('socks-proxy-agent');
                     } catch (e) {
                         // optional module, setProxyAgents raises NotSupported with install instructions when it is actually needed
                     }
