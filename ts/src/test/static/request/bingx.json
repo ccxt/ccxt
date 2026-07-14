@@ -115,6 +115,7 @@
         ],
         "createOrder": [
             {
+                "disabled": true,
                 "description": "with stopLoss (exchange-specific)",
                 "disabledGO": true,
                 "disabledJava": true,
