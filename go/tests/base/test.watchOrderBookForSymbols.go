@@ -47,7 +47,7 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 
 			}
 			if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return a dictionary. "), exchange.Json(response)))
 				currentTime = exchange.Milliseconds()
 				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 				TestOrderBook(exchange, skippedProperties, method, response, nil)

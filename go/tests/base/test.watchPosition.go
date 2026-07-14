@@ -45,7 +45,7 @@ func TestWatchPosition(exchange ccxt.ICoreExchange, skippedProperties any, symbo
 
 			}
 			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return an object. "), exchange.Json(response)))
+				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 				now = exchange.Milliseconds()
 				TestPosition(exchange, skippedProperties, method, response, symbol, now)
 			}
