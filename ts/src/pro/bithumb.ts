@@ -208,19 +208,19 @@ export default class bithumb extends bithumbRest {
         if (marketId === undefined) {
             return;
         }
-let symbol = undefined;
-if (isGenerationTwo) {
-    const parts = marketId.split ('-');
-    const quoteId = this.safeString (parts, 0);
-    const baseId = this.safeString (parts, 1);
-    if ((baseId === undefined) || (quoteId === undefined)) {
-        return;
-    }
-    symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
-} else {
-    symbol = this.safeSymbol (marketId, undefined, '_');
-}
-            return;
+        let symbol = undefined;
+        if (isGenerationTwo) {
+            const parts = marketId.split ('-');
+            const quoteId = this.safeString (parts, 0);
+            const baseId = this.safeString (parts, 1);
+            if ((baseId === undefined) || (quoteId === undefined)) {
+                return;
+            }
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        } else {
+            symbol = this.safeSymbol (marketId, undefined, '_');
         }
         const ticker = this.parseWsTicker (tickerMessage);
         const messageHash = 'ticker:' + symbol;
@@ -428,7 +428,20 @@ if (isGenerationTwo) {
             return;
         }
         const marketId = this.safeString (message, 'code');
-        const symbol = this.safeSymbol (marketId, undefined, '-');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            const parts = marketId.split ('-');
+            const quoteId = this.safeString (parts, 0);
+            const baseId = this.safeString (parts, 1);
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            return;
+        }
         const streamType = this.safeString (message, 'stream_type');
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger (options, 'limit', 15);
@@ -582,13 +595,19 @@ if (isGenerationTwo) {
             }
             const code = this.safeString (rawTrade, 'code');
             const isGenerationTwo = (code !== undefined);
-            let delimiter = undefined;
+            let fallbackSymbol = undefined;
             if (isGenerationTwo) {
-                delimiter = '-';
+                const parts = marketId.split ('-');
+                const quoteId = this.safeString (parts, 0);
+                const baseId = this.safeString (parts, 1);
+                if ((baseId !== undefined) && (quoteId !== undefined)) {
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    fallbackSymbol = base + '/' + quote;
+                }
             } else {
-                delimiter = '_';
+                fallbackSymbol = this.safeSymbol (marketId, undefined, '_');
             }
-            const fallbackSymbol = this.safeSymbol (marketId, undefined, delimiter);
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = this.safeString (parsed, 'symbol', fallbackSymbol);
             if (!(symbol in this.trades)) {
