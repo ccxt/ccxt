@@ -208,9 +208,18 @@ export default class bithumb extends bithumbRest {
         if (marketId === undefined) {
             return;
         }
-        const delimiter = (isGenerationTwo) ? '-' : '_';
-        const symbol = this.safeSymbol (marketId, undefined, delimiter);
-        if (symbol === undefined) {
+let symbol = undefined;
+if (isGenerationTwo) {
+    const parts = marketId.split ('-');
+    const quoteId = this.safeString (parts, 0);
+    const baseId = this.safeString (parts, 1);
+    if ((baseId === undefined) || (quoteId === undefined)) {
+        return;
+    }
+    symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
+} else {
+    symbol = this.safeSymbol (marketId, undefined, '_');
+}
             return;
         }
         const ticker = this.parseWsTicker (tickerMessage);
