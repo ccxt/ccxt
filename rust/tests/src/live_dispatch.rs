@@ -48,6 +48,8 @@ use ccxt::exchanges::{
     weex::WeexCore, whitebit::WhitebitCore, woo::WooCore,
     woofipro::WoofiproCore, xt::XtCore, yobit::YobitCore, zaif::ZaifCore,
     zebpay::ZebpayCore,
+    bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
+    kucoineu::KucoineuCore, mudrex::MudrexCore,
 };
 use crate::registry::for_each_core;
 use indexmap::IndexMap as HashMap;

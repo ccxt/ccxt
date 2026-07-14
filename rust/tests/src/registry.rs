@@ -47,6 +47,8 @@ use ccxt::exchanges::{
     weex::WeexCore, whitebit::WhitebitCore, woo::WooCore,
     woofipro::WoofiproCore, xt::XtCore, yobit::YobitCore, zaif::ZaifCore,
     zebpay::ZebpayCore,
+    bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
+    kucoineu::KucoineuCore, mudrex::MudrexCore,
 };
 use indexmap::IndexMap as HashMap;
 use std::panic;
@@ -170,6 +172,11 @@ macro_rules! for_each_core {
         $cb!(yobit, YobitCore);
         $cb!(zaif, ZaifCore);
         $cb!(zebpay, ZebpayCore);
+        $cb!(bybiteu, BybiteuCore);
+        $cb!(extended, ExtendedCore);
+        $cb!(gateeu, GateeuCore);
+        $cb!(kucoineu, KucoineuCore);
+        $cb!(mudrex, MudrexCore);
     };
 }
 pub(crate) use for_each_core;
