@@ -469,12 +469,29 @@ $exchange = new \ccxt\prediction\polymarket([...]);
 import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 exchange := ccxtprediction.NewPolymarket(map[string]any{...})
 ```
-C# uses `new ccxt.prediction.polymarket(...)` and Java `new io.github.ccxt.exchanges.prediction.Polymarket(config)`.
+```Java
+import io.github.ccxt.exchanges.prediction.Polymarket;
+Polymarket exchange = new Polymarket();
+```
+C# uses `new ccxt.prediction.polymarket(...)`.
 
-The usual entry point is `fetchEvents`, which returns event structures (each carrying its markets and their outcomes) and accepts selectors like `query`, `tags`, `sort` and `limit`:
+> **Note:** unlike regular exchanges, do **not** start with `loadMarkets()` / `fetchMarkets()` on prediction exchanges. Use `fetchEvents(params)` as the entry point instead: it searches the venue and returns full event structures, and the outcome handles it returns are resolved on demand by every unified method, no market loading required.
+
+The usual entry point is `fetchEvents`, which returns event structures (each carrying its markets and their outcomes). It must be scoped by at least one selector — `query` (free-text search), `tags`, `eventId` or `slug` — and also accepts `status`, `sort` and `limit`:
 
 ```Python
+# search events by free text
 events = await exchange.fetch_events({'query': 'bitcoin', 'limit': 10})
+for event in events:
+    print(event['title'])
+    for market in event['markets']:
+        for outcome in market['outcomes']:
+            print('   ', outcome['outcome'], '->', outcome['price'])  # price = probability 0..1
+
+# or address a known event directly by its slug
+events = await exchange.fetch_events({'slug': 'will-bitcoin-hit-150k-in-2026'})
+
+# every unified method takes the outcome handle where a symbol would normally go
 outcome = events[0]['markets'][0]['outcomes'][0]['outcome']  # "MARKET:LABEL" handle
 ticker = await exchange.fetch_ticker(outcome)
 order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
