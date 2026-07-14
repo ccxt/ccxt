@@ -301,7 +301,7 @@ class Exchange(BaseExchange):
             try:
                 from aiohttp_socks import ProxyConnector as SocksProxyConnector
             except ImportError:
-                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
+                raise NotSupported(self.id + ' - SOCKS proxy requires "aiohttp_socks" module, install it with "pip install aiohttp_socks"')
             self.aiohttp_socks_connector = SocksProxyConnector.from_url(
                 socks_proxy_selected,
                 # extra args copied from self.open()
@@ -618,7 +618,7 @@ class Exchange(BaseExchange):
         try:
             from google.protobuf.json_format import MessageToDict
         except ImportError:
-            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
+            raise NotSupported(self.id + ' requires protobuf to decode messages, install it with `pip install "protobuf==5.29.5"`')
         from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
         message.ParseFromString(data)
