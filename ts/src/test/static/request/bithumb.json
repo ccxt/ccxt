@@ -38,9 +38,9 @@
             {
                 "description": "generation 2 fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "https://api.bithumb.com/v1/orderbook?markets=BTC-USDC",
+                "url": "https://api.bithumb.com/v1/orderbook?markets=BTC-SOL",
                 "input": [
-                    "USDC/BTC"
+                    "SOL/BTC"
                 ]
             }
         ],
@@ -59,9 +59,9 @@
             {
                 "description": "generation 2 fetchTicker",
                 "method": "fetchTicker",
-                "url": "https://api.bithumb.com/v1/ticker?markets=BTC-USDC",
+                "url": "https://api.bithumb.com/v1/ticker?markets=BTC-SOL",
                 "input": [
-                    "USDC/BTC"
+                    "SOL/BTC"
                 ]
             }
         ],
@@ -83,11 +83,11 @@
             {
                 "description": "generation 2 fetchTickers",
                 "method": "fetchTickers",
-                "url": "https://api.bithumb.com/v1/ticker?markets=BTC-USDC%2CBTC-ETH",
+                "url": "https://api.bithumb.com/v1/ticker?markets=BTC-SOL%2CKRW-XRP",
                 "input": [
                     [
-                        "USDC/BTC",
-                        "ETH/BTC"
+                        "SOL/BTC",
+                        "XRP/KRW"
                     ]
                 ]
             }
@@ -110,9 +110,9 @@
             {
                 "description": "generation 2 fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.bithumb.com/v1/candles/minutes/1?market=BTC-USDC&count=3",
+                "url": "https://api.bithumb.com/v1/candles/minutes/1?market=BTC-SOL&count=3",
                 "input": [
-                    "USDC/BTC",
+                    "SOL/BTC",
                     "1m",
                     null,
                     3
@@ -136,9 +136,9 @@
             {
                 "description": "generation 2 fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.bithumb.com/v1/trades/ticks?count=3&market=BTC-USDC",
+                "url": "https://api.bithumb.com/v1/trades/ticks?count=3&market=BTC-SOL",
                 "input": [
-                    "USDC/BTC",
+                    "SOL/BTC",
                     null,
                     3
                 ]
@@ -166,13 +166,13 @@
                 "method": "createOrder",
                 "url": "https://api.bithumb.com/v2/orders",
                 "input": [
-                    "BTC/KRW",
+                    "SOL/BTC",
                     "limit",
                     "buy",
-                    0.001,
-                    9500000
+                    0.2,
+                    0.001011
                 ],
-                "output": "{\"market\":\"KRW-BTC\",\"volume\":\"0.001\",\"price\":\"9500000\",\"order_type\":\"limit\",\"side\":\"bid\"}"
+                "output": "{\"market\":\"BTC-SOL\",\"volume\":\"0.2\",\"price\":\"0.001011\",\"order_type\":\"limit\",\"side\":\"bid\"}"
             }
         ],
         "fetchOrder": [
@@ -192,19 +192,19 @@
             {
                 "description": "generation 2 fetchOrder",
                 "method": "fetchOrder",
-                "url": "https://api.bithumb.com/v1/order?uuid=C0101000003152406454",
+                "url": "https://api.bithumb.com/v1/order?uuid=C0587000001382693170",
                 "input": [
-                    "C0101000003152406454",
-                    "BTC/KRW"
+                    "C0587000001382693170",
+                    "SOL/BTC"
                 ]
             },
             {
                 "description": "generation 2 twap fetchOrder",
                 "method": "fetchOrder",
-                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&uuids[]=019f3ed7-4f92-7179-beee-84b4c71e53fa&state=cancel",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-XRP&uuids[]=019f652f-b0d8-7195-8064-22e7d1f4c593&state=cancel",
                 "input": [
-                    "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                    "BTC/KRW",
+                    "019f652f-b0d8-7195-8064-22e7d1f4c593",
+                    "XRP/KRW",
                     {
                         "twap": true,
                         "state": "cancel"
@@ -216,22 +216,17 @@
             {
                 "description": "generation 2 fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&limit=1&state=cancel",
+                "url": "https://api.bithumb.com/v1/orders?market=BTC-SOL",
                 "input": [
-                    "BTC/KRW",
-                    null,
-                    1,
-                    {
-                        "state": "cancel"
-                    }
+                    "SOL/BTC"
                 ]
             },
             {
                 "description": "generation 2 twap fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&state=cancel",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-XRP&state=cancel",
                 "input": [
-                    "BTC/KRW",
+                    "XRP/KRW",
                     null,
                     null,
                     {
@@ -259,19 +254,17 @@
             {
                 "description": "generation 2 fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&state=wait",
+                "url": "https://api.bithumb.com/v1/orders?market=BTC-SOL&state=wait",
                 "input": [
-                    "BTC/KRW",
-                    null,
-                    null
+                    "SOL/BTC"
                 ]
             },
             {
                 "description": "generation 2 twap fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&state=progress",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-XRP&state=progress",
                 "input": [
-                    "BTC/KRW",
+                    "XRP/KRW",
                     null,
                     null,
                     {
@@ -298,10 +291,10 @@
             {
                 "description": "generation 2 cancelOrder",
                 "method": "cancelOrder",
-                "url": "https://api.bithumb.com/v2/order?order_id=C0101000003152406454",
+                "url": "https://api.bithumb.com/v2/order?order_id=C0587000001382693170",
                 "input": [
-                    "C0101000003152406454",
-                    "BTC/KRW"
+                    "C0587000001382693170",
+                    "SOL/BTC"
                 ]
             },
             {
@@ -310,7 +303,7 @@
                 "url": "https://api.bithumb.com/v1/twap?algo_order_id=019f3ed7-4f92-7179-beee-84b4c71e53fa",
                 "input": [
                     "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                    "BTC/KRW",
+                    "XRP/KRW",
                     {
                         "twap": true
                     }
@@ -324,12 +317,12 @@
                 "url": "https://api.bithumb.com/v2/orders/cancel",
                 "input": [
                     [
-                        "C0101000003152577568",
-                        "C0101000003152577569"
+                        "C0106000002190679531",
+                        "C0106000002190679532"
                     ],
-                    "BTC/KRW"
+                    "XRP/KRW"
                 ],
-                "output": "{\"order_ids\":[\"C0101000003152577568\",\"C0101000003152577569\"]}"
+                "output": "{\"order_ids\":[\"C0106000002190679531\",\"C0106000002190679532\"]}"
             }
         ],
         "createOrders": [
@@ -340,33 +333,31 @@
                 "input": [
                     [
                         {
-                            "symbol": "BTC/KRW",
+                            "symbol": "XRP/KRW",
                             "type": "limit",
                             "side": "buy",
-                            "amount": 0.001,
-                            "price": 9500000
+                            "amount": 4,
+                            "price": 1550
                         },
                         {
-                            "symbol": "BTC/KRW",
+                            "symbol": "XRP/KRW",
                             "type": "limit",
                             "side": "buy",
-                            "amount": 0.001,
-                            "price": 9600000
+                            "amount": 4,
+                            "price": 1500
                         }
                     ]
                 ],
-                "output": "{\"batch_orders\":[{\"market\":\"KRW-BTC\",\"volume\":\"0.001\",\"price\":\"9500000\",\"order_type\":\"limit\",\"side\":\"bid\"},{\"market\":\"KRW-BTC\",\"volume\":\"0.001\",\"price\":\"9600000\",\"order_type\":\"limit\",\"side\":\"bid\"}]}"
+                "output": "{\"batch_orders\":[{\"market\":\"KRW-XRP\",\"volume\":\"4\",\"price\":\"1550\",\"order_type\":\"limit\",\"side\":\"bid\"},{\"market\":\"KRW-XRP\",\"volume\":\"4\",\"price\":\"1500\",\"order_type\":\"limit\",\"side\":\"bid\"}]}"
             }
         ],
         "fetchClosedOrders": [
             {
                 "description": "generation 2 fetchClosedOrders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&limit=3&state=done",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-XRP&state=done",
                 "input": [
-                    "BTC/KRW",
-                    null,
-                    3
+                    "XRP/KRW"
                 ]
             }
         ],
@@ -374,9 +365,9 @@
             {
                 "description": "generation 2 fetchCanceledOrders",
                 "method": "fetchCanceledOrders",
-                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&limit=3&state=cancel",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-XRP&limit=3&state=cancel",
                 "input": [
-                    "BTC/KRW",
+                    "XRP/KRW",
                     null,
                     3
                 ]
@@ -384,9 +375,9 @@
             {
                 "description": "generation 2 twap fetchCanceledOrders",
                 "method": "fetchCanceledOrders",
-                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&state=cancel",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-XRP&state=cancel",
                 "input": [
-                    "BTC/KRW",
+                    "XRP/KRW",
                     null,
                     null,
                     {

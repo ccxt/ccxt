@@ -18,7 +18,7 @@
         "maker": 0.0025,
         "precision": {
             "amount": 4,
-            "price": 8
+            "price": 4
         },
         "limits": {
             "leverage": {},
@@ -47,7 +47,7 @@
         "maker": 0.0025,
         "precision": {
             "amount": 4,
-            "price": 8
+            "price": 4
         },
         "limits": {
             "leverage": {},
@@ -101,13 +101,13 @@
             "fluctate_rate_24H": "-1.21"
         }
     },
-    "BTC/USDT": {
-        "id": "BTC",
-        "symbol": "BTC/USDT",
-        "base": "BTC",
-        "quote": "USDT",
-        "baseId": "BTC",
-        "quoteId": "USDT",
+    "XRP/KRW": {
+        "id": "KRW-XRP",
+        "symbol": "XRP/KRW",
+        "base": "XRP",
+        "quote": "KRW",
+        "baseId": "XRP",
+        "quoteId": "KRW",
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -126,20 +126,53 @@
             "leverage": {},
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 500,
+                "max": 5000000000
+            }
         },
         "info": {
-            "opening_price": "120852.73",
-            "closing_price": "121702.55",
-            "min_price": "120678.15",
-            "max_price": "121807.69",
-            "units_traded": "1.463081",
-            "acc_trade_value": "177551.30118934",
-            "prev_closing_price": "120900",
-            "units_traded_24H": "13.8674",
-            "acc_trade_value_24H": "1669792.6252954",
-            "fluctate_24H": "2099.48",
-            "fluctate_rate_24H": "1.76"
+            "market": "KRW-XRP",
+            "korean_name": "엑스알피[리플]",
+            "english_name": "XRP",
+            "market_warning": "NONE"
+        }
+    },
+    "SOL/BTC": {
+        "id": "BTC-SOL",
+        "symbol": "SOL/BTC",
+        "base": "SOL",
+        "quote": "BTC",
+        "baseId": "SOL",
+        "quoteId": "BTC",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "precision": {
+            "amount": 4,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 0.0002,
+                "max": 100
+            }
+        },
+        "info": {
+            "market": "BTC-SOL",
+            "korean_name": "솔라나",
+            "english_name": "Solana",
+            "market_warning": "NONE"
         }
     }
 }
