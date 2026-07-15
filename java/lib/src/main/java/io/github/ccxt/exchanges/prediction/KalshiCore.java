@@ -66,7 +66,7 @@ public class KalshiCore extends KalshiApi
                 put( "1d", 1440 );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/16b2b75f-8702-4781-8ba8-08c9be99a5ed" );
+                put( "logo", "https://github.com/user-attachments/assets/74fc2acb-58d0-4db0-b316-3124e7dc24db" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "kalshi", "https://external-api.kalshi.com/trade-api/v2" );
                     put( "elections", "https://api.elections.kalshi.com/v1" );

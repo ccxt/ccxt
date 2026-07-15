@@ -78,7 +78,7 @@ public class MyriadCore extends MyriadApi
                 put( "1d", "30d" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/59aba5fc-94a6-46cf-a93b-dbc5ee3d8502" );
+                put( "logo", "https://github.com/user-attachments/assets/a393c885-99e8-4943-897d-ebc0555c3773" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "myriad", "https://api-v2.myriadprotocol.com" );
                     put( "ws", "wss://ws.myriadprotocol.com/ws" );

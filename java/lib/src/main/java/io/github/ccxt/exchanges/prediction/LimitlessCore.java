@@ -69,7 +69,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "1M", "1m" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/284cf96f-5c17-44b3-8346-23dde85a84d6" );
+                put( "logo", "https://github.com/user-attachments/assets/bb10c8b4-7b97-49f5-927c-057709dbaf7e" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "limitless", "https://api.limitless.exchange" );
                 }} );

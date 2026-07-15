@@ -83,7 +83,7 @@ public class PolymarketCore extends PolymarketApi
                 put( "1d", "1440" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567" );
+                put( "logo", "https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "gamma", "https://gamma-api.polymarket.com" );
                     put( "clob", "https://clob.polymarket.com" );
