@@ -1080,12 +1080,21 @@ public partial class testMainClass
         object markets = exchange.safeList(eventVar, "markets");
         assert(!isEqual(markets, null), add(add(exchange.id, " event missing markets"), logText));
         object marketsLength = getArrayLength(markets);
+        assert(isEqual(exchange.safeString(eventVar, "symbol"), null), add(add(exchange.id, " event must not carry the deprecated symbol key"), logText));
         for (object i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             assert(exchange.isDictionary(market), add(add(exchange.id, " event market should be a dict"), logText));
+            assert(!isEqual(exchange.safeString(market, "market"), null), add(add(exchange.id, " event market missing the unified market handle"), logText));
+            // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert(isEqual(exchange.safeString(market, "symbol"), null), add(add(exchange.id, " event market must not carry the deprecated symbol key"), logText));
             object outcomes = exchange.safeList(market, "outcomes");
             assert(!isEqual(outcomes, null), add(add(exchange.id, " event market missing outcomes"), logText));
+            object outcomesLength = getArrayLength(outcomes);
+            for (object j = 0; isLessThan(j, outcomesLength); postFixIncrement(ref j))
+            {
+                assert(isEqual(exchange.safeString(getValue(outcomes, j), "symbol"), null), add(add(exchange.id, " event outcome must not carry the deprecated symbol key"), logText));
+            }
         }
         // optional typed fields must have the right type when present
         object active = exchange.safeValue(eventVar, "active");
@@ -1992,7 +2001,14 @@ public partial class testMainClass
                 object evMarkets = exchange.safeList(getValue(predictionEvents, i), "markets", new List<object>() {});
                 for (object j = 0; isLessThan(j, getArrayLength(evMarkets)); postFixIncrement(ref j))
                 {
-                    ((IList<object>)eventMarkets).Add(getValue(evMarkets, j));
+                    object evMarket = getValue(evMarkets, j);
+                    // every market row must carry the unified market handle (PredictionMarket
+                    // declares it required) — enforce it on the fixtures so a venue that stops
+                    // setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    // on prediction structures and must be absent
+                    assert(!isEqual(exchange.safeString(evMarket, "market"), null), add(exchangeName, " static events fixture: market row missing the unified market handle"));
+                    assert(isEqual(exchange.safeString(evMarket, "symbol"), null), add(exchangeName, " static events fixture: market row must not carry the deprecated symbol key"));
+                    ((IList<object>)eventMarkets).Add(evMarket);
                 }
             }
             if (isTrue(isGreaterThan(getArrayLength(eventMarkets), 0)))

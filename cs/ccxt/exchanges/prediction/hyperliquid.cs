@@ -59,7 +59,7 @@ public partial class hyperliquid : PredictionExchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://hyperliquid.xyz/favicon.ico" },
+                { "logo", "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.hyperliquid.xyz" },
                     { "private", "https://api.hyperliquid.xyz" },
@@ -227,7 +227,7 @@ public partial class hyperliquid : PredictionExchange
      * @ignore
      * @method
      * @name hyperliquid#buildOutcomeSymbol
-     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
+     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC_ABOVE_78213_20260503:YES for side 0 and BTC_ABOVE_78213_20260503:NO for side 1
      * @param {object} desc parsed outcome description
      * @param {int} side outcome side, 0 = YES, 1 = NO
      * @param {int} outcomeId integer outcome id
@@ -244,11 +244,11 @@ public partial class hyperliquid : PredictionExchange
         object bs = ((string)underlying).ToUpper();
         if (isTrue(targetPrice))
         {
-            bs = add(add(bs, "-ABOVE-"), targetPrice);
+            bs = add(add(bs, "_ABOVE_"), targetPrice);
         }
         if (isTrue(expiryDate))
         {
-            bs = add(add(bs, "-"), expiryDate);
+            bs = add(add(bs, "_"), expiryDate);
         }
         return add(add(bs, ":"), label);
     }
@@ -256,45 +256,8 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name hyperliquid#slugifyUpper
-     * @description converts a name into an upper-case slug of alphanumeric parts joined by hyphens
-     * @param {string} name the raw name to slugify
-     * @returns {string} the upper-case slug
-     */
-    public virtual object slugifyUpper(object name)
-    {
-        object upper = ((bool) isTrue((isEqual(name, null)))) ? "" : ((string)name).ToUpper();
-        object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        object chars = this.stringToCharsArray(upper);
-        object s = "";
-        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
-        {
-            object ch = getValue(chars, i);
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
-            {
-                s = add(s, ch);
-            } else
-            {
-                s = add(s, "-");
-            }
-        }
-        object rawParts = ((string)s).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object parts = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawParts)); postFixIncrement(ref i))
-        {
-            if (isTrue(isGreaterThan(((string)getValue(rawParts, i)).Length, 0)))
-            {
-                ((IList<object>)parts).Add(getValue(rawParts, i));
-            }
-        }
-        return String.Join("-", ((IList<object>)parts).ToArray());
-    }
-
-    /**
-     * @ignore
-     * @method
      * @name hyperliquid#buildOutcomeParentSymbol
-     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
+     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
      * @param {int} outcomeId integer outcome id
      * @param {string} [name] outcome name
@@ -314,11 +277,11 @@ public partial class hyperliquid : PredictionExchange
             object bs = ((string)underlying).ToUpper();
             if (isTrue(targetPrice))
             {
-                bs = add(add(bs, "-ABOVE-"), targetPrice);
+                bs = add(add(bs, "_ABOVE_"), targetPrice);
             }
             if (isTrue(expiryDate))
             {
-                bs = add(add(bs, "-"), expiryDate);
+                bs = add(add(bs, "_"), expiryDate);
             }
             return bs;
         }
@@ -355,19 +318,19 @@ public partial class hyperliquid : PredictionExchange
                         object bucketLabel = null;
                         if (isTrue(isLessThanOrEqual(index, 0)))
                         {
-                            bucketLabel = add("BELOW-", getValue(thresholds, 0));
+                            bucketLabel = add("BELOW_", getValue(thresholds, 0));
                         } else if (isTrue(isGreaterThanOrEqual(index, thresholdsLength)))
                         {
                             object lastIdx = subtract(thresholdsLength, 1);
-                            bucketLabel = add("ABOVE-", getValue(thresholds, lastIdx));
+                            bucketLabel = add("ABOVE_", getValue(thresholds, lastIdx));
                         } else
                         {
-                            bucketLabel = add(add(add("BETWEEN-", getValue(thresholds, subtract(index, 1))), "-"), getValue(thresholds, index));
+                            bucketLabel = add(add(add("BETWEEN_", getValue(thresholds, subtract(index, 1))), "_"), getValue(thresholds, index));
                         }
-                        object bs = add(add(((string)questionUnderlying).ToUpper(), "-"), bucketLabel);
+                        object bs = add(add(((string)questionUnderlying).ToUpper(), "_"), bucketLabel);
                         if (isTrue(expiryDate))
                         {
-                            bs = add(add(bs, "-"), expiryDate);
+                            bs = add(add(bs, "_"), expiryDate);
                         }
                         return bs;
                     }
@@ -375,10 +338,10 @@ public partial class hyperliquid : PredictionExchange
                 object isFallbackLike = isTrue(isTrue((isEqual(rawDescription, "other"))) || isTrue((isGreaterThanOrEqual(getIndexOf(nameLower, "fallback"), 0)))) || isTrue((isGreaterThanOrEqual(getIndexOf(nameLower, "other"), 0)));
                 if (isTrue(isTrue(questionUnderlying) && isTrue(isFallbackLike)))
                 {
-                    object bs = add(((string)questionUnderlying).ToUpper(), "-OTHER");
+                    object bs = add(((string)questionUnderlying).ToUpper(), "_OTHER");
                     if (isTrue(expiryDate))
                     {
-                        bs = add(add(bs, "-"), expiryDate);
+                        bs = add(add(bs, "_"), expiryDate);
                     }
                     return bs;
                 }
@@ -387,14 +350,14 @@ public partial class hyperliquid : PredictionExchange
         object questionName = this.safeString(question, "name");
         if (isTrue(questionName))
         {
-            object questionSlug = this.slugifyUpper(questionName);
+            object questionSlug = this.shortenSlug(questionName);
             if (isTrue(questionSlug))
             {
-                object outcomeSlug = this.slugifyUpper(name);
+                object outcomeSlug = this.shortenSlug(name);
                 object genericOutcomeNames = new Dictionary<string, object>() {
                     { "RECURRING", true },
-                    { "RECURRING-FALLBACK", true },
-                    { "RECURRING-NAMED-OUTCOME", true },
+                    { "RECURRING_FALLBACK", true },
+                    { "RECURRING_NAMED_OUTCOME", true },
                 };
                 if (isTrue(inOp(genericOutcomeNames, outcomeSlug)))
                 {
@@ -408,17 +371,17 @@ public partial class hyperliquid : PredictionExchange
                 }
                 if (isTrue(outcomeSlug))
                 {
-                    return add(add(add(add(questionSlug, "-"), outcomeSlug), "-"), ((object)outcomeId).ToString());
+                    return add(add(add(add(questionSlug, "_"), outcomeSlug), "_"), ((object)outcomeId).ToString());
                 }
-                return add(add(questionSlug, "-"), ((object)outcomeId).ToString());
+                return add(add(questionSlug, "_"), ((object)outcomeId).ToString());
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (isTrue(name))
         {
-            return add(add(this.slugifyUpper(name), "-"), ((object)outcomeId).ToString());
+            return add(add(this.shortenSlug(name), "_"), ((object)outcomeId).ToString());
         }
-        return add("OUTCOME-", ((object)outcomeId).ToString());
+        return add("OUTCOME_", ((object)outcomeId).ToString());
     }
 
     /**
@@ -613,9 +576,9 @@ public partial class hyperliquid : PredictionExchange
         { "parsedDescription", desc },
     } },
 }};
-        return this.safeMarketStructure(new Dictionary<string, object>() {
+        object marketRow = this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", ((object)outcomeId).ToString() },
-            { "symbol", parentSymbol },
+            { "market", parentSymbol },
             { "base", getValue(((string)parentSymbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0) },
             { "quote", quoteCurrency },
             { "settle", null },
@@ -673,6 +636,9 @@ public partial class hyperliquid : PredictionExchange
             }) },
             { "created", null },
         });
+        // omit the deprecated 'symbol' key the safeMarketStructure template injects —
+        // prediction market rows carry only the unified 'market' handle
+        return this.omit(marketRow, "symbol");
     }
 
     /**
@@ -710,7 +676,7 @@ public partial class hyperliquid : PredictionExchange
      * @name hyperliquid#fetchTicker
      * @description fetches a ticker for a single outcome market using the L2 order book snapshot
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
-     * @param {string} outcome unified outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
+     * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
@@ -2075,7 +2041,7 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @method
      * @name hyperliquid#fetchEvents
-     * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+     * @description Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
      * @param {object} [params] extra parameters
      * @param {string} [params.query] a single query string to filter by (matches description/outcome)
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
@@ -2109,15 +2075,15 @@ public partial class hyperliquid : PredictionExchange
                 continue;
             }
             object info = this.safeDict(((object)mkt), "info", new Dictionary<string, object>() {});
-            object parentSymbol = this.safeString(info, "parentSymbol", this.safeString(mkt, "symbol"));
+            object parentSymbol = this.safeString(info, "parentSymbol", this.safeString2(((object)mkt), "market", "symbol"));
             // Apply query filter
             if (isTrue(isGreaterThan(lowerQueriesLength, 0)))
             {
                 object description = ((string)this.safeString(info, "description", "")).ToLower();
                 object parentSymbolOrEmpty = ((bool) isTrue((!isEqual(parentSymbol, null)))) ? parentSymbol : "";
                 object symLower = ((string)parentSymbolOrEmpty).ToLower();
-                // the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
-                // and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
+                // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 object haystack = add(add(description, " "), symLower);
                 object matches = false;
                 for (object qi = 0; isLessThan(qi, getArrayLength(lowerQueries)); postFixIncrement(ref qi))

@@ -600,15 +600,66 @@ public partial class PredictionExchange : BaseExchange
     public virtual object slugToOutcomeSymbol(object eventSlug, object marketSlug, object outcome)
     {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
-        return add(add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), ((string)outcome).ToUpper());
+        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
+        // the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
+        // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
+        // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
+        // instead of leaking raw text into the outcome handle
+        object upper = ((string)outcome).ToUpper();
+        object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        object chars = this.stringToCharsArray(upper);
+        object label = "";
+        object pendingSep = false;
+        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        {
+            object ch = getValue(chars, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
+            {
+                if (isTrue(isTrue(pendingSep) && isTrue((!isEqual(label, "")))))
+                {
+                    label = add(label, "_");
+                }
+                label = add(label, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        if (isTrue(isEqual(label, "")))
+        {
+            // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
+            label = upper;
+        }
+        return add(add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), label);
     }
 
     public override object setMarkets(object markets, object currencies = null)
     {
-        object result = base.setMarkets(markets, currencies);
+        // prediction market rows carry only the unified `market` handle — `symbol` is
+        // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
+        // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
+        object marketsList = this.toArray(markets);
+        object aliased = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(marketsList)); postFixIncrement(ref i))
+        {
+            object row = getValue(marketsList, i);
+            object copy = this.extend(new Dictionary<string, object>() {}, row);
+            ((IDictionary<string,object>)copy)["symbol"] = this.safeString2(row, "market", "symbol");
+            ((IList<object>)aliased).Add(copy);
+        }
+        base.setMarkets(aliased, currencies);
+        // strip the alias back off the stored rows — venues assemble user-visible event
+        // structures from this.markets (hyperliquid groups its outcome markets that way),
+        // so a leftover 'symbol' key would leak the deprecated field back to the caller
+        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
+        {
+            object key = getValue(marketKeys, i);
+            ((IDictionary<string,object>)this.markets)[(string)key] = this.omit(getValue(this.markets, key), "symbol");
+        }
         this.populateOutcomes();
-        return result;
+        return this.markets;
     }
 
     public virtual void indexMarketOutcomes(object market)
@@ -707,10 +758,10 @@ public partial class PredictionExchange : BaseExchange
         for (object i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
         {
             object m = getValue(markets, i);
-            object symbol = this.safeString(m, "symbol");
-            if (isTrue(!isEqual(symbol, null)))
+            object marketHandle = this.safeString2(m, "market", "symbol");
+            if (isTrue(!isEqual(marketHandle, null)))
             {
-                ((IDictionary<string,object>)this.markets)[(string)symbol] = m;
+                ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
             }
         }
         this.populateOutcomes();
@@ -851,7 +902,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return null;
         }
-        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
         object normalized = ((string)((string)marketPart).ToLower()).Replace((string)"-", (string)"_");
         object rawWords = ((string)normalized).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object words = new List<object>() {};
@@ -862,7 +913,7 @@ public partial class PredictionExchange : BaseExchange
             object word = getValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (isTrue(isEqual(getArrayLength(word), 0)))
+            if (isTrue(isEqual(((string)word).Length, 0)))
             {
                 continue;
             }
