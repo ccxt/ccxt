@@ -9,6 +9,7 @@ import math
 from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -32,13 +33,13 @@ class pacifica(Exchange, ImplicitAPI):
             'countries': [],
             'version': 'v1',
             'isSandboxModeEnabled': False,  # is testnet api
-            'rateLimit': 50,  # 125 requests per minute without api-key(300 with api-key) ~ 2 req/sec = 1 req/500 ms.
+            'rateLimit': 600,  # 100 credits per minute without an API Config Key(300 with a key)
             'certified': False,
             'pro': True,
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -63,7 +64,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'editOrder': True,
                 'editOrders': False,
-                'fetchAccounts': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
@@ -77,7 +78,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': False,
-                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': False,
@@ -143,6 +144,8 @@ class pacifica(Exchange, ImplicitAPI):
                 '8h': '8h',
                 '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'hostname': 'pacifica.fi',
             'urls': {
@@ -165,22 +168,33 @@ class pacifica(Exchange, ImplicitAPI):
                     'get': {
                         # ~12 weight depends on the limit 3 max for api-key, but min without api-key
                         'info': 1,
+                        'info/fees': 1,
                         'info/prices': 1,
                         'kline': 12,
                         'kline/mark': 12,
                         'book': 1,
                         'trades': 1,  # Recent
                         'funding_rate/history': 1,
+                        'loan_pool': 1,
                         'account': 1,
+                        'account/loan': 1,
                         'account/settings': 1,
                         'positions': 1,
                         'trades/history': 12,
                         'funding/history': 1,
                         'portfolio': 1,
                         'account/balance/history': 12,
+                        'account/spot_balance/history': 1,
+                        'account/spot_asset/deposit/history': 1,
+                        'account/spot_asset/withdraw/history': 1,
+                        'account/spot_asset/withdraw/pending': 1,
                         'orders': 1,
                         'orders/history': 12,
                         'orders/history_by_id': 1,
+                        'spot_assets': 1,
+                        'spot_assets/bridge/info': 1,
+                        'spot_assets/bridge/parameters/{symbol}': 1,
+                        'lake/list': 1,
                         'account/builder_codes/approvals': 1,
                     },
                 },
@@ -189,9 +203,14 @@ class pacifica(Exchange, ImplicitAPI):
                         'account/leverage': 1,
                         'account/margin': 1,
                         'account/withdraw': 1,
+                        'account/settings/auto_lend_disabled': 1,
+                        'account/settings/spot': 1,
+                        'account/spot_asset/withdraw': 1,
                         'account/subaccount/create': 1,
                         'account/subaccount/list': 1,
                         'account/subaccount/transfer': 1,
+                        'account/subaccount/spot_asset/transfer': 1,
+                        'positions/add_isolated_margin': 1,
                         'orders/create': 1,
                         'orders/create_market': 1,
                         'orders/stop/create': 1,
@@ -207,6 +226,18 @@ class pacifica(Exchange, ImplicitAPI):
                         'account/api_keys/create': 1,
                         'account/api_keys/revoke': 1,
                         'account/api_keys': 1,
+                        'lake/add_blacklist': 1,
+                        'lake/add_max_leverage': 1,
+                        'lake/add_whitelist': 1,
+                        'lake/claim_manager': 1,
+                        'lake/claim_referral_code': 1,
+                        'lake/create': 1,
+                        'lake/deposit': 1,
+                        'lake/remove_blacklist': 1,
+                        'lake/remove_max_leverage': 1,
+                        'lake/remove_whitelist': 1,
+                        'lake/update_deposit_cap': 1,
+                        'lake/withdraw': 1,
                     },
                 },
             },
@@ -229,15 +260,136 @@ class pacifica(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
-                    '400': BadRequest,
-                    '403': PermissionDenied,
-                    '404': BadRequest,
-                    '409': ExchangeError,
-                    '422': ExchangeError,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeError,
-                    '503': ExchangeNotAvailable,
-                    '504': RequestTimeout,
+                    '0': ExchangeError,  # INTERNAL
+                    '1': ExchangeError,  # ACCOUNT_NOT_FOUND
+                    '2': ExchangeError,  # ACCOUNT_ALREADY_EXISTS
+                    '3': ExchangeError,  # BOOK_NOT_FOUND
+                    '4': InvalidOrder,  # INVALID_TICK_LEVEL
+                    '5': InsufficientFunds,  # INSUFFICIENT_BALANCE
+                    '6': OrderNotFound,  # ORDER_NOT_FOUND
+                    '7': InvalidOrder,  # ORDER_AMOUNT_TOO_LOW
+                    '8': InvalidOrder,  # ORDER_AMOUNT_TOO_HIGH
+                    '9': InsufficientFunds,  # OVER_WITHDRAWAL
+                    '10': InvalidOrder,  # OPEN_ORDER_LIMIT_REACHED
+                    '11': ExchangeError,  # INVALID_LEVERAGE
+                    '12': ExchangeError,  # CANNOT_UPDATE_MARGIN
+                    '13': ExchangeError,  # POSITION_NOT_FOUND
+                    '14': ExchangeError,  # DATABASE_ERROR
+                    '15': BadRequest,  # INVALID_DEPOSIT_NONCE
+                    '16': InvalidOrder,  # INVALID_STOP_TICK
+                    '17': InvalidOrder,  # INVALID_STOP_ORDER_SIDE
+                    '18': InvalidOrder,  # INVALID_STOP_ORDER_AMOUNT
+                    '19': InvalidOrder,  # INVALID_STOP_ORDER_REDUCE_ONLY
+                    '20': InvalidOrder,  # INVALID_ORDER_TYPE
+                    '21': InvalidOrder,  # INVALID_REDUCE_ONLY_ORDER_SIDE
+                    '22': InvalidOrder,  # INVALID_REDUCE_ONLY_ORDER_AMOUNT
+                    '23': InvalidOrder,  # NO_POSITION_FOR_REDUCE_ONLY_ORDER
+                    '24': ExchangeError,  # INVALID_LIQUIDATION_SIDE
+                    '25': InvalidOrder,  # NO_REASONABLE_PRICE
+                    '26': ExchangeError,  # CHANNEL_CLOSED
+                    '27': ExchangeError,  # RESPONSE_DROPPED
+                    '28': InvalidOrder,  # IMMEDIATE_LIQUIDATION
+                    '29': InvalidOrder,  # WITHDRAW_AMOUNT_TOO_LOW
+                    '30': InvalidOrder,  # PRICE_TOO_FAR_FROM_MARK
+                    '31': PermissionDenied,  # DAILY_WITHDRAW_LIMIT_EXCEEDED
+                    '32': PermissionDenied,  # WITHDRAWAL_BLOCKED
+                    '33': BadRequest,  # INVALID_TRANSFER_RELATIONSHIP
+                    '34': PermissionDenied,  # SUBACCOUNT_WITHDRAWAL_NOT_ALLOWED
+                    '35': PermissionDenied,  # SUBACCOUNT_CANNOT_CREATE_SUBACCOUNT
+                    '36': InvalidOrder,  # DUPLICATE_CLIENT_ORDER_ID
+                    '37': InvalidOrder,  # UNUSED_CLIENT_ORDER_ID
+                    '38': PermissionDenied,  # TRADING_DISABLED
+                    '39': BadRequest,  # INVALID_FEE_MODE
+                    '40': PermissionDenied,  # NOT_MAIN_ACCOUNT
+                    '41': InvalidOrder,  # OPEN_INTEREST_LIMIT_EXCEEDED
+                    '42': ExchangeError,  # EXCHANGE_WITHDRAW_LIMIT_REACHED
+                    '43': InvalidOrder,  # TWAP_DUPLICATE_CLIENT_ORDER_ID
+                    '44': InvalidOrder,  # TWAP_UNUSED_CLIENT_ORDER_ID
+                    '45': InvalidOrder,  # TWAP_ORDER_FAIL_TO_GET_SUB_ORDER_AMOUNT
+                    '46': InvalidOrder,  # TWAP_ORDER_DURATION_TOO_SHORT
+                    '47': OrderNotFound,  # TWAP_ORDER_NOT_FOUND
+                    '48': InvalidOrder,  # TWAP_ORDER_COUNT_PER_SYMBOL_LIMIT_EXCEEDED
+                    '49': InvalidOrder,  # POSITION_TPSL_LIMIT_EXCEEDED
+                    '50': BadRequest,  # INVALID_BUILDER_CODE
+                    '51': NotSupported,  # UNSUPPORTED_OPERATION
+                    '52': InvalidOrder,  # INVALID_TICK_SIZE
+                    '53': InvalidOrder,  # ORDER_BLOCKED_BY_LOAN_POOL_STRESS
+                    '54': ExchangeError,  # ASSET_ALREADY_EXISTS
+                    '55': ExchangeError,  # ASSET_NOT_FOUND
+                    '56': ExchangeError,  # ASSET_NOT_ACTIVE
+                    '59': InvalidOrder,  # INVALID_AMOUNT
+                    '61': InsufficientFunds,  # SPOT_WITHDRAWAL_EXCEEDS_COLLATERAL
+                    '62': InsufficientFunds,  # INSUFFICIENT_SPOT_BALANCE
+                    '63': ExchangeError,  # MISSING_MARK_PRICE
+                    '64': BadRequest,  # INVALID_FLOOR_PRICE_PCT
+                    '65': InsufficientFunds,  # SPOT_EXCLUSION_BREACHES_COLLATERAL
+                    '66': ExchangeError,  # LAKE_NOT_FOUND
+                    '67': ExchangeError,  # LAKE_ADDRESS_COLLISION
+                    '68': InvalidOrder,  # LAKE_MIN_DEPOSIT_AMOUNT
+                    '69': InvalidOrder,  # LAKE_INVALID_SHARES
+                    '70': InsufficientFunds,  # LAKE_OVER_WITHDRAWAL
+                    '71': ExchangeError,  # LAKE_NICKNAME_ALREADY_EXISTS
+                    '72': PermissionDenied,  # LAKE_WITHDRAWAL_NOT_ALLOWED
+                    '73': PermissionDenied,  # LAKE_MANAGER_IS_SUBLAKE
+                    '74': PermissionDenied,  # LAKE_NOT_CREATOR
+                    '75': InvalidOrder,  # LAKE_DEPOSIT_CAP_EXCEEDED
+                    '76': PermissionDenied,  # LAKE_WITHDRAW_TOO_EARLY
+                    '77': BadRequest,  # LAKE_INVALID_REV_SHARE_CONFIG
+                    '78': InsufficientFunds,  # LAKE_DEPOSITOR_OVER_WITHDRAWAL
+                    '79': ExchangeError,  # LAKE_ALREADY_HAS_MANAGER
+                    '80': InvalidOrder,  # LAKE_MANAGER_BALANCE_PORTION_TOO_LOW
+                    '81': BadRequest,  # LAKE_INVALID_BALANCE_PORTION_CONFIG
+                    '82': InvalidOrder,  # LAKE_LIQUIDATION_PORTION_ABOVE_MIN_PORTION
+                    '83': ExchangeNotAvailable,  # LAKE_TRADING_HALTED
+                    '84': BadRequest,  # INVALID_WITHDRAW_NONCE
+                    '85': BadRequest,  # LAKE_INVALID_WITHDRAW_WINDOW_CONFIG
+                    '86': BadRequest,  # LAKE_WITHDRAW_DURATION_ABOVE_WINDOW
+                    '87': PermissionDenied,  # LAKE_WITHDRAW_WINDOW_CLOSED
+                    '88': BadRequest,  # INVALID_SPOT_DEPOSIT_NONCE
+                    '89': BadRequest,  # SPOT_DEPOSIT_NONCE_GAP
+                    '90': BadRequest,  # INVALID_SPOT_WITHDRAW_NONCE
+                    '91': ExchangeError,  # SPOT_BRIDGE_NOT_FOUND
+                    '92': ExchangeNotAvailable,  # SPOT_BRIDGE_INACTIVE
+                    '93': BadRequest,  # LAKE_SYMBOL_NOT_ALLOWED
+                    '94': InvalidOrder,  # LAKE_MAX_LEVERAGE_EXCEEDED
+                    '95': ExchangeError,  # GAME_CONFIG_NOT_FOUND
+                    '96': ExchangeError,  # GAME_ACCOUNT_NOT_FOUND
+                    '97': ExchangeError,  # GAME_ACCOUNT_ADDRESS_COLLISION
+                    '99': InvalidOrder,  # GAME_DEPOSIT_CAP_EXCEEDED
+                    '100': PermissionDenied,  # GAME_OPERATION_NOT_ALLOWED
+                    '101': ExchangeNotAvailable,  # GAME_ALREADY_ENDED
+                    '102': BadRequest,  # GAME_INVALID_CONFIG
+                    '103': PermissionDenied,  # GAME_ACCOUNT_WITHDRAWAL_NOT_ALLOWED
+                    '104': InvalidOrder,  # GAME_LEVERAGE_EXCEEDED
+                    '105': InvalidOrder,  # GAME_DEPOSIT_BELOW_MINIMUM
+                    '106': NotSupported,  # REDUCE_ONLY_NOT_SUPPORTED_FOR_SPOT
+                    '107': NotSupported,  # TP_SL_NOT_SUPPORTED_FOR_SPOT
+                    '108': NotSupported,  # BUILDER_CODE_NOT_SUPPORTED_FOR_SPOT
+                    '109': NotSupported,  # MARGIN_SETTINGS_NOT_APPLICABLE_FOR_SPOT
+                    '110': BadRequest,  # INVALID_BOOK_CONFIG
+                    '111': ExchangeNotAvailable,  # TAP_GAME_NOT_ACTIVE
+                    '112': InvalidOrder,  # TAP_GAME_INVALID_AMOUNT
+                    '113': ExchangeError,  # TAP_GAME_ERROR
+                    '114': ExchangeError,  # INVALID_COLLATERAL_LIMIT / LAKE_SELF_DEPOSIT_NOT_ALLOWED
+                    '115': ExchangeError,  # SPOT_COLLATERAL_LIMIT_BREACHES_COLLATERAL / LAKE_DEPOSITOR_NOT_WHITELISTED
+                    '116': ExchangeError,  # DAILY_SPOT_WITHDRAW_LIMIT_EXCEEDED / RFQ_SELF_QUOTE_NOT_ALLOWED
+                    '117': ExchangeError,  # EXCHANGE_SPOT_WITHDRAW_LIMIT_REACHED / RFQ_NOT_SUPPORTED_FOR_SPOT
+                    '118': ExchangeError,  # INVALID_SPOT_LIMIT / RFQ_MISSING_CLIENT_ORDER_ID
+                    '119': ExchangeNotAvailable,  # ORACLE_NOT_AVAILABLE
+                    '120': PermissionDenied,  # VAULT_WITHDRAWAL_NOT_ALLOWED
+                    '121': InvalidOrder,  # RFQ_QUOTE_WORSE_THAN_BOOK
+                    '400': BadRequest,  # Bad Request; INVALID_REQUEST_CODE
+                    '401': AuthenticationError,  # INVALID_SIGNATURE_CODE
+                    '402': AuthenticationError,  # INVALID_SIGNER_CODE
+                    '403': PermissionDenied,  # Forbidden: restricted region; UNAUTHORIZED_REQUEST_CODE
+                    '404': BadRequest,  # Not Found
+                    '409': ExchangeError,  # Conflict
+                    '420': ExchangeError,  # ENGINE_ERROR_CODE
+                    '422': ExchangeError,  # Business Logic Error - See below
+                    '429': RateLimitExceeded,  # Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
+                    '500': ExchangeError,  # Internal Server Error; UNKNOWN_ERROR_CODE
+                    '503': ExchangeNotAvailable,  # Service Unavailable
+                    '504': RequestTimeout,  # Gateway Timeout
                 },
                 'broad': {
                     'UNKNOWN': ExchangeError,
@@ -265,7 +417,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'defaultType': 'swap',
                 'defaultSlippage': '0.5',
                 'expiryWindow': 5000,
-                'maxCostHugeWithApiKey': 3,
+                'maxCostHugeWithApiKey': 4,
                 'marketHelperProps': [],
                 'defaultMarginMode': 'cross',
                 'builderSupportOperations': {
@@ -418,14 +570,54 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for pacifica
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: an array of objects representing market data
+        :returns dict[]: an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
         """
-        if self.check_required_credentials(False):
-            await self.initialize_client()
-            await self.load_account_settings()
-        swapMarkets = await self.fetch_swap_markets(params)
-        return swapMarkets
+        response = await self.publicGetInfo(params)  # meta
+        # {
+        #   "success": True,
+        #   "data": [
+        #     {
+        #       "symbol": "BTC",
+        #       "tick_size": "1",
+        #       "min_tick": "0",
+        #       "max_tick": "1000000",
+        #       "lot_size": "0.00001",
+        #       "max_leverage": 50,
+        #       "isolated_only": False,
+        #       "min_order_size": "10",
+        #       "max_order_size": "5000000",
+        #       "funding_rate": "0.0000125",
+        #       "next_funding_rate": "0.0000125",
+        #       "created_at": 1748881333944,
+        #       "instrument_type": "perpetual",
+        #       "base_asset": "BTC"
+        #     },
+        #     {
+        #       "symbol": "SOL-USDC",
+        #       "tick_size": "0.01",
+        #       "min_tick": "0",
+        #       "max_tick": "1000000",
+        #       "lot_size": "0.001",
+        #       "max_leverage": 1,
+        #       "isolated_only": False,
+        #       "min_order_size": "10",
+        #       "max_order_size": "1000000",
+        #       "funding_rate": "0",
+        #       "next_funding_rate": "0",
+        #       "created_at": 1776615970246,
+        #       "instrument_type": "spot",
+        #       "base_asset": "SOL"
+        #     },
+        #   ],
+        #   "error": null,
+        #   "code": null
+        # }
+        markets = self.safe_list(response, 'data', [])
+        return self.parse_markets(markets)
 
     async def fetch_swap_markets(self, params={}) -> List[Market]:
         """
@@ -436,65 +628,11 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetInfo(params)  # meta
-        # {
-        #   "success": True,
-        #   "data": [
-        #     {
-        #       "symbol": "ETH",
-        #       "tick_size": "0.1",
-        #       "min_tick": "0",
-        #       "max_tick": "1000000",
-        #       "lot_size": "0.0001",
-        #       "max_leverage": 50,
-        #       "isolated_only": False,
-        #       "min_order_size": "10",
-        #       "max_order_size": "5000000",
-        #       "funding_rate": "0.0000125",
-        #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
-        #     },
-        #     {
-        #       "symbol": "BTC",
-        #       "tick_size": "1",
-        #       "min_tick": "0",
-        #       "max_tick": "1000000",
-        #       "lot_size": "0.00001",
-        #       "max_leverage": 50,
-        #       "isolated_only": False,
-        #       "min_order_size": "10",
-        #       "max_order_size": "5000000",
-        #       "funding_rate": "0.0000125",
-        #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
-        #     },
-        #     ....
-        #   ],
-        #   "error": null,
-        #   "code": null
-        # }
-        meta = self.safe_list(response, 'data', [])
-        results = []
-        for i in range(0, len(meta)):
-            results.append(meta[i])
-        return self.parse_markets(results)
+        markets = await self.fetch_markets(params)
+        return self.filter_by(markets, 'type', 'swap')
 
     def parse_market(self, market: dict) -> Market:
         #     {
-        #       "symbol": "ETH",
-        #       "tick_size": "0.1",
-        #       "min_tick": "0",
-        #       "max_tick": "1000000",
-        #       "lot_size": "0.0001",
-        #       "max_leverage": 50,
-        #       "isolated_only": False,
-        #       "min_order_size": "10",
-        #       "max_order_size": "5000000",
-        #       "funding_rate": "0.0000125",
-        #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
-        #     },
-        #     {
         #       "symbol": "BTC",
         #       "tick_size": "1",
         #       "min_tick": "0",
@@ -506,27 +644,66 @@ class pacifica(Exchange, ImplicitAPI):
         #       "max_order_size": "5000000",
         #       "funding_rate": "0.0000125",
         #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
+        #       "created_at": 1748881333944,
+        #       "instrument_type": "perpetual",
+        #       "base_asset": "BTC"
         #     },
-        quoteId = 'usdc'
-        settleId = 'usdc'
+        #     {
+        #       "symbol": "SOL-USDC",
+        #       "tick_size": "0.01",
+        #       "min_tick": "0",
+        #       "max_tick": "1000000",
+        #       "lot_size": "0.001",
+        #       "max_leverage": 1,
+        #       "isolated_only": False,
+        #       "min_order_size": "10",
+        #       "max_order_size": "1000000",
+        #       "funding_rate": "0",
+        #       "next_funding_rate": "0",
+        #       "created_at": 1776615970246,
+        #       "instrument_type": "spot",
+        #       "base_asset": "SOL"
+        #     },
         id = self.safe_string(market, 'symbol')
-        baseId = id.lower()
-        baseName = id.upper()
-        base = self.safe_currency_code(baseName)
+        baseId = self.safe_string(market, 'base_asset', id)
+        instrumentType = self.safe_string(market, 'instrument_type')
+        isSpot = (instrumentType == 'spot')
+        isSwap = not isSpot
+        quoteId = 'USDC'
+        settleId = None
+        type = 'spot'
+        linear = None
+        inverse = None
+        contractSize = None
+        minLeverage = None
+        maxLeverage = None
+        crossMargin = None
+        isolatedMargin = None
+        if isSpot:
+            idParts = id.split('-')
+            quoteId = self.safe_string(idParts, 1, quoteId)
+        isolatedOnly = self.safe_bool(market, 'isolated_only', False)
+        if isSwap:
+            settleId = quoteId
+            type = 'swap'
+            linear = True
+            inverse = False
+            contractSize = self.parse_number('1')
+            minLeverage = 1
+            maxLeverage = self.safe_integer(market, 'max_leverage')
+            crossMargin = not isolatedOnly
+            isolatedMargin = True
+        base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
-        contract = True
-        swap = True
-        if contract:
-            if swap:
-                symbol = symbol + ':' + settle
-        fees = self.safe_dict(self.fees, 'swap', {})
+        if isSwap:
+            symbol = symbol + ':' + settle
+        fees = self.safe_dict(self.fees, type, {})
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
-        amountPrecisionStr = self.safe_string(market, 'lot_size')
-        pricePrecisionStr = self.safe_string(market, 'tick_size')
+        amountPrecision = self.safe_number(market, 'lot_size')
+        pricePrecision = self.safe_number(market, 'tick_size')
         active = True  # there is no non-active markets comes from endpoint market info
         return self.safe_market_structure({
             'id': id,
@@ -535,50 +712,52 @@ class pacifica(Exchange, ImplicitAPI):
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
-            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
-            'spot': False,
-            'margin': None,
-            'swap': swap,
+            'type': type,
+            'spot': isSpot,
+            'margin': False,
+            'swap': isSwap,
             'future': False,
             'option': False,
             'active': active,
-            'contract': contract,
-            'linear': True,
-            'inverse': False,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
             'taker': taker,
             'maker': maker,
-            'contractSize': self.parse_number('1'),
+            'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number(amountPrecisionStr),
-                'price': self.parse_number(pricePrecisionStr),
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
-                    'min': 1,
-                    'max': self.safe_integer(market, 'max_leverage'),
+                    'min': minLeverage,
+                    'max': maxLeverage,
                 },
                 'amount': {
                     'min': None,
                     'max': None,
                 },
                 'price': {
-                    'min': self.safe_string(market, 'min_tick'),
-                    'max': self.safe_string(market, 'max_tick'),
+                    'min': self.safe_number(market, 'min_tick'),
+                    'max': self.safe_number(market, 'max_tick'),
                 },
                 'cost': {
-                    'min': None,
-                    'max': None,
+                    'min': self.safe_number(market, 'min_order_size'),
+                    'max': self.safe_number(market, 'max_order_size'),
                 },
             },
-            'created': None,
-            'marginModes': {'cross': True, 'isolated': True},
+            'created': self.safe_integer(market, 'created_at'),
+            'marginModes': {
+                'cross': crossMargin,
+                'isolated': isolatedMargin,
+            },
             'info': market,
         })
 
@@ -641,6 +820,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
         :param str symbol:  unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.account]: will default to walletAddress if not provided
@@ -755,6 +937,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of the trading pair
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.account]: will default to walletAddress if not provided
@@ -878,6 +1063,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         retrieves data on all swap markets for pacifica
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -959,7 +1147,7 @@ class pacifica(Exchange, ImplicitAPI):
         https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+        :param str timeframe: the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1876,6 +2064,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently closed orders
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -1892,6 +2083,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all canceled orders
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -1908,6 +2102,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all closed and canceled orders
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -2570,6 +2767,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_open_interests(self, symbols: Strings = None, params={}):
         """
         Retrieves the open interest for a list of symbols
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
         :param str[] [symbols]: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
@@ -2583,6 +2783,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a contract trading pair
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
@@ -2731,6 +2934,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -2872,6 +3078,9 @@ class pacifica(Exchange, ImplicitAPI):
     async def create_sub_account(self, name: str, params={}):
         """
         creates a sub-account under the main account
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
+
         :param str name: unused argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.expiryWindow]: time to live in milliseconds
