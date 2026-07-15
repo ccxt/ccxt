@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -11,7 +12,7 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestMarket extends BaseTest {
-    public static void testMarket(Exchange exchange, Object skippedProperties, Object method, Object market)
+    public static void testMarket(BaseExchange exchange, Object skippedProperties, Object method, Object market)
     {
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
@@ -126,8 +127,8 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "taker", "100");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
-        // validate type
-        Object validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "other"));
+        // validate type ('prediction' for prediction-market exchanges)
+        Object validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         Object validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
@@ -166,7 +167,12 @@ public class TestMarket extends BaseTest {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new java.util.ArrayList<Object>(java.util.Arrays.asList(false, null)));
         }
         // check mutually exclusive fields
-        if (Helpers.isTrue(spot))
+        Object isPrediction = (Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction"));
+        if (Helpers.isTrue(isPrediction))
+        {
+            // prediction markets trade outcome shares — neither spot nor a derivative contract
+            Assert(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(spot) && !Helpers.isTrue(contract)) && !Helpers.isTrue(future)) && !Helpers.isTrue(swap)) && !Helpers.isTrue(option), Helpers.add("for prediction market, none of spot/contract/future/swap/option should be set", logText));
+        } else if (Helpers.isTrue(spot))
         {
             Assert(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(contract) && Helpers.isTrue(Helpers.isEqual(linear, null))) && Helpers.isTrue(Helpers.isEqual(inverse, null))) && !Helpers.isTrue(option)) && !Helpers.isTrue(swap)) && !Helpers.isTrue(future), Helpers.add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText));
         } else
@@ -291,8 +297,9 @@ public class TestMarket extends BaseTest {
                 }
             }
         }
-        // check currencies
-        if (!Helpers.isTrue(isInactiveMarket))
+        // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+        // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+        if (Helpers.isTrue(!Helpers.isTrue(isInactiveMarket) && !Helpers.isTrue(isPrediction)))
         {
             TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "base"));
             TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, Helpers.GetValue(market, "quoteId"), Helpers.GetValue(market, "quote"));

@@ -643,16 +643,67 @@ public Object describe()
     public Object slugToOutcomeSymbol(Object eventSlug, Object marketSlug, Object outcome)
     {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
-        return Helpers.add(Helpers.add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), ((String)outcome).toUpperCase());
+        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
+        // the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
+        // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
+        // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
+        // instead of leaking raw text into the outcome handle
+        Object upper = ((String)outcome).toUpperCase();
+        Object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Object chars = this.stringToCharsArray(upper);
+        Object label = "";
+        Object pendingSep = false;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
+        {
+            Object ch = Helpers.GetValue(chars, i);
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(label, "")))))
+                {
+                    label = Helpers.add(label, "_");
+                }
+                label = Helpers.add(label, ch);
+                pendingSep = false;
+            } else
+            {
+                pendingSep = true;
+            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(label, "")))
+        {
+            // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
+            label = upper;
+        }
+        return Helpers.add(Helpers.add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), label);
     }
 
     public Object setMarkets(Object markets, Object... optionalArgs)
     {
+        // prediction market rows carry only the unified `market` handle — `symbol` is
+        // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
+        // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
-        Object result = super.setMarkets(markets, currencies);
+        Object marketsList = this.toArray(markets);
+        Object aliased = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketsList)); i++)
+        {
+            Object row = Helpers.GetValue(marketsList, i);
+            Object copy = this.extend(new java.util.HashMap<String, Object>() {{}}, row);
+            Helpers.addElementToObject(copy, "symbol", this.safeString2(row, "market", "symbol"));
+            ((java.util.List<Object>)aliased).add(copy);
+        }
+        super.setMarkets(aliased, currencies);
+        // strip the alias back off the stored rows — venues assemble user-visible event
+        // structures from this.markets (hyperliquid groups its outcome markets that way),
+        // so a leftover 'symbol' key would leak the deprecated field back to the caller
+        Object marketKeys = Helpers.objectKeys(this.markets);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
+        {
+            Object key = Helpers.GetValue(marketKeys, i);
+            Helpers.addElementToObject(this.markets, key, this.omit(Helpers.GetValue(this.markets, key), "symbol"));
+        }
         this.populateOutcomes();
-        return result;
+        return this.markets;
     }
 
     public void indexMarketOutcomes(Object market)
@@ -751,10 +802,10 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
             Object m = Helpers.GetValue(markets, i);
-            Object symbol = this.safeString(m, "symbol");
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Object marketHandle = this.safeString2(m, "market", "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(marketHandle, null)))
             {
-                Helpers.addElementToObject(this.markets, symbol, m);
+                Helpers.addElementToObject(this.markets, marketHandle, m);
             }
         }
         this.populateOutcomes();
@@ -911,7 +962,7 @@ public Object describe()
         {
             return null;
         }
-        // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
         Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
         Object rawWords = Helpers.split(normalized, "_");
         Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -922,7 +973,7 @@ public Object describe()
             Object word = Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(word), 0)))
+            if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
             {
                 continue;
             }

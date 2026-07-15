@@ -72,7 +72,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "1M", "1M" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://hyperliquid.xyz/favicon.ico" );
+                put( "logo", "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.hyperliquid.xyz" );
                     put( "private", "https://api.hyperliquid.xyz" );
@@ -240,7 +240,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @ignore
      * @method
      * @name hyperliquid#buildOutcomeSymbol
-     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
+     * @description builds a human-readable outcome from a parsed description and side, e.g. BTC_ABOVE_78213_20260503:YES for side 0 and BTC_ABOVE_78213_20260503:NO for side 1
      * @param {object} desc parsed outcome description
      * @param {int} side outcome side, 0 = YES, 1 = NO
      * @param {int} outcomeId integer outcome id
@@ -257,11 +257,11 @@ public class HyperliquidCore extends HyperliquidApi
         Object base = ((String)underlying).toUpperCase();
         if (Helpers.isTrue(targetPrice))
         {
-            base = Helpers.add(Helpers.add(base, "-ABOVE-"), targetPrice);
+            base = Helpers.add(Helpers.add(base, "_ABOVE_"), targetPrice);
         }
         if (Helpers.isTrue(expiryDate))
         {
-            base = Helpers.add(Helpers.add(base, "-"), expiryDate);
+            base = Helpers.add(Helpers.add(base, "_"), expiryDate);
         }
         return Helpers.add(Helpers.add(base, ":"), label);
     }
@@ -269,45 +269,8 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @ignore
      * @method
-     * @name hyperliquid#slugifyUpper
-     * @description converts a name into an upper-case slug of alphanumeric parts joined by hyphens
-     * @param {string} name the raw name to slugify
-     * @returns {string} the upper-case slug
-     */
-    public Object slugifyUpper(Object name)
-    {
-        Object upper = ((Helpers.isTrue((Helpers.isEqual(name, null))))) ? "" : ((String)name).toUpperCase();
-        Object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Object chars = this.stringToCharsArray(upper);
-        Object s = "";
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
-        {
-            Object ch = Helpers.GetValue(chars, i);
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
-            {
-                s = Helpers.add(s, ch);
-            } else
-            {
-                s = Helpers.add(s, "-");
-            }
-        }
-        Object rawParts = Helpers.split(s, "-");
-        Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
-        {
-            if (Helpers.isTrue(Helpers.isGreaterThan(((String)Helpers.GetValue(rawParts, i)).length(), 0)))
-            {
-                ((java.util.List<Object>)parts).add(Helpers.GetValue(rawParts, i));
-            }
-        }
-        return String.join((String)"-", (java.util.List<String>)parts);
-    }
-
-    /**
-     * @ignore
-     * @method
      * @name hyperliquid#buildOutcomeParentSymbol
-     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
+     * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
      * @param {int} outcomeId integer outcome id
      * @param {string} [name] outcome name
@@ -327,11 +290,11 @@ public class HyperliquidCore extends HyperliquidApi
             Object base = ((String)underlying).toUpperCase();
             if (Helpers.isTrue(targetPrice))
             {
-                base = Helpers.add(Helpers.add(base, "-ABOVE-"), targetPrice);
+                base = Helpers.add(Helpers.add(base, "_ABOVE_"), targetPrice);
             }
             if (Helpers.isTrue(expiryDate))
             {
-                base = Helpers.add(Helpers.add(base, "-"), expiryDate);
+                base = Helpers.add(Helpers.add(base, "_"), expiryDate);
             }
             return base;
         }
@@ -368,19 +331,19 @@ public class HyperliquidCore extends HyperliquidApi
                         Object bucketLabel = null;
                         if (Helpers.isTrue(Helpers.isLessThanOrEqual(index, 0)))
                         {
-                            bucketLabel = Helpers.add("BELOW-", Helpers.GetValue(thresholds, 0));
+                            bucketLabel = Helpers.add("BELOW_", Helpers.GetValue(thresholds, 0));
                         } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(index, thresholdsLength)))
                         {
                             Object lastIdx = Helpers.subtract(thresholdsLength, 1);
-                            bucketLabel = Helpers.add("ABOVE-", Helpers.GetValue(thresholds, lastIdx));
+                            bucketLabel = Helpers.add("ABOVE_", Helpers.GetValue(thresholds, lastIdx));
                         } else
                         {
-                            bucketLabel = Helpers.add(Helpers.add(Helpers.add("BETWEEN-", Helpers.GetValue(thresholds, Helpers.subtract(index, 1))), "-"), Helpers.GetValue(thresholds, index));
+                            bucketLabel = Helpers.add(Helpers.add(Helpers.add("BETWEEN_", Helpers.GetValue(thresholds, Helpers.subtract(index, 1))), "_"), Helpers.GetValue(thresholds, index));
                         }
-                        Object base = Helpers.add(Helpers.add(((String)questionUnderlying).toUpperCase(), "-"), bucketLabel);
+                        Object base = Helpers.add(Helpers.add(((String)questionUnderlying).toUpperCase(), "_"), bucketLabel);
                         if (Helpers.isTrue(expiryDate))
                         {
-                            base = Helpers.add(Helpers.add(base, "-"), expiryDate);
+                            base = Helpers.add(Helpers.add(base, "_"), expiryDate);
                         }
                         return base;
                     }
@@ -388,10 +351,10 @@ public class HyperliquidCore extends HyperliquidApi
                 Object isFallbackLike = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawDescription, "other"))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(nameLower, "fallback"), 0)))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(nameLower, "other"), 0)));
                 if (Helpers.isTrue(Helpers.isTrue(questionUnderlying) && Helpers.isTrue(isFallbackLike)))
                 {
-                    Object base = Helpers.add(((String)questionUnderlying).toUpperCase(), "-OTHER");
+                    Object base = Helpers.add(((String)questionUnderlying).toUpperCase(), "_OTHER");
                     if (Helpers.isTrue(expiryDate))
                     {
-                        base = Helpers.add(Helpers.add(base, "-"), expiryDate);
+                        base = Helpers.add(Helpers.add(base, "_"), expiryDate);
                     }
                     return base;
                 }
@@ -400,14 +363,14 @@ public class HyperliquidCore extends HyperliquidApi
         Object questionName = this.safeString(question, "name");
         if (Helpers.isTrue(questionName))
         {
-            Object questionSlug = this.slugifyUpper(questionName);
+            Object questionSlug = this.shortenSlug(questionName);
             if (Helpers.isTrue(questionSlug))
             {
-                Object outcomeSlug = this.slugifyUpper(name);
+                Object outcomeSlug = this.shortenSlug(name);
                 Object genericOutcomeNames = new java.util.HashMap<String, Object>() {{
                     put( "RECURRING", true );
-                    put( "RECURRING-FALLBACK", true );
-                    put( "RECURRING-NAMED-OUTCOME", true );
+                    put( "RECURRING_FALLBACK", true );
+                    put( "RECURRING_NAMED_OUTCOME", true );
                 }};
                 if (Helpers.isTrue(Helpers.inOp(genericOutcomeNames, outcomeSlug)))
                 {
@@ -421,17 +384,17 @@ public class HyperliquidCore extends HyperliquidApi
                 }
                 if (Helpers.isTrue(outcomeSlug))
                 {
-                    return Helpers.add(Helpers.add(Helpers.add(Helpers.add(questionSlug, "-"), outcomeSlug), "-"), String.valueOf(outcomeId));
+                    return Helpers.add(Helpers.add(Helpers.add(Helpers.add(questionSlug, "_"), outcomeSlug), "_"), String.valueOf(outcomeId));
                 }
-                return Helpers.add(Helpers.add(questionSlug, "-"), String.valueOf(outcomeId));
+                return Helpers.add(Helpers.add(questionSlug, "_"), String.valueOf(outcomeId));
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (Helpers.isTrue(name))
         {
-            return Helpers.add(Helpers.add(this.slugifyUpper(name), "-"), String.valueOf(outcomeId));
+            return Helpers.add(Helpers.add(this.shortenSlug(name), "_"), String.valueOf(outcomeId));
         }
-        return Helpers.add("OUTCOME-", String.valueOf(outcomeId));
+        return Helpers.add("OUTCOME_", String.valueOf(outcomeId));
     }
 
     /**
@@ -634,9 +597,9 @@ public class HyperliquidCore extends HyperliquidApi
 }}));
         final Object finalExpiryMs = expiryMs;
         final Object finalExpiryDatetime = expiryDatetime;
-        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        Object marketRow = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", String.valueOf(outcomeId) );
-            put( "symbol", finalParentSymbol );
+            put( "market", finalParentSymbol );
             put( "base", Helpers.GetValue(Helpers.split(finalParentSymbol, "/"), 0) );
             put( "quote", quoteCurrency );
             put( "settle", null );
@@ -694,6 +657,9 @@ public class HyperliquidCore extends HyperliquidApi
             }}) );
             put( "created", null );
         }});
+        // omit the deprecated 'symbol' key the safeMarketStructure template injects —
+        // prediction market rows carry only the unified 'market' handle
+        return this.omit(marketRow, "symbol");
     }
 
     /**
@@ -731,7 +697,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @name hyperliquid#fetchTicker
      * @description fetches a ticker for a single outcome market using the L2 order book snapshot
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
-     * @param {string} outcome unified outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
+     * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
@@ -2225,7 +2191,7 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @method
      * @name hyperliquid#fetchEvents
-     * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+     * @description Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
      * @param {object} [params] extra parameters
      * @param {string} [params.query] a single query string to filter by (matches description/outcome)
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
@@ -2262,15 +2228,15 @@ public class HyperliquidCore extends HyperliquidApi
                     continue;
                 }
                 Object info = this.safeDict(((Object)mkt), "info", new java.util.HashMap<String, Object>() {{}});
-                Object parentSymbol = this.safeString(info, "parentSymbol", this.safeString(mkt, "symbol"));
+                Object parentSymbol = this.safeString(info, "parentSymbol", this.safeString2(((Object)mkt), "market", "symbol"));
                 // Apply query filter
                 if (Helpers.isTrue(Helpers.isGreaterThan(lowerQueriesLength, 0)))
                 {
                     Object description = ((String)this.safeString(info, "description", "")).toLowerCase();
                     Object parentSymbolOrEmpty = ((Helpers.isTrue((!Helpers.isEqual(parentSymbol, null))))) ? parentSymbol : "";
                     Object symLower = ((String)parentSymbolOrEmpty).toLowerCase();
-                    // the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
-                    // and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                    // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
+                    // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                     Object haystack = Helpers.add(Helpers.add(description, " "), symLower);
                     Object matches = false;
                     for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(lowerQueries)); qi++)
@@ -2303,7 +2269,12 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     Helpers.addElementToObject(groupMap, parentSymbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
-                ((java.util.List<Object>)(java.util.List<Object>)(Helpers.GetValue(groupMap, parentSymbol))).add(mkt);
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on groupMap[parentSymbol] loses the element in go
+                Object parentMarkets = (java.util.List<Object>)(Helpers.GetValue(groupMap, parentSymbol));
+                ((java.util.List<Object>)parentMarkets).add(mkt);
+                Helpers.addElementToObject(groupMap, parentSymbol, parentMarkets);
             }
             Object events = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object groupKeys = Helpers.objectKeys(groupMap);

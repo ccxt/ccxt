@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -12,7 +13,7 @@ import io.github.ccxt.base.Precise;
 
 public class TestCreateOrder extends BaseTest {
     // ----------------------------------------------------------------------------
-    public Object tcoDebug(Exchange exchange, Object symbol, Object message)
+    public Object tcoDebug(BaseExchange exchange, Object symbol, Object message)
     {
         // just for debugging purposes
         Object debugCreateOrder = true;
@@ -25,7 +26,7 @@ public class TestCreateOrder extends BaseTest {
         return true;
     }
     // ----------------------------------------------------------------------------
-    public java.util.concurrent.CompletableFuture<Object> testCreateOrder(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testCreateOrder(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -37,7 +38,7 @@ public class TestCreateOrder extends BaseTest {
         Object market = exchange.market(symbol);
         Object isSwapFuture = Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"));
         Assert(Helpers.GetValue(exchange.has, "fetchBalance"), Helpers.add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
-        Object balance = (exchange.fetchBalance()).join();
+        Object balance = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
         Object initialBaseBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "base")), "free");
         Object initialQuoteBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "quote")), "free");
         Assert(!Helpers.isEqual(initialQuoteBalance, null), Helpers.add(Helpers.add(Helpers.add(logPrefix, " - testing account not have balance of"), Helpers.GetValue(market, "quote")), " in fetchBalance() which is required to test"));
@@ -71,7 +72,7 @@ public class TestCreateOrder extends BaseTest {
 
     }
     // ----------------------------------------------------------------------------
-    public java.util.concurrent.CompletableFuture<Object> tcoCreateUnfillableOrder(Exchange exchange, Object market, Object logPrefix2, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSell2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> tcoCreateUnfillableOrder(BaseExchange exchange, Object market, Object logPrefix2, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSell2, Object... optionalArgs)
     {
         final Object logPrefix3 = logPrefix2;
         final Object bestBid3 = bestBid2;
@@ -132,7 +133,7 @@ public class TestCreateOrder extends BaseTest {
         });
 
     }
-    public java.util.concurrent.CompletableFuture<Object> tcoCreateFillableOrder(Exchange exchange, Object market, Object logPrefix, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSellString2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> tcoCreateFillableOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSellString2, Object... optionalArgs)
     {
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
@@ -181,7 +182,7 @@ public class TestCreateOrder extends BaseTest {
         });
 
     }
-    public Object tcoAssertFilledOrder(Exchange exchange, Object market, Object logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, Object requestedSide, Object requestedAmount)
+    public Object tcoAssertFilledOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, Object requestedSide, Object requestedAmount)
     {
         // test filled amount
         Object precisionAmount = exchange.safeString(Helpers.GetValue(market, "precision"), "amount");
@@ -203,7 +204,7 @@ public class TestCreateOrder extends BaseTest {
         return true;
     }
     // ----------------------------------------------------------------------------
-    public java.util.concurrent.CompletableFuture<Object> tcoCancelOrder(Exchange exchange, Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> tcoCancelOrder(BaseExchange exchange, Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -215,11 +216,11 @@ public class TestCreateOrder extends BaseTest {
         if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrder")) && Helpers.isTrue(!Helpers.isEqual(orderId, null))))
         {
             usedMethod = "cancelOrder";
-            cancelResult = (exchange.cancelOrder(orderId, symbol)).join();
+            cancelResult = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelOrder", new Object[]{orderId, symbol})).join();
         } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelAllOrders")))
         {
             usedMethod = "cancelAllOrders";
-            cancelResult = (exchange.cancelAllOrders(symbol)).join();
+            cancelResult = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "cancelAllOrders", new Object[]{symbol})).join();
         } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrders")))
         {
             throw new RuntimeException((String)Helpers.add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
@@ -234,7 +235,7 @@ public class TestCreateOrder extends BaseTest {
     }
     // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
-    public java.util.concurrent.CompletableFuture<Object> tcoCreateOrderSafe(Exchange exchange, Object symbol, Object orderType2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> tcoCreateOrderSafe(BaseExchange exchange, Object symbol, Object orderType2, Object side, Object amount, Object... optionalArgs)
     {
         final Object orderType3 = orderType2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -243,7 +244,7 @@ public class TestCreateOrder extends BaseTest {
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object skippedProperties = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         tcoDebug(exchange, symbol, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Executing createOrder ", orderType), " "), side), " "), amount), " "), price), " "), exchange.json(parameters)));
-        Object order = (exchange.createOrder(symbol, orderType, side, amount, price, parameters)).join();
+        Object order = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{symbol, orderType, side, amount, price, parameters})).join();
         try
         {
             TestOrder.testOrder(exchange, skippedProperties, "createOrder", order, symbol, System.currentTimeMillis());
@@ -260,21 +261,21 @@ public class TestCreateOrder extends BaseTest {
         });
 
     }
-    public Object tcoMininumAmount(Exchange exchange, Object market)
+    public Object tcoMininumAmount(BaseExchange exchange, Object market)
     {
         Object amountValues = exchange.safeDict(Helpers.GetValue(market, "limits"), "amount", new java.util.HashMap<String, Object>() {{}});
         Object amountMin = exchange.safeNumber(amountValues, "min");
         Assert(!Helpers.isEqual(amountMin, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), Helpers.GetValue(market, "symbol")), " can not determine minimum amount for order"));
         return amountMin;
     }
-    public Object tcoMininumCost(Exchange exchange, Object market)
+    public Object tcoMininumCost(BaseExchange exchange, Object market)
     {
         Object costValues = exchange.safeDict(Helpers.GetValue(market, "limits"), "cost", new java.util.HashMap<String, Object>() {{}});
         Object costMin = exchange.safeNumber(costValues, "min");
         Assert(!Helpers.isEqual(costMin, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), Helpers.GetValue(market, "symbol")), " can not determine minimum cost for order"));
         return costMin;
     }
-    public Object tcoGetMinimumAmountForLimitPrice(Exchange exchange, Object market, Object price, Object... optionalArgs)
+    public Object tcoGetMinimumAmountForLimitPrice(BaseExchange exchange, Object market, Object price, Object... optionalArgs)
     {
         // this method calculates the minimum realistic order amount:
         // at first it checks the "minimum hardcap limit" (i.e. 7 DOGE), however, if exchange also has "minimum cost" limits,
@@ -314,7 +315,7 @@ public class TestCreateOrder extends BaseTest {
         finalAmount = Helpers.parseFloat(exchange.decimalToPrecision(finalAmount, 2, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
         return finalAmount;
     }
-    public java.util.concurrent.CompletableFuture<Object> tcoTryCancelOrder(Exchange exchange, Object symbol, Object order, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> tcoTryCancelOrder(BaseExchange exchange, Object symbol, Object order, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

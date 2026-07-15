@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchCurrencies extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchCurrencies(Exchange exchange, Object skippedProperties)
+    public java.util.concurrent.CompletableFuture<Object> testFetchCurrencies(BaseExchange exchange, Object skippedProperties)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchCurrencies";
-        Object currencies = (exchange.fetchCurrencies()).join();
+        Object currencies = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{})).join();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         Object numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
@@ -67,7 +68,7 @@ public class TestFetchCurrencies extends BaseTest {
         });
 
     }
-    public Object detectCurrencyConflicts(Exchange exchange, Object currencyValues)
+    public Object detectCurrencyConflicts(BaseExchange exchange, Object currencyValues)
     {
         // detect if there are currencies with different ids for the same code
         Object ids = new java.util.HashMap<String, Object>() {{}};
