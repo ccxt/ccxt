@@ -100,6 +100,8 @@ function headingSlugs (md: string): Set<string> {
 // Build anchor index from Manual + pro-manual (the two pages that own structure anchors).
 let MANUAL_ANCHORS = new Set<string>();
 let PRO_ANCHORS = new Set<string>();
+// prediction structure anchors (PredictionEvent, …) live in the prediction guide, not the Manual
+let PREDICTION_ANCHORS = new Set<string>();
 
 // The English exchanges table is generated from ts/src (by export-exchanges, between these
 // markers). Translations carry a frozen copy that drifts — stale referrals, removed
@@ -132,6 +134,8 @@ function resolveAnchorPage (anchor: string): string {
     const slug = anchor.toLowerCase();
     if (MANUAL_ANCHORS.has(slug)) return 'manual';
     if (PRO_ANCHORS.has(slug)) return 'pro-manual';
+    // prediction structures (prediction-event-structure, …) are documented in the prediction guide
+    if (PREDICTION_ANCHORS.has(slug) || slug.startsWith('prediction-')) return 'prediction';
     return 'manual';                                          // default: structure anchors live in Manual
 }
 
@@ -455,6 +459,7 @@ function main () {
     // anchor index for ?id= resolution
     try { MANUAL_ANCHORS = headingSlugs(readWiki('Manual.md')); } catch {}
     try { PRO_ANCHORS = headingSlugs(readWiki('ccxt.pro.manual.md')); } catch {}
+    try { PREDICTION_ANCHORS = headingSlugs(readWiki('Prediction-Markets.md')); } catch {}
 
     let count = 0;
 
