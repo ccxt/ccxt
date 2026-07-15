@@ -12,7 +12,7 @@ func TestFetchOpenOrders(exchange ccxt.ICoreExchange, skippedProperties any, sym
 		defer ReturnPanicError(ch)
 		var method any = "fetchOpenOrders"
 
-		orders := (<-exchange.FetchOpenOrders(symbol))
+		orders := (<-exchange.(ccxt.IFetchOpenOrders).FetchOpenOrders(symbol))
 		PanicOnError(orders)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
 		var now any = exchange.Milliseconds()

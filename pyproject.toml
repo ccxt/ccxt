@@ -138,6 +138,31 @@ ccxt = [
     "static_dependencies/lighter_client/*",
 ]
 
+# Redirect setuptools' intermediate build tree away from the repo-root `build/`
+# directory (which holds the JS/TS build scripts). Without this, `python -m build`
+# writes into `build/lib/ccxt/` by default, which collides with that tree and was
+# once committed by the release workflow's `git add . -A`.
+# Formerly setup.cfg [build] build_base; single source of truth is pyproject.toml.
+[tool.distutils.build]
+build_base = "python/build"
+
+# Formerly setup.cfg [flake8]. Primary Python lint is Ruff ([tool.ruff] below);
+# kept for any flake8 invocation that supports pyproject (e.g. flake8-pyproject).
+[tool.flake8]
+ignore = ["E501"]
+exclude = [
+    ".ropeproject",
+    ".tox",
+    ".eggs",
+    ".git",
+    "__pycache__",
+    "node_modules",
+    ".nyc_output",
+    "build",
+    "tmp",
+    "ccxt.py",
+]
+
 [tool.ruff]
 preview = true
 select = ["W", "F", "E"]

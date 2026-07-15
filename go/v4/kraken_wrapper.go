@@ -690,7 +690,7 @@ func (this *Kraken) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**

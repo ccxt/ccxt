@@ -12,6 +12,10 @@ use ccxt\NetworkError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bingx extends \ccxt\async\bingx {
     public function describe(): mixed {

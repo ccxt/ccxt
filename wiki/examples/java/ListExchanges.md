@@ -1,7 +1,7 @@
 ```java
 package examples;
 
-import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 
 import java.util.Map;
 
@@ -21,7 +21,7 @@ public class ListExchanges {
 
         System.out.println("--- " + exchangeId + " details ---\n");
 
-        Exchange exchange = Exchange.dynamicallyCreateInstance(exchangeId, null);
+        BaseExchange exchange = BaseExchange.dynamicallyCreateInstance(exchangeId, null);
 
         System.out.println("ID:          " + exchange.id);
         System.out.println("Version:     " + exchange.version);

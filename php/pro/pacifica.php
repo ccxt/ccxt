@@ -10,6 +10,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class pacifica extends \ccxt\async\pacifica {
     public function describe(): mixed {

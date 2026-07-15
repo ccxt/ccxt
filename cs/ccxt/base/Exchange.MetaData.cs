@@ -1,7 +1,7 @@
 namespace ccxt;
 
 // file updated automatically by vss and export-exchanges
-public partial class Exchange
+public partial class BaseExchange
 {
     public static string ccxtVersion = "4.5.65";
 

@@ -13,6 +13,9 @@ use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class poloniex extends \ccxt\async\poloniex {
     public function describe(): mixed {

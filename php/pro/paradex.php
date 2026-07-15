@@ -8,6 +8,8 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class paradex extends \ccxt\async\paradex {
     public function describe(): mixed {

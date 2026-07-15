@@ -53,9 +53,9 @@ response := <-luno.ExchangeGetMarkets(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official luno API documentation:** [luno.com](https://www.luno.com/en/api) · [npmjs.org](https://npmjs.org/package/bitx) · [github.com](https://github.com/bausmeier/node-bitx)
+📚 **Official luno API documentation:** [luno.com](https://www.luno.com/en/developers/api) · [npmjs.org](https://npmjs.org/package/bitx) · [github.com](https://github.com/bausmeier/node-bitx)
 
-> 34 implicit endpoints across 4 access groups.
+> 40 implicit endpoints across 4 access groups.
 
 ## exchange
 
@@ -72,6 +72,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `exchangePrivateGetCandles` | GET | `candles` | 1 |
+| `exchangePrivateGetMove` | GET | `move` | 1 |
+| `exchangePrivateGetMoveListMoves` | GET | `move/list_moves` | 1 |
+| `exchangePrivateGetTransfers` | GET | `transfers` | 1 |
+| `exchangePrivatePostConvert` | POST | `convert` | 1 |
+| `exchangePrivatePostMove` | POST | `move` | 1 |
 
 ## public
 
@@ -105,6 +110,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetWithdrawals` | GET | `withdrawals` | 1 |
 | `privateGetWithdrawalsId` | GET | `withdrawals/{id}` | 1 |
 | `privateGetTransfers` | GET | `transfers` | 1 |
+| `privateGetUsersLinked` | GET | `users/linked` | 1 |
 | `privatePostAccounts` | POST | `accounts` | 1 |
 | `privatePostAddressValidate` | POST | `address/validate` | 1 |
 | `privatePostPostorder` | POST | `postorder` | 1 |

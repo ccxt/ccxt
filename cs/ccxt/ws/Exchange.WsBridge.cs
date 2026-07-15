@@ -3,7 +3,7 @@ namespace ccxt;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;

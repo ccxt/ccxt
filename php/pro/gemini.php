@@ -11,6 +11,9 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class gemini extends \ccxt\async\gemini {
     public function describe(): mixed {

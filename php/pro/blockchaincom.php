@@ -11,6 +11,9 @@ use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class blockchaincom extends \ccxt\async\blockchaincom {
     public function describe(): mixed {

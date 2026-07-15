@@ -13,6 +13,10 @@ use ccxt\BadRequest;
 use ccxt\InvalidNonce;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class okx extends \ccxt\async\okx {
     public function describe(): mixed {

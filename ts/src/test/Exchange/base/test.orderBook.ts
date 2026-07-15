@@ -4,6 +4,10 @@ import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string | undefined) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend ({ 'symbol': true }, skippedProperties);
+    }
     const format = {
         'symbol': 'ETH/BTC',
         'asks': [

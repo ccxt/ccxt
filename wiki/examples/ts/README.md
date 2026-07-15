@@ -256,6 +256,8 @@
 
 - [Poloniex Limits Amount Min](./examples/ts/poloniex-limits-amount-min.md)
 
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/ts/prediction)
+
 - [Proxy Round Robin](./examples/ts/proxy-round-robin.md)
 
 - [Proxy Usage](./examples/ts/proxy-usage.md)

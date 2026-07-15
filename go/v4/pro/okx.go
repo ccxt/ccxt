@@ -1625,7 +1625,7 @@ func (this *OkxCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) 
 		}
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(depth, "books-l2-tbt"))) || ccxt.IsTrue((ccxt.IsEqual(depth, "books50-l2-tbt")))) {
 			if !ccxt.IsTrue(this.CheckRequiredCredentials(false)) {
-				panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. ccxt.Add credentials or change the depth option to books or books5")))
+				panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")))
 			}
 
 			retRes124812 := (<-this.Authenticate(map[string]any{
@@ -2757,7 +2757,7 @@ func (this *OkxCore) HandlePlaceOrders(client any, message any) {
 	//            "ordId": "599823446566084608",
 	//            "clOrdId": "e847386590ce4dBCb939511604f394b0",
 	//            "sCode": "0",
-	//            "sMsg": "ccxt.Order successfully placed."
+	//            "sMsg": "Order successfully placed."
 	//        },
 	//        ...
 	//        ]
@@ -2994,7 +2994,7 @@ func (this *OkxCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
 		ccxt.PanicOnError(retRes23738)
 		var market any = this.Market(symbol)
 		if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "type"), "option")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs is only applicable to ccxt.Option in Portfolio Margin mode, and MMP privilege is required.")))
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")))
 		}
 		var url any = this.GetUrl("private", "private")
 		var messageHash any = this.RequestId()
