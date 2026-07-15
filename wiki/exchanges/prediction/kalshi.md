@@ -57,7 +57,7 @@ kalshi.fetchMarkets (params?)
 fetches the current market price and bid/ask for a single kalshi outcome
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
 
 **See**: https://docs.kalshi.com/api-reference/market/get-market  
 
@@ -119,7 +119,7 @@ kalshi.fetchOpenInterest (outcome, params?)
 fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+**Returns**: <code>object</code> - a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
 
 **See**: https://docs.kalshi.com/api-reference/market/get-markets  
 
@@ -140,7 +140,7 @@ kalshi.fetchTickers (outcomes, params?)
 fetches the order book for a single kalshi outcome
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
 
 **See**: https://docs.kalshi.com/api-reference/market/get-market-orderbook  
 
@@ -186,7 +186,7 @@ kalshi.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 fetches public trade history for a single kalshi market ticker
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.kalshi.com/api-reference/market/get-trades  
 
@@ -209,7 +209,7 @@ kalshi.fetchTrades (outcome, since?, limit?, params?)
 fetch the fills (executed trades) of the authenticated kalshi user
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://trading-api.readme.io/reference/getfills  
 
@@ -252,7 +252,7 @@ kalshi.fetchBalance (params?)
 fetches open market positions for the authenticated kalshi user
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
 
 **See**: https://trading-api.readme.io/reference/getportfoliopositions  
 
@@ -296,7 +296,7 @@ kalshi.fetchSettlements (outcome?, since?, limit?, params?)
 fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/getorders  
 
@@ -319,7 +319,7 @@ kalshi.fetchOpenOrders (outcome?, since?, limit?, params?)
 fetches all orders (resting, executed and canceled) for the authenticated kalshi user
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/getorders  
 
@@ -342,7 +342,7 @@ kalshi.fetchOrders (outcome?, since?, limit?, params?)
 fetches the closed (executed or canceled) orders for the authenticated kalshi user
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/getorders  
 
@@ -365,7 +365,7 @@ kalshi.fetchClosedOrders (outcome?, since?, limit?, params?)
 fetches a single order by id from the kalshi portfolio endpoint
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/getorder  
 
@@ -387,7 +387,7 @@ kalshi.fetchOrder (id, outcome?, params?)
 places a limit or market order on kalshi for the given outcome token
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/createorder  
 
@@ -412,7 +412,7 @@ kalshi.createOrder (outcome, type, side, amount, price?, params?)
 edits a resting order by cancelling it and placing a new one with the updated terms
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/createorder  
 
@@ -438,7 +438,7 @@ kalshi.editOrder (id, outcome, type, side, amount?, price?, params?)
 cancels a single open order by id on kalshi
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/cancelorder  
 
@@ -460,7 +460,7 @@ kalshi.cancelOrder (id, outcome?, params?)
 cancels all open orders on kalshi, optionally scoped to one outcome ticker
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://trading-api.readme.io/reference/cancelorders  
 

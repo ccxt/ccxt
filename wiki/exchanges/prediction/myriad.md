@@ -90,7 +90,7 @@ myriad.fetchEvent (id, params?)
 fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-api-reference  
 
@@ -136,7 +136,7 @@ myriad.fetchTradeQuote (outcome, side, amount, params?)
 create a trade order. Myriad has two trading models: a gasless order book (CLOB) where an EIP-712 signed order is posted off-chain and settled by the operator, and an on-chain AMM. Order-book markets are used by default; the model can be forced via params.tradingModel
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528  
 
@@ -165,7 +165,7 @@ places multiple order book orders. Myriad's batch endpoint is not reliable, so t
 orders are signed and submitted sequentially (not atomically)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528  
 
@@ -187,7 +187,7 @@ edits an open order by cancelling it and placing a replacement (gasless). Myriad
 batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8  
 
@@ -213,7 +213,7 @@ myriad.editOrder (id, outcome, type, side, amount, price?, params?)
 buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 
 | Param | Type | Required | Description |
@@ -234,7 +234,7 @@ myriad.createMarketBuyOrderWithCost (outcome, cost, params?)
 cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281b58c5adb2f5998eec8  
 
@@ -277,7 +277,7 @@ myriad.cancelAllOrders (outcome?, params?)
 cancels multiple open order book orders by hash in one request (gasless)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828177961fd94a6055966f  
 
@@ -299,7 +299,7 @@ myriad.cancelOrders (ids, outcome?, params?)
 fetches a single order book order by its hash
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828116b8a0d976baea1df0  
 
@@ -321,7 +321,7 @@ myriad.fetchOrder (id, outcome?, params?)
 fetches order book orders for the wallet (or any trader passed via params.trader)
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008  
 
@@ -346,7 +346,7 @@ myriad.fetchOrders (outcome?, since?, limit?, params?)
 fetches open order book orders for the wallet
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008  
 
@@ -369,7 +369,7 @@ myriad.fetchOpenOrders (outcome?, since?, limit?, params?)
 fetches the wallet's filled order book orders
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008  
 
@@ -392,7 +392,7 @@ myriad.fetchClosedOrders (outcome?, since?, limit?, params?)
 fetches the wallet's cancelled order book orders
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008  
 
@@ -417,7 +417,7 @@ limit price, not the per-fill execution price, so the price reflects the order's
 fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008  
 
@@ -461,7 +461,7 @@ myriad.fetchBalance (params?)
 fetches the current price for a single outcome by loading the parent market
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-api-reference  
 
@@ -503,7 +503,7 @@ myriad.fetchTradingFee (outcome, params?)
 fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281bba6aaf24dd61f2bb1  
 
@@ -549,7 +549,7 @@ myriad.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 fetches tickers for multiple outcomes, grouping requested outcomes by their parent market to fetch each market only once
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+**Returns**: <code>object</code> - a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
 
 **See**: https://docs.myriad.markets/builders/myriad-api-reference  
 
@@ -570,7 +570,7 @@ myriad.fetchTickers (outcomes, params?)
 fetches recent public trades for a single outcome from the market action feed
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-api-reference  
 
@@ -619,7 +619,7 @@ myriad.fetchEvents (params?)
 streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
@@ -641,7 +641,7 @@ myriad.watchOrderBook (outcome, limit?, params?)
 streams public trades for an outcome over the Centrifugo websocket
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
@@ -665,7 +665,7 @@ streams the wallet's own fills for a market over the Centrifugo trades channel (
 execution prices, unlike the REST fetchMyTrades); requires a market outcome since the channel is per-market
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
@@ -688,7 +688,7 @@ myriad.watchMyTrades (outcome, since?, limit?, params?)
 streams best bid/ask/last for an outcome over the Centrifugo prices channel
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
@@ -709,7 +709,7 @@ myriad.watchTicker (outcome, params?)
 streams best bid/ask/last for several outcomes over the Centrifugo prices channels
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+**Returns**: <code>object</code> - a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
@@ -754,7 +754,7 @@ myriad.watchOHLCV (outcome, timeframe, since?, limit?, params?)
 streams the wallet's order lifecycle updates over the Centrifugo orders channel
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
@@ -777,7 +777,7 @@ myriad.watchOrders (outcome?, since?, limit?, params?)
 streams the wallet's share-balance changes over the Centrifugo positions channel
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
