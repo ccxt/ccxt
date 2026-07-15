@@ -1424,7 +1424,7 @@ class gate(Exchange, ImplicitAPI):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                # Fee is in %, so divide by 100
+                # fee is in %, so divide by 100
                 'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                 'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                 'contractSize': None,
