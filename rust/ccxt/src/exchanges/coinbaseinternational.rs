@@ -2765,7 +2765,7 @@ impl CoinbaseinternationalCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("time_from".to_string()), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        let mut until: Value = self.safe_string_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("ref_datetime".to_string()), self.iso8601(until.clone()));

@@ -436,6 +436,38 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Remove a whole `pub (async )?fn <snakeName>(...) { ... }` method block
+     * from generated Rust. Used to drop transpiled base methods that we keep
+     * as hand-written stubs in `exchange_stubs.rs` instead (e.g. the WS-only
+     * `loadOrderBook`, whose body uses `client`/orderbook-cache constructs that
+     * don't belong in — and don't parse cleanly for — the REST base). Returns
+     * the content unchanged if the method isn't found. Brace-balanced so a
+     * `{` inside the body/docstring doesn't cut the block short.
+     */
+    /**
+     * Base methods that stay hand-written in `exchange_stubs.rs` and must be
+     * stripped from the transpiled `exchange_generated.rs` to avoid duplicate
+     * definitions. `load_order_book` is a WS-only orderbook-cache helper whose
+     * transpiled body doesn't belong in the REST base.
+     */
+    baseMethodsKeptAsStubs(): string[] {
+        return ['load_order_book'];
+    }
+
+    stripBaseMethod(content: string, snakeName: string): string {
+        const re = new RegExp(`\\n[ \\t]*pub (?:async )?fn ${snakeName}\\s*\\(`, 'g');
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            const braceIdx = content.indexOf('{', m.index + m[0].length);
+            if (braceIdx < 0) break;
+            const endIdx = this.findMatchingBrace(content, braceIdx); // index of matching `}`
+            content = content.slice(0, m.index) + content.slice(endIdx + 1);
+            re.lastIndex = m.index; // continue scan from the splice point
+        }
+        return content;
+    }
+
+    /**
      * Rust forbids a direct cycle of `async fn`s (the future would be
      * infinitely sized) — `error[E0733]: recursion in an async fn
      * requires boxing`. When an exchange file contains a cycle of async
@@ -5508,6 +5540,7 @@ impl std::ops::DerefMut for ${coreName} {
         const firstFnIdx = basePart.indexOf('    pub fn');
         if (firstFnIdx > 0) basePart = basePart.slice(firstFnIdx);
 
+
         // Collect async methods (transpiler strips `async`; we re-add it)
         const asyncMethods = new Set<string>(
             (result.methodsTypes || [])
@@ -5620,6 +5653,16 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.injectVirtualDispatchPreamble(basePart);
         basePart = this.injectAsyncDispatchPreamble(basePart);
 
+        // Drop base methods we keep as hand-written stubs in `exchange_stubs.rs`.
+        // `loadOrderBook` is a WS-only helper (its body uses the WS `client`,
+        // `stored['cache'].length = 0`, etc.) that the prediction merge moved
+        // into the `Exchange` subclass; the REST base only needs the stub. Strip
+        // it from `basePart` *before* the wrap so `emitCallDynamicForBase` (which
+        // reads `basePart`) also omits its dispatch entry.
+        for (const skip of this.baseMethodsKeptAsStubs()) {
+            basePart = this.stripBaseMethod(basePart, skip);
+        }
+
         // Drop the trailing class-closing `}` — the transpiler emitted
         // the methods inside `impl Exchange { ... }`, and we re-wrap them
         // in our own `impl Exchange { ... }` below.
@@ -5656,6 +5699,25 @@ impl std::ops::DerefMut for ${coreName} {
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.rewriteJavaReqAliases(finalFile);
+
+        // Since the prediction merge, `Exchange.ts` declares TWO classes:
+        //   `export class BaseExchange { ... }`  (holds the transpile marker)
+        //   `export default class Exchange extends BaseExchange { ... }`
+        // The AST transpiler emits the second class as its own
+        //   `}\n#[derive(Debug, Clone)]\npub struct Exchange { pub fn new() -> Self { Exchange {} } <methods> }`
+        // which, spliced into our single `impl Exchange { ... }` wrapper, closes
+        // the impl early and re-declares the struct (E0255 + "functions are not
+        // allowed in struct definitions"). Fold the subclass's methods back into
+        // the one base impl by deleting the BaseExchange struct-closing brace,
+        // the `#[derive]`/`pub struct Exchange {` header, and the empty `new()`
+        // constructor. Rust flattens the TS class chain (every Core `Deref`s to
+        // a single `Exchange`), so the subclass's not-supported stubs just
+        // become more methods on the base.
+        finalFile = finalFile.replace(
+            /\n\}\n(?:#\[derive\([^)]*\)\]\n)?pub struct Exchange \{\s*pub fn new\(\) -> Self \{\s*Exchange \{\s*\}\s*\}\n/,
+            '\n',
+        );
+
         fs.writeFileSync(BASE_METHODS_FILE, finalFile);
         log.green('Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
     }

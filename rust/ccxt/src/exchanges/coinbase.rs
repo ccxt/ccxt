@@ -4709,7 +4709,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
@@ -4803,7 +4803,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
@@ -5000,7 +5000,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("granularity".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("until".to_string()), Value::Str("end".to_string())]), &[]);
+        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("end".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut requestedDuration: Value = multiply(&limit, &duration);
@@ -5175,7 +5175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_sequence_timestamp".to_string()), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_sequence_timestamp".to_string()), self.iso8601(until.clone()));

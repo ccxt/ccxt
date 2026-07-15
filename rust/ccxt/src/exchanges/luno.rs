@@ -375,7 +375,7 @@ impl LunoCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.luno.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.luno.com/en/api".to_string()), Value::Str("https://npmjs.org/package/bitx".to_string()), Value::Str("https://github.com/bausmeier/node-bitx".to_string())]));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.luno.com/en/developers/api".to_string()), Value::Str("https://npmjs.org/package/bitx".to_string()), Value::Str("https://github.com/bausmeier/node-bitx".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -394,6 +394,15 @@ impl LunoCore {
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("candles".to_string(), Value::Int(1));
+        m.insert("move".to_string(), Value::Int(1));
+        m.insert("move/list_moves".to_string(), Value::Int(1));
+        m.insert("transfers".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("convert".to_string(), Value::Int(1));
+        m.insert("move".to_string(), Value::Int(1));
     m
 }));
     m
@@ -429,6 +438,7 @@ impl LunoCore {
         m.insert("withdrawals".to_string(), Value::Int(1));
         m.insert("withdrawals/{id}".to_string(), Value::Int(1));
         m.insert("transfers".to_string(), Value::Int(1));
+        m.insert("users/linked".to_string(), Value::Int(1));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -482,6 +492,108 @@ impl LunoCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0".to_string()), &[]));
+    m
+}));
+    m
+}));
+        m.insert("exceptions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ErrAccountIsMigrating".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrAccountLimit".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrAccountNotFound".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("ErrAccountsNotDifferent".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrActiveCryptoRequestExists".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrAddressCreateRateLimitReached".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("ErrAddressLimitReached".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrAmountTooBig".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrAmountTooSmall".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrApiKeyRevoked".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("ErrBeneficiaryNotFound".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("ErrBlockedSendsCurrency".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrCannotStopUnknownOrNonPendingOrder".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrCannotTradeWhileQuoteActive".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrConvertPairNotSupported".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrConvertRateLimited".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("ErrCounterDenominationNotAllowed".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrCreditAccountNotTransactional".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrCustomRefNotAllowed".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrDeadlineExceeded".to_string(), Value::Str("RequestTimeout".to_string()).clone());
+        m.insert("ErrDebitAccountNotTransactional".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrDescriptionTooLong".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrDifferentCurrencies".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrDisallowedTarget".to_string(), Value::Str("InvalidAddress".to_string()).clone());
+        m.insert("ErrDuplicateClientMoveID".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrDuplicateClientOrderID".to_string(), Value::Str("DuplicateOrderId".to_string()).clone());
+        m.insert("ErrDuplicateExternalID".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrERC20AddressAlreadyAssigned".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrERC20AssignNonDefault".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrFundsMoveNotFound".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("ErrIdempotencyKeyConflict".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrIdempotencyKeyRequestMismatch".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrIncompatibleBeneficiary".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrIncorrectPin".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("ErrInsufficientBalance".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("ErrInsufficientFunds".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
+        m.insert("ErrInsufficientPerms".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("ErrInternal".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
+        m.insert("ErrInvalidAccount".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidAccountID".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidAccountNumber".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidAmount".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidArguments".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidBaseVolume".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidBranchCode".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidClientOrderId".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidCounterVolume".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidCurrency".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidDetails".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidMarketPair".to_string(), Value::Str("BadSymbol".to_string()).clone());
+        m.insert("ErrInvalidOrderRef".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidOrderSide".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidParameters".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidPrice".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidRequestType".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidSourceAccount".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrInvalidStopDirection".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidStopPrice".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrInvalidVolume".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrLimitOutOfRange".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrMarketNotAllowed".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("ErrMarketUnavailable".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("ErrMaxActiveFiatRequestsExists".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrMissingIdempotencyKey".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrNoAddressesAssigned".to_string(), Value::Str("InvalidAddress".to_string()).clone());
+        m.insert("ErrNoTradesToInferStopDirection".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrNotEnoughLiquidity".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrNotFound".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("ErrOrderCanceled".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrOrderNotFound".to_string(), Value::Str("OrderNotFound".to_string()).clone());
+        m.insert("ErrPostOnlyMode".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrPostOnlyNotAllowed".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrPriceDenominationNotAllowed".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrPriceTooHigh".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrPriceTooLow".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrRejectedBeneficiary".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("ErrRequestTypeDoesNotSupportFastWithdrawals".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrStopPriceTooHigh".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrStopPriceTooLow".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrTooManyRequests".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
+        m.insert("ErrTooManyRowsRequested".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("ErrTravelRule".to_string(), Value::Str("ManualInteractionNeeded".to_string()).clone());
+        m.insert("ErrUnauthorised".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("ErrUnderMaintenance".to_string(), Value::Str("OnMaintenance".to_string()).clone());
+        m.insert("ErrUpdateRequired".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("ErrUserBlockedForCancelWithdrawal".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("ErrUserNotVerifiedForCurrency".to_string(), Value::Str("AccountNotEnabled".to_string()).clone());
+        m.insert("ErrValueTooHigh".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrVerificationLevelTooLow".to_string(), Value::Str("AccountNotEnabled".to_string()).clone());
+        m.insert("ErrVolumeDenominationNotAllowed".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrVolumeTooHigh".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrVolumeTooLow".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("ErrWithdrawalBlocked".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("ErrWithdrawalNotFound".to_string(), Value::Str("ExchangeError".to_string()).clone());
     m
 }));
     m
@@ -605,6 +717,7 @@ impl LunoCore {
  * @method
  * @name luno#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
  * @param {dict} [params] extra parameters specific to the exchange API endpoint
  * @returns {dict} an associative dictionary of currencies
  */
@@ -649,8 +762,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_864: bool = true;
-            while { if !__for_first_864 { i = add(&i, &Value::Int(1)); } __for_first_864 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut __for_first_878: bool = true;
+            while { if !__for_first_878 { i = add(&i, &Value::Int(1)); } __for_first_878 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
@@ -757,8 +870,8 @@ impl LunoCore {
         let mut markets: Value = self.safe_value_k(response.clone(), "markets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_865: bool = true;
-            while { if !__for_first_865 { i = add(&i, &Value::Int(1)); } __for_first_865 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_879: bool = true;
+            while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -855,8 +968,8 @@ impl LunoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_866: bool = true;
-            while { if !__for_first_866 { i = add(&i, &Value::Int(1)); } __for_first_866 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_880: bool = true;
+            while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut account: Value = get_value(&wallets, &i);
             let mut account: Value = get_value(&wallets, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
@@ -888,8 +1001,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_867: bool = true;
-            while { if !__for_first_867 { i = add(&i, &Value::Int(1)); } __for_first_867 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_881: bool = true;
+            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut wallet: Value = get_value(&wallets, &i);
             let mut wallet: Value = get_value(&wallets, &i);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
@@ -1276,8 +1389,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_868: bool = true;
-            while { if !__for_first_868 { i = add(&i, &Value::Int(1)); } __for_first_868 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_882: bool = true;
+            while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -1937,6 +2050,7 @@ impl LunoCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.name] an optional name for the new address
  * @param {int} [params.account_id] an optional account id for the new address
+ * @param {int} [params.network] the blockchain network id to use
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
@@ -1968,6 +2082,7 @@ impl LunoCore {
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] a specific cryptocurrency address to retrieve
+ * @param {int} [params.network] the blockchain network id to use
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
@@ -2069,7 +2184,10 @@ impl LunoCore {
         }
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         if !is_equal(&error, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(response.clone()))));
+            let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(response.clone()));
+            let mut errorCode: Value = self.safe_string_k(response.clone(), "error_code", &[]);
+            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
 

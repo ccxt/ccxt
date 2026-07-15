@@ -2136,8 +2136,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_896: bool = true;
-            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_917: bool = true;
+            while { if !__for_first_917 { i = add(&i, &Value::Int(1)); } __for_first_917 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut event: Value = get_value(&data, &i);
             let mut event: Value = get_value(&data, &i);
             let mut state: Value = self.safe_string_k(event.clone(), "state", &[]);
@@ -2248,8 +2248,8 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_897: bool = true;
-            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_918: bool = true;
+            while { if !__for_first_918 { i = add(&i, &Value::Int(1)); } __for_first_918 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "uid", &[]);
@@ -2303,16 +2303,16 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_898: bool = true;
-            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_919: bool = true;
+            while { if !__for_first_919 { i = add(&i, &Value::Int(1)); } __for_first_919 = false; is_less_than(&i, &get_array_length(&types)) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(get_value(&types, &i), &[params.clone()]).await);
         }
         }
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_899: bool = true;
-            while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_920: bool = true;
+            while { if !__for_first_920 { i = add(&i, &Value::Int(1)); } __for_first_920 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
         }
         }
@@ -2540,8 +2540,8 @@ impl OkxCore {
             let mut promises: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_900: bool = true;
-                while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &get_array_length(&optionsUnderlying)) } {
+                let mut __for_first_921: bool = true;
+                while { if !__for_first_921 { i = add(&i, &Value::Int(1)); } __for_first_921 = false; is_less_than(&i, &get_array_length(&optionsUnderlying)) } {
                 let mut underlying: Value = get_value(&optionsUnderlying, &i);
                 let mut underlying: Value = get_value(&optionsUnderlying, &i);
                 add_element_to_object(&mut request, &Value::Str("uly".to_string()), underlying.clone());
@@ -2553,8 +2553,8 @@ impl OkxCore {
             let mut markets: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_901: bool = true;
-                while { if !__for_first_901 { i = add(&i, &Value::Int(1)); } __for_first_901 = false; is_less_than(&i, &get_array_length(&promisesResult)) } {
+                let mut __for_first_922: bool = true;
+                while { if !__for_first_922 { i = add(&i, &Value::Int(1)); } __for_first_922 = false; is_less_than(&i, &get_array_length(&promisesResult)) } {
                 let mut res: Value = self.safe_dict(promisesResult.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2604,8 +2604,8 @@ impl OkxCore {
         let mut marketsWithoutTest: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_902: bool = true;
-            while { if !__for_first_902 { i = add(&i, &Value::Int(1)); } __for_first_902 = false; is_less_than(&i, &get_array_length(&dataResponse)) } {
+            let mut __for_first_923: bool = true;
+            while { if !__for_first_923 { i = add(&i, &Value::Int(1)); } __for_first_923 = false; is_less_than(&i, &get_array_length(&dataResponse)) } {
             let mut data: Value = get_value(&dataResponse, &i);
             let mut data: Value = get_value(&dataResponse, &i);
             let mut instId: Value = self.safe_string_k(data.clone(), "instId", &[Value::Str("".to_string())]);
@@ -2724,8 +2724,8 @@ impl OkxCore {
         let mut chainsLength: Value = get_array_length(&chains);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_903: bool = true;
-            while { if !__for_first_903 { j = add(&j, &Value::Int(1)); } __for_first_903 = false; is_less_than(&j, &chainsLength) } {
+            let mut __for_first_924: bool = true;
+            while { if !__for_first_924 { j = add(&j, &Value::Int(1)); } __for_first_924 = false; is_less_than(&j, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             // allow empty string for rare fiat-currencies, e.g. TRY
@@ -2870,18 +2870,11 @@ impl OkxCore {
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
-        //      {
-        //          "instType":"SWAP",
-        //          "instId":"BTC-USDT-SWAP",
-        //          "markPx":"200",
-        //          "ts":"1597026383085"
-        //      }
-        //
         //     {
-        //         "instType": "SPOT",
-        //         "instId": "ETH-BTC",
+        //         "instType": "SPOT", // SPOT, SWAP, etc
+        //         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
         //         "last": "0.07319",
-        //         "lastSz": "0.044378",
+        //         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
         //         "askPx": "0.07322",
         //         "askSz": "4.2",
         //         "bidPx": "0.0732",
@@ -2889,12 +2882,13 @@ impl OkxCore {
         //         "open24h": "0.07801",
         //         "high24h": "0.07975",
         //         "low24h": "0.06019",
-        //         "volCcy24h": "11788.887619",
+        //         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
         //         "vol24h": "167493.829229",
         //         "ts": "1621440583784",
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //
         //     {
         //          instId: 'LTC-USDT',
         //          idxPx: '65.74',
@@ -3598,8 +3592,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_904: bool = true;
-            while { if !__for_first_904 { i = add(&i, &Value::Int(1)); } __for_first_904 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_925: bool = true;
+            while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rate: Value = get_value(&data, &i);
             let mut rate: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "fundingTime", &[]);
@@ -3645,8 +3639,8 @@ impl OkxCore {
         let mut details: Value = self.safe_list_k(first.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_905: bool = true;
-            while { if !__for_first_905 { i = add(&i, &Value::Int(1)); } __for_first_905 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_926: bool = true;
+            while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut balance: Value = get_value(&details, &i);
             let mut balance: Value = get_value(&details, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -3681,8 +3675,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_906: bool = true;
-            while { if !__for_first_906 { i = add(&i, &Value::Int(1)); } __for_first_906 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_927: bool = true;
+            while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -4279,8 +4273,8 @@ impl OkxCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_907: bool = true;
-            while { if !__for_first_907 { i = add(&i, &Value::Int(1)); } __for_first_907 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_928: bool = true;
+            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -4633,8 +4627,8 @@ impl OkxCore {
             if !is_equal(&algoIds, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_908: bool = true;
-                    while { if !__for_first_908 { i = add(&i, &Value::Int(1)); } __for_first_908 = false; is_less_than(&i, &get_array_length(&algoIds)) } {
+                    let mut __for_first_929: bool = true;
+                    while { if !__for_first_929 { i = add(&i, &Value::Int(1)); } __for_first_929 = false; is_less_than(&i, &get_array_length(&algoIds)) } {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), get_value(&algoIds, &i));
@@ -4646,8 +4640,8 @@ impl OkxCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_909: bool = true;
-                while { if !__for_first_909 { i = add(&i, &Value::Int(1)); } __for_first_909 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_930: bool = true;
+                while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 if is_true(&trailing) || is_true(&trigger) {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -4668,8 +4662,8 @@ impl OkxCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_910: bool = true;
-                while { if !__for_first_910 { i = add(&i, &Value::Int(1)); } __for_first_910 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+                let mut __for_first_931: bool = true;
+                while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
                 if is_true(&trailing) || is_true(&trigger) {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -4764,8 +4758,8 @@ impl OkxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_911: bool = true;
-            while { if !__for_first_911 { i = add(&i, &Value::Int(1)); } __for_first_911 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
@@ -7053,8 +7047,8 @@ impl OkxCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_912: bool = true;
-            while { if !__for_first_912 { i = add(&i, &Value::Int(1)); } __for_first_912 = false; is_less_than(&i, &get_array_length(&leverage)) } {
+            let mut __for_first_933: bool = true;
+            while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&leverage)) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
             marginMode = self.safe_string_lower(entry.clone(), Value::Str("mgnMode".to_string()), &[]);
@@ -7199,8 +7193,8 @@ impl OkxCore {
             let mut marketIds: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_913: bool = true;
-                while { if !__for_first_913 { i = add(&i, &Value::Int(1)); } __for_first_913 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_934: bool = true;
+                while { if !__for_first_934 { i = add(&i, &Value::Int(1)); } __for_first_934 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut entry: Value = get_value(&symbols, &i);
                 let mut entry: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(entry.clone());
@@ -7275,8 +7269,8 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_914: bool = true;
-            while { if !__for_first_914 { i = add(&i, &Value::Int(1)); } __for_first_914 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { i = add(&i, &Value::Int(1)); } __for_first_935 = false; is_less_than(&i, &get_array_length(&positions)) } {
             append_to_array(&mut result, self.parse_position(get_value(&positions, &i), &[]));
         }
         }
@@ -7814,8 +7808,8 @@ impl OkxCore {
                 if is_true(&Value::Bool(is_array(&params))) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_915: bool = true;
-                        while { if !__for_first_915 { i = add(&i, &Value::Int(1)); } __for_first_915 = false; is_less_than(&i, &get_array_length(&params)) } {
+                        let mut __for_first_936: bool = true;
+                        while { if !__for_first_936 { i = add(&i, &Value::Int(1)); } __for_first_936 = false; is_less_than(&i, &get_array_length(&params)) } {
                         let mut entry: Value = get_value(&params, &i);
                         let mut entry: Value = get_value(&params, &i);
                         let mut clientOrderId: Value = self.safe_string_k(entry.clone(), "clOrdId", &[]);
@@ -8153,8 +8147,8 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_916: bool = true;
-            while { if !__for_first_916 { i = add(&i, &Value::Int(1)); } __for_first_916 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_937: bool = true;
+            while { if !__for_first_937 { i = add(&i, &Value::Int(1)); } __for_first_937 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
@@ -8408,8 +8402,8 @@ impl OkxCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_917: bool = true;
-            while { if !__for_first_917 { i = add(&i, &Value::Int(1)); } __for_first_917 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_938: bool = true;
+            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut rates, self.parse_borrow_rate(get_value(&data, &i), &[]));
         }
         }
@@ -8510,8 +8504,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_918: bool = true;
-            while { if !__for_first_918 { i = add(&i, &Value::Int(1)); } __for_first_918 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
@@ -8528,8 +8522,8 @@ impl OkxCore {
         let mut keys: Value = object_keys(&borrowRateHistories);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_919: bool = true;
-            while { if !__for_first_919 { i = add(&i, &Value::Int(1)); } __for_first_919 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_940: bool = true;
+            while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut code: Value = get_value(&keys, &i);
             let mut code: Value = get_value(&keys, &i);
             { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); add_element_to_object(&mut borrowRateHistories, &code, __be_tmp); };
@@ -8919,8 +8913,8 @@ impl OkxCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_920: bool = true;
-            while { if !__for_first_920 { i = add(&i, &Value::Int(1)); } __for_first_920 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_941: bool = true;
+            while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut tier: Value = get_value(&info, &i);
             let mut tier: Value = get_value(&info, &i);
             let mut marketId: Value = self.safe_string_k(tier.clone(), "instId", &[]);
@@ -9583,8 +9577,8 @@ impl OkxCore {
         codes = self.market_codes(&[codes.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_921: bool = true;
-            while { if !__for_first_921 { i = add(&i, &Value::Int(1)); } __for_first_921 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_942: bool = true;
+            while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut feeInfo: Value = get_value(&response, &i);
             let mut feeInfo: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(feeInfo.clone(), "ccy", &[]);
@@ -9632,8 +9626,8 @@ impl OkxCore {
         let mut depositWithdrawCodes: Value = object_keys(&depositWithdrawFees);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_922: bool = true;
-            while { if !__for_first_922 { i = add(&i, &Value::Int(1)); } __for_first_922 = false; is_less_than(&i, &get_array_length(&depositWithdrawCodes)) } {
+            let mut __for_first_943: bool = true;
+            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&depositWithdrawCodes)) } {
             let mut code: Value = get_value(&depositWithdrawCodes, &i);
             let mut code: Value = get_value(&depositWithdrawCodes, &i);
             let mut currency: Value = self.currency(code.clone());
@@ -9754,16 +9748,16 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_924: bool = true;
-            while { if !__for_first_924 { i = add(&i, &Value::Int(1)); } __for_first_924 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_945: bool = true;
+            while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             let mut entry: Value = get_value(&settlements, &i);
             let mut entry: Value = get_value(&settlements, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
             let mut details: Value = self.safe_list_k(entry.clone(), "details", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_923: bool = true;
-                while { if !__for_first_923 { j = add(&j, &Value::Int(1)); } __for_first_923 = false; is_less_than(&j, &get_array_length(&details)) } {
+                let mut __for_first_944: bool = true;
+                while { if !__for_first_944 { j = add(&j, &Value::Int(1)); } __for_first_944 = false; is_less_than(&j, &get_array_length(&details)) } {
                 let mut settlement: Value = self.parse_settlement(get_value(&details, &j), market.clone());
                 let __ws_arg_84 = self.iso8601(timestamp.clone());
                 append_to_array(&mut result, self.extend(settlement.clone(), &[Value::Map({
@@ -9892,8 +9886,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_925: bool = true;
-            while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_946: bool = true;
+            while { if !__for_first_946 { i = add(&i, &Value::Int(1)); } __for_first_946 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut entryMarketId: Value = self.safe_string_k(entry.clone(), "instId", &[]);
@@ -10685,8 +10679,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_926: bool = true;
-            while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_947: bool = true;
+            while { if !__for_first_947 { i = add(&i, &Value::Int(1)); } __for_first_947 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
@@ -10766,8 +10760,8 @@ impl OkxCore {
             let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_927: bool = true;
-                while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_948: bool = true;
+                while { if !__for_first_948 { i = add(&i, &Value::Int(1)); } __for_first_948 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut error: Value = get_value(&data, &i);
                 let mut error: Value = get_value(&data, &i);
                 let mut errorCode: Value = self.safe_string_k(error.clone(), "sCode", &[]);
@@ -11063,8 +11057,8 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_949: bool = true;
+            while { if !__for_first_949 { i = add(&i, &Value::Int(1)); } __for_first_949 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             append_to_array(&mut result, Value::Map({

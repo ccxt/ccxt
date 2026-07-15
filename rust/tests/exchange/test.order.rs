@@ -10,6 +10,14 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value) {
+    // prediction-market orders are keyed by an outcome handle, not a `symbol`
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        skippedProperties = exchange.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), Value::Bool(true));
+            m
+        }), &[skippedProperties.clone()]);
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
@@ -70,8 +78,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if !is_equal(&get_value(&entry, &Value::Str("trades".to_string())), &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_19: bool = true;
-                while { if !__for_first_19 { i = add(&i, &Value::Int(1)); } __for_first_19 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("trades".to_string())))) } {
+                let mut __for_first_1092: bool = true;
+                while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("trades".to_string())))) } {
                 testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&get_value(&entry, &Value::Str("trades".to_string())), &i), symbol.clone(), now.clone());
             }
             }

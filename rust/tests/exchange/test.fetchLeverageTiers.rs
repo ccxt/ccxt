@@ -22,14 +22,14 @@ pub async fn testFetchLeverageTiers(mut exchange: Value, mut skippedProperties: 
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tierKeys.clone(), symbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_40: bool = true;
-        while { if !__for_first_40 { i = add(&i, &Value::Int(1)); } __for_first_40 = false; is_less_than(&i, &get_array_length(&tierKeys)) } {
+        let mut __for_first_1113: bool = true;
+        while { if !__for_first_1113 { i = add(&i, &Value::Int(1)); } __for_first_1113 = false; is_less_than(&i, &get_array_length(&tierKeys)) } {
         let mut tiersForSymbol: Value = get_value(&tiers, &get_value(&tierKeys, &i));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiersForSymbol.clone(), symbol.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_39: bool = true;
-            while { if !__for_first_39 { j = add(&j, &Value::Int(1)); } __for_first_39 = false; is_less_than(&j, &get_array_length(&tiersForSymbol)) } {
+            let mut __for_first_1112: bool = true;
+            while { if !__for_first_1112 { j = add(&j, &Value::Int(1)); } __for_first_1112 = false; is_less_than(&j, &get_array_length(&tiersForSymbol)) } {
             testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&tiersForSymbol, &j));
         }
         }

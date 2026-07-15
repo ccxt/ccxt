@@ -10,6 +10,13 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
+        return Value::List(vec![predictionResult.clone()]);
+    }
     let mut withoutSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
     let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
     let mut results: Value = promise_all(&Value::List(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
@@ -31,8 +38,8 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_55: bool = true;
-        while { if !__for_first_55 { i = add(&i, &Value::Int(1)); } __for_first_55 = false; is_less_than(&i, &get_array_length(&values)) } {
+        let mut __for_first_1128: bool = true;
+        while { if !__for_first_1128 { i = add(&i, &Value::Int(1)); } __for_first_1128 = false; is_less_than(&i, &get_array_length(&values)) } {
         // todo: symbol check here
         let mut ticker: Value = get_value(&values, &i);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

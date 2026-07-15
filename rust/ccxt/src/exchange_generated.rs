@@ -971,7 +971,9 @@ impl Exchange {
                 let mut __for_first_76: bool = true;
                 while { if !__for_first_76 { i = add(&i, &Value::Int(1)); } __for_first_76 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
                 let mut entry: Value = get_value(&parsedArray, &i);
-                let mut entryFiledEqualValue: Value = Value::Bool(is_equal(&get_value(&entry, &field), &value));
+                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // KeyError in python/php — prediction structures key on outcome, not symbol
+                let mut entryFiledEqualValue: Value = Value::Bool(is_equal(&self.safe_value(entry.clone(), field.clone(), &[]), &value));
                 let mut firstCondition: Value = ternary(is_true(&valueIsDefined), entryFiledEqualValue.clone(), Value::Bool(true));
                 let mut entryKeyValue: Value = self.safe_value(entry.clone(), key.clone(), &[]);
                 let mut entryKeyGESince: Value = Value::Bool(is_true(&(entryKeyValue)) && is_true(&(!is_equal(&since, &Value::Null))) && is_true(&(is_greater_than_or_equal(&entryKeyValue, &since))));
@@ -1079,35 +1081,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_trades_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradesWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn watch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
@@ -1162,18 +1135,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTrades() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn un_watch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -1195,48 +1156,12 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTradesForSymbols() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTradesForSymbols() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_my_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTradesForSymbols() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_orders_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrdersForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1259,17 +1184,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCVForSymbols() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBookForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1342,33 +1256,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_order_book", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBookWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_margin_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
@@ -1401,39 +1288,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginModes () is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut fetchSnapshotMaxRetries: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("maxRetries".to_string()), &[Value::Int(3)]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_77: bool = true;
-            while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
-            {
-                let mut orderBook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
-                return orderBook;
-            }
-        }
-        }
-        return Value::Null;
-
-    Value::Null
-}
-
-    pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1491,8 +1345,8 @@ impl Exchange {
         let mut arr: Value = self.to_array(rawCurrencies.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_78: bool = true;
-            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&arr)) } {
+            let mut __for_first_77: bool = true;
+            while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&arr)) } {
             let mut parsed: Value = self.parse_currency(get_value(&arr, &i));
             if is_equal(&parsed, &Value::Null) {
                 continue;
@@ -1519,8 +1373,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_79: bool = true;
-            while { if !__for_first_79 { i = add(&i, &Value::Int(1)); } __for_first_79 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_78: bool = true;
+            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
         }
         }
@@ -2025,26 +1879,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchOpenInterests".to_string()))) {
-            let mut openInterests: Value = self.fetch_open_interests(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
-            return self.safe_dict(openInterests.clone(), symbol.clone(), &[]);
-        }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterest() is not supported yet".to_string()))));
-        }
-
-    Value::Null
-}
-
     pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_interests", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
@@ -2219,8 +2053,8 @@ impl Exchange {
         let mut subTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_81: bool = true;
-            while { if !__for_first_81 { i = add(&i, &Value::Int(1)); } __for_first_81 = false; is_less_than(&i, &get_array_length(&unifiedMarketTypes)) } {
+            let mut __for_first_80: bool = true;
+            while { if !__for_first_80 { i = add(&i, &Value::Int(1)); } __for_first_80 = false; is_less_than(&i, &get_array_length(&unifiedMarketTypes)) } {
             let mut marketType: Value = get_value(&unifiedMarketTypes, &i);
             // if marketType is not filled for this exchange, don't add that in `features`
             if !is_true(&(Value::Bool(in_op(&initialFeatures, &marketType)))) {
@@ -2235,8 +2069,8 @@ impl Exchange {
 }));
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_80: bool = true;
-                        while { if !__for_first_80 { j = add(&j, &Value::Int(1)); } __for_first_80 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
+                        let mut __for_first_79: bool = true;
+                        while { if !__for_first_79 { j = add(&j, &Value::Int(1)); } __for_first_79 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
                         let mut subType: Value = get_value(&subTypes, &j);
                         { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]); add_element_to_object(get_value_mut(&mut self.features, &marketType), &subType, __be_tmp); };
                     }
@@ -2285,8 +2119,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&featuresObj);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_82: bool = true;
-            while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_81: bool = true;
+            while { if !__for_first_81 { i = add(&i, &Value::Int(1)); } __for_first_81 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
             if !is_true(&self.in_array(key.clone(), Value::List(vec![Value::Str("sandbox".to_string())]))) && !is_equal(&featureBlock, &Value::Null) {
@@ -2532,8 +2366,8 @@ impl Exchange {
         if !is_equal(&length, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_83: bool = true;
-                while { if !__for_first_83 { i = add(&i, &Value::Int(1)); } __for_first_83 = false; is_less_than(&i, &length) } {
+                let mut __for_first_82: bool = true;
+                while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &length) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut network: Value = get_value(&networks, &key);
                 let mut deposit: Value = self.safe_bool_k(network.clone(), "deposit", &[]);
@@ -2770,8 +2604,8 @@ impl Exchange {
         let mut marketValues: Value = self.sort_by(self.to_array(markets.clone()), Value::Str("spot".to_string()), &[Value::Bool(true), Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_84: bool = true;
-            while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+            let mut __for_first_83: bool = true;
+            while { if !__for_first_83 { i = add(&i, &Value::Int(1)); } __for_first_83 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
             let mut value: Value = get_value(&marketValues, &i);
             if is_true(&Value::Bool(in_op(&self.markets_by_id, &get_value(&value, &Value::Str("id".to_string()))))) {
                 let mut marketsByIdArray: Value = get_value(&self.markets_by_id, &get_value(&value, &Value::Str("id".to_string())));
@@ -2814,8 +2648,8 @@ impl Exchange {
             let mut quoteCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_85: bool = true;
-                while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&values)) } {
+                let mut __for_first_84: bool = true;
+                while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&values)) } {
                 let mut market: Value = get_value(&values, &i);
                 let mut defaultCurrencyPrecision: Value = ternary(is_true(&(is_equal(&self.precisionMode, &Value::Int(crate::runtime::DECIMAL_PLACES)))), Value::Int(8), self.parse_number(Value::Str("1e-8".to_string()), &[]));
                 let mut marketPrecision: Value = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
@@ -2856,15 +2690,15 @@ impl Exchange {
             let mut resultingCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_87: bool = true;
-                while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&codes)) } {
+                let mut __for_first_86: bool = true;
+                while { if !__for_first_86 { i = add(&i, &Value::Int(1)); } __for_first_86 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut code: Value = get_value(&codes, &i);
                 let mut groupedCurrenciesCode: Value = self.safe_list(groupedCurrencies.clone(), code.clone(), &[Value::List(vec![])]);
                 let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone(), Value::Int(0), &[]);
                 {
                                         let mut j: Value = Value::Int(1);
-                    let mut __for_first_86: bool = true;
-                    while { if !__for_first_86 { j = add(&j, &Value::Int(1)); } __for_first_86 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
+                    let mut __for_first_85: bool = true;
+                    while { if !__for_first_85 { j = add(&j, &Value::Int(1)); } __for_first_85 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     if is_equal(&self.precisionMode, &Value::Int(crate::runtime::TICK_SIZE)) {
                         highestPrecisionCurrency = ternary(is_true(&(is_less_than(&get_value(&currentCurrency, &Value::Str("precision".to_string())), &get_value(&highestPrecisionCurrency, &Value::Str("precision".to_string()))))), currentCurrency.clone(), highestPrecisionCurrency.clone());
@@ -2910,8 +2744,8 @@ impl Exchange {
         let mut sourceExchangeHelpers: Value = self.safe_list(get_value(&sourceExchange, &Value::Str("options".to_string())), Value::Str("marketHelperProps".to_string()), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_88: bool = true;
-            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
+            let mut __for_first_87: bool = true;
+            while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             if !is_equal(&get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper), &Value::Null) {
                 add_element_to_object(&mut self.options, &helper, get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper));
@@ -2952,8 +2786,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_89: bool = true;
-            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_88: bool = true;
+            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut total: Value = self.safe_string_k(get_value(&balance, &code), "total", &[]);
             let mut free: Value = self.safe_string_k(get_value(&balance, &code), "free", &[]);
@@ -3058,8 +2892,8 @@ impl Exchange {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_91: bool = true;
-                    while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                    let mut __for_first_90: bool = true;
+                    while { if !__for_first_90 { i = add(&i, &Value::Int(1)); } __for_first_90 = false; is_less_than(&i, &get_array_length(&trades)) } {
                     let mut trade: Value = get_value(&trades, &i);
                     let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
                     if is_true(&parseFilled) && is_true(&(!is_equal(&tradeAmount, &Value::Null))) {
@@ -3088,8 +2922,8 @@ impl Exchange {
                         if !is_equal(&tradeFees, &Value::Null) {
                             {
                                                                 let mut j: Value = Value::Int(0);
-                                let mut __for_first_90: bool = true;
-                                while { if !__for_first_90 { j = add(&j, &Value::Int(1)); } __for_first_90 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
+                                let mut __for_first_89: bool = true;
+                                while { if !__for_first_89 { j = add(&j, &Value::Int(1)); } __for_first_89 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
                                 let mut tradeFee: Value = get_value(&tradeFees, &j);
                                 append_to_array(&mut fees, self.extend(Value::Map({
                                     let mut m = indexmap::IndexMap::new();
@@ -3116,8 +2950,8 @@ impl Exchange {
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_92: bool = true;
-                while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &reducedLength) } {
+                let mut __for_first_91: bool = true;
+                while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.safe_number_k(get_value(&reducedFees, &i), "cost", &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("cost".to_string()), __be_tmp); };
                 if is_true(&Value::Bool(in_op(&get_value(&reducedFees, &i), &Value::Str("rate".to_string())))) {
                     { let __be_tmp = self.safe_number_k(get_value(&reducedFees, &i), "rate", &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("rate".to_string()), __be_tmp); };
@@ -3208,8 +3042,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_94: bool = true;
-            while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_93: bool = true;
+            while { if !__for_first_93 { i = add(&i, &Value::Int(1)); } __for_first_93 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut entry: Value = get_value(&trades, &i);
             { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".to_string()), __be_tmp); };
             { let __be_tmp = self.safe_number_k(entry.clone(), "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".to_string()), __be_tmp); };
@@ -3225,8 +3059,8 @@ impl Exchange {
             let mut entryFees: Value = self.safe_list_k(entry.clone(), "fees", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_93: bool = true;
-                while { if !__for_first_93 { j = add(&j, &Value::Int(1)); } __for_first_93 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
+                let mut __for_first_92: bool = true;
+                while { if !__for_first_92 { j = add(&j, &Value::Int(1)); } __for_first_92 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
                 { let __be_tmp = self.safe_number_k(get_value(&entryFees, &j), "cost", &[]); add_element_to_object(get_value_mut(&mut entryFees, &j), &Value::Str("cost".to_string()), __be_tmp); };
             }
             }
@@ -3324,8 +3158,8 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&orders))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_95: bool = true;
-                while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_94: bool = true;
+                while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut parsed: Value = self.parse_order(get_value(&orders, &i), &[market.clone()]); // don't inline this call
                 let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
@@ -3335,8 +3169,8 @@ impl Exchange {
             let mut ids: Value = object_keys(&orders);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_96: bool = true;
-                while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_95: bool = true;
+                while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 let mut id: Value = get_value(&ids, &i);
                 let mut idExtended: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3350,7 +3184,7 @@ impl Exchange {
             }
         }
         results = self.sort_by(results.clone(), Value::Str("timestamp".to_string()), &[]);
-        let mut symbol: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("symbol".to_string())), Value::Null);
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         return self.filter_by_symbol_since_limit(results.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3523,8 +3357,8 @@ impl Exchange {
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_97: bool = true;
-                while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &reducedLength) } {
+                let mut __for_first_96: bool = true;
+                while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &i)); add_element_to_object(&mut reducedFees, &i, __be_tmp); };
             }
             }
@@ -3567,8 +3401,8 @@ impl Exchange {
         let mut length: Value = get_array_length(&arr);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_98: bool = true;
-            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &length) } {
+            let mut __for_first_97: bool = true;
+            while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &length) } {
             let mut current: Value = get_value(&arr, &i);
             if is_less_than_or_equal(&providedValue, &current) {
                 return current;
@@ -3585,8 +3419,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&obj);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_98: bool = true;
+            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&obj, &key);
             if is_equal(&item, &Value::Null) {
@@ -3613,8 +3447,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&dict);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
             if is_string(&value) {
@@ -3685,8 +3519,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_101: bool = true;
-            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut code: Value = self.safe_string_k(fee.clone(), "currency", &[]);
             let mut feeCurrencyCode: Value = ternary(is_true(&(!is_equal(&code, &Value::Null))), code.clone(), to_string_val(&i));
@@ -3723,8 +3557,8 @@ impl Exchange {
         let mut feeValues: Value = object_values(&reduced);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_102: bool = true;
-            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
+            let mut __for_first_101: bool = true;
+            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
             let mut reducedFeeValues: Value = object_values(&get_value(&feeValues, &i));
             result = self.array_concat(result.clone(), reducedFeeValues.clone());
         }
@@ -4020,8 +3854,8 @@ impl Exchange {
         let mut volumes: Value = self.safe_list(ohlcvs.clone(), volume.clone(), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_103: bool = true;
-            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
+            let mut __for_first_102: bool = true;
+            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
             append_to_array(&mut result, Value::List(vec![ternary(is_true(&ms), self.safe_integer(timestamps.clone(), i.clone(), &[]), self.safe_timestamp(timestamps.clone(), i.clone(), &[])), self.safe_value(opens.clone(), i.clone(), &[]), self.safe_value(highs.clone(), i.clone(), &[]), self.safe_value(lows.clone(), i.clone(), &[]), self.safe_value(closes.clone(), i.clone(), &[]), self.safe_value(volumes.clone(), i.clone(), &[])]));
         }
         }
@@ -4050,8 +3884,8 @@ impl Exchange {
         add_element_to_object(&mut result, &volume, Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_103: bool = true;
+            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             let mut ts: Value = ternary(is_true(&ms), get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), self.parse_to_int(divide(&get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), &Value::Int(1000))));
             let mut resultTimestamp: Value = get_value(&result, &timestamp);
             append_to_array(&mut resultTimestamp, ts.clone());
@@ -4138,8 +3972,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_105: bool = true;
-            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_104: bool = true;
+            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut result, self.market_id(get_value(&symbols, &i)));
         }
         }
@@ -4156,8 +3990,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_106: bool = true;
-            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_105: bool = true;
+            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&codes)) } {
             append_to_array(&mut result, self.currency_id(get_value(&codes, &i)));
         }
         }
@@ -4174,8 +4008,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_107: bool = true;
-            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_106: bool = true;
+            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut result, self.market(get_value(&symbols, &i)));
         }
         }
@@ -4208,8 +4042,8 @@ impl Exchange {
         let mut isLinearSubType: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_108: bool = true;
-            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_107: bool = true;
+            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             if is_true(&sameTypeOnly) && is_true(&(!is_equal(&marketType, &Value::Null))) {
                 if !is_equal(&get_value(&market, &Value::Str("type".to_string())), &marketType) {
@@ -4245,8 +4079,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_109: bool = true;
-            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_108: bool = true;
+            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&codes)) } {
             append_to_array(&mut result, self.common_currency_code(get_value(&codes, &i)));
         }
         }
@@ -4263,8 +4097,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_110: bool = true;
-            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_109: bool = true;
+            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.parse_order_book_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]));
         }
         }
@@ -4273,40 +4107,30 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut orderbook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
-        return self.extend(orderbook.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("asks".to_string(), self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("asks".to_string()))), Value::Int(0), &[]));
-        m.insert("bids".to_string(), self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("bids".to_string()))), Value::Int(0), &[Value::Bool(true)]));
-    m
-})]);
+    pub fn filter_by_key(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
+        let mut value = get_arg(optional_args, 0, Value::Null);
+        if is_equal(&value, &Value::Null) {
+            return objects;
+        }
+        let mut result: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_110: bool = true;
+            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut objectValue: Value = self.safe_string(get_value(&objects, &i), key.clone(), &[]);
+            if is_equal(&objectValue, &value) {
+                append_to_array(&mut result, get_value(&objects, &i));
+            }
+        }
+        }
+        return result;
 
     Value::Null
 }
 
     pub fn filter_by_symbol(&self, mut objects: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        if is_equal(&symbol, &Value::Null) {
-            return objects;
-        }
-        let mut result: Value = Value::List(vec![]);
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_111: bool = true;
-            while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&objects)) } {
-            let mut objectSymbol: Value = self.safe_string_k(get_value(&objects, &i), "symbol", &[]);
-            if is_equal(&objectSymbol, &symbol) {
-                append_to_array(&mut result, get_value(&objects, &i));
-            }
-        }
-        }
-        return result;
+        return self.filter_by_key(objects.clone(), Value::Str("symbol".to_string()), &[symbol.clone()]);
 
     Value::Null
 }
@@ -4397,8 +4221,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&replacements);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_112: bool = true;
-            while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_111: bool = true;
+            while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut baseCoin: Value = get_value(&keys, &i);
             let mut entry: Value = get_value(&replacements, &baseCoin);
             let mut primary: Value = get_value(&entry, &Value::Str("primary".to_string()));
@@ -4460,8 +4284,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_113: bool = true;
-            while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
+            let mut __for_first_112: bool = true;
+            while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
             let mut networks: Value = self.safe_dict_k(get_value(&currenciesToCheck, &i), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4637,8 +4461,8 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_114: bool = true;
-            while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_113: bool = true;
+            while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, self.parse_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
@@ -4665,8 +4489,8 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_115: bool = true;
-                while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_114: bool = true;
+                while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut item: Value = get_value(&response, &i);
                 let mut id: Value = ternary(is_true(&(is_equal(&marketIdKey, &Value::Null))), Value::Null, self.safe_string(item.clone(), marketIdKey.clone(), &[]));
                 let mut market: Value = self.safe_market(&[id.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
@@ -4681,8 +4505,8 @@ impl Exchange {
             let mut keys: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_116: bool = true;
-                while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_115: bool = true;
+                while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut item: Value = get_value(&response, &marketId);
                 let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
@@ -4711,8 +4535,8 @@ impl Exchange {
                 let mut response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_117: bool = true;
-                    while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                    let mut __for_first_116: bool = true;
+                    while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                     let mut symbol: Value = get_value(&symbols, &i);
                     { let __be_tmp = self.deep_extend(get_value(&self.markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut self.markets, &symbol, __be_tmp); };
                 }
@@ -4765,8 +4589,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_118: bool = true;
-            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_117: bool = true;
+            while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = self.extend(self.parse_position(get_value(&positions, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, position.clone());
         }
@@ -4797,8 +4621,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_119: bool = true;
-            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&ranks)) } {
+            let mut __for_first_118: bool = true;
+            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&ranks)) } {
             let mut rank: Value = self.extend(self.parse_adl_rank(get_value(&ranks, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, rank.clone());
         }
@@ -4817,8 +4641,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_120: bool = true;
-            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_119: bool = true;
+            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = self.extend(self.parse_account(get_value(&accounts, &i)), &[params.clone()]);
             append_to_array(&mut result, account.clone());
         }
@@ -4840,8 +4664,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_121: bool = true;
-            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_120: bool = true;
+            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut parsed: Value = Value::Null;
             if is_true(&isWs) {
                 parsed = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
@@ -4853,7 +4677,7 @@ impl Exchange {
         }
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".to_string()), Value::Str("id".to_string()), &[]);
-        let mut symbol: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("symbol".to_string())), Value::Null);
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         return self.filter_by_symbol_since_limit(result.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4897,8 +4721,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut __for_first_121: bool = true;
+            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             let mut transaction: Value = self.extend(self.parse_transaction(get_value(&transactions, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transaction.clone());
         }
@@ -4922,8 +4746,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_123: bool = true;
-            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut __for_first_122: bool = true;
+            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut transfer: Value = self.extend(self.parse_transfer(get_value(&transfers, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transfer.clone());
         }
@@ -4947,14 +4771,14 @@ impl Exchange {
         let mut arrayData: Value = self.to_array(data.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_125: bool = true;
-            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
+            let mut __for_first_124: bool = true;
+            while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
             let mut itemOrItems: Value = self.parse_ledger_entry(get_value(&arrayData, &i), &[currency.clone()]);
             if is_true(&Value::Bool(is_array(&itemOrItems))) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_124: bool = true;
-                    while { if !__for_first_124 { j = add(&j, &Value::Int(1)); } __for_first_124 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
+                    let mut __for_first_123: bool = true;
+                    while { if !__for_first_123 { j = add(&j, &Value::Int(1)); } __for_first_123 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
                     append_to_array(&mut result, self.extend(get_value(&itemOrItems, &j), &[params.clone()]));
                 }
                 }
@@ -5115,8 +4939,8 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&newArray)) } {
+            let mut __for_first_125: bool = true;
+            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&newArray)) } {
             append_to_array(&mut results, get_value(&get_value(&newArray, &i), &key));
         }
         }
@@ -5167,8 +4991,8 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_126: bool = true;
+            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
@@ -5199,8 +5023,8 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_128: bool = true;
-            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_127: bool = true;
+            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if !is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
@@ -5240,8 +5064,8 @@ impl Exchange {
         let mut fetchDataCacheEnabled: Value = Value::Bool(is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0)));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
+            let mut __for_first_128: bool = true;
+            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
             if is_true(&fetchDataCacheEnabled) {
                 fetchData = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5339,8 +5163,8 @@ impl Exchange {
         let mut skipZeroPrices: Value = self.safe_bool_k(options.clone(), "skipZeroPrices", &[Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_130: bool = true;
-            while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &oldest) } {
+            let mut __for_first_129: bool = true;
+            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &oldest) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut ts: Value = get_value(&trade, &Value::Str("timestamp".to_string()));
             let mut price: Value = get_value(&trade, &Value::Str("price".to_string()));
@@ -5382,218 +5206,6 @@ impl Exchange {
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut result: Value = self.convert_trading_view_to_ohlcv(ohlcvs.clone(), &[]);
         return self.parse_ohlc_vs(result.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
-
-    Value::Null
-}
-
-    pub async fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.edit_order(id.clone(), symbol.clone(), Value::Str("limit".to_string()), side.clone(), &[amount.clone(), price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("edit_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut amount = get_arg(optional_args, 0, Value::Null);
-        let mut price = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        self.cancel_order(id.clone(), &[symbol.clone()]).await;
-        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
-        let mut amount = get_arg(optional_args, 0, Value::Null);
-        let mut price = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("clientOrderId".to_string(), clientOrderId.clone());
-            m
-        })]);
-        return self.edit_order(Value::Str("".to_string()), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), extendedParams.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
-        let mut amount = get_arg(optional_args, 0, Value::Null);
-        let mut price = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        self.cancel_order_ws(id.clone(), &[symbol.clone()]).await;
-        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_position", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_position(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPosition() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPositions() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_position_for_symbols(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.watch_positions(&[symbols.clone(), since.clone(), limit.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_positions", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5701,8 +5313,8 @@ impl Exchange {
                     }
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_131: bool = true;
-                        while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&markets)) } {
+                        let mut __for_first_130: bool = true;
+                        while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &get_array_length(&markets)) } {
                         let mut currentMarket: Value = get_value(&markets, &i);
                         if is_true(&get_value(&currentMarket, &marketType)) {
                             return currentMarket;
@@ -5763,8 +5375,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&self.requiredCredentials);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_132: bool = true;
-            while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_131: bool = true;
+            while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             if is_true(&get_value(&self.requiredCredentials, &key)) && !is_true(&self.prop(&key)) {
                 if is_true(&error) {
@@ -6177,8 +5789,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&broad);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_133: bool = true;
-            while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_132: bool = true;
+            while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             if !is_equal(&string, &Value::Null) {
                 if is_greater_than_or_equal(&get_index_of(&string, &key), &Value::Int(0)) {
@@ -6211,106 +5823,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_ticker", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchTickers".to_string()))) {
-            self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol.clone());
-            symbol = get_value(&market, &Value::Str("symbol".to_string()));
-            let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
-            let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
-            if is_equal(&ticker, &Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickers() could not find a ticker for ".to_string())), &symbol)));
-            }  else {
-                return ticker;
-            }
-        }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() is not supported yet".to_string()))));
-        }
-
-    Value::Null
-}
-
-    pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchMarkPrices".to_string()))) {
-            self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol.clone());
-            symbol = get_value(&market, &Value::Str("symbol".to_string()));
-            let mut tickers: Value = self.fetch_mark_prices(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
-            let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
-            if is_equal(&ticker, &Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchMarkPrices() could not find a ticker for ".to_string())), &symbol)));
-            }  else {
-                return ticker;
-            }
-        }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
-        }
-
-    Value::Null
-}
-
-    pub async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchTickersWs".to_string()))) {
-            self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol.clone());
-            symbol = get_value(&market, &Value::Str("symbol".to_string()));
-            let mut tickers: Value = self.fetch_tickers_ws(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
-            let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
-            if is_equal(&ticker, &Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickerWs() could not find a ticker for ".to_string())), &symbol)));
-            }  else {
-                return ticker;
-            }
-        }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickerWs() is not supported yet".to_string()))));
-        }
-
-    Value::Null
-}
-
-    pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_tickers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn fetch_spot_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -6333,28 +5845,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickersWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn fetch_order_books(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
@@ -6363,28 +5853,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBooks() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6406,98 +5874,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRate() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-/*
- * @method
- * @name fetchOrderWithClientOrderId
- * @description create a market order by providing the symbol, side and cost
- * @param {string} clientOrderId client order Id
- * @param {string} symbol unified symbol of the market to create an order in
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
- */
-    pub async fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("clientOrderId".to_string(), clientOrderId.clone());
-            m
-        })]);
-        return self.fetch_order(Value::Str("".to_string()), &[symbol.clone(), extendedParams.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        // TODO: TypeScript: change method signature by replacing
-        // Promise<string> with Promise<Order['status']>.
-        let mut order: Value = self.fetch_order(id.clone(), &[symbol.clone(), params.clone()]).await;
-        return get_value(&order, &Value::Str("status".to_string()));
-
-    Value::Null
-}
-
-    pub async fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order.clone(), "symbol", &[]), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6617,499 +5993,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
-        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTrailingAmountOrder
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingAmount the quote amount to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&trailingAmount, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".to_string()))));
-        }
-        add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
-        if !is_equal(&trailingTriggerPrice, &Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
-        }
-        if is_true(&get_value(&self.has, &Value::Str("createTrailingAmountOrder".to_string()))) {
-            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_trailing_amount_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
-        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTrailingAmountOrderWs
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingAmount the quote amount to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&trailingAmount, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() requires a trailingAmount argument".to_string()))));
-        }
-        add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
-        if !is_equal(&trailingTriggerPrice, &Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
-        }
-        if is_true(&get_value(&self.has, &Value::Str("createTrailingAmountOrderWs".to_string()))) {
-            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_trailing_percent_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
-        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTrailingPercentOrder
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingPercent the percent to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&trailingPercent, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".to_string()))));
-        }
-        add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
-        if !is_equal(&trailingTriggerPrice, &Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
-        }
-        if is_true(&get_value(&self.has, &Value::Str("createTrailingPercentOrder".to_string()))) {
-            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_trailing_percent_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
-        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTrailingPercentOrderWs
-         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-         * @param {float} trailingPercent the percent to trail away from the current market price
-         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&trailingPercent, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() requires a trailingPercent argument".to_string()))));
-        }
-        add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
-        if !is_equal(&trailingTriggerPrice, &Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
-        }
-        if is_true(&get_value(&self.has, &Value::Str("createTrailingPercentOrderWs".to_string()))) {
-            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createMarketOrderWithCost
-         * @description create a market order by providing the symbol, side and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_true(&get_value(&self.has, &Value::Str("createMarketOrderWithCost".to_string()))) || is_true(&(is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCost".to_string()))) && is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCost".to_string()))))) {
-            return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Int(1), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createMarketBuyOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_true(&get_value(&self.options, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()))) || is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCost".to_string()))) {
-            return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createMarketSellOrderWithCost
-         * @description create a market sell order by providing the symbol and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_true(&get_value(&self.options, &Value::Str("createMarketSellOrderRequiresPrice".to_string()))) || is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCost".to_string()))) {
-            return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createMarketOrderWithCostWs
-         * @description create a market order by providing the symbol, side and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_true(&get_value(&self.has, &Value::Str("createMarketOrderWithCostWs".to_string()))) || is_true(&(is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCostWs".to_string()))) && is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCostWs".to_string()))))) {
-            return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Int(1), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCostWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_trigger_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTriggerOrder
-         * @description create a trigger stop order (type 1)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrder() requires a triggerPrice argument".to_string()))));
-        }
-        params = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("triggerPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        if is_true(&get_value(&self.has, &Value::Str("createTriggerOrder".to_string()))) {
-            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_trigger_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTriggerOrderWs
-         * @description create a trigger stop order (type 1)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrderWs() requires a triggerPrice argument".to_string()))));
-        }
-        params = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("triggerPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        if is_true(&get_value(&self.has, &Value::Str("createTriggerOrderWs".to_string()))) {
-            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_stop_loss_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createStopLossOrder
-         * @description create a trigger stop loss order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&stopLossPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrder() requires a stopLossPrice argument".to_string()))));
-        }
-        params = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
-            m
-        })]);
-        if is_true(&get_value(&self.has, &Value::Str("createStopLossOrder".to_string()))) {
-            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_stop_loss_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createStopLossOrderWs
-         * @description create a trigger stop loss order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&stopLossPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrderWs() requires a stopLossPrice argument".to_string()))));
-        }
-        params = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
-            m
-        })]);
-        if is_true(&get_value(&self.has, &Value::Str("createStopLossOrderWs".to_string()))) {
-            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_take_profit_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTakeProfitOrder
-         * @description create a trigger take profit order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&takeProfitPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrder() requires a takeProfitPrice argument".to_string()))));
-        }
-        params = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
-            m
-        })]);
-        if is_true(&get_value(&self.has, &Value::Str("createTakeProfitOrder".to_string()))) {
-            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_take_profit_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createTakeProfitOrderWs
-         * @description create a trigger take profit order (type 2)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        if is_equal(&takeProfitPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrderWs() requires a takeProfitPrice argument".to_string()))));
-        }
-        params = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
-            m
-        })]);
-        if is_true(&get_value(&self.has, &Value::Str("createTakeProfitOrderWs".to_string()))) {
-            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_order_with_take_profit_and_stop_loss(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut takeProfit = get_arg(optional_args, 1, Value::Null);
-        let mut stopLoss = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createOrderWithTakeProfitAndStopLoss
-         * @description create an order with a stop loss or take profit attached (type 3)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} [takeProfit] the take profit price, in units of the quote currency
-         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
-         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
-         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        params = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
-        if is_true(&get_value(&self.has, &Value::Str("createOrderWithTakeProfitAndStopLoss".to_string()))) {
-            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub fn set_take_profit_and_stop_loss_params(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
@@ -7173,60 +6056,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn create_order_with_take_profit_and_stop_loss_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut takeProfit = get_arg(optional_args, 1, Value::Null);
-        let mut stopLoss = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name createOrderWithTakeProfitAndStopLossWs
-         * @description create an order with a stop loss or take profit attached (type 3)
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-         * @param {float} [takeProfit] the take profit price, in units of the quote currency
-         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
-         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
-         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-         */
-        params = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
-        if is_true(&get_value(&self.has, &Value::Str("createOrderWithTakeProfitAndStopLossWs".to_string()))) {
-            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLossWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("create_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(orders.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7243,43 +6072,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createContractOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7302,110 +6094,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelContractOrder() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-/*
- * @method
- * @name cancelOrderWithClientOrderId
- * @description create a market order by providing the symbol, side and cost
- * @param {string} clientOrderId client order Id
- * @param {string} symbol unified symbol of the market to create an order in
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
- */
-    pub async fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("clientOrderId".to_string(), clientOrderId.clone());
-            m
-        })]);
-        return self.cancel_order(Value::Str("".to_string()), &[symbol.clone(), extendedParams.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrderWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(ids.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-/*
- * @method
- * @name cancelOrdersWithClientOrderIds
- * @description create a market order by providing the symbol, side and cost
- * @param {string[]} clientOrderIds client order Ids
- * @param {string} symbol unified symbol of the market to create an order in
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
- */
-    pub async fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("clientOrderIds".to_string(), clientOrderIds.clone());
-            m
-        })]);
-        return self.cancel_orders(Value::List(vec![]), &[symbol.clone(), extendedParams.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_all_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7452,209 +6140,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.cancel_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order.clone(), "symbol", &[]), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchOpenOrders".to_string()))) && is_true(&get_value(&self.has, &Value::Str("fetchClosedOrders".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead".to_string()))));
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchOrders".to_string()))) {
-            let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
-            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("open".to_string()), &[]);
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchOrdersWs".to_string()))) {
-            let mut orders: Value = self.fetch_orders_ws(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
-            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("open".to_string()), &[]);
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrdersWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchOrders".to_string()))) {
-            let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
-            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_closed_orders_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if is_true(&get_value(&self.has, &Value::Str("fetchOrdersWs".to_string()))) {
-            let mut orders: Value = self.fetch_orders_ws(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
-            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
-        }
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrdersWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
@@ -7676,32 +6161,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLiquidations() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTradesWs() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7869,38 +6328,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut side = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closePosition() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closeAllPositions() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchL3OrderBook() is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub fn parse_last_price(&self, mut price: Value, optional_args: &[Value]) -> Value {
         // virtual-dispatch (Go-style: this.DerivedExchange.parse_last_price(...))
         { let __v = self.derived().parse_last_price(price.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
@@ -8007,8 +6434,8 @@ impl Exchange {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".to_string()), Value::Str("defaultSubType".to_string()), &[Value::Str("spot".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_134: bool = true;
-                while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&markets)) } {
+                let mut __for_first_133: bool = true;
+                while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&markets)) } {
                 let mut market: Value = get_value(&markets, &i);
                 if is_true(&get_value(&market, &defaultType)) {
                     return market;
@@ -8039,8 +6466,8 @@ impl Exchange {
         let mut leverageSuffixes: Value = Value::List(vec![Value::Str("2L".to_string()), Value::Str("2S".to_string()), Value::Str("3L".to_string()), Value::Str("3S".to_string()), Value::Str("4L".to_string()), Value::Str("4S".to_string()), Value::Str("5L".to_string()), Value::Str("5S".to_string()), Value::Str("UP".to_string()), Value::Str("DOWN".to_string()), Value::Str("BULL".to_string()), Value::Str("BEAR".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             if is_true(&Value::Bool(ends_with(&currencyCode, &leverageSuffix))) {
                 if !is_true(&checkBaseCoin) {
@@ -8072,128 +6499,6 @@ impl Exchange {
             }
         }
         return Value::List(vec![tag.clone(), params.clone()]);
-
-    Value::Null
-}
-
-    pub async fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
 }
@@ -8333,8 +6638,8 @@ impl Exchange {
             let mut parsedPrecision: Value = Value::Str("0.".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_136: bool = true;
-                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
+                let mut __for_first_135: bool = true;
+                while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -8343,8 +6648,8 @@ impl Exchange {
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_137: bool = true;
-                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
+                let mut __for_first_136: bool = true;
+                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -8373,8 +6678,8 @@ impl Exchange {
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_138: bool = true;
-                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
+                let mut __for_first_137: bool = true;
+                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -8389,7 +6694,7 @@ impl Exchange {
 }));
         let mut serverTime: Value = self.fetch_time(&[params.clone()]).await;
         let mut after: Value = self.milliseconds();
-        add_element_to_object(&mut self.options.clone(), &Value::Str("timeDifference".to_string()), subtract(&after, &serverTime));
+        add_element_to_object(&mut self.options, &Value::Str("timeDifference".to_string()), subtract(&after, &serverTime));
         return get_value(&self.options, &Value::Str("timeDifference".to_string()));
 
     Value::Null
@@ -8425,200 +6730,6 @@ impl Exchange {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() is not supported yet".to_string()))));
         }
-
-    Value::Null
-}
-
-    pub async fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createPostOnlyOrder".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrder() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("postOnly".to_string(), Value::Bool(true));
-            m
-        })]);
-        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createPostOnlyOrderWs".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrderWs() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("postOnly".to_string(), Value::Bool(true));
-            m
-        })]);
-        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createReduceOnlyOrder".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrder() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("reduceOnly".to_string(), Value::Bool(true));
-            m
-        })]);
-        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createReduceOnlyOrderWs".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrderWs() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("reduceOnly".to_string(), Value::Bool(true));
-            m
-        })]);
-        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_stop_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createStopOrder".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrder() is not supported yet".to_string()))));
-        }
-        if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" create_stop_order() requires a stopPrice argument".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_stop_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createStopOrderWs".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrderWs() is not supported yet".to_string()))));
-        }
-        if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopOrderWs() requires a stopPrice argument".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createStopLimitOrder".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrder() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createStopLimitOrderWs".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrderWs() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createStopMarketOrder".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrder() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[Value::Null, query.clone()]).await;
-
-    Value::Null
-}
-
-    pub async fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("createStopMarketOrderWs".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrderWs() is not supported yet".to_string()))));
-        }
-        let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("stopPrice".to_string(), triggerPrice.clone());
-            m
-        })]);
-        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[Value::Null, query.clone()]).await;
 
     Value::Null
 }
@@ -8701,8 +6812,8 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&pricesData))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_139: bool = true;
-                while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
+                let mut __for_first_138: bool = true;
+                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
                 let mut priceData: Value = self.extend(self.parse_last_price(get_value(&pricesData, &i), &[]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
             }
@@ -8711,8 +6822,8 @@ impl Exchange {
             let mut marketIds: Value = object_keys(&pricesData);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_140: bool = true;
-                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_139: bool = true;
+                while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut priceData: Value = self.extend(self.parse_last_price(get_value(&pricesData, &marketId), &[market.clone()]), &[params.clone()]);
@@ -8758,8 +6869,8 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&tickers))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+                let mut __for_first_140: bool = true;
+                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&tickers)) } {
                 let mut parsedTicker: Value = self.parse_ticker(get_value(&tickers, &i), &[]);
                 let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
@@ -8769,8 +6880,8 @@ impl Exchange {
             let mut marketIds: Value = object_keys(&tickers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_142: bool = true;
-                while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_141: bool = true;
+                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut parsed: Value = self.parse_ticker(get_value(&tickers, &marketId), &[market.clone()]);
@@ -8795,8 +6906,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&addresses)) } {
+            let mut __for_first_142: bool = true;
+            while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&addresses)) } {
             let mut address: Value = self.extend(self.parse_deposit_address(get_value(&addresses, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, address.clone());
         }
@@ -8817,8 +6928,8 @@ impl Exchange {
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_144: bool = true;
-            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut row: Value = get_value(&response, &i);
             append_to_array(&mut interests, self.parse_borrow_interest(row.clone(), &[market.clone()]));
         }
@@ -8842,8 +6953,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_145: bool = true;
-            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut borrowRate: Value = self.parse_borrow_rate(item.clone(), &[]);
             append_to_array(&mut result, borrowRate.clone());
@@ -8862,8 +6973,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(borrowRate.clone(), "symbol", &[]);
@@ -8882,8 +6993,8 @@ impl Exchange {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_147: bool = true;
-            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, self.parse_funding_rate_history(entry.clone(), &[market.clone()]));
         }
@@ -8923,8 +7034,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_148: bool = true;
-            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = self.parse_funding_rate(entry.clone(), &[]);
             add_element_to_object(&mut fundingRates, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
@@ -8949,8 +7060,8 @@ impl Exchange {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, self.parse_long_short_ratio(entry.clone(), &[market.clone()]));
         }
@@ -9149,25 +7260,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if !is_true(&get_value(&self.has, &Value::Str("fetchTradingFees".to_string()))) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() is not supported yet".to_string()))));
-        }
-        let mut fees: Value = self.fetch_trading_fees(&[params.clone()]).await;
-        return self.safe_dict(fees.clone(), symbol.clone(), &[]);
-
-    Value::Null
-}
-
     pub async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9196,8 +7288,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = self.parse_open_interest(entry.clone(), &[]);
             add_element_to_object(&mut result, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
@@ -9215,8 +7307,8 @@ impl Exchange {
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_151: bool = true;
-            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut interest: Value = self.parse_open_interest(entry.clone(), &[market.clone()]);
             append_to_array(&mut interests, interest.clone());
@@ -9497,8 +7589,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_152: bool = true;
-            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
             let mut entry: Value = get_value(&responseKeys, &i);
             let mut dictionary: Value = ternary(is_true(&isArray), entry.clone(), get_value(&response, &entry));
             let mut currencyId: Value = entry.clone();
@@ -9573,8 +7665,8 @@ impl Exchange {
         let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_153: bool = true;
-            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &numNetworks) } {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &numNetworks) } {
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &currencyCode) {
                 { let __be_tmp = get_value(&get_value(&get_value(&fee, &Value::Str("networks".to_string())), &get_value(&networkKeys, &i)), &Value::Str("withdraw".to_string())); add_element_to_object(&mut fee, &Value::Str("withdraw".to_string()), __be_tmp); };
@@ -9614,8 +7706,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_154: bool = true;
-            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&incomes)) } {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &get_array_length(&incomes)) } {
             let mut entry: Value = get_value(&incomes, &i);
             let mut parsed: Value = self.parse_income(entry.clone(), &[market.clone()]);
             append_to_array(&mut result, parsed.clone());
@@ -9648,8 +7740,8 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_154: bool = true;
+            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, self.parse_ws_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
@@ -9893,8 +7985,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &maxCalls) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &maxCalls) } {
             if is_true(&(!is_equal(&until, &Value::Null))) && is_true(&(is_greater_than_or_equal(&currentSince, &until))) {
                 break;
             }
@@ -9909,8 +8001,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_157: bool = true;
-            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&results)) } {
             result = self.array_concat(result.clone(), get_value(&results, &i));
         }
         }
@@ -9979,8 +8071,8 @@ impl Exchange {
                 cursorValue = Value::Null; // search for the cursor
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_158: bool = true;
-                    while { if !__for_first_158 { j = add(&j, &Value::Int(1)); } __for_first_158 = false; is_less_than(&j, &responseLength) } {
+                    let mut __for_first_157: bool = true;
+                    while { if !__for_first_157 { j = add(&j, &Value::Int(1)); } __for_first_157 = false; is_less_than(&j, &responseLength) } {
                     let mut index: Value = subtract(&subtract(&responseLength, &j), &Value::Int(1));
                     let mut entry: Value = self.safe_dict(response.clone(), index.clone(), &[]);
                     let mut info: Value = self.safe_dict_k(entry.clone(), "info", &[]);
@@ -10075,8 +8167,8 @@ impl Exchange {
         let mut uniqueResult: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut uniqValue: Value = ternary(is_true(&fallbackToTimestamp), self.safe_string_n(entry.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("timestamp".to_string()), Value::Int(0)]), &[]), self.safe_string_k(entry.clone(), "id", &[]));
             if !is_equal(&uniqValue, &Value::Null) && !is_true(&(Value::Bool(in_op(&uniqueDic, &uniqValue)))) {
@@ -10101,8 +8193,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
             if is_equal(&id, &Value::Null) {
@@ -10132,8 +8224,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             if !is_true(&self.in_array(key.clone(), removeKeys.clone())) {
                 add_element_to_object(&mut newDict, &key, get_value(&dict, &key));
@@ -10206,8 +8298,8 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_162: bool = true;
-            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
             let mut entry: Value = get_value(&liquidations, &i);
             let mut parsed: Value = self.parse_liquidation(entry.clone(), &[market.clone()]);
             append_to_array(&mut result, parsed.clone());
@@ -10243,8 +8335,8 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&greeks))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_163: bool = true;
-                while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&greeks)) } {
+                let mut __for_first_162: bool = true;
+                while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&greeks)) } {
                 let mut parsedTicker: Value = self.parse_greeks(get_value(&greeks, &i), &[]);
                 let mut greek: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
@@ -10254,8 +8346,8 @@ impl Exchange {
             let mut marketIds: Value = object_keys(&greeks);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_164: bool = true;
-                while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_163: bool = true;
+                while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut parsed: Value = self.parse_greeks(get_value(&greeks, &marketId), &[market.clone()]);
@@ -10287,8 +8379,8 @@ impl Exchange {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_164: bool = true;
+            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut currencyId: Value = ternary(is_true(&(is_equal(&currencyKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), currencyKey.clone(), &[]));
             let mut currency: Value = self.safe_currency(currencyId.clone(), &[]);
@@ -10315,8 +8407,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_165: bool = true;
+            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -10353,8 +8445,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_167: bool = true;
-            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -10394,8 +8486,8 @@ impl Exchange {
         let mut toCurrency: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&conversions)) } {
+            let mut __for_first_167: bool = true;
+            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&conversions)) } {
             let mut entry: Value = get_value(&conversions, &i);
             let mut fromId: Value = ternary(is_true(&(is_equal(&fromCurrencyKey, &Value::Null))), Value::Null, self.safe_string(entry.clone(), fromCurrencyKey.clone(), &[]));
             let mut toId: Value = ternary(is_true(&(is_equal(&toCurrencyKey, &Value::Null))), Value::Null, self.safe_string(entry.clone(), toCurrencyKey.clone(), &[]));
@@ -10517,56 +8609,8 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_position_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        /*
-         * @method
-         * @name exchange#fetchPositionHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] timestamp in ms of the position
-         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-         */
-        if is_true(&get_value(&self.has, &Value::Str("fetchPositionsHistory".to_string()))) {
-            let mut positions: Value = self.fetch_positions_history(&[Value::List(vec![symbol.clone()]), since.clone(), limit.clone(), params.clone()]).await;
-            return positions;
-        }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionHistory () is not supported yet".to_string()))));
-        }
-}
-
     pub async fn load_markets_and_sign_in(&mut self) -> Value {
         promise_all(&Value::List(vec![self.load_markets(&[]).await, self.sign_in(&[]).await])).await;
-
-    Value::Null
-}
-
-    pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
-        // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_positions_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
-        }
-
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsHistory () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10588,8 +8632,8 @@ impl Exchange {
         let mut marginModifications: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_169: bool = true;
-            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -10638,27 +8682,6 @@ impl Exchange {
     Value::Null
 }
 
-    pub async fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrice () is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrices () is not supported yet".to_string()))));
-
-    Value::Null
-}
-
     pub async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -10677,16 +8700,6 @@ impl Exchange {
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades () is not supported yet".to_string()))));
-
-    Value::Null
-}
-
-    pub async fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrdersWs () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10732,8 +8745,8 @@ impl Exchange {
             let mut clientSubscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_170: bool = true;
-                while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
+                let mut __for_first_169: bool = true;
+                while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
                 let mut sub: Value = get_value(&clientSubscriptions, &i);
                 if is_true(&Value::Bool(starts_with(&sub, &subHash))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &sub);
@@ -10743,8 +8756,8 @@ impl Exchange {
             let mut clientFutures: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_171: bool = true;
-                while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
+                let mut __for_first_170: bool = true;
+                while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
                 let mut future: Value = get_value(&clientFutures, &i);
                 if is_true(&Value::Bool(starts_with(&future, &subHash))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(add(&add(&self.id, &Value::Str(" ".to_string())), &future));
@@ -10764,8 +8777,8 @@ impl Exchange {
             let mut symbolsAndTimeframes: Value = self.safe_list_k(subscription.clone(), "symbolsAndTimeframes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_172: bool = true;
-                while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+                let mut __for_first_171: bool = true;
+                while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
                 let mut timeframe: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(1), &[]);
@@ -10779,8 +8792,8 @@ impl Exchange {
         }  else if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_173: bool = true;
-                while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_172: bool = true;
+                while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 if is_equal(&topic, &Value::Str("trades".to_string())) {
                     if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
@@ -10811,8 +8824,8 @@ impl Exchange {
                 let mut clients: Value = object_values(&self.clients);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_174: bool = true;
-                    while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&clients)) } {
+                    let mut __for_first_173: bool = true;
+                    while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&clients)) } {
                     let mut client: Value = get_value(&clients, &i);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".to_string()));
                     if is_true(&(!is_equal(&futures, &Value::Null))) && is_true(&(Value::Bool(in_op(&futures, &Value::Str("fetchPositionsSnapshot".to_string()))))) {
@@ -10824,8 +8837,8 @@ impl Exchange {
                 let mut tickerSymbols: Value = object_keys(&self.tickers);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_175: bool = true;
-                    while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
+                    let mut __for_first_174: bool = true;
+                    while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
                     let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.tickers, &tickerSymbol))) {
                         remove(&mut self.tickers.clone(), &tickerSymbol);
@@ -10836,8 +8849,8 @@ impl Exchange {
                 let mut bidsaskSymbols: Value = object_keys(&self.bidsasks);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_176: bool = true;
-                    while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
+                    let mut __for_first_175: bool = true;
+                    while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
                     let mut bidsaskSymbol: Value = get_value(&bidsaskSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.bidsasks, &bidsaskSymbol))) {
                         remove(&mut self.bidsasks.clone(), &bidsaskSymbol);
@@ -10883,6 +8896,2002 @@ impl Exchange {
     m
 }));
         return Value::Bool(false);
+
+    Value::Null
+}
+    pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut side = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closePosition() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closeAllPositions() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_position_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+         */
+        if is_true(&get_value(&self.has, &Value::Str("fetchPositionsHistory".to_string()))) {
+            let mut positions: Value = self.fetch_positions_history(&[Value::List(vec![symbol.clone()]), since.clone(), limit.clone(), params.clone()]).await;
+            return positions;
+        }  else {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionHistory () is not supported yet".to_string()))));
+        }
+}
+
+    pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_positions_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsHistory () is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_position(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPosition() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_my_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTradesForSymbols() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTradesForSymbols() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchMarkPrices".to_string()))) {
+            self.load_markets(&[]).await;
+            let mut market: Value = self.market(symbol.clone());
+            symbol = get_value(&market, &Value::Str("symbol".to_string()));
+            let mut tickers: Value = self.fetch_mark_prices(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+            let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
+            if is_equal(&ticker, &Value::Null) {
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchMarkPrices() could not find a ticker for ".to_string())), &symbol)));
+            }  else {
+                return ticker;
+            }
+        }  else {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
+        }
+
+    Value::Null
+}
+
+    pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrice () is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrices () is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchL3OrderBook() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBookForSymbols() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_orders_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrdersForSymbols() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createMarketOrderWithCostWs
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_true(&get_value(&self.has, &Value::Str("createMarketOrderWithCostWs".to_string()))) || is_true(&(is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCostWs".to_string()))) && is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCostWs".to_string()))))) {
+            return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Int(1), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCostWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_order_with_take_profit_and_stop_loss_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut takeProfit = get_arg(optional_args, 1, Value::Null);
+        let mut stopLoss = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createOrderWithTakeProfitAndStopLossWs
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        params = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
+        if is_true(&get_value(&self.has, &Value::Str("createOrderWithTakeProfitAndStopLossWs".to_string()))) {
+            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLossWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrdersWs () is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createPostOnlyOrderWs".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrderWs() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("postOnly".to_string(), Value::Bool(true));
+            m
+        })]);
+        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createReduceOnlyOrderWs".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrderWs() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("reduceOnly".to_string(), Value::Bool(true));
+            m
+        })]);
+        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createStopLimitOrderWs".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrderWs() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_stop_loss_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createStopLossOrderWs
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&stopLossPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrderWs() requires a stopLossPrice argument".to_string()))));
+        }
+        params = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
+            m
+        })]);
+        if is_true(&get_value(&self.has, &Value::Str("createStopLossOrderWs".to_string()))) {
+            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createStopMarketOrderWs".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrderWs() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[Value::Null, query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_stop_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createStopOrderWs".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrderWs() is not supported yet".to_string()))));
+        }
+        if is_equal(&triggerPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopOrderWs() requires a stopPrice argument".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_take_profit_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTakeProfitOrderWs
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&takeProfitPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrderWs() requires a takeProfitPrice argument".to_string()))));
+        }
+        params = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
+            m
+        })]);
+        if is_true(&get_value(&self.has, &Value::Str("createTakeProfitOrderWs".to_string()))) {
+            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_trailing_amount_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
+        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTrailingAmountOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&trailingAmount, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() requires a trailingAmount argument".to_string()))));
+        }
+        add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
+        if !is_equal(&trailingTriggerPrice, &Value::Null) {
+            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
+        }
+        if is_true(&get_value(&self.has, &Value::Str("createTrailingAmountOrderWs".to_string()))) {
+            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_trailing_percent_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
+        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTrailingPercentOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&trailingPercent, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() requires a trailingPercent argument".to_string()))));
+        }
+        add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
+        if !is_equal(&trailingTriggerPrice, &Value::Null) {
+            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
+        }
+        if is_true(&get_value(&self.has, &Value::Str("createTrailingPercentOrderWs".to_string()))) {
+            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_trigger_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTriggerOrderWs
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&triggerPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrderWs() requires a triggerPrice argument".to_string()))));
+        }
+        params = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("triggerPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        if is_true(&get_value(&self.has, &Value::Str("createTriggerOrderWs".to_string()))) {
+            return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+        let mut amount = get_arg(optional_args, 0, Value::Null);
+        let mut price = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.cancel_order_ws(id.clone(), &[symbol.clone()]).await;
+        return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn fetch_closed_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchOrdersWs".to_string()))) {
+            let mut orders: Value = self.fetch_orders_ws(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrdersWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTradesWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchOrdersWs".to_string()))) {
+            let mut orders: Value = self.fetch_orders_ws(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("open".to_string()), &[]);
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrdersWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBookWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchTickersWs".to_string()))) {
+            self.load_markets(&[]).await;
+            let mut market: Value = self.market(symbol.clone());
+            symbol = get_value(&market, &Value::Str("symbol".to_string()));
+            let mut tickers: Value = self.fetch_tickers_ws(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+            let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
+            if is_equal(&ticker, &Value::Null) {
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickerWs() could not find a ticker for ".to_string())), &symbol)));
+            }  else {
+                return ticker;
+            }
+        }  else {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickerWs() is not supported yet".to_string()))));
+        }
+
+    Value::Null
+}
+
+    pub async fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickersWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_trades_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradesWs() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+
+    pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTrades() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_order_book", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut fetchSnapshotMaxRetries: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("maxRetries".to_string()), &[Value::Int(3)]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_176: bool = true;
+            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
+            {
+                let mut orderBook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
+                return orderBook;
+            }
+        }
+        }
+        return Value::Null;
+
+    Value::Null
+}
+
+    pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBook() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchOpenInterests".to_string()))) {
+            let mut openInterests: Value = self.fetch_open_interests(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+            return self.safe_dict(openInterests.clone(), symbol.clone(), &[]);
+        }  else {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterest() is not supported yet".to_string()))));
+        }
+
+    Value::Null
+}
+
+    pub async fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut orderbook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
+        return self.extend(orderbook.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("asks".to_string(), self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("asks".to_string()))), Value::Int(0), &[]));
+        m.insert("bids".to_string(), self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("bids".to_string()))), Value::Int(0), &[Value::Bool(true)]));
+    m
+})]);
+
+    Value::Null
+}
+
+    pub async fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.edit_order(id.clone(), symbol.clone(), Value::Str("limit".to_string()), side.clone(), &[amount.clone(), price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("edit_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut amount = get_arg(optional_args, 0, Value::Null);
+        let mut price = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.cancel_order(id.clone(), &[symbol.clone()]).await;
+        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+        let mut amount = get_arg(optional_args, 0, Value::Null);
+        let mut price = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("clientOrderId".to_string(), clientOrderId.clone());
+            m
+        })]);
+        return self.edit_order(Value::Str("".to_string()), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), extendedParams.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_position", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPositions() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_position_for_symbols(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.watch_positions(&[symbols.clone(), since.clone(), limit.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_positions", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_ticker", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchTickers".to_string()))) {
+            self.load_markets(&[]).await;
+            let mut market: Value = self.market(symbol.clone());
+            symbol = get_value(&market, &Value::Str("symbol".to_string()));
+            let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+            let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
+            if is_equal(&ticker, &Value::Null) {
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickers() could not find a ticker for ".to_string())), &symbol)));
+            }  else {
+                return ticker;
+            }
+        }  else {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() is not supported yet".to_string()))));
+        }
+
+    Value::Null
+}
+
+    pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_tickers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name fetchOrderWithClientOrderId
+ * @description create a market order by providing the symbol, side and cost
+ * @param {string} clientOrderId client order Id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("clientOrderId".to_string(), clientOrderId.clone());
+            m
+        })]);
+        return self.fetch_order(Value::Str("".to_string()), &[symbol.clone(), extendedParams.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        // TODO: TypeScript: change method signature by replacing
+        // Promise<string> with Promise<Order['status']>.
+        let mut order: Value = self.fetch_order(id.clone(), &[symbol.clone(), params.clone()]).await;
+        return get_value(&order, &Value::Str("status".to_string()));
+
+    Value::Null
+}
+
+    pub async fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.fetch_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order.clone(), "symbol", &[]), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
+        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTrailingAmountOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&trailingAmount, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".to_string()))));
+        }
+        add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
+        if !is_equal(&trailingTriggerPrice, &Value::Null) {
+            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
+        }
+        if is_true(&get_value(&self.has, &Value::Str("createTrailingAmountOrder".to_string()))) {
+            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_trailing_percent_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
+        let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTrailingPercentOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&trailingPercent, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".to_string()))));
+        }
+        add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
+        if !is_equal(&trailingTriggerPrice, &Value::Null) {
+            add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
+        }
+        if is_true(&get_value(&self.has, &Value::Str("createTrailingPercentOrder".to_string()))) {
+            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_true(&get_value(&self.has, &Value::Str("createMarketOrderWithCost".to_string()))) || is_true(&(is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCost".to_string()))) && is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCost".to_string()))))) {
+            return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Int(1), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_true(&get_value(&self.options, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()))) || is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCost".to_string()))) {
+            return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_true(&get_value(&self.options, &Value::Str("createMarketSellOrderRequiresPrice".to_string()))) || is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCost".to_string()))) {
+            return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_trigger_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTriggerOrder
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&triggerPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrder() requires a triggerPrice argument".to_string()))));
+        }
+        params = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("triggerPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        if is_true(&get_value(&self.has, &Value::Str("createTriggerOrder".to_string()))) {
+            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_stop_loss_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createStopLossOrder
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&stopLossPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrder() requires a stopLossPrice argument".to_string()))));
+        }
+        params = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
+            m
+        })]);
+        if is_true(&get_value(&self.has, &Value::Str("createStopLossOrder".to_string()))) {
+            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_take_profit_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createTakeProfitOrder
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if is_equal(&takeProfitPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrder() requires a takeProfitPrice argument".to_string()))));
+        }
+        params = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
+            m
+        })]);
+        if is_true(&get_value(&self.has, &Value::Str("createTakeProfitOrder".to_string()))) {
+            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_order_with_take_profit_and_stop_loss(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut takeProfit = get_arg(optional_args, 1, Value::Null);
+        let mut stopLoss = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        /*
+         * @method
+         * @name createOrderWithTakeProfitAndStopLoss
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        params = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
+        if is_true(&get_value(&self.has, &Value::Str("createOrderWithTakeProfitAndStopLoss".to_string()))) {
+            return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("create_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(orders.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name cancelOrderWithClientOrderId
+ * @description create a market order by providing the symbol, side and cost
+ * @param {string} clientOrderId client order Id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("clientOrderId".to_string(), clientOrderId.clone());
+            m
+        })]);
+        return self.cancel_order(Value::Str("".to_string()), &[symbol.clone(), extendedParams.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("cancel_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(ids.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name cancelOrdersWithClientOrderIds
+ * @description create a market order by providing the symbol, side and cost
+ * @param {string[]} clientOrderIds client order Ids
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("clientOrderIds".to_string(), clientOrderIds.clone());
+            m
+        })]);
+        return self.cancel_orders(Value::List(vec![]), &[symbol.clone(), extendedParams.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("cancel_all_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.cancel_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order.clone(), "symbol", &[]), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchOpenOrders".to_string()))) && is_true(&get_value(&self.has, &Value::Str("fetchClosedOrders".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead".to_string()))));
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchOrders".to_string()))) {
+            let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("open".to_string()), &[]);
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_true(&get_value(&self.has, &Value::Str("fetchOrders".to_string()))) {
+            let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+            return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
+        }
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledOrders() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut params = get_arg(optional_args, 3, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTrades() is not supported yet".to_string()))));
+
+    Value::Null
+}
+
+    pub async fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createPostOnlyOrder".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrder() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("postOnly".to_string(), Value::Bool(true));
+            m
+        })]);
+        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createReduceOnlyOrder".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrder() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("reduceOnly".to_string(), Value::Bool(true));
+            m
+        })]);
+        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_stop_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut price = get_arg(optional_args, 0, Value::Null);
+        let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createStopOrder".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrder() is not supported yet".to_string()))));
+        }
+        if is_equal(&triggerPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" create_stop_order() requires a stopPrice argument".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createStopLimitOrder".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrder() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("createStopMarketOrder".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrder() is not supported yet".to_string()))));
+        }
+        let mut query: Value = self.extend(params.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stopPrice".to_string(), triggerPrice.clone());
+            m
+        })]);
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[Value::Null, query.clone()]).await;
+
+    Value::Null
+}
+
+    pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if !is_true(&get_value(&self.has, &Value::Str("fetchTradingFees".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() is not supported yet".to_string()))));
+        }
+        let mut fees: Value = self.fetch_trading_fees(&[params.clone()]).await;
+        return self.safe_dict(fees.clone(), symbol.clone(), &[]);
 
     Value::Null
 }
@@ -11137,6 +11146,7 @@ impl Exchange {
             "filter_by_array_positions" => self.filter_by_array_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "filter_by_array_tickers" => self.filter_by_array_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "filter_by_currency_since_limit" => self.filter_by_currency_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+            "filter_by_key" => self.filter_by_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "filter_by_limit" => self.filter_by_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "filter_by_since_limit" => self.filter_by_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "filter_by_symbol" => self.filter_by_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),

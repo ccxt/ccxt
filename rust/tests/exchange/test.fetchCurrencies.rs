@@ -38,8 +38,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         let mut skipMajorCurrencyCheck: Value = (Value::Bool(in_op(&skippedProperties, &Value::Str("activeMajorCurrencies".to_string()))));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_32: bool = true;
-            while { if !__for_first_32 { i = add(&i, &Value::Int(1)); } __for_first_32 = false; is_less_than(&i, &currenciesLength) } {
+            let mut __for_first_1105: bool = true;
+            while { if !__for_first_1105 { i = add(&i, &Value::Int(1)); } __for_first_1105 = false; is_less_than(&i, &currenciesLength) } {
             let mut currency: Value = get_value(&values, &i);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
@@ -76,8 +76,8 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
     let mut keys: Value = object_keys(&currencyValues);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_33: bool = true;
-        while { if !__for_first_33 { i = add(&i, &Value::Int(1)); } __for_first_33 = false; is_less_than(&i, &get_array_length(&keys)) } {
+        let mut __for_first_1106: bool = true;
+        while { if !__for_first_1106 { i = add(&i, &Value::Int(1)); } __for_first_1106 = false; is_less_than(&i, &get_array_length(&keys)) } {
         let mut key: Value = get_value(&keys, &i);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".to_string()));

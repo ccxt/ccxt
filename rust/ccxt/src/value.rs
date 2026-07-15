@@ -313,6 +313,44 @@ impl Value {
             Value::Null
         }
     }
+
+    /// `exchange.extend(a, b, ...)` on a snapshot `Value` — CCXT's shallow
+    /// object merge. Pure (ignores exchange state), so it delegates to the
+    /// transpiled `Exchange::extend`. Used by the (prediction-aware) transpiled
+    /// test harness, where `exchange` is a dynamic `Value` handle.
+    pub fn extend(&self, a: Value, args: &[Value]) -> Value {
+        #[cfg(feature = "transpiled-base")]
+        {
+            return self.snapshot_as_exchange().extend(a, args);
+        }
+        #[cfg(not(feature = "transpiled-base"))]
+        {
+            let _ = args;
+            a
+        }
+    }
+
+    /// `exchange.setMarkets(markets)` on a snapshot `Value` — used by the
+    /// prediction test harness to seed event-derived markets. Delegates the
+    /// indexing to the transpiled `Exchange::set_markets`, then writes the
+    /// computed `markets`/`markets_by_id`/`symbols` back onto the `Value`
+    /// handle so later `get_value(exchange, "markets")` reads see them.
+    pub fn set_markets(&mut self, markets: Value) -> Value {
+        #[cfg(feature = "transpiled-base")]
+        {
+            let mut ex = self.snapshot_as_exchange();
+            let result = ex.set_markets(markets, &[]);
+            crate::runtime::add_element_to_object(self, &Value::Str("markets".to_string()), ex.markets.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".to_string()), ex.markets_by_id.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("symbols".to_string()), ex.symbols.clone());
+            return result;
+        }
+        #[cfg(not(feature = "transpiled-base"))]
+        {
+            let _ = markets;
+            Value::Null
+        }
+    }
     /// `side.storeArray(delta)` — insert/update/delete by price (or
     /// by id for the indexed variant). Defined here (rather than next
     /// to `store`) so that derived exchange code which calls

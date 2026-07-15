@@ -658,8 +658,8 @@ impl ZebpayCore {
         let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultMarkets.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i = add(&i, &Value::Int(1)); } __for_first_1046 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_1067: bool = true;
+            while { if !__for_first_1067 { i = add(&i, &Value::Int(1)); } __for_first_1067 = false; is_less_than(&i, &get_array_length(&types)) } {
             let mut type_var: Value = get_value(&types, &i);
             let mut type_var: Value = get_value(&types, &i);
             if is_equal(&type_var, &Value::Str("spot".to_string())) {
@@ -747,8 +747,8 @@ impl ZebpayCore {
         let mut withdraw: Value = Value::Bool(false);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { j = add(&j, &Value::Int(1)); } __for_first_1047 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_1068: bool = true;
+            while { if !__for_first_1068 { j = add(&j, &Value::Int(1)); } __for_first_1068 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -953,8 +953,8 @@ impl ZebpayCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i = add(&i, &Value::Int(1)); } __for_first_1048 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_1069: bool = true;
+            while { if !__for_first_1069 { i = add(&i, &Value::Int(1)); } __for_first_1069 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -2232,8 +2232,8 @@ impl ZebpayCore {
         let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i = add(&i, &Value::Int(1)); } __for_first_1049 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1070: bool = true;
+            while { if !__for_first_1070 { i = add(&i, &Value::Int(1)); } __for_first_1070 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2337,8 +2337,8 @@ impl ZebpayCore {
         let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i = add(&i, &Value::Int(1)); } __for_first_1050 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1071: bool = true;
+            while { if !__for_first_1071 { i = add(&i, &Value::Int(1)); } __for_first_1071 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2406,8 +2406,8 @@ impl ZebpayCore {
         let mut currencyList: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i = add(&i, &Value::Int(1)); } __for_first_1051 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
+            let mut __for_first_1072: bool = true;
+            while { if !__for_first_1072 { i = add(&i, &Value::Int(1)); } __for_first_1072 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
             let mut entry: Value = get_value(&currencyList, &i);
             let mut entry: Value = get_value(&currencyList, &i);
             let mut account: Value = self.account();

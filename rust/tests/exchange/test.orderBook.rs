@@ -10,6 +10,14 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut orderbook: Value, mut symbol: Value) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        skippedProperties = exchange.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), Value::Bool(true));
+            m
+        }), &[skippedProperties.clone()]);
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
@@ -35,8 +43,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut bidsLength: Value = get_array_length(&bids);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_20: bool = true;
-        while { if !__for_first_20 { i = add(&i, &Value::Int(1)); } __for_first_20 = false; is_less_than(&i, &bidsLength) } {
+        let mut __for_first_1093: bool = true;
+        while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &bidsLength) } {
         let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = add(&i, &Value::Int(1));
@@ -56,8 +64,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut asksLength: Value = get_array_length(&asks);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_21: bool = true;
-        while { if !__for_first_21 { i = add(&i, &Value::Int(1)); } __for_first_21 = false; is_less_than(&i, &asksLength) } {
+        let mut __for_first_1094: bool = true;
+        while { if !__for_first_1094 { i = add(&i, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&i, &asksLength) } {
         let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
             let mut nextI: Value = add(&i, &Value::Int(1));

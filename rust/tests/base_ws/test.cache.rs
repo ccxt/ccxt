@@ -167,8 +167,8 @@ pub fn testWsCache() {
     let mut cacheSymbolId5 = ArrayCacheBySymbolById::new(Value::Int(5));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_5: bool = true;
-        while { if !__for_first_5 { i = add(&i, &Value::Int(1)); } __for_first_5 = false; is_less_than(&i, &Value::Int(11)) } {
+        let mut __for_first_1078: bool = true;
+        while { if !__for_first_1078 { i = add(&i, &Value::Int(1)); } __for_first_1078 = false; is_less_than(&i, &Value::Int(11)) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -211,8 +211,8 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_6: bool = true;
-        while { if !__for_first_6 { i = add(&i, &Value::Int(1)); } __for_first_6 = false; is_less_than(&i, &Value::Int(11)) } {
+        let mut __for_first_1079: bool = true;
+        while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &Value::Int(11)) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -333,8 +333,8 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: Value = Value::Int(30);
-        let mut __for_first_7: bool = true;
-        while { if !__for_first_7 { i = add(&i, &Value::Int(1)); } __for_first_7 = false; is_less_than(&i, &Value::Int(33)) } {
+        let mut __for_first_1080: bool = true;
+        while { if !__for_first_1080 { i = add(&i, &Value::Int(1)); } __for_first_1080 = false; is_less_than(&i, &Value::Int(33)) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -460,8 +460,8 @@ pub fn testWsCache() {
     let mut initialLength: Value = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_8: bool = true;
-        while { if !__for_first_8 { i = add(&i, &Value::Int(1)); } __for_first_8 = false; is_less_than(&i, &initialLength) } {
+        let mut __for_first_1081: bool = true;
+        while { if !__for_first_1081 { i = add(&i, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&i, &initialLength) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -478,8 +478,8 @@ pub fn testWsCache() {
     let mut appendItemsLength: Value = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_9: bool = true;
-        while { if !__for_first_9 { i = add(&i, &Value::Int(1)); } __for_first_9 = false; is_less_than(&i, &appendItemsLength) } {
+        let mut __for_first_1082: bool = true;
+        while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &appendItemsLength) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -502,8 +502,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_10: bool = true;
-        while { if !__for_first_10 { i = add(&i, &Value::Int(1)); } __for_first_10 = false; is_less_than(&i, &initialLength) } {
+        let mut __for_first_1083: bool = true;
+        while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &initialLength) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -520,8 +520,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_11: bool = true;
-        while { if !__for_first_11 { i = add(&i, &Value::Int(1)); } __for_first_11 = false; is_less_than(&i, &appendItemsLength) } {
+        let mut __for_first_1084: bool = true;
+        while { if !__for_first_1084 { i = add(&i, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&i, &appendItemsLength) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -574,8 +574,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_12: bool = true;
-        while { if !__for_first_12 { i = add(&i, &Value::Int(1)); } __for_first_12 = false; is_less_than(&i, &initialLength) } {
+        let mut __for_first_1085: bool = true;
+        while { if !__for_first_1085 { i = add(&i, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&i, &initialLength) } {
         timestampCache2.append(Value::List(vec![multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10))]));
     }
     }
@@ -584,8 +584,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_13: bool = true;
-        while { if !__for_first_13 { i = add(&i, &Value::Int(1)); } __for_first_13 = false; is_less_than(&i, &appendItemsLength) } {
+        let mut __for_first_1086: bool = true;
+        while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &appendItemsLength) } {
         timestampCache2.append(Value::List(vec![multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4))]));
     }
     }

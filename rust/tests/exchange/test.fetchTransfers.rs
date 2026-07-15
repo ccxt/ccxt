@@ -15,8 +15,8 @@ pub async fn testFetchTransfers(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), transfers.clone(), code.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_58: bool = true;
-        while { if !__for_first_58 { i = add(&i, &Value::Int(1)); } __for_first_58 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+        let mut __for_first_1131: bool = true;
+        while { if !__for_first_1131 { i = add(&i, &Value::Int(1)); } __for_first_1131 = false; is_less_than(&i, &get_array_length(&transfers)) } {
         testTransfer(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&transfers, &i), code.clone());
     }
     }

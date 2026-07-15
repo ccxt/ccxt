@@ -1112,8 +1112,8 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows.clone(), Value::Str("chain_id".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1026: bool = true;
-            while { if !__for_first_1026 { i = add(&i, &Value::Int(1)); } __for_first_1026 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i = add(&i, &Value::Int(1)); } __for_first_1047 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
             let mut token: Value = get_value(&tokenRows, &i);
             let mut token: Value = get_value(&tokenRows, &i);
             let mut parsed: Value = self.parse_currency(Value::Map({
@@ -1148,8 +1148,8 @@ impl WoofiproCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1027: bool = true;
-            while { if !__for_first_1027 { j = add(&j, &Value::Int(1)); } __for_first_1027 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { j = add(&j, &Value::Int(1)); } __for_first_1048 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
@@ -1619,8 +1619,8 @@ impl WoofiproCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1028: bool = true;
-            while { if !__for_first_1028 { i = add(&i, &Value::Int(1)); } __for_first_1028 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i = add(&i, &Value::Int(1)); } __for_first_1049 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1819,8 +1819,8 @@ impl WoofiproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1029: bool = true;
-            while { if !__for_first_1029 { i = add(&i, &Value::Int(1)); } __for_first_1029 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { i = add(&i, &Value::Int(1)); } __for_first_1050 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2331,8 +2331,8 @@ impl WoofiproCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1030: bool = true;
-            while { if !__for_first_1030 { i = add(&i, &Value::Int(1)); } __for_first_1030 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { i = add(&i, &Value::Int(1)); } __for_first_1051 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3114,8 +3114,8 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1031: bool = true;
-            while { if !__for_first_1031 { i = add(&i, &Value::Int(1)); } __for_first_1031 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i = add(&i, &Value::Int(1)); } __for_first_1052 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3975,8 +3975,8 @@ impl WoofiproCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1032: bool = true;
-                            while { if !__for_first_1032 { i = add(&i, &Value::Int(1)); } __for_first_1032 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_1053: bool = true;
+                            while { if !__for_first_1053 { i = add(&i, &Value::Int(1)); } __for_first_1053 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

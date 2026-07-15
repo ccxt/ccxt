@@ -3200,7 +3200,7 @@ impl DydxCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
-        let mut url: Value = self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &section));
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &section);
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         params = self.keysort(params.clone(), &[]);
         url = add(&url, &add(&Value::Str("/".to_string()), &pathWithParams));

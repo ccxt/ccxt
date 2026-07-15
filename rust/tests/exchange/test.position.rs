@@ -10,6 +10,31 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value) {
+    // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
+    // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
+    // leverage / margin / mark-price / liquidation / pnl fields that don't apply
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        skippedProperties = exchange.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), Value::Bool(true));
+                m.insert("timestamp".to_string(), Value::Bool(true));
+                m.insert("datetime".to_string(), Value::Bool(true));
+                m.insert("leverage".to_string(), Value::Bool(true));
+                m.insert("initialMargin".to_string(), Value::Bool(true));
+                m.insert("initialMarginPercentage".to_string(), Value::Bool(true));
+                m.insert("maintenanceMargin".to_string(), Value::Bool(true));
+                m.insert("maintenanceMarginPercentage".to_string(), Value::Bool(true));
+                m.insert("entryPrice".to_string(), Value::Bool(true));
+                m.insert("notional".to_string(), Value::Bool(true));
+                m.insert("unrealizedPnl".to_string(), Value::Bool(true));
+                m.insert("marginRatio".to_string(), Value::Bool(true));
+                m.insert("liquidationPrice".to_string(), Value::Bool(true));
+                m.insert("markPrice".to_string(), Value::Bool(true));
+                m.insert("collateral".to_string(), Value::Bool(true));
+                m.insert("percentage".to_string(), Value::Bool(true));
+            m
+        }), &[skippedProperties.clone()]);
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({

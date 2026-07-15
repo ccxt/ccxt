@@ -2273,7 +2273,7 @@ impl BingxCore {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("t".to_string())]), &[]));
+        m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("t".to_string()), &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), time.clone());
         m.insert("datetime".to_string(), self.iso8601(time.clone()));
@@ -3918,10 +3918,17 @@ impl BingxCore {
             let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
             let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
             let mut isTrailing: Value = Value::Bool(is_true(&isTrailingAmountOrder) || is_true(&isTrailingPercentOrder));
-            let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
-            let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-            let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-            let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+            let mut stopLossDict: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+            let mut takeProfitDict: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
+            let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLossDict, &Value::Null));
+            let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfitDict, &Value::Null));
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if is_true(&hasStopLoss) {
+                params = self.omit(params.clone(), Value::Str("stopLoss".to_string()), &[]);
+            }
+            if is_true(&hasTakeProfit) {
+                params = self.omit(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+            }
             if is_true(&(is_true(&(is_equal(&type_var, &Value::Str("LIMIT".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("TRIGGER_LIMIT".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("STOP".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("TAKE_PROFIT".to_string())))))) && !is_true(&isTrailing) {
                 add_element_to_object(&mut request, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
             }
@@ -3963,9 +3970,9 @@ impl BingxCore {
             if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
                 let mut stringifiedAmount: Value = self.number_to_string(amount.clone());
                 if is_true(&hasStopLoss) {
-                    let mut slTriggerPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[stopLoss.clone()]);
-                    let mut slWorkingType: Value = self.safe_string_k(stopLoss.clone(), "workingType", &[Value::Str("MARK_PRICE".to_string())]);
-                    let mut slType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("STOP_MARKET".to_string())]);
+                    let mut slTriggerPrice: Value = self.safe_string2(stopLossDict.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+                    let mut slWorkingType: Value = self.safe_string_k(stopLossDict.clone(), "workingType", &[Value::Str("MARK_PRICE".to_string())]);
+                    let mut slType: Value = self.safe_string_k(stopLossDict.clone(), "type", &[Value::Str("STOP_MARKET".to_string())]);
                     let mut slRequest: Value = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("stopPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slTriggerPrice.clone())));
@@ -3973,18 +3980,18 @@ impl BingxCore {
                             m.insert("type".to_string(), slType.clone());
                         m
                     });
-                    let mut slPrice: Value = self.safe_string_k(stopLoss.clone(), "price", &[]);
+                    let mut slPrice: Value = self.safe_string_k(stopLossDict.clone(), "price", &[]);
                     if !is_equal(&slPrice, &Value::Null) {
                         add_element_to_object(&mut slRequest, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slPrice.clone())));
                     }
-                    let mut slQuantity: Value = self.safe_string_k(stopLoss.clone(), "quantity", &[stringifiedAmount.clone()]);
+                    let mut slQuantity: Value = self.safe_string_k(stopLossDict.clone(), "quantity", &[stringifiedAmount.clone()]);
                     add_element_to_object(&mut slRequest, &Value::Str("quantity".to_string()), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), slQuantity.clone())));
                     add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), self.json(slRequest.clone()));
                 }
                 if is_true(&hasTakeProfit) {
-                    let mut tkTriggerPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[takeProfit.clone()]);
-                    let mut tkWorkingType: Value = self.safe_string_k(takeProfit.clone(), "workingType", &[Value::Str("MARK_PRICE".to_string())]);
-                    let mut tpType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("TAKE_PROFIT_MARKET".to_string())]);
+                    let mut tkTriggerPrice: Value = self.safe_string2(takeProfitDict.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+                    let mut tkWorkingType: Value = self.safe_string_k(takeProfitDict.clone(), "workingType", &[Value::Str("MARK_PRICE".to_string())]);
+                    let mut tpType: Value = self.safe_string_k(takeProfitDict.clone(), "type", &[Value::Str("TAKE_PROFIT_MARKET".to_string())]);
                     let mut tpRequest: Value = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("stopPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), tkTriggerPrice.clone())));
@@ -3992,11 +3999,11 @@ impl BingxCore {
                             m.insert("type".to_string(), tpType.clone());
                         m
                     });
-                    let mut slPrice: Value = self.safe_string_k(takeProfit.clone(), "price", &[]);
+                    let mut slPrice: Value = self.safe_string_k(takeProfitDict.clone(), "price", &[]);
                     if !is_equal(&slPrice, &Value::Null) {
                         add_element_to_object(&mut tpRequest, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slPrice.clone())));
                     }
-                    let mut tkQuantity: Value = self.safe_string_k(takeProfit.clone(), "quantity", &[stringifiedAmount.clone()]);
+                    let mut tkQuantity: Value = self.safe_string_k(takeProfitDict.clone(), "quantity", &[stringifiedAmount.clone()]);
                     add_element_to_object(&mut tpRequest, &Value::Str("quantity".to_string()), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), tkQuantity.clone())));
                     add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), self.json(tpRequest.clone()));
                 }
@@ -4023,7 +4030,7 @@ impl BingxCore {
                 add_element_to_object(&mut request, &Value::Str("quantity".to_string()), amountReq.clone()); // precision not available for inverse contracts
             }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("hedged".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingType".to_string()), Value::Str("takeProfit".to_string()), Value::Str("stopLoss".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("hedged".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingType".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
 
     Value::Null
@@ -4179,8 +4186,11 @@ impl BingxCore {
             result = data.clone();
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        let mut stopLossDict: Value = self.safe_dict_k(result.clone(), "stopLoss", &[]);
         let mut stopLoss: Value = self.safe_string_k(result.clone(), "stopLoss", &[]);
-        if is_true(&(!is_equal(&stopLoss, &Value::Null))) && is_true(&(is_equal(&get_index_of(&stopLoss, &Value::Str("{".to_string())), &Value::Int(0)))) {
+        // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
+        // so we need trick to check if it's non-parsed string yet
+        if is_true(&(is_equal(&stopLossDict, &Value::Null))) && is_true(&(!is_equal(&stopLoss, &Value::Null))) && is_true(&(is_equal(&get_index_of(&stopLoss, &Value::Str("{".to_string())), &Value::Int(0)))) {
             add_element_to_object(&mut result, &Value::Str("stopLoss".to_string()), self.parse_json_value(stopLoss.clone()));
         }
         let mut takeProfit: Value = self.safe_string_k(result.clone(), "takeProfit", &[]);

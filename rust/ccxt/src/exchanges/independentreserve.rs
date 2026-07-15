@@ -564,16 +564,16 @@ impl IndependentreserveCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_768: bool = true;
-            while { if !__for_first_768 { i = add(&i, &Value::Int(1)); } __for_first_768 = false; is_less_than(&i, &get_array_length(&baseCurrencies)) } {
+            let mut __for_first_782: bool = true;
+            while { if !__for_first_782 { i = add(&i, &Value::Int(1)); } __for_first_782 = false; is_less_than(&i, &get_array_length(&baseCurrencies)) } {
             let mut baseId: Value = get_value(&baseCurrencies, &i);
             let mut baseId: Value = get_value(&baseCurrencies, &i);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut minAmount: Value = self.safe_number(limits.clone(), baseId.clone(), &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_767: bool = true;
-                while { if !__for_first_767 { j = add(&j, &Value::Int(1)); } __for_first_767 = false; is_less_than(&j, &get_array_length(&quoteCurrencies)) } {
+                let mut __for_first_781: bool = true;
+                while { if !__for_first_781 { j = add(&j, &Value::Int(1)); } __for_first_781 = false; is_less_than(&j, &get_array_length(&quoteCurrencies)) } {
                 let mut quoteId: Value = get_value(&quoteCurrencies, &j);
                 let mut quoteId: Value = get_value(&quoteCurrencies, &j);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -658,8 +658,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_769: bool = true;
-            while { if !__for_first_769 { i = add(&i, &Value::Int(1)); } __for_first_769 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_783: bool = true;
+            while { if !__for_first_783 { i = add(&i, &Value::Int(1)); } __for_first_783 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "CurrencyCode", &[]);
@@ -1240,8 +1240,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_770: bool = true;
-            while { if !__for_first_770 { i = add(&i, &Value::Int(1)); } __for_first_770 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_784: bool = true;
+            while { if !__for_first_784 { i = add(&i, &Value::Int(1)); } __for_first_784 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = get_value(&response, &i);
             let mut fee: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(fee.clone(), "CurrencyCode", &[]);
@@ -1261,8 +1261,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_771: bool = true;
-            while { if !__for_first_771 { i = add(&i, &Value::Int(1)); } __for_first_771 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_785: bool = true;
+            while { if !__for_first_785 { i = add(&i, &Value::Int(1)); } __for_first_785 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_value(fees.clone(), get_value(&market, &Value::Str("base".to_string())), &[Value::Map({
@@ -1552,8 +1552,8 @@ impl IndependentreserveCore {
             let mut keys: Value = object_keys(&params);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_772: bool = true;
-                while { if !__for_first_772 { i = add(&i, &Value::Int(1)); } __for_first_772 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_786: bool = true;
+                while { if !__for_first_786 { i = add(&i, &Value::Int(1)); } __for_first_786 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = to_string_val(&get_value(&params, &key));
@@ -1571,8 +1571,8 @@ impl IndependentreserveCore {
             add_element_to_object(&mut query, &Value::Str("signature".to_string()), to_upper(&signature));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_773: bool = true;
-                while { if !__for_first_773 { i = add(&i, &Value::Int(1)); } __for_first_773 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_787: bool = true;
+                while { if !__for_first_787 { i = add(&i, &Value::Int(1)); } __for_first_787 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 add_element_to_object(&mut query, &key, get_value(&params, &key));

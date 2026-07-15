@@ -19,7 +19,11 @@ pub fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Value) -> 
 }
 pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("networks".to_string()))))) {
+        // only allow these whitelisted unified networkCodes to be repeated
         let mut allowedUnifiedAliases: Value = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ERC20".to_string()), Value::Str("ETH".to_string()), Value::Str("TRX".to_string()), Value::Str("TRC20".to_string()), Value::Str("BRC20".to_string()), Value::Str("CRONOS".to_string()), Value::Str("CRC20".to_string()), Value::Str("CRO".to_string()), Value::Str("BEP20".to_string()), Value::Str("BSC".to_string()), Value::Str("HECO".to_string()), Value::Str("HRC20".to_string()), Value::Str("HT".to_string()), Value::Str("OP".to_string()), Value::Str("OPTIMISM".to_string()), Value::Str("SOL".to_string()), Value::Str("POLYGON".to_string()), Value::Str("MATIC".to_string()), Value::Str("CARDANO".to_string()), Value::Str("ADA".to_string()), Value::Str("ATOM".to_string()), Value::Str("COSMOS".to_string())]);
+        // safeDict, not exchange.options['networks']: a direct missing-key access throws
+        // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
+        // hyperliquid prediction market)
         let mut networks: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("options".to_string())), Value::Str("networks".to_string()), &[]);
         if is_equal(&networks, &Value::Null) {
             return;
@@ -38,8 +42,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_23: bool = true;
-            while { if !__for_first_23 { i = add(&i, &Value::Int(1)); } __for_first_23 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            let mut __for_first_1096: bool = true;
+            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut networkCode: Value = get_value(&networkCodes, &i);
             let mut networkId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())), &networkCode);
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
@@ -52,8 +56,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkCodes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_24: bool = true;
-            while { if !__for_first_24 { i = add(&i, &Value::Int(1)); } __for_first_24 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            let mut __for_first_1097: bool = true;
+            while { if !__for_first_1097 { i = add(&i, &Value::Int(1)); } __for_first_1097 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut networkCodeLower: Value = to_lower(&(get_value(&networkCodes, &i)));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
             append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
@@ -61,8 +65,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_25: bool = true;
-            while { if !__for_first_25 { i = add(&i, &Value::Int(1)); } __for_first_25 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            let mut __for_first_1098: bool = true;
+            while { if !__for_first_1098 { i = add(&i, &Value::Int(1)); } __for_first_1098 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut networkCode: Value = get_value(&networkCodes, &i);
             let mut networkId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())), &networkCode);
             // check networkCodeToId

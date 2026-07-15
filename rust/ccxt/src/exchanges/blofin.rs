@@ -2204,7 +2204,7 @@ impl BlofinCore {
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string())]), &[Value::Bool(false)]);
+        let mut isTrigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         let mut isTpsl: Value = self.safe_bool2(params.clone(), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string()), &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if !is_equal(&clientOrderId, &Value::Null) {

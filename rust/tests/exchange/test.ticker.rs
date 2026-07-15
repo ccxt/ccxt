@@ -10,6 +10,22 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value) {
+    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    // books where bid==ask and a stale `last` far from the median are normal — skip the
+    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    // omits vwap/previousClose entirely, so their presence must not be asserted
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        skippedProperties = exchange.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), Value::Bool(true));
+                m.insert("spread".to_string(), Value::Bool(true));
+                m.insert("lastBetweenBidAsk".to_string(), Value::Bool(true));
+                m.insert("maxIncrease".to_string(), Value::Bool(true));
+                m.insert("vwap".to_string(), Value::Bool(true));
+                m.insert("previousClose".to_string(), Value::Bool(true));
+            m
+        }), &[skippedProperties.clone()]);
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({

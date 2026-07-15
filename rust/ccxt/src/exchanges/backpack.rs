@@ -1341,9 +1341,14 @@ impl BackpackCore {
         let mut low: Value = self.safe_string_k(ticker.clone(), "low", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
         let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "quoteVolume", &[]);
-        let mut percentage: Value = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
+        let mut percentage: Value = Value::Null;
+        let mut percentageNumber: Value = self.safe_float_k(ticker.clone(), "priceChangePercent", &[]);
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if !is_equal(&percentageNumber, &Value::Null) {
+            percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChangePercent", &[]), &Value::Str("100".to_string()));
+        }
         let mut change: Value = self.safe_string_k(ticker.clone(), "priceChange", &[]);
-        return self.safe_ticker(Value::Map({
+        let mut parsedTicker: Value = self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), Value::Null);
@@ -1369,6 +1374,7 @@ impl BackpackCore {
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
+        return parsedTicker;
 
     Value::Null
 }

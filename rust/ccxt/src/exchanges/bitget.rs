@@ -8238,7 +8238,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_equal(&symbol, &Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() requires a symbol argument".to_string()))));
                 }
-                let mut endTime: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("until".to_string())]), &[]);
+                let mut endTime: Value = self.safe_integer2(params.clone(), Value::Str("endTime".to_string()), Value::Str("until".to_string()), &[]);
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
                 if is_equal(&since, &Value::Null) {
                     since = subtract(&now, &Value::Int(7776000000));

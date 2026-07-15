@@ -10,6 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+    // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        skippedProperties = exchange.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), Value::Bool(true));
+                m.insert("fees".to_string(), Value::Bool(true));
+            m
+        }), &[skippedProperties.clone()]);
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
@@ -50,8 +60,8 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if !is_equal(&get_value(&entry, &Value::Str("fees".to_string())), &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_22: bool = true;
-                while { if !__for_first_22 { i = add(&i, &Value::Int(1)); } __for_first_22 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("fees".to_string())))) } {
+                let mut __for_first_1095: bool = true;
+                while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("fees".to_string())))) } {
                 crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&entry, &Value::Str("fees".to_string())).clone(), i.clone()]);
             }
             }

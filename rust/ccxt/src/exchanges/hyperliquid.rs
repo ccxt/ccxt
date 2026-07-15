@@ -994,8 +994,8 @@ impl HyperliquidCore {
                 let mut nameWithoutU: Value = Value::Str("".to_string());
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_734: bool = true;
-                    while { if !__for_first_734 { j = add(&j, &Value::Int(1)); } __for_first_734 = false; is_less_than(&j, &get_array_length(&parts)) } {
+                    let mut __for_first_748: bool = true;
+                    while { if !__for_first_748 { j = add(&j, &Value::Int(1)); } __for_first_748 = false; is_less_than(&j, &get_array_length(&parts)) } {
                     nameWithoutU = add(&nameWithoutU, &get_value(&parts, &j));
                 }
                 }
@@ -1030,8 +1030,8 @@ impl HyperliquidCore {
         let mut rawPromises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_749: bool = true;
+            while { if !__for_first_749 { i = add(&i, &Value::Int(1)); } __for_first_749 = false; is_less_than(&i, &get_array_length(&types)) } {
             let mut marketType: Value = get_value(&types, &i);
             let mut marketType: Value = get_value(&types, &i);
             if is_equal(&marketType, &Value::Str("swap".to_string())) {
@@ -1047,8 +1047,8 @@ impl HyperliquidCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { i = add(&i, &Value::Int(1)); } __for_first_736 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_750: bool = true;
+            while { if !__for_first_750 { i = add(&i, &Value::Int(1)); } __for_first_750 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
         }
         }
@@ -1100,8 +1100,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { i = add(&i, &Value::Int(1)); } __for_first_737 = false; is_less_than(&i, &get_array_length(&fetchDexes)) } {
+            let mut __for_first_751: bool = true;
+            while { if !__for_first_751 { i = add(&i, &Value::Int(1)); } __for_first_751 = false; is_less_than(&i, &get_array_length(&fetchDexes)) } {
             // builder-deployed perp dexs start at 110000
             let mut dex: Value = get_value(&fetchDexes, &i);
             let mut dex: Value = get_value(&fetchDexes, &i);
@@ -1130,8 +1130,8 @@ impl HyperliquidCore {
             let mut fetchDexesLength: Value = get_array_length(&fetchDexes);
             {
                                 let mut i: Value = Value::Int(1);
-                let mut __for_first_738: bool = true;
-                while { if !__for_first_738 { i = add(&i, &Value::Int(1)); } __for_first_738 = false; is_less_than(&i, &maxLimit) } {
+                let mut __for_first_752: bool = true;
+                while { if !__for_first_752 { i = add(&i, &Value::Int(1)); } __for_first_752 = false; is_less_than(&i, &maxLimit) } {
                 if is_greater_than_or_equal(&i, &fetchDexesLength) {
                     break;
                 }
@@ -1150,8 +1150,8 @@ impl HyperliquidCore {
         let mut rawPromises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { i = add(&i, &Value::Int(1)); } __for_first_739 = false; is_less_than(&i, &get_array_length(&fetchDexesList)) } {
+            let mut __for_first_753: bool = true;
+            while { if !__for_first_753 { i = add(&i, &Value::Int(1)); } __for_first_753 = false; is_less_than(&i, &get_array_length(&fetchDexesList)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".to_string()));
@@ -1170,8 +1170,8 @@ impl HyperliquidCore {
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_741: bool = true;
-            while { if !__for_first_741 { i = add(&i, &Value::Int(1)); } __for_first_741 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_755: bool = true;
+            while { if !__for_first_755 { i = add(&i, &Value::Int(1)); } __for_first_755 = false; is_less_than(&i, &get_array_length(&promises)) } {
             let mut dexName: Value = get_value(&fetchDexesList, &i);
             let mut dexName: Value = get_value(&fetchDexesList, &i);
             let mut offset: Value = get_value(&perpDexesOffset, &dexName);
@@ -1187,8 +1187,8 @@ impl HyperliquidCore {
             let mut result: Value = Value::List(vec![]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_740: bool = true;
-                while { if !__for_first_740 { j = add(&j, &Value::Int(1)); } __for_first_740 = false; is_less_than(&j, &get_array_length(&universe)) } {
+                let mut __for_first_754: bool = true;
+                while { if !__for_first_754 { j = add(&j, &Value::Int(1)); } __for_first_754 = false; is_less_than(&j, &get_array_length(&universe)) } {
                 let __ws_arg_4 = self.safe_dict(universe.clone(), j.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1291,8 +1291,8 @@ impl HyperliquidCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_742: bool = true;
-            while { if !__for_first_742 { i = add(&i, &Value::Int(1)); } __for_first_742 = false; is_less_than(&i, &get_array_length(&universe)) } {
+            let mut __for_first_756: bool = true;
+            while { if !__for_first_756 { i = add(&i, &Value::Int(1)); } __for_first_756 = false; is_less_than(&i, &get_array_length(&universe)) } {
             let __ws_arg_7 = self.safe_dict(universe.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1435,8 +1435,8 @@ impl HyperliquidCore {
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_743: bool = true;
-            while { if !__for_first_743 { i = add(&i, &Value::Int(1)); } __for_first_743 = false; is_less_than(&i, &get_array_length(&meta)) } {
+            let mut __for_first_757: bool = true;
+            while { if !__for_first_757 { i = add(&i, &Value::Int(1)); } __for_first_757 = false; is_less_than(&i, &get_array_length(&meta)) } {
             let mut market: Value = self.safe_dict(meta.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1798,8 +1798,8 @@ impl HyperliquidCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_744: bool = true;
-                while { if !__for_first_744 { i = add(&i, &Value::Int(1)); } __for_first_744 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_758: bool = true;
+                while { if !__for_first_758 { i = add(&i, &Value::Int(1)); } __for_first_758 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut balance: Value = get_value(&balances, &i);
                 let mut balance: Value = get_value(&balances, &i);
                 let mut unifiedCode: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "coin", &[]), &[]);
@@ -1960,8 +1960,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_745: bool = true;
-            while { if !__for_first_745 { i = add(&i, &Value::Int(1)); } __for_first_745 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_759: bool = true;
+            while { if !__for_first_759 { i = add(&i, &Value::Int(1)); } __for_first_759 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut info: Value = get_value(&market, &Value::Str("info".to_string()));
@@ -2037,8 +2037,8 @@ impl HyperliquidCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_746: bool = true;
-            while { if !__for_first_746 { i = add(&i, &Value::Int(1)); } __for_first_746 = false; is_less_than(&i, &get_array_length(&universe)) } {
+            let mut __for_first_760: bool = true;
+            while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&universe)) } {
             let __ws_arg_13 = self.safe_dict(universe.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3120,8 +3120,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersToBeParsed: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_747: bool = true;
-            while { if !__for_first_747 { i = add(&i, &Value::Int(1)); } __for_first_747 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_761: bool = true;
+            while { if !__for_first_761 { i = add(&i, &Value::Int(1)); } __for_first_761 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut order: Value = get_value(&statuses, &i);
             let mut order: Value = get_value(&statuses, &i);
             if is_equal(&order, &Value::Str("waitingForTrigger".to_string())) {
@@ -3241,8 +3241,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasClientOrderId: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_748: bool = true;
-            while { if !__for_first_748 { i = add(&i, &Value::Int(1)); } __for_first_748 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_762: bool = true;
+            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
@@ -3258,8 +3258,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&hasClientOrderId) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_749: bool = true;
-                while { if !__for_first_749 { i = add(&i, &Value::Int(1)); } __for_first_749 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_763: bool = true;
+                while { if !__for_first_763 { i = add(&i, &Value::Int(1)); } __for_first_763 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut rawOrder: Value = get_value(&orders, &i);
                 let mut rawOrder: Value = get_value(&orders, &i);
                 let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
@@ -3279,8 +3279,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut grouping: Value = Value::Str("na".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_750: bool = true;
-            while { if !__for_first_750 { i = add(&i, &Value::Int(1)); } __for_first_750 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_764: bool = true;
+            while { if !__for_first_764 { i = add(&i, &Value::Int(1)); } __for_first_764 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3304,12 +3304,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut mainOrderObj: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
                 // grouping opposed orders for sl/tp
-                let mut stopLossOrderTriggerPrice: Value = self.safe_string_n(stopLoss.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+                let mut stopLossOrderTriggerPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                 let mut stopLossOrderType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("limit".to_string())]);
-                let mut stopLossOrderLimitPrice: Value = self.safe_string_n(stopLoss.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string())]), &[stopLossOrderTriggerPrice.clone()]);
-                let mut takeProfitOrderTriggerPrice: Value = self.safe_string_n(takeProfit.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+                let mut stopLossOrderLimitPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string()), &[stopLossOrderTriggerPrice.clone()]);
+                let mut takeProfitOrderTriggerPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                 let mut takeProfitOrderType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("limit".to_string())]);
-                let mut takeProfitOrderLimitPrice: Value = self.safe_string_n(takeProfit.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string())]), &[takeProfitOrderTriggerPrice.clone()]);
+                let mut takeProfitOrderLimitPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string()), &[takeProfitOrderTriggerPrice.clone()]);
                 grouping = self.safe_string_k(orderParams.clone(), "grouping", &[Value::Str("normalTpsl".to_string())]);
                 if is_equal(&grouping, &Value::Str("positionTpsl".to_string())) {
                     amount = Value::Str("0".to_string());
@@ -3473,8 +3473,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_751: bool = true;
-            while { if !__for_first_751 { i = add(&i, &Value::Int(1)); } __for_first_751 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_765: bool = true;
+            while { if !__for_first_765 { i = add(&i, &Value::Int(1)); } __for_first_765 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut status: Value = get_value(&statuses, &i);
             let mut status: Value = get_value(&statuses, &i);
             append_to_array(&mut orders, self.safe_order(Value::Map({
@@ -3615,8 +3615,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_752: bool = true;
-                while { if !__for_first_752 { i = add(&i, &Value::Int(1)); } __for_first_752 = false; is_less_than(&i, &get_array_length(&clientOrderId)) } {
+                let mut __for_first_766: bool = true;
+                while { if !__for_first_766 { i = add(&i, &Value::Int(1)); } __for_first_766 = false; is_less_than(&i, &get_array_length(&clientOrderId)) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
@@ -3629,8 +3629,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancel".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_753: bool = true;
-                while { if !__for_first_753 { i = add(&i, &Value::Int(1)); } __for_first_753 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_767: bool = true;
+                while { if !__for_first_767 { i = add(&i, &Value::Int(1)); } __for_first_767 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 let mut o: Value = self.parse_to_numeric(get_value(&ids, &i));
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3695,8 +3695,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cancelByCloid: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_754: bool = true;
-            while { if !__for_first_754 { i = add(&i, &Value::Int(1)); } __for_first_754 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_768: bool = true;
+            while { if !__for_first_768 { i = add(&i, &Value::Int(1)); } __for_first_768 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
@@ -3803,8 +3803,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasClientOrderId: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_755: bool = true;
-            while { if !__for_first_755 { i = add(&i, &Value::Int(1)); } __for_first_755 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_769: bool = true;
+            while { if !__for_first_769 { i = add(&i, &Value::Int(1)); } __for_first_769 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
@@ -3820,8 +3820,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&hasClientOrderId) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_756: bool = true;
-                while { if !__for_first_756 { i = add(&i, &Value::Int(1)); } __for_first_756 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_770: bool = true;
+                while { if !__for_first_770 { i = add(&i, &Value::Int(1)); } __for_first_770 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut rawOrder: Value = get_value(&orders, &i);
                 let mut rawOrder: Value = get_value(&orders, &i);
                 let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
@@ -3839,8 +3839,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut modifies: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_757: bool = true;
-            while { if !__for_first_757 { i = add(&i, &Value::Int(1)); } __for_first_757 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_771: bool = true;
+            while { if !__for_first_771 { i = add(&i, &Value::Int(1)); } __for_first_771 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -4175,8 +4175,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_758: bool = true;
-            while { if !__for_first_758 { i = add(&i, &Value::Int(1)); } __for_first_758 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_772: bool = true;
+            while { if !__for_first_772 { i = add(&i, &Value::Int(1)); } __for_first_772 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "time", &[]);
@@ -4272,8 +4272,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderWithStatus: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i = add(&i, &Value::Int(1)); } __for_first_759 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_773: bool = true;
+            while { if !__for_first_773 { i = add(&i, &Value::Int(1)); } __for_first_773 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             let mut extendOrder: Value = Value::Map({
@@ -4447,8 +4447,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_760: bool = true;
-            while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_774: bool = true;
+            while { if !__for_first_774 { i = add(&i, &Value::Int(1)); } __for_first_774 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawOrder: Value = get_value(&response, &i);
             let mut rawOrder: Value = get_value(&response, &i);
             let mut entry: Value = self.safe_dict_k(rawOrder.clone(), "order", &[]);
@@ -4920,8 +4920,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut dexName: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_761: bool = true;
-            while { if !__for_first_761 { i = add(&i, &Value::Int(1)); } __for_first_761 = false; is_less_than(&i, &symbolsLength) } {
+            let mut __for_first_775: bool = true;
+            while { if !__for_first_775 { i = add(&i, &Value::Int(1)); } __for_first_775 = false; is_less_than(&i, &symbolsLength) } {
             if is_equal(&dexName, &Value::Null) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 dexName = self.get_dex_from_hip3_symbol(market.clone());
@@ -5024,8 +5024,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_762: bool = true;
-            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_776: bool = true;
+            while { if !__for_first_776 { i = add(&i, &Value::Int(1)); } __for_first_776 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_position(get_value(&data, &i), &[]));
         }
         }
@@ -5957,8 +5957,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&vaultAddress, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_763: bool = true;
-                while { if !__for_first_763 { i = add(&i, &Value::Int(1)); } __for_first_763 = false; is_less_than(&i, &get_array_length(&records)) } {
+                let mut __for_first_777: bool = true;
+                while { if !__for_first_777 { i = add(&i, &Value::Int(1)); } __for_first_777 = false; is_less_than(&i, &get_array_length(&records)) } {
                 let mut record: Value = get_value(&records, &i);
                 let mut record: Value = get_value(&records, &i);
                 if is_equal(&get_value(&record, &Value::Str("type".to_string())), &Value::Str("vaultDeposit".to_string())) {
@@ -6043,8 +6043,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&vaultAddress, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_764: bool = true;
-                while { if !__for_first_764 { i = add(&i, &Value::Int(1)); } __for_first_764 = false; is_less_than(&i, &get_array_length(&records)) } {
+                let mut __for_first_778: bool = true;
+                while { if !__for_first_778 { i = add(&i, &Value::Int(1)); } __for_first_778 = false; is_less_than(&i, &get_array_length(&records)) } {
                 let mut record: Value = get_value(&records, &i);
                 let mut record: Value = get_value(&records, &i);
                 if is_equal(&get_value(&record, &Value::Str("type".to_string())), &Value::Str("vaultWithdraw".to_string())) {
@@ -6330,8 +6330,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut records: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_765: bool = true;
-            while { if !__for_first_765 { i = add(&i, &Value::Int(1)); } __for_first_765 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_779: bool = true;
+            while { if !__for_first_779 { i = add(&i, &Value::Int(1)); } __for_first_779 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut record: Value = get_value(&data, &i);
             let mut record: Value = get_value(&data, &i);
             { let __be_tmp = get_value(&get_value(&record, &Value::Str("delta".to_string())), &Value::Str("type".to_string())); add_element_to_object(&mut record, &Value::Str("type".to_string()), __be_tmp); };
@@ -6433,8 +6433,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_766: bool = true;
-                while { if !__for_first_766 { i = add(&i, &Value::Int(1)); } __for_first_766 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+                let mut __for_first_780: bool = true;
+                while { if !__for_first_780 { i = add(&i, &Value::Int(1)); } __for_first_780 = false; is_less_than(&i, &get_array_length(&statuses)) } {
                 message = self.safe_string_k(get_value(&statuses, &i), "error", &[]);
                 if !is_equal(&message, &Value::Null) {
                     break;

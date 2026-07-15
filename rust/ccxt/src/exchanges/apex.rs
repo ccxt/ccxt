@@ -1279,7 +1279,7 @@ impl ApexCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_n(ohlcv.clone(), Value::List(vec![Value::Str("start".to_string()), Value::Str("t".to_string())]), &[]), self.safe_number_n(ohlcv.clone(), Value::List(vec![Value::Str("open".to_string()), Value::Str("o".to_string())]), &[]), self.safe_number_n(ohlcv.clone(), Value::List(vec![Value::Str("high".to_string()), Value::Str("h".to_string())]), &[]), self.safe_number_n(ohlcv.clone(), Value::List(vec![Value::Str("low".to_string()), Value::Str("l".to_string())]), &[]), self.safe_number_n(ohlcv.clone(), Value::List(vec![Value::Str("close".to_string()), Value::Str("c".to_string())]), &[]), self.safe_number_n(ohlcv.clone(), Value::List(vec![Value::Str("volume".to_string()), Value::Str("v".to_string())]), &[])]);
+        return Value::List(vec![self.safe_integer2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("t".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("open".to_string()), Value::Str("o".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("high".to_string()), Value::Str("h".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("low".to_string()), Value::Str("l".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("close".to_string()), Value::Str("c".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("volume".to_string()), Value::Str("v".to_string()), &[])]);
 
     Value::Null
 }
@@ -1428,15 +1428,15 @@ impl ApexCore {
         //  }
         //  ]
         //
-        let mut marketId: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("s".to_string()), Value::Str("symbol".to_string())]), &[]);
+        let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut id: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("i".to_string()), Value::Str("id".to_string())]), &[]);
+        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("i".to_string()), Value::Str("id".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::List(vec![Value::Str("t".to_string()), Value::Str("T".to_string()), Value::Str("createdAt".to_string())]), &[]);
-        let mut priceString: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("p".to_string()), Value::Str("price".to_string())]), &[]);
-        let mut amountString: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("v".to_string()), Value::Str("size".to_string())]), &[]);
-        let mut side: Value = self.safe_string_lower_n(trade.clone(), Value::List(vec![Value::Str("S".to_string()), Value::Str("side".to_string())]), &[]);
-        let mut type_var: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("type".to_string())]), &[]);
-        let mut fee: Value = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("fee".to_string())]), &[]);
+        let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
+        let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("v".to_string()), Value::Str("size".to_string()), &[]);
+        let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("S".to_string()), Value::Str("side".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
+        let mut fee: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -2185,7 +2185,7 @@ impl ApexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), self.safe_string_n(transfer.clone(), Value::List(vec![Value::Str("transferId".to_string()), Value::Str("id".to_string())]), &[]));
+        m.insert("id".to_string(), self.safe_string2(transfer.clone(), Value::Str("transferId".to_string()), Value::Str("id".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
@@ -2705,7 +2705,7 @@ impl ApexCore {
         let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updatedTime", &[]);
         let mut leverage: Value = Value::Int(20);
-        let mut customInitialMarginRate: Value = self.safe_string_n(position.clone(), Value::List(vec![Value::Str("customInitialMarginRate".to_string()), Value::Str("customImr".to_string())]), &[Value::Str("0".to_string())]);
+        let mut customInitialMarginRate: Value = self.safe_string2(position.clone(), Value::Str("customInitialMarginRate".to_string()), Value::Str("customImr".to_string()), &[Value::Str("0".to_string())]);
         if !is_equal(&self.precision_from_string(customInitialMarginRate.clone()), &Value::Int(0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &customInitialMarginRate, &Value::Int(4)));
         }

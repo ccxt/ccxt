@@ -6094,7 +6094,7 @@ impl BybitCore {
         let mut result: Value = self.fetch_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_29]).await;
         let mut length: Value = get_array_length(&result);
         if is_equal(&length, &Value::Int(0)) {
-            let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[Value::Bool(false)]);
+            let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
             let mut extra: Value = ternary(is_true(&isTrigger), Value::Str("".to_string()), Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string()));
             panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&Value::Str("Order ".to_string()), &to_string_val(&id)), &Value::Str(" was not found.".to_string())), &extra)));
         }
@@ -6307,7 +6307,7 @@ impl BybitCore {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported for spot markets".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
-        let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[Value::Bool(false)]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
         if is_true(&isTrigger) {
             add_element_to_object(&mut request, &Value::Str("orderFilter".to_string()), Value::Str("StopOrder".to_string()));
@@ -6415,7 +6415,7 @@ impl BybitCore {
         let mut result: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_32]).await;
         let mut length: Value = get_array_length(&result);
         if is_equal(&length, &Value::Int(0)) {
-            let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[Value::Bool(false)]);
+            let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
             let mut extra: Value = ternary(is_true(&isTrigger), Value::Str("".to_string()), Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string()));
             panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&Value::Str("Order ".to_string()), &to_string_val(&id)), &Value::Str(" was not found.".to_string())), &extra)));
         }
@@ -6462,7 +6462,7 @@ impl BybitCore {
         let mut result: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_33]).await;
         let mut length: Value = get_array_length(&result);
         if is_equal(&length, &Value::Int(0)) {
-            let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[Value::Bool(false)]);
+            let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
             let mut extra: Value = ternary(is_true(&isTrigger), Value::Str("".to_string()), Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string()));
             panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&Value::Str("Order ".to_string()), &to_string_val(&id)), &Value::Str(" was not found.".to_string())), &extra)));
         }
@@ -6520,7 +6520,7 @@ impl BybitCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.get_bybit_type(Value::Str("fetchCanceledAndClosedOrders".to_string()), market.clone(), &[params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
-        let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[Value::Bool(false)]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
         if is_true(&isTrigger) {
             add_element_to_object(&mut request, &Value::Str("orderFilter".to_string()), Value::Str("StopOrder".to_string()));
@@ -8121,10 +8121,10 @@ impl BybitCore {
         let mut unrealisedPnl: Value = self.omit_zero(self.safe_string_k(position.clone(), "unrealisedPnl", &[]));
         let mut initialMarginString: Value = self.safe_string2(position.clone(), Value::Str("positionIM".to_string()), Value::Str("cumEntryValue".to_string()), &[]);
         let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "positionMM", &[]);
-        let mut timestamp: Value = self.safe_integer_n(position.clone(), Value::List(vec![Value::Str("createdTime".to_string()), Value::Str("createdAt".to_string())]), &[]);
+        let mut timestamp: Value = self.safe_integer2(position.clone(), Value::Str("createdTime".to_string()), Value::Str("createdAt".to_string()), &[]);
         let mut lastUpdateTimestamp: Value = self.parse8601(self.safe_string_k(position.clone(), "updated_at", &[]));
         if is_equal(&lastUpdateTimestamp, &Value::Null) {
-            lastUpdateTimestamp = self.safe_integer_n(position.clone(), Value::List(vec![Value::Str("updatedTime".to_string()), Value::Str("updatedAt".to_string()), Value::Str("updatedTime".to_string())]), &[]);
+            lastUpdateTimestamp = self.safe_integer2(position.clone(), Value::Str("updatedTime".to_string()), Value::Str("updatedAt".to_string()), &[]);
         }
         let mut collateralString: Value = self.safe_string_k(position.clone(), "positionBalance", &[]);
         let mut entryPrice: Value = self.omit_zero(self.safe_string_n(position.clone(), Value::List(vec![Value::Str("entryPrice".to_string()), Value::Str("avgPrice".to_string()), Value::Str("avgEntryPrice".to_string())]), &[]));
@@ -8985,7 +8985,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statusRaw: Value = self.safe_string_n(response.clone(), Value::List(vec![Value::Str("retCode".to_string()), Value::Str("retMsg".to_string())]), &[]);
+        let mut statusRaw: Value = self.safe_string2(response.clone(), Value::Str("retCode".to_string()), Value::Str("retMsg".to_string()), &[]);
         let mut status: Value = self.parse_transfer_status(statusRaw.clone());
         let __ws_arg_60 = self.parse_transfer(transfer.clone(), &[currency.clone()]);
         let __ws_arg_61 = self.iso8601(timestamp.clone());

@@ -1162,8 +1162,8 @@ impl WeexCore {
         let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { j = add(&j, &Value::Int(1)); } __for_first_996 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_1017: bool = true;
+            while { if !__for_first_1017 { j = add(&j, &Value::Int(1)); } __for_first_1017 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -2333,8 +2333,8 @@ impl WeexCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_997: bool = true;
-            while { if !__for_first_997 { i = add(&i, &Value::Int(1)); } __for_first_997 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1018: bool = true;
+            while { if !__for_first_1018 { i = add(&i, &Value::Int(1)); } __for_first_1018 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);

@@ -1431,7 +1431,7 @@ impl AlpacaCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stop_price".to_string()), &[]);
         if !is_equal(&triggerPrice, &Value::Null) {
             let mut newType: Value = Value::Null;
             if is_greater_than_or_equal(&get_index_of(&type_var, &Value::Str("limit".to_string())), &Value::Int(0)) {
@@ -1710,7 +1710,7 @@ impl AlpacaCore {
         if !is_equal(&amount, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("qty".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stop_price".to_string()), &[]);
         if !is_equal(&triggerPrice, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             params = self.omit(params.clone(), Value::Str("triggerPrice".to_string()), &[]);

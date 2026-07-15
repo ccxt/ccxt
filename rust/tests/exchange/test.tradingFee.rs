@@ -10,6 +10,14 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut symbol: Value, mut entry: Value) {
+    // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
+    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+        skippedProperties = exchange.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), Value::Bool(true));
+            m
+        }), &[skippedProperties.clone()]);
+    }
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({

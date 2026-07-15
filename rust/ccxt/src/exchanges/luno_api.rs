@@ -21,6 +21,31 @@ impl LunoCore {
         self.call_method(Value::Str("exchange_private_get_candles".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `exchangePrivateGetMove` implicit endpoint.
+    pub async fn exchange_private_get_move(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("exchange_private_get_move".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `exchangePrivateGetMoveListMoves` implicit endpoint.
+    pub async fn exchange_private_get_move_list_moves(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("exchange_private_get_move_list_moves".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `exchangePrivateGetTransfers` implicit endpoint.
+    pub async fn exchange_private_get_transfers(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("exchange_private_get_transfers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `exchangePrivatePostConvert` implicit endpoint.
+    pub async fn exchange_private_post_convert(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("exchange_private_post_convert".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `exchangePrivatePostMove` implicit endpoint.
+    pub async fn exchange_private_post_move(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("exchange_private_post_move".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
     pub async fn public_get_orderbook(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orderbook".to_string()), optional_args).await
@@ -114,6 +139,11 @@ impl LunoCore {
     /// Auto-generated wrapper for the `privateGetTransfers` implicit endpoint.
     pub async fn private_get_transfers(&self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_transfers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUsersLinked` implicit endpoint.
+    pub async fn private_get_users_linked(&self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_users_linked".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccounts` implicit endpoint.
