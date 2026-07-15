@@ -840,7 +840,7 @@ export default class limitless extends Exchange {
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
-            // ('symbol' kept as a legacy fallback) — don't run it through parseMarket again
+            // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             const marketSymbol = this.safeString2 (rawMarket, 'market', 'symbol');
             const marketOutcomes = this.safeList (rawMarket, 'outcomes');
             if (marketSymbol !== undefined && marketOutcomes !== undefined) {
