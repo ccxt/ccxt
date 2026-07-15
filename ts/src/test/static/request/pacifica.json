@@ -151,6 +151,15 @@
                 "output": "{\"actions\":[{\"type\":\"Create\",\"data\":{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"X5vn4dC5y97EBxrWpgAUfor8N29tNkv4Puqrry33iWLJp2QZmHVVmD1JHGj86JDTVhGAYUU5PyS8uUxY8hmoTKW\",\"timestamp\":1769554042037,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"reduce_only\":false,\"tif\":\"GTC\",\"price\":\"87768\",\"amount\":\"0.002\"}},{\"type\":\"Create\",\"data\":{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"3yzGKHhWC5kKdYhwyehwHujSMh3RAFpFRUqVkGUPW6prQEWb3sPvMexePB8y6LUJzStBSTkgX4hGyDesW38uDnmv\",\"timestamp\":1769554042037,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"ask\",\"reduce_only\":false,\"tif\":\"GTC\",\"price\":\"87800\",\"amount\":\"0.002\"}}]}"
             }
         ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets without private initialization",
+                "method": "fetchMarkets",
+                "url": "https://test-api.pacifica.fi/api/v1/info",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch account balance",
