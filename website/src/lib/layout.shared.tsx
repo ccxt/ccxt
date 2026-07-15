@@ -36,7 +36,7 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
     links: [
       { text: t.guide, url: `${prefix}/docs` },
       { text: t.exchanges, url: `${prefix}/docs/exchanges/binance` },
-      { text: t.prediction, url: `${prefix}/docs/prediction/polymarket` },
+      { text: t.prediction, url: `${prefix}/docs/prediction` },
       { text: t.examples, url: `${prefix}/docs/examples` },
       // The blog is English-only, so it always lives at the un-prefixed /blog.
       { text: t.blog, url: '/blog' },
