@@ -63,7 +63,7 @@ export default class kalshi extends Exchange {
                 '1d': 1440,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/16b2b75f-8702-4781-8ba8-08c9be99a5ed',
+                'logo': 'https://github.com/user-attachments/assets/74fc2acb-58d0-4db0-b316-3124e7dc24db',
                 'api': {
                     'kalshi': 'https://external-api.kalshi.com/trade-api/v2',
                     // free-text search (/v1/search/series) lives only on the elections web host —

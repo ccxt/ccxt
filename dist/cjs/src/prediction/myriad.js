@@ -76,7 +76,7 @@ class myriad extends myriad$1["default"] {
                 '1d': '30d',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/59aba5fc-94a6-46cf-a93b-dbc5ee3d8502',
+                'logo': 'https://github.com/user-attachments/assets/a393c885-99e8-4943-897d-ebc0555c3773',
                 'api': {
                     'myriad': 'https://api-v2.myriadprotocol.com',
                     'ws': 'wss://ws.myriadprotocol.com/ws',
