@@ -52,9 +52,11 @@ export default class bithumb extends bithumbRest {
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchTicker', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
@@ -89,9 +91,11 @@ export default class bithumb extends bithumbRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const streamMarketIds: string[] = [];
@@ -333,9 +337,11 @@ export default class bithumb extends bithumbRest {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
@@ -512,9 +518,11 @@ export default class bithumb extends bithumbRest {
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchTrades', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
@@ -730,12 +738,14 @@ export default class bithumb extends bithumbRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchBalance', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchBalance() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         await this.authenticate ();
         const url = this.urls['api']['ws']['privateGen2'];
         const messageHash = 'myAsset';
@@ -823,12 +833,14 @@ export default class bithumb extends bithumbRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'watchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchOrders() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         await this.authenticate ();
         const url = this.urls['api']['ws']['privateGen2'];
         let messageHash = 'myOrder';

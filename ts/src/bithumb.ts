@@ -402,77 +402,6 @@ export default class bithumb extends Exchange {
     }
 
     /**
-     * @ignore
-     */
-    async loadMarketsGeneration (generation: Int): Promise<Dict> {
-        let loadedMarketsGeneration = this.safeInteger (this.options, 'loadedMarketsGeneration');
-        const isStaticRequestTest = (this.httpProxy === 'http://fake:8080') && (this.httpsProxy === 'http://fake:8080');
-        if (isStaticRequestTest && (this.markets !== undefined)) {
-            const symbols = Object.keys (this.markets);
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.safeDict (this.markets, symbol, {});
-                const parts = symbol.split ('/');
-                const base = this.safeString (parts, 0);
-                const quote = this.safeString (parts, 1);
-                if ((base === undefined) || (quote === undefined)) {
-                    continue;
-                }
-                const baseId = this.safeString (market, 'baseId', base);
-                const quoteId = this.safeString (market, 'quoteId', quote);
-                market['symbol'] = base + '/' + quote;
-                market['base'] = base;
-                market['quote'] = quote;
-                market['baseId'] = baseId;
-                market['quoteId'] = quoteId;
-                let marketId = undefined;
-                if (generation === 2) {
-                    marketId = (quoteId + '-' + baseId);
-                } else {
-                    marketId = baseId;
-                }
-                market['id'] = marketId;
-                this.markets[symbol] = market;
-            }
-            this.setMarkets (this.markets, this.currencies);
-            this.options['loadedMarketsGeneration'] = generation;
-            return this.markets;
-        }
-        if ((loadedMarketsGeneration === undefined) && (this.markets !== undefined)) {
-            // Infer generation from market ids when markets were loaded externally (e.g. CLI preload)
-            // Gen 2 ids are quote-base (KRW-BTC), Gen 1 ids are base-only (BTC)
-            const marketSymbols = Object.keys (this.markets);
-            let hasGeneration1Ids = false;
-            let hasGeneration2Ids = false;
-            for (let i = 0; i < marketSymbols.length; i++) {
-                if (i >= 10) {
-                    break;
-                }
-                const symbol = marketSymbols[i];
-                const market = this.safeDict (this.markets, symbol, {});
-                const marketId = this.safeString (market, 'id');
-                if (marketId === undefined) {
-                    continue;
-                }
-                if (marketId.indexOf ('-') > -1) {
-                    hasGeneration2Ids = true;
-                } else {
-                    hasGeneration1Ids = true;
-                }
-            }
-            if (hasGeneration2Ids && !hasGeneration1Ids) {
-                loadedMarketsGeneration = 2;
-            } else if (hasGeneration1Ids && !hasGeneration2Ids) {
-                loadedMarketsGeneration = 1;
-            }
-        }
-        const reloadMarkets = (this.markets === undefined) || (loadedMarketsGeneration === undefined) || (loadedMarketsGeneration !== generation);
-        const markets = await this.loadMarkets (reloadMarkets, { 'generation': generation });
-        this.options['loadedMarketsGeneration'] = generation;
-        return markets;
-    }
-
-    /**
      * @method
      * @name bithumb#fetchMarkets
      * @description retrieves data on all markets for bithumb
@@ -745,9 +674,11 @@ export default class bithumb extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         let response = undefined;
         if (generation === 2) {
             response = await this.privateGetV1Accounts (params);
@@ -795,9 +726,11 @@ export default class bithumb extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
@@ -1026,9 +959,11 @@ export default class bithumb extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
@@ -1202,9 +1137,11 @@ export default class bithumb extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
@@ -1336,9 +1273,11 @@ export default class bithumb extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
@@ -1558,9 +1497,11 @@ export default class bithumb extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
         const request: Dict = {};
         if (limit !== undefined) {
@@ -1625,12 +1566,14 @@ export default class bithumb extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'createOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createOrders is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const ordersRequests: List = [];
         let orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1749,9 +1692,11 @@ export default class bithumb extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'createOrder', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         let request: Dict = {};
         const market = this.market (symbol);
         let response = undefined;
@@ -1824,12 +1769,14 @@ export default class bithumb extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'createTwapOrder', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createTwapOrder() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const market = this.market (symbol);
         const durationString = this.numberToString (duration);
         const durationSeconds = Precise.stringDiv (durationString, '1000');
@@ -1873,9 +1820,11 @@ export default class bithumb extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2241,9 +2190,11 @@ export default class bithumb extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         const request: Dict = {};
         let market = undefined;
         let response = undefined;
@@ -2312,12 +2263,14 @@ export default class bithumb extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchOrders is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const request: Dict = {};
         const twap = this.safeBool (params, 'twap', false);
         params = this.omit (params, 'twap');
@@ -2453,9 +2406,11 @@ export default class bithumb extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2536,12 +2491,14 @@ export default class bithumb extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' cancelOrders is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2604,9 +2561,11 @@ export default class bithumb extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'withdraw', 'generation', 2);
-        await this.loadMarketsGeneration (generation);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         const network = this.safeString2 (params, 'network', 'net_type');
@@ -2798,12 +2757,14 @@ export default class bithumb extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawal', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawal() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires a code argument');
         }
@@ -2852,12 +2813,14 @@ export default class bithumb extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchWithdrawals() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2907,12 +2870,14 @@ export default class bithumb extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposit', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDeposit() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposit() requires a code argument');
         }
@@ -2961,12 +2926,14 @@ export default class bithumb extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDeposits() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3015,12 +2982,14 @@ export default class bithumb extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' createDepositAddress() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -3055,12 +3024,14 @@ export default class bithumb extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDepositAddress() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -3094,12 +3065,14 @@ export default class bithumb extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
     async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let generation: Int = undefined;
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddresses', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' fetchDepositAddresses() is only supported for the generation 2 API');
         }
-        await this.loadMarketsGeneration (generation);
         const response = await this.privateGetV1DepositsCoinAddresses (params);
         //
         //     [
