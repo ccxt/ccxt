@@ -700,7 +700,7 @@ class kalshi extends Exchange {
              *
              * @param {string} $outcome the unified $outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [$ticker structure](https://docs.ccxt.com/#/?id=$ticker-structure)
+             * @return {array} a [prediction $ticker structure](https://docs.ccxt.com/#/?id=prediction-$ticker-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -842,7 +842,7 @@ class kalshi extends Exchange {
          * parses a $raw kalshi $market object into a unified ticker object
          * @param {array} $raw the $raw $market object
          * @param {array} [$market] the $outcome object the ticker belongs to
-         * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+         * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
          */
         //
         //     {
@@ -972,7 +972,7 @@ class kalshi extends Exchange {
              *
              * @param {string[]} $outcomes unified $outcomes — required => kalshi has tens of thousands of markets and no endpoint returning all $tickers at once, so an unscoped call is not supported
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
+             * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
              */
             if ($outcomes === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-$tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
@@ -1051,7 +1051,7 @@ class kalshi extends Exchange {
              * @param {string} $outcome unified $outcome or $outcome id
              * @param {int} [$limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order $book structure](https://docs.ccxt.com/#/?id=order-$book-structure)
+             * @return {array} a [prediction order $book structure](https://docs.ccxt.com/#/?id=prediction-order-$book-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -1116,7 +1116,7 @@ class kalshi extends Exchange {
          * @param {int} $timestamp timestamp in ms
          * @param {array[]} $bids array of [price, size] bid levels
          * @param {array[]} $asks array of [price, size] ask levels
-         * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+         * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
          */
         // Sort $bids descending, $asks ascending, match CCXT OrderBook shape
         $bids = $this->sort_by($bids, 0, true);
@@ -1304,7 +1304,7 @@ class kalshi extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
              * @param {int} [$limit] the maximum number of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=public-$trades)
+             * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -1333,7 +1333,7 @@ class kalshi extends Exchange {
          * parses a raw kalshi $trade object into a unified $trade object
          * @param {array} $trade the raw $trade object
          * @param {array} [$market] the outcome object the $trade belongs to
-         * @return {array} a [$trade structure](https://docs.ccxt.com/#/?$id=public-trades)
+         * @return {array} a [prediction $trade structure](https://docs.ccxt.com/#/?$id=prediction-$trade-structure)
          */
         $id = $this->safe_string($trade, 'trade_id');
         $ts = $this->parse8601($this->safe_string($trade, 'created_time'));
@@ -1397,7 +1397,7 @@ class kalshi extends Exchange {
              * @param {int} [$since] the earliest fill timestamp (ms) to fetch
              * @param {int} [$limit] the maximum number of $fills to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=$trade-structure)
+             * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1553,7 +1553,7 @@ class kalshi extends Exchange {
              *
              * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
+             * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
              */
             $outcomesLength = 0;
             if ($outcomes !== null) {
@@ -1704,7 +1704,7 @@ class kalshi extends Exchange {
          * parses a raw kalshi portfolio $position into a unified $position object
          * @param {array} $position the raw $position object
          * @param {array} [$market] the outcome object the $position belongs to
-         * @return {array} a [$position structure](https://docs.ccxt.com/#/?id=$position-structure)
+         * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
         $ticker = $this->safe_string($position, 'ticker');
         $outcomeObj = $this->safe_outcome($ticker, $market);
@@ -1758,7 +1758,7 @@ class kalshi extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum number of $orders to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1786,7 +1786,7 @@ class kalshi extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum number of $orders to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1815,7 +1815,7 @@ class kalshi extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest $order to fetch
              * @param {int} [$limit] the maximum number of $orders to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$order structures](https://docs.ccxt.com/#/?id=$order-structure)
+             * @return {array[]} a list of [prediction $order structures](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             // kalshi's $status filter takes a single value (resting|executed|canceled); "closed" spans
             // both executed and canceled, so fetch every $order and keep the non-open ones client-side
@@ -1842,7 +1842,7 @@ class kalshi extends Exchange {
              * @param {string} $id order $id
              * @param {string} [$outcome] unified $outcome
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             // $outcome is only a labelling hint here — the request needs just the $id, and
             // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
@@ -1860,7 +1860,7 @@ class kalshi extends Exchange {
          * parses a raw kalshi $order object into a unified $order object
          * @param {array} $order the raw $order object
          * @param {array} [$market] the outcome object the $order belongs to
-         * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+         * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
          */
         $id = $this->safe_string($order, 'order_id');
         $ticker = $this->safe_string($order, 'ticker');
@@ -1960,7 +1960,7 @@ class kalshi extends Exchange {
              * @param {float} $amount number of contracts
              * @param {float} [$price] limit $price in dollars (0–1 range)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
+             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             // kalshi has no market orders — every $order is a limit $order and the $price is required
             if ($price === null) {
@@ -2056,7 +2056,7 @@ class kalshi extends Exchange {
              * @param {float} [$amount] the new number of contracts
              * @param {float} [$price] the new $price(0..1)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
             // so edit = cancel the resting order then place a fresh one with the new terms. validate the
@@ -2084,7 +2084,7 @@ class kalshi extends Exchange {
              * @param {string} $id $order $id
              * @param {string} [$outcome] unified $outcome
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
              */
             $outcomeObj = null;
             if ($outcome !== null) {
@@ -2115,7 +2115,7 @@ class kalshi extends Exchange {
              *
              * @param {string} [$outcome] unified $outcome to scope the cancellation to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));

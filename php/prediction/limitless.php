@@ -869,7 +869,7 @@ class limitless extends Exchange {
              *
              * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -957,7 +957,7 @@ class limitless extends Exchange {
          * parses a $raw $market object, or a composite $market . $book dict, into a unified $ticker for the specified outcome token
          * @param {array} $ticker a $raw limitless $market object or a dict with $market and $book entries
          * @param {array} [$market] the outcome object the $ticker belongs to
-         * @return {array} a [$ticker structure](https://docs.ccxt.com/#/?id=$ticker-structure)
+         * @return {array} a [prediction $ticker structure](https://docs.ccxt.com/#/?id=prediction-$ticker-structure)
          */
         //
         //     {
@@ -1131,7 +1131,7 @@ class limitless extends Exchange {
              *
              * @param {string[]} $outcomes unified $outcomes or outcome token ids — required => limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
+             * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
              */
             if ($outcomes === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
@@ -1191,7 +1191,7 @@ class limitless extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum number of trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -1250,7 +1250,7 @@ class limitless extends Exchange {
              * @param {string} $outcome unified $outcome like TRUMP_OUT_PRESIDENT_2027:YES or an $outcome token id
              * @param {int} [$limit] not used by limitless fetchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -1463,7 +1463,7 @@ class limitless extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders requires an $outcome argument');
@@ -1516,7 +1516,7 @@ class limitless extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires an $outcome argument');
@@ -1540,7 +1540,7 @@ class limitless extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires an $outcome argument');
@@ -1563,7 +1563,7 @@ class limitless extends Exchange {
              * @param {string[]} $ids list of order $id
              * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1703,7 +1703,7 @@ class limitless extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} [$outcome] market $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -1723,7 +1723,7 @@ class limitless extends Exchange {
          * parses a raw limitless $order object into a unified $order object
          * @param {array} $order the raw $order object
          * @param {array} [$market] the outcome object the $order belongs to
-         * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+         * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
          */
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -2007,7 +2007,7 @@ class limitless extends Exchange {
              * @param {float} $amount amount of $outcome tokens
              * @param {float} [$price] limit $price (0–1 range)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $accounts = Async\await($this->load_accounts());
             Async\await($this->load_outcome($outcome));
@@ -2288,7 +2288,7 @@ class limitless extends Exchange {
              * @param {string} $id $order $id
              * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -2356,7 +2356,7 @@ class limitless extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} [$outcome] unified market $outcome, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
@@ -2387,7 +2387,7 @@ class limitless extends Exchange {
              * @param {string} [$outcome] $outcome, e.g. "TRUMP_OUT:YES"
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->slug] the market $slug to cancel all orders for
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             if ($outcome !== null) {
                 $warn = true;
@@ -2425,7 +2425,7 @@ class limitless extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             // resolve the handle for the final filter — the caller may have passed an outcomeId
             $outcomeSymbol = $outcome;
@@ -2533,7 +2533,7 @@ class limitless extends Exchange {
          * parses a raw $trade from either the public $market events feed or the private portfolio history into a unified $trade object
          * @param {array} $trade the raw $trade object
          * @param {array} [$market] the $outcome object the $trade belongs to
-         * @return {array} a [$trade structure](https://docs.ccxt.com/#/?$id=public-trades)
+         * @return {array} a [prediction $trade structure](https://docs.ccxt.com/#/?$id=prediction-$trade-structure)
          */
         $matchedSize = $this->safe_string($trade, 'matchedSize');
         if ($matchedSize !== null) {
@@ -2668,7 +2668,7 @@ class limitless extends Exchange {
              *
              * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
+             * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
              */
             $symbolsLength = 0;
             if ($outcomes !== null) {
@@ -2809,7 +2809,7 @@ class limitless extends Exchange {
          * parses a raw limitless portfolio $position into a unified $position object
          * @param {array} $position the raw $position object
          * @param {array} [$market] the outcome object the $position belongs to
-         * @return {array} a [$position structure](https://docs.ccxt.com/#/?id=$position-structure)
+         * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
         //
         //     {

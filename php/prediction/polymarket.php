@@ -945,7 +945,7 @@ class polymarket extends Exchange {
              *
              * @param {string} $outcome unified $outcome like TRUMP_DANCE_TODAY_997:YES or an $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
@@ -1007,7 +1007,7 @@ class polymarket extends Exchange {
              *
              * @param {string[]} $outcomes unified $outcomes or outcome token ids — required => polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
+             * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
              */
             if ($outcomes === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
@@ -1085,7 +1085,7 @@ class polymarket extends Exchange {
          * parses a combined midpoint . order book response into a unified $ticker object
          * @param {array} $ticker a dict with midpoint and book entries
          * @param {array} [$market] the $outcome object the $ticker belongs to
-         * @return {array} a [$ticker structure](https://docs.ccxt.com/#/?id=$ticker-structure)
+         * @return {array} a [prediction $ticker structure](https://docs.ccxt.com/#/?id=prediction-$ticker-structure)
          */
         //
         //     {
@@ -1185,7 +1185,7 @@ class polymarket extends Exchange {
              * @param {string} $outcome unified $outcome or $outcome token id
              * @param {int} [$limit] not used by polymarket fetchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
@@ -1476,7 +1476,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] not used by polymarket fetchTrades
              * @param {int} [$limit] the maximum number of trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?id=public-trades)
+             * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $outcomeObj['outcomeId'];
@@ -1519,7 +1519,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             Async\await($this->load_api_credentials());
             $request = array();
@@ -1546,7 +1546,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$trade structures](https://docs.ccxt.com/#/?$id=$trade-structure)
+             * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?$id=prediction-$trade-structure)
              */
             // the /data/trades endpoint has no order filter, so fetch the user's $trades and keep
             // the ones where this order was the taker or one of the matched makers
@@ -1576,7 +1576,7 @@ class polymarket extends Exchange {
          * parses a raw data API $trade object into a unified $trade object
          * @param {array} $trade the raw $trade object
          * @param {array} [$market] the $outcome object the $trade belongs to
-         * @return {array} a [$trade structure](https://docs.ccxt.com/#/?$id=public-trades)
+         * @return {array} a [prediction $trade structure](https://docs.ccxt.com/#/?$id=prediction-$trade-structure)
          */
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -1677,7 +1677,7 @@ class polymarket extends Exchange {
              *
              * @param {string[]} [$outcomes] unified $outcomes to filter by
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$position structures](https://docs.ccxt.com/#/?id=$position-structure)
+             * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
              */
             $outcomesLength = 0;
             if ($outcomes !== null) {
@@ -1727,7 +1727,7 @@ class polymarket extends Exchange {
              *
              * @param {string} $outcome unified $outcome or $outcome token id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+             * @return {array} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
              */
             $positions = Async\await($this->fetch_positions(array( $outcome ), $params));
             return $this->safe_dict($positions, 0);
@@ -1740,7 +1740,7 @@ class polymarket extends Exchange {
          * parses a raw data API $position object into a unified $position object
          * @param {array} $position the raw $position object
          * @param {array} [$market] the outcome object the $position belongs to
-         * @return {array} a [$position structure](https://docs.ccxt.com/#/?id=$position-structure)
+         * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
         $tokenId = $this->safe_string($position, 'asset');
         $marketData = $this->safe_outcome($tokenId, $market);
@@ -1797,7 +1797,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] not used by polymarket fetchOpenOrders
              * @param {int} [$limit] the maximum number of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             Async\await($this->load_api_credentials());
             $request = array();
@@ -1822,7 +1822,7 @@ class polymarket extends Exchange {
              * @param {string} $id the order $id
              * @param {string} [$outcome] unified $outcome or $outcome token $id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             // the $request only needs the order $id; the $outcome is a labelling hint, so resolve it from
             // cache (no network) — fetchOrder stays a single $request even on a cold cache.
@@ -1839,7 +1839,7 @@ class polymarket extends Exchange {
          * parses a raw CLOB $order object into a unified $order object
          * @param {array} $order the raw $order object
          * @param {array} [$market] the outcome object the $order belongs to
-         * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+         * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?$id=prediction-$order-structure)
          */
         //
         // {
@@ -1934,7 +1934,7 @@ class polymarket extends Exchange {
              * @param {string} [$params->salt] $order salt; defaults to the current time in ms (pin it for idempotent retries)
              * @param {string} [$params->timestamp] $order timestamp; defaults to the current time in ms
              * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
-             * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
+             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             Async\await($this->load_api_credentials());
             Async\await($this->load_outcome($outcome));
@@ -1957,7 +1957,7 @@ class polymarket extends Exchange {
              *
              * @param {array[]} $orders a list of order $requests, each an object with outcome, type, side, amount, price and optional $params (same $params)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             Async\await($this->load_api_credentials());
             // buildClobOrderBody resolves $outcomes synchronously from the cache, so batch-warm the
@@ -2149,7 +2149,7 @@ class polymarket extends Exchange {
              * @param {string} $outcome unified $outcome or $outcome token id
              * @param {float} $cost the amount of USDC to spend
              * @param {array} [$params] extra parameters specific to the exchange API endpoint (see createOrder)
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $request = $this->extend($params, array( 'cost' => $cost ));
             return Async\await($this->create_order($outcome, 'market', 'buy', $cost, null, $request));
@@ -2292,7 +2292,7 @@ class polymarket extends Exchange {
              * @param {string} $id the order $id
              * @param {string} [$outcome] unified $outcome or $outcome token $id
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             Async\await($this->load_api_credentials());
             // cancelling by $id needs no market data, so events do not have to be loaded first
@@ -2317,7 +2317,7 @@ class polymarket extends Exchange {
              * @param {string[]} $ids the order $ids to cancel
              * @param {string} [$outcome] not used by polymarket cancelOrders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             Async\await($this->load_api_credentials());
             // the request body is the bare array of order $ids (DELETE /orders), so $params are not merged
@@ -2341,7 +2341,7 @@ class polymarket extends Exchange {
              *
              * @param {string} [$outcome] unified $outcome or $outcome token id; when given only that outcome's $orders are cancelled
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             Async\await($this->load_api_credentials());
             $response = null;
@@ -3062,7 +3062,7 @@ class polymarket extends Exchange {
              * @param {string} $outcome unified $outcome (e.g. "TRUMP_WINS_2028:YES") or an $outcome token id
              * @param {int} [$limit] optional depth $limit applied after resolving
              * @param {array} [$params] extra $params (currently unused)
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=prediction-order-book-structure prediction order book structure~
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
@@ -3084,7 +3084,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] optional unix timestamp (ms) lower bound
              * @param {int} [$limit] optional max number of $trades to return
              * @param {array} [$params] extra $params (unused)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=prediction-trade-structure prediction trade structures~
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
@@ -3104,7 +3104,7 @@ class polymarket extends Exchange {
              * streams a synthetic ticker derived from order-book snapshots and deltas ($mid = (bid . ask) / 2)
              * @param {string} $outcome unified $outcome
              * @param {array} [$params] extra $params (unused)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=prediction-ticker-structure prediction ticker structure~
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
@@ -3189,7 +3189,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] the earliest time in ms to return $orders for
              * @param {int} [$limit] the maximum number of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             Async\await($this->load_api_credentials());
             $messageHash = 'orders';
@@ -3217,7 +3217,7 @@ class polymarket extends Exchange {
              * @param {int} [$since] the earliest time in ms to return $trades for
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             Async\await($this->load_api_credentials());
             $messageHash = 'myTrades';

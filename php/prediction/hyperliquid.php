@@ -607,7 +607,7 @@ class hyperliquid extends Exchange {
              *
              * @param {string} $outcome unified $outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -643,7 +643,7 @@ class hyperliquid extends Exchange {
              *
              * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure)
+             * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure)
              */
             $requestedOutcomeSymbols = array();
             if ($outcomes !== null) {
@@ -694,7 +694,7 @@ class hyperliquid extends Exchange {
          * parses a $raw l2Book response (or a synthetic $mid dict) into a unified ticker object
          * @param {array} $raw l2Book response or array( $mid, time ) object
          * @param {array} [$market] the $market the ticker belongs to
-         * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+         * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
          */
         //
         //     {
@@ -767,7 +767,7 @@ class hyperliquid extends Exchange {
              * @param {string} $outcome unified $outcome
              * @param {int} [$limit] max depth $levels (not used by hyperliquid but accepted)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -954,7 +954,7 @@ class hyperliquid extends Exchange {
              * @param {string[]} [$outcomes] filter by outcome ids or $outcomes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] wallet address
-             * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+             * @return {array[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
              */
             $requestedOutcomeSymbols = array();
             if ($outcomes !== null) {
@@ -1022,7 +1022,7 @@ class hyperliquid extends Exchange {
          * parses a spot balance entry for an outcome token into a unified $position object
          * @param {array} $position the raw balance entry
          * @param {array} [$market] the outcome object the $position belongs to
-         * @return {array} a [$position structure](https://docs.ccxt.com/#/?id=$position-structure)
+         * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
         // `$position` is a spotClearinghouseState balance entry (array( coin, $total, hold, entryNtl ))
         // enriched with the current mid price (markPx); hyperliquid does not return the $position
@@ -1189,7 +1189,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->slippage] $slippage for $market orders (default 5%)
              * @param {string} [$params->clientOrderId] hex cloid
              * @param {string} [$params->vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             Async\await($this->initialize_client());
             Async\await($this->load_outcome($outcome));
@@ -1316,7 +1316,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] cancel by client order $id
              * @param {string} [$params->vaultAddress] optional subaccount/vault address to cancel on behalf of
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             $orders = Async\await($this->cancel_orders(array( $id ), $outcome, $params));
             return $this->safe_dict($orders, 0);
@@ -1333,7 +1333,7 @@ class hyperliquid extends Exchange {
              * @param {string[]} $ids $order $ids
              * @param {string} [$outcome] unified $outcome (required)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [$order structures](https://docs.ccxt.com/#/?id=$order-structure)
+             * @return {array[]} a list of [prediction $order structures](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             $this->check_required_credentials();
             if ($outcome === null) {
@@ -1430,7 +1430,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] wallet address
              * @param {string} [$params->method] 'openOrders' | 'frontendOpenOrders' (default)
-             * @return {array[]} a list of [$order structures](https://docs.ccxt.com/#/?id=$order-structure)
+             * @return {array[]} a list of [prediction $order structures](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
@@ -1464,7 +1464,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] max number of orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] wallet address
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
             $request = array( 'type' => 'historicalOrders', 'user' => $userAddress );
@@ -1514,7 +1514,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] wallet address
              * @param {string} [$params->clientOrderId] fetch by client order $id instead
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -1547,7 +1547,7 @@ class hyperliquid extends Exchange {
          * parses a raw hyperliquid $order object into a unified $order object
          * @param {array} $order the raw $order object
          * @param {array} [$market] the $market the $order belongs to
-         * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
+         * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
          */
         //
         // from frontendOpenOrders:
@@ -1667,7 +1667,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$since] only return $trades at or after this timestamp in ms
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
@@ -1696,7 +1696,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] wallet address
              * @param {int} [$params->until] end timestamp in ms
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             $outcomeHandle = null;
             if ($outcome !== null) {
@@ -1735,7 +1735,7 @@ class hyperliquid extends Exchange {
          * parses a single hyperliquid fill into a unified $trade object
          * @param {array} $trade the raw fill object
          * @param {array} [$market] the $market the $trade belongs to
-         * @return {array} a [$trade structure](https://docs.ccxt.com/#/?id=$trade-structure)
+         * @return {array} a [prediction $trade structure](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
          */
         //
         // {

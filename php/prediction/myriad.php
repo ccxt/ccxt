@@ -388,7 +388,7 @@ class myriad extends Exchange {
              * @param {string[]} [$outcomes] unified $outcomes to filter by
              * @param {array} [$params] extra exchange-specific parameters
              * @param {string} [$params->address] the wallet $address to query, defaults to $this->walletAddress
-             * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+             * @return {array[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
              */
             // resolve the owner the same way fetchBalance does — derive from the configured privateKey
             // when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -413,7 +413,7 @@ class myriad extends Exchange {
          * parses a raw myriad portfolio entry into a unified $position structure
          * @param {array} $position the raw portfolio entry
          * @param {array} [$market] not used by myriad
-         * @return {array} a [$position structure](https://docs.ccxt.com/#/?$id=$position-structure)
+         * @return {array} a [prediction $position structure](https://docs.ccxt.com/#/?$id=prediction-$position-structure)
          */
         $marketSlug = $this->safe_string($position, 'marketSlug', '');
         $outcomeTitle = $this->safe_string($position, 'outcomeTitle', '');
@@ -600,7 +600,7 @@ class myriad extends Exchange {
              * @param {string} [$params->tradingModel] 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
              * @param {string} [$params->timeInForce] order-book time in force => 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
              * @param {string} [$params->expiration] unix-seconds expiration for a GTD order
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -625,7 +625,7 @@ class myriad extends Exchange {
             /**
              * @ignore
              * signs an EIP-712 $order and posts it to the gasless $order book; the operator settles the match on-chain
-             * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
+             * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
              */
             $built = $this->build_orderbook_order($outcome, $type, $side, $amount, $price, $params);
             $order = $this->safe_dict($built, 'order');
@@ -747,7 +747,7 @@ class myriad extends Exchange {
              *
              * @param {array[]} $orders a list of order requests, each with $outcome, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $ordersLength = count($orders);
             $orderOutcomes = array();
@@ -786,7 +786,7 @@ class myriad extends Exchange {
              * @param {float} $amount number of $outcome shares for the new order
              * @param {float} [$price] $price per share fraction in [0, 1]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             Async\await($this->load_outcome($outcome));
             Async\await($this->cancel_order($id, $outcome));
@@ -799,7 +799,7 @@ class myriad extends Exchange {
             /**
              * @ignore
              * buys or sells $outcome shares by submitting the quote's $calldata on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
             // would silently size `$amount` (inconsistent with every other venue and the wiki).
@@ -847,7 +847,7 @@ class myriad extends Exchange {
              * @param {string} $outcome unified $outcome handle
              * @param {float} $cost the collateral (USDC) amount to spend
              * @param {array} [$params] extra exchange-specific parameters
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             // myriad's AMM prices buys in COLLATERAL, so `$cost` maps directly onto the AMM value input.
             // mark the order $cost-denominated so createAmmOrder spends exactly `$cost` (not `$cost` shares)
@@ -1040,7 +1040,7 @@ class myriad extends Exchange {
              * @param {string} $id the order hash returned by createOrder
              * @param {string} [$outcome] unified $outcome the order belongs to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             if ($this->privateKey === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a privateKey to sign the cancellation');
@@ -1119,7 +1119,7 @@ class myriad extends Exchange {
              * @param {string[]} $ids the order hashes to cancel
              * @param {string} [$outcome] not used by myriad cancelOrders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             if ($this->privateKey === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a privateKey to sign the cancellations');
@@ -1157,7 +1157,7 @@ class myriad extends Exchange {
              * @param {string} $id the order hash
              * @param {string} [$outcome] unified $outcome the order belongs to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+             * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
              */
             $response = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
             $market = null;
@@ -1181,7 +1181,7 @@ class myriad extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->trader] wallet address to query (defaults to the configured wallet)
              * @param {string} [$params->status] 'open', 'filled', 'cancelled' or 'expired'
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $request = array();
             $trader = $this->safe_string($params, 'trader');
@@ -1218,7 +1218,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $request = array(
                 'status' => 'open',
@@ -1238,7 +1238,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $request = array(
                 'status' => 'filled',
@@ -1258,7 +1258,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $request = array(
                 'status' => 'cancelled',
@@ -1280,7 +1280,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             $request = array(
                 'status' => 'filled',
@@ -1607,7 +1607,7 @@ class myriad extends Exchange {
              *
              * @param {string} $outcome unified $outcome like TRUMP_WIN:YES or an $outcome id like 2741:756/0
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $networkId = $this->safe_string($outcomeObj['info'], 'networkId');
@@ -1741,7 +1741,7 @@ class myriad extends Exchange {
          * parses a $raw myriad $market object into a unified ticker for the specified outcome
          * @param {array} $raw the $raw myriad $market object
          * @param {array} [$market] the outcome object the ticker belongs to
-         * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+         * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
          */
         //
         //     {
@@ -1879,7 +1879,7 @@ class myriad extends Exchange {
              * @param {string} $outcome unified $outcome like TRUMP_WIN:YES or an $outcome id
              * @param {int} [$limit] not used by myriad fetchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $networkId = $this->safe_string($outcomeObj['info'], 'networkId');
@@ -2028,7 +2028,7 @@ class myriad extends Exchange {
          * parses an order book whose price and amount levels are 1e18-scaled integer strings
          * @param {array} $response the raw orderbook $response with $bids and $asks arrays
          * @param {string} $outcome the unified $outcome of the order book
-         * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+         * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
          */
         $rawBids = $this->safe_list($response, 'bids', array());
         $rawAsks = $this->safe_list($response, 'asks', array());
@@ -2213,7 +2213,7 @@ class myriad extends Exchange {
              *
              * @param {string[]} $outcomes unified $outcomes — required => myriad has no endpoint returning all tickers at once, so an unscoped call is not supported
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of [$ticker structures](https://docs.ccxt.com/#/?id=$ticker-structure) indexed by outcome
+             * @return {array} a dictionary of [prediction $ticker structures](https://docs.ccxt.com/#/?id=prediction-$ticker-structure) indexed by outcome
              */
             if ($outcomes === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
@@ -2278,7 +2278,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-$trades)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -2340,7 +2340,7 @@ class myriad extends Exchange {
          * parses a raw $market action feed row into a unified $trade object
          * @param {array} $trade the raw action feed row
          * @param {array} [$market] the outcome object the $trade belongs to
-         * @return {array} a [$trade structure](https://docs.ccxt.com/#/?id=public-trades)
+         * @return {array} a [prediction $trade structure](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
          */
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $amountStr = $this->safe_string($trade, 'shares');
@@ -2610,7 +2610,7 @@ class myriad extends Exchange {
              * @param {string} $outcome unified $outcome
              * @param {int} [$limit] the maximum number of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+             * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -2697,7 +2697,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-$trades)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -2723,7 +2723,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade
              * @param {int} [$limit] the maximum number of $trades to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+             * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
              */
             if ($outcome === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $outcome (the $trades $channel is per-market)');
@@ -2864,7 +2864,7 @@ class myriad extends Exchange {
              *
              * @param {string} $outcome unified $outcome
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+             * @return {array} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
              */
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $info = $this->safe_dict($outcomeObj, 'info', array());
@@ -2886,7 +2886,7 @@ class myriad extends Exchange {
              *
              * @param {string[]} $outcomes unified $outcomes to watch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+             * @return {array} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
              */
             if ($outcomes === null) {
                 throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of $outcomes (the prices $channel is per-market)');
@@ -3005,7 +3005,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+             * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
              */
             $trader = $this->wallet_address_from_keys();
             $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
@@ -3081,7 +3081,7 @@ class myriad extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest position update
              * @param {int} [$limit] the maximum number of position updates to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+             * @return {array[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
              */
             if ($outcomes !== null) {
                 Async\await($this->load_outcomes($outcomes));
