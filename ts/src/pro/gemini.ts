@@ -403,6 +403,12 @@ export default class gemini extends geminiRest {
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
+        } else if (isInitial) {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
+            this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
