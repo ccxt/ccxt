@@ -871,7 +871,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         :param str outcome: unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
@@ -930,7 +930,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         :param str[] outcomes: unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+        :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch(discover them via fetchEvents())')
@@ -995,7 +995,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         parses a combined midpoint + order book response into a unified ticker object
         :param dict ticker: a dict with midpoint and book entries
         :param dict [market]: the outcome object the ticker belongs to
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         #
         #     {
@@ -1091,7 +1091,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome or outcome token id
         :param int [limit]: not used by polymarket fetchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
@@ -1350,7 +1350,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: not used by polymarket fetchTrades
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = outcomeObj['outcomeId']
@@ -1387,7 +1387,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         await self.load_api_credentials()
         request = {}
@@ -1410,7 +1410,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         # the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         # the ones where self order was the taker or one of the matched makers
@@ -1434,7 +1434,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         parses a raw data API trade object into a unified trade object
         :param dict trade: the raw trade object
         :param dict [market]: the outcome object the trade belongs to
-        :returns dict: a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict: a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         # public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp'
         # the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -1526,7 +1526,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         :param str[] [outcomes]: unified outcomes to filter by
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict[]: a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         outcomesLength = 0
         if outcomes is not None:
@@ -1567,7 +1567,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         :param str outcome: unified outcome or outcome token id
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict: a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         positions = await self.fetch_positions([outcome], params)
         return self.safe_dict(positions, 0)
@@ -1578,7 +1578,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         parses a raw data API position object into a unified position object
         :param dict position: the raw position object
         :param dict [market]: the outcome object the position belongs to
-        :returns dict: a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict: a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         tokenId = self.safe_string(position, 'asset')
         marketData = self.safe_outcome(tokenId, market)
@@ -1632,7 +1632,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: not used by polymarket fetchOpenOrders
         :param int [limit]: the maximum number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         request = {}
@@ -1653,7 +1653,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str id: the order id
         :param str [outcome]: unified outcome or outcome token id
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # the request only needs the order id; the outcome is a labelling hint, so resolve it from
         # cache(no network) — fetchOrder stays a single request even on a cold cache.
@@ -1668,7 +1668,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         parses a raw CLOB order object into a unified order object
         :param dict order: the raw order object
         :param dict [market]: the outcome object the order belongs to
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         #
         # {
@@ -1760,7 +1760,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [params.salt]: order salt; defaults to the current time in ms(pin it for idempotent retries)
         :param str [params.timestamp]: order timestamp; defaults to the current time in ms
         :param str [params.expiration]: unix-seconds expiration for GTD orders; defaults to '0'(no expiry)
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         await self.load_outcome(outcome)
@@ -1780,7 +1780,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         :param dict[] orders: a list of order requests, each an object with outcome, type, side, amount, price and optional params(same params)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         # buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
@@ -1956,7 +1956,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome or outcome token id
         :param float cost: the amount of USDC to spend
         :param dict [params]: extra parameters specific to the exchange API endpoint(see createOrder)
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         request = self.extend(params, {'cost': cost})
         return await self.create_order(outcome, 'market', 'buy', cost, None, request)
@@ -2092,7 +2092,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str id: the order id
         :param str [outcome]: unified outcome or outcome token id
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         # cancelling by id needs no market data, so events do not have to be loaded first
@@ -2114,7 +2114,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str[] ids: the order ids to cancel
         :param str [outcome]: not used by polymarket cancelOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         # the request body is the bare array of order ids(DELETE /orders), so params are not merged
@@ -2134,7 +2134,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
         :param str [outcome]: unified outcome or outcome token id; when given only that outcome's orders are cancelled
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         response = None
@@ -2768,7 +2768,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome(e.g. "TRUMP_WINS_2028:YES") or an outcome token id
         :param int [limit]: optional depth limit applied after resolving
         :param dict [params]: extra params(currently unused)
-        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
+        :returns dict: a `prediction order book structure <https://docs.ccxt.com/#/?id=prediction-order-book-structure>`
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
@@ -2787,7 +2787,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: optional unix timestamp(ms) lower bound
         :param int [limit]: optional max number of trades to return
         :param dict [params]: extra params(unused)
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `prediction trade structures <https://docs.ccxt.com/#/?id=prediction-trade-structure>`
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
@@ -2804,7 +2804,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         streams a synthetic ticker derived from order-book snapshots and deltas(mid = (bid + ask) / 2)
         :param str outcome: unified outcome
         :param dict [params]: extra params(unused)
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `prediction ticker structure <https://docs.ccxt.com/#/?id=prediction-ticker-structure>`
         """
         outcomeObj = await self.load_outcome(outcome)
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
@@ -2880,7 +2880,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to return orders for
         :param int [limit]: the maximum number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         messageHash = 'orders'
@@ -2903,7 +2903,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to return trades for
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         await self.load_api_credentials()
         messageHash = 'myTrades'

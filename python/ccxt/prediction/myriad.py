@@ -364,7 +364,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str[] [outcomes]: unified outcomes to filter by
         :param dict [params]: extra exchange-specific parameters
         :param str [params.address]: the wallet address to query, defaults to self.walletAddress
-        :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict[]: a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         # resolve the owner the same way fetchBalance does — derive from the configured privateKey
         # when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -385,7 +385,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         parses a raw myriad portfolio entry into a unified position structure
         :param dict position: the raw portfolio entry
         :param dict [market]: not used by myriad
-        :returns dict: a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict: a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         marketSlug = self.safe_string(position, 'marketSlug', '')
         outcomeTitle = self.safe_string(position, 'outcomeTitle', '')
@@ -552,7 +552,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str [params.tradingModel]: 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
         :param str [params.timeInForce]: order-book time in force: 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
         :param str [params.expiration]: unix-seconds expiration for a GTD order
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
@@ -572,7 +572,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
  @ignore
         signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         built = self.build_orderbook_order(outcome, type, side, amount, price, params)
         order = self.safe_dict(built, 'order')
@@ -677,7 +677,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param dict[] orders: a list of order requests, each with outcome, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         ordersLength = len(orders)
         orderOutcomes = []
@@ -711,7 +711,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param float amount: number of outcome shares for the new order
         :param float [price]: price per share fraction in [0, 1]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_outcome(outcome)
         await self.cancel_order(id, outcome)
@@ -721,7 +721,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
  @ignore
         buys or sells outcome shares by submitting the quote's calldata on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
         # would silently size `amount`(inconsistent with every other venue and the wiki).
@@ -762,7 +762,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome handle
         :param float cost: the collateral(USDC) amount to spend
         :param dict [params]: extra exchange-specific parameters
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
         # mark the order cost-denominated so createAmmOrder spends exactly `cost`(not `cost` shares)
@@ -941,7 +941,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str id: the order hash returned by createOrder
         :param str [outcome]: unified outcome the order belongs to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a privateKey to sign the cancellation')
@@ -1010,7 +1010,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str[] ids: the order hashes to cancel
         :param str [outcome]: not used by myriad cancelOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a privateKey to sign the cancellations')
@@ -1043,7 +1043,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str id: the order hash
         :param str [outcome]: unified outcome the order belongs to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         response = await self.myriadPublicGetOrdersHash(self.extend({'hash': id}, params))
         market = None
@@ -1063,7 +1063,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.trader]: wallet address to query(defaults to the configured wallet)
         :param str [params.status]: 'open', 'filled', 'cancelled' or 'expired'
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         request = {}
         trader = self.safe_string(params, 'trader')
@@ -1094,7 +1094,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         request = {
             'status': 'open',
@@ -1111,7 +1111,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         request = {
             'status': 'filled',
@@ -1128,7 +1128,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         request = {
             'status': 'cancelled',
@@ -1147,7 +1147,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         request = {
             'status': 'filled',
@@ -1451,7 +1451,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param str outcome: unified outcome like TRUMP_WIN:YES or an outcome id like 2741:756/0
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         networkId = self.safe_string(outcomeObj['info'], 'networkId')
@@ -1580,7 +1580,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         parses a raw myriad market object into a unified ticker for the specified outcome
         :param dict raw: the raw myriad market object
         :param dict [market]: the outcome object the ticker belongs to
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         #
         #     {
@@ -1712,7 +1712,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome like TRUMP_WIN:YES or an outcome id
         :param int [limit]: not used by myriad fetchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         networkId = self.safe_string(outcomeObj['info'], 'networkId')
@@ -1851,7 +1851,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         parses an order book whose price and amount levels are 1e18-scaled integer strings
         :param dict response: the raw orderbook response with bids and asks arrays
         :param str outcome: the unified outcome of the order book
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         rawBids = self.safe_list(response, 'bids', [])
         rawAsks = self.safe_list(response, 'asks', [])
@@ -2019,7 +2019,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param str[] outcomes: unified outcomes — required: myriad has no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+        :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
@@ -2074,7 +2074,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
@@ -2130,7 +2130,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         parses a raw market action feed row into a unified trade object
         :param dict trade: the raw action feed row
         :param dict [market]: the outcome object the trade belongs to
-        :returns dict: a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict: a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         timestamp = self.safe_timestamp(trade, 'timestamp')
         amountStr = self.safe_string(trade, 'shares')
@@ -2361,7 +2361,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome
         :param int [limit]: the maximum number of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
@@ -2435,7 +2435,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
@@ -2458,7 +2458,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         if outcome is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a outcome(the trades channel is per-market)')
@@ -2581,7 +2581,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param str outcome: unified outcome
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
@@ -2600,7 +2600,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param str[] outcomes: unified outcomes to watch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+        :returns dict: a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' watchTickers() requires a list of outcomes(the prices channel is per-market)')
@@ -2705,7 +2705,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         trader = self.wallet_address_from_keys()
         networkId = self.safe_string(self.options, 'defaultNetworkId', '56')
@@ -2774,7 +2774,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest position update
         :param int [limit]: the maximum number of position updates to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict[]: a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         if outcomes is not None:
             await self.load_outcomes(outcomes)

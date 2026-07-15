@@ -558,7 +558,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
         :param str outcome: unified outcome(e.g. 'BTC_ABOVE_78213_20260503:YES')
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -591,7 +591,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
         :param str[] [outcomes]: filter by outcome ids or outcomes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         requestedOutcomeSymbols = {}
         if outcomes is not None:
@@ -635,7 +635,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parses a raw l2Book response(or a synthetic mid dict) into a unified ticker object
         :param dict raw: l2Book response or {mid, time} object
         :param dict [market]: the market the ticker belongs to
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         #
         #     {
@@ -705,7 +705,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome
         :param int [limit]: max depth levels(not used by hyperliquid but accepted)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -878,7 +878,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str[] [outcomes]: filter by outcome ids or outcomes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: wallet address
-        :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict[]: a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         requestedOutcomeSymbols = {}
         if outcomes is not None:
@@ -938,7 +938,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parses a spot balance entry for an outcome token into a unified position object
         :param dict position: the raw balance entry
         :param dict [market]: the outcome object the position belongs to
-        :returns dict: a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict: a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         # `position` is a spotClearinghouseState balance entry({coin, total, hold, entryNtl})
         # enriched with the current mid price(markPx); hyperliquid does not return the position
@@ -1075,7 +1075,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str [params.slippage]: slippage for market orders(default 5%)
         :param str [params.clientOrderId]: hex cloid
         :param str [params.vaultAddress]: optional subaccount/vault address to trade on behalf of(master signer must be authorized)
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.initialize_client()
         await self.load_outcome(outcome)
@@ -1193,7 +1193,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: cancel by client order id
         :param str [params.vaultAddress]: optional subaccount/vault address to cancel on behalf of
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         orders = await self.cancel_orders([id], outcome, params)
         return self.safe_dict(orders, 0)
@@ -1207,7 +1207,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str [outcome]: unified outcome(required)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         self.check_required_credentials()
         if outcome is None:
@@ -1291,7 +1291,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: wallet address
         :param str [params.method]: 'openOrders' | 'frontendOpenOrders'(default)
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         userAddress: Str
         userAddress, params = self.handle_public_address('fetchOpenOrders', params)
@@ -1322,7 +1322,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int [limit]: max number of orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: wallet address
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         userAddress: Str
         userAddress, params = self.handle_public_address('fetchOrders', params)
@@ -1364,7 +1364,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: wallet address
         :param str [params.clientOrderId]: fetch by client order id instead
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         userAddress: Str
         userAddress, params = self.handle_public_address('fetchOrder', params)
@@ -1393,7 +1393,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parses a raw hyperliquid order object into a unified order object
         :param dict order: the raw order object
         :param dict [market]: the market the order belongs to
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         #
         # from frontendOpenOrders:
@@ -1504,7 +1504,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int [since]: only return trades at or after self timestamp in ms
         :param int [limit]: the maximum number of trades to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1530,7 +1530,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: wallet address
         :param int [params.until]: end timestamp in ms
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         outcomeHandle = None
         if outcome is not None:
@@ -1565,7 +1565,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parses a single hyperliquid fill into a unified trade object
         :param dict trade: the raw fill object
         :param dict [market]: the market the trade belongs to
-        :returns dict: a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict: a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         #
         # {

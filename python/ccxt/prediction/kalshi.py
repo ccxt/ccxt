@@ -648,7 +648,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
         :param str outcome: the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -781,7 +781,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         parses a raw kalshi market object into a unified ticker object
         :param dict raw: the raw market object
         :param dict [market]: the outcome object the ticker belongs to
-        :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+        :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         #
         #     {
@@ -908,7 +908,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
         :param str[] outcomes: unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+        :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
@@ -972,7 +972,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome or outcome id
         :param int [limit]: the maximum number of bids/asks to return(not enforced by kalshis API, reserved for future client-side trimming)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1030,7 +1030,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int timestamp: timestamp in ms
         :param dict[] bids: array of [price, size] bid levels
         :param dict[] asks: array of [price, size] ask levels
-        :returns dict: an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+        :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         # Sort bids descending, asks ascending, match CCXT OrderBook shape
         bids = self.sort_by(bids, 0, True)
@@ -1206,7 +1206,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum number of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1230,7 +1230,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         parses a raw kalshi trade object into a unified trade object
         :param dict trade: the raw trade object
         :param dict [market]: the outcome object the trade belongs to
-        :returns dict: a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+        :returns dict: a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         id = self.safe_string(trade, 'trade_id')
         ts = self.parse8601(self.safe_string(trade, 'created_time'))
@@ -1288,7 +1288,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: the earliest fill timestamp(ms) to fetch
         :param int [limit]: the maximum number of fills to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+        :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         if outcome is not None:
             await self.load_outcome(outcome)
@@ -1420,7 +1420,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
         :param str[] [outcomes]: filter by outcome ids or outcomes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict[]: a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         outcomesLength = 0
         if outcomes is not None:
@@ -1547,7 +1547,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         parses a raw kalshi portfolio position into a unified position object
         :param dict position: the raw position object
         :param dict [market]: the outcome object the position belongs to
-        :returns dict: a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+        :returns dict: a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
         """
         ticker = self.safe_string(position, 'ticker')
         outcomeObj = self.safe_outcome(ticker, market)
@@ -1598,7 +1598,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order to fetch
         :param int [limit]: the maximum number of orders to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if outcome is not None:
             await self.load_outcome(outcome)
@@ -1621,7 +1621,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order to fetch
         :param int [limit]: the maximum number of orders to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if outcome is not None:
             await self.load_outcome(outcome)
@@ -1645,7 +1645,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order to fetch
         :param int [limit]: the maximum number of orders to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # kalshi's status filter takes a single value(resting|executed|canceled); "closed" spans
         # both executed and canceled, so fetch every order and keep the non-open ones client-side
@@ -1667,7 +1667,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param str id: order id
         :param str [outcome]: unified outcome
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # outcome is only a labelling hint here — the request needs just the id, and
         # parsePredictionOrder resolves identity cache-only, so don't force a full market scan
@@ -1682,7 +1682,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         parses a raw kalshi order object into a unified order object
         :param dict order: the raw order object
         :param dict [market]: the outcome object the order belongs to
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         id = self.safe_string(order, 'order_id')
         ticker = self.safe_string(order, 'ticker')
@@ -1774,7 +1774,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param float amount: number of contracts
         :param float [price]: limit price in dollars(0–1 range)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # kalshi has no market orders — every order is a limit order and the price is required
         if price is None:
@@ -1858,7 +1858,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param float [amount]: the new number of contracts
         :param float [price]: the new price(0..1)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # kalshi has no live amend endpoint(the V1 /amend path is 410 Gone with no V2 replacement),
         # so edit = cancel the resting order then place a fresh one with the new terms. validate the
@@ -1881,7 +1881,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param str id: order id
         :param str [outcome]: unified outcome
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         outcomeObj = None
         if outcome is not None:
@@ -1906,7 +1906,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
         :param str [outcome]: unified outcome to scope the cancellation to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+        :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if outcome is not None:
             await self.load_outcome(outcome)
