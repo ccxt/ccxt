@@ -746,11 +746,18 @@ class testMainClass:
         markets = exchange.safe_list(event, 'markets')
         assert markets is not None, exchange.id + ' event missing markets' + log_text
         markets_length = len(markets)
+        assert exchange.safe_string(event, 'symbol') is None, exchange.id + ' event must not carry the deprecated symbol key' + log_text
         for i in range(0, markets_length):
             market = markets[i]
             assert exchange.is_dictionary(market), exchange.id + ' event market should be a dict' + log_text
+            assert exchange.safe_string(market, 'market') is not None, exchange.id + ' event market missing the unified market handle' + log_text
+            # 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert exchange.safe_string(market, 'symbol') is None, exchange.id + ' event market must not carry the deprecated symbol key' + log_text
             outcomes = exchange.safe_list(market, 'outcomes')
             assert outcomes is not None, exchange.id + ' event market missing outcomes' + log_text
+            outcomes_length = len(outcomes)
+            for j in range(0, outcomes_length):
+                assert exchange.safe_string(outcomes[j], 'symbol') is None, exchange.id + ' event outcome must not carry the deprecated symbol key' + log_text
         # optional typed fields must have the right type when present
         active = exchange.safe_value(event, 'active')
         if active is not None:
@@ -1381,7 +1388,13 @@ class testMainClass:
             for i in range(0, len(prediction_events)):
                 ev_markets = exchange.safe_list(prediction_events[i], 'markets', [])
                 for j in range(0, len(ev_markets)):
-                    event_markets.append(ev_markets[j])
+                    ev_market = ev_markets[j]
+                    # every market row must carry the unified market handle (PredictionMarket
+                    # setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    # on prediction structures and must be absent
+                    assert exchange.safe_string(ev_market, 'market') is not None, exchange_name + ' static events fixture: market row missing the unified market handle'
+                    assert exchange.safe_string(ev_market, 'symbol') is None, exchange_name + ' static events fixture: market row must not carry the deprecated symbol key'
+                    event_markets.append(ev_market)
             if len(event_markets) > 0:
                 exchange.set_markets(event_markets)
         # not working in python if assigned  in the config dict

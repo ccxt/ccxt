@@ -71,7 +71,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://hyperliquid.xyz/favicon.ico',
+                'logo': 'https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8',
                 'api': {
                     'public': 'https://api.hyperliquid.xyz',
                     'private': 'https://api.hyperliquid.xyz',
@@ -211,7 +211,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
     def build_outcome_symbol(self, desc: dict, side: float, outcomeId: float) -> str:
         """
  @ignore
-        builds a human-readable outcome from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
+        builds a human-readable outcome from a parsed description and side, e.g. BTC_ABOVE_78213_20260503:YES for side 0 and BTC_ABOVE_78213_20260503:NO for side 1
         :param dict desc: parsed outcome description
         :param int side: outcome side, 0 = YES, 1 = NO
         :param int outcomeId: integer outcome id
@@ -225,39 +225,15 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         label = 'YES' if (side == 0) else 'NO'
         base = underlying.upper()
         if targetPrice:
-            base = base + '-ABOVE-' + targetPrice
+            base = base + '_ABOVE_' + targetPrice
         if expiryDate:
-            base = base + '-' + expiryDate
+            base = base + '_' + expiryDate
         return base + ':' + label
-
-    def slugify_upper(self, name: str) -> str:
-        """
- @ignore
-        converts a name into an upper-case slug of alphanumeric parts joined by hyphens
-        :param str name: the raw name to slugify
-        :returns str: the upper-case slug
-        """
-        upper = '' if (name is None) else name.upper()
-        allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        chars = self.string_to_chars_array(upper)
-        s = ''
-        for i in range(0, len(chars)):
-            ch = chars[i]
-            if allowed.find(ch) >= 0:
-                s = s + ch
-            else:
-                s = s + '-'
-        rawParts = s.split('-')
-        parts = []
-        for i in range(0, len(rawParts)):
-            if len(rawParts[i]) > 0:
-                parts.append(rawParts[i])
-        return '-'.join(parts)
 
     def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name='', question: dict = {}) -> str:
         """
  @ignore
-        builds a market id(parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
+        builds a market id(parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
         :param dict desc: parsed outcome description
         :param int outcomeId: integer outcome id
         :param str [name]: outcome name
@@ -271,9 +247,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             expiryDate = expiry.split('-')[0] if expiry else ''
             base = underlying.upper()
             if targetPrice:
-                base = base + '-ABOVE-' + targetPrice
+                base = base + '_ABOVE_' + targetPrice
             if expiryDate:
-                base = base + '-' + expiryDate
+                base = base + '_' + expiryDate
             return base
         questionDescription = self.safe_string(question, 'description')
         if questionDescription:
@@ -299,31 +275,31 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     if thresholdsLength > 0 and index is not None:
                         bucketLabel: str
                         if index <= 0:
-                            bucketLabel = 'BELOW-' + thresholds[0]
+                            bucketLabel = 'BELOW_' + thresholds[0]
                         elif index >= thresholdsLength:
                             lastIdx = thresholdsLength - 1
-                            bucketLabel = 'ABOVE-' + thresholds[lastIdx]
+                            bucketLabel = 'ABOVE_' + thresholds[lastIdx]
                         else:
-                            bucketLabel = 'BETWEEN-' + thresholds[index - 1] + '-' + thresholds[index]
-                        base = questionUnderlying.upper() + '-' + bucketLabel
+                            bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
+                        base = questionUnderlying.upper() + '_' + bucketLabel
                         if expiryDate:
-                            base = base + '-' + expiryDate
+                            base = base + '_' + expiryDate
                         return base
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if questionUnderlying and isFallbackLike:
-                    base = questionUnderlying.upper() + '-OTHER'
+                    base = questionUnderlying.upper() + '_OTHER'
                     if expiryDate:
-                        base = base + '-' + expiryDate
+                        base = base + '_' + expiryDate
                     return base
         questionName = self.safe_string(question, 'name')
         if questionName:
-            questionSlug = self.slugify_upper(questionName)
+            questionSlug = self.shorten_slug(questionName)
             if questionSlug:
-                outcomeSlug = self.slugify_upper(name)
+                outcomeSlug = self.shorten_slug(name)
                 genericOutcomeNames = {
                     'RECURRING': True,
-                    'RECURRING-FALLBACK': True,
-                    'RECURRING-NAMED-OUTCOME': True,
+                    'RECURRING_FALLBACK': True,
+                    'RECURRING_NAMED_OUTCOME': True,
                 }
                 if outcomeSlug in genericOutcomeNames:
                     if outcomeSlug.find('FALLBACK') >= 0:
@@ -331,12 +307,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     else:
                         outcomeSlug = ''
                 if outcomeSlug:
-                    return questionSlug + '-' + outcomeSlug + '-' + str(outcomeId)
-                return questionSlug + '-' + str(outcomeId)
+                    return questionSlug + '_' + outcomeSlug + '_' + str(outcomeId)
+                return questionSlug + '_' + str(outcomeId)
         # Fallback: use name slugified, or OUTCOME-<id>
         if name:
-            return self.slugify_upper(name) + '-' + str(outcomeId)
-        return 'OUTCOME-' + str(outcomeId)
+            return self.shorten_slug(name) + '_' + str(outcomeId)
+        return 'OUTCOME_' + str(outcomeId)
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -500,9 +476,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 },
             },
         ]
-        return self.safe_market_structure({
+        marketRow = self.safe_market_structure({
             'id': str(outcomeId),
-            'symbol': parentSymbol,
+            'market': parentSymbol,
             'base': parentSymbol.split('/')[0],
             'quote': quoteCurrency,
             'settle': None,
@@ -548,6 +524,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             }),
             'created': None,
         })
+        # omit the deprecated 'symbol' key the safeMarketStructure template injects —
+        # prediction market rows carry only the unified 'market' handle
+        return self.omit(marketRow, 'symbol')
 
     def calculate_price_precision(self, midPx: float, szDecimals: float) -> float:
         """
@@ -577,7 +556,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
 
-        :param str outcome: unified outcome(e.g. 'BTC-ABOVE-78213-20260503:YES')
+        :param str outcome: unified outcome(e.g. 'BTC_ABOVE_78213_20260503:YES')
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
@@ -1646,7 +1625,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
         """
-        Groups outcome markets by their underlying(e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+        Groups outcome markets by their underlying(e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
         :param dict [params]: extra parameters
         :param str [params.query]: a single query string to filter by(matches description/outcome)
         :param str[] [params.queries]: multiple query strings(alternative to query)
@@ -1672,14 +1651,14 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if not self.safe_bool(mkt, 'prediction', False):
                 continue
             info = self.safe_dict(mkt, 'info', {})
-            parentSymbol = self.safe_string(info, 'parentSymbol', self.safe_string(mkt, 'symbol'))
+            parentSymbol = self.safe_string(info, 'parentSymbol', self.safe_string_2(mkt, 'market', 'symbol'))
             # Apply query filter
             if lowerQueriesLength > 0:
                 description = self.safe_string(info, 'description', '').lower()
                 parentSymbolOrEmpty = parentSymbol if (parentSymbol is not None) else ''
                 symLower = parentSymbolOrEmpty.lower()
-                # the parentSymbol uses hyphens(BTC-ABOVE-...), so match the haystack word-by-word
-                # and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+                # the parentSymbol joins words with underscores(BTC_ABOVE_...), so match the haystack word-by-word
+                # and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 haystack = description + ' ' + symLower
                 matches = False
                 for qi in range(0, len(lowerQueries)):

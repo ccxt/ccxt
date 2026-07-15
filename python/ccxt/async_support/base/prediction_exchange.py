@@ -427,13 +427,51 @@ class PredictionExchange(BaseExchange):
 
     def slug_to_outcome_symbol(self, eventSlug: Str, marketSlug: str, outcome: str):
         # build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-        # — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
-        return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + outcome.upper()
+        # — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
+        # the label gets a light slug treatment(uppercase alphanumerics joined by '_', no stop-word
+        # removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
+        # currency symbols("JD Vance", a dollar-sign price) yield clean handles(JD_VANCE, 120)
+        # instead of leaking raw text into the outcome handle
+        upper = outcome.upper()
+        allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        chars = self.string_to_chars_array(upper)
+        label = ''
+        pendingSep = False
+        for i in range(0, len(chars)):
+            ch = chars[i]
+            if allowed.find(ch) >= 0:
+                if pendingSep and (label != ''):
+                    label = label + '_'
+                label = label + ch
+                pendingSep = False
+            else:
+                pendingSep = True
+        if label == '':
+            # a label with no alphanumerics at all(unrealistic, but keep the :LABEL contract)
+            label = upper
+        return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + label
 
     def set_markets(self, markets, currencies=None):
-        result = super(PredictionExchange, self).set_markets(markets, currencies)
+        # prediction market rows carry only the unified `market` handle — `symbol` is
+        # deprecated there. the base indexer keys self.markets/self.symbols by 'symbol',
+        # so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
+        marketsList = self.to_array(markets)
+        aliased = []
+        for i in range(0, len(marketsList)):
+            row = marketsList[i]
+            copy = self.extend({}, row)
+            copy['symbol'] = self.safe_string_2(row, 'market', 'symbol')
+            aliased.append(copy)
+        super(PredictionExchange, self).set_markets(aliased, currencies)
+        # strip the alias back off the stored rows — venues assemble user-visible event
+        # structures from self.markets(hyperliquid groups its outcome markets that way),
+        # so a leftover 'symbol' key would leak the deprecated field back to the caller
+        marketKeys = list(self.markets.keys())
+        for i in range(0, len(marketKeys)):
+            key = marketKeys[i]
+            self.markets[key] = self.omit(self.markets[key], 'symbol')
         self.populate_outcomes()
-        return result
+        return self.markets
 
     def index_market_outcomes(self, market):
         # index one market's outcome tokens into self.outcomes / self.outcomes_by_id,
@@ -502,9 +540,9 @@ class PredictionExchange(BaseExchange):
         marketsLength = len(markets)
         for i in range(0, marketsLength):
             m = markets[i]
-            symbol = self.safe_string(m, 'symbol')
-            if symbol is not None:
-                self.markets[symbol] = m
+            marketHandle = self.safe_string_2(m, 'market', 'symbol')
+            if marketHandle is not None:
+                self.markets[marketHandle] = m
         self.populate_outcomes()
 
     async def load_outcomes(self, outcomes: Strings = None, reload=False, params={}):
@@ -596,7 +634,7 @@ class PredictionExchange(BaseExchange):
             marketPart = outcomeSymbol[0:colonIndex]
         if marketPart.find('0x') == 0:
             return None
-        # handles join words with '_'(slug-derived) or '-'(e.g. hyperliquid's BTC-ABOVE-78213)
+        # handles join words with '_'(slug-derived) or legacy '-' separated inputs(normalized below)
         normalized = marketPart.lower().replace('-', '_')
         rawWords = normalized.split('_')
         words = []
