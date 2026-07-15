@@ -788,8 +788,8 @@ impl LbankCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_857: bool = true;
-            while { if !__for_first_857 { j = add(&j, &Value::Int(1)); } __for_first_857 = false; is_less_than(&j, &get_array_length(&networksRaw)) } {
+            let mut __for_first_888: bool = true;
+            while { if !__for_first_888 { j = add(&j, &Value::Int(1)); } __for_first_888 = false; is_less_than(&j, &get_array_length(&networksRaw)) } {
             let mut networkEntry: Value = get_value(&networksRaw, &j);
             let mut networkEntry: Value = get_value(&networksRaw, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain", &[]);
@@ -908,8 +908,8 @@ impl LbankCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_858: bool = true;
-            while { if !__for_first_858 { i = add(&i, &Value::Int(1)); } __for_first_858 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_889: bool = true;
+            while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1033,8 +1033,8 @@ impl LbankCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_859: bool = true;
-            while { if !__for_first_859 { i = add(&i, &Value::Int(1)); } __for_first_859 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_890: bool = true;
+            while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1784,8 +1784,8 @@ impl LbankCore {
             let mut currencies: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_860: bool = true;
-                while { if !__for_first_860 { i = add(&i, &Value::Int(1)); } __for_first_860 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+                let mut __for_first_891: bool = true;
+                while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1802,8 +1802,8 @@ impl LbankCore {
         if !is_equal(&balances, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_861: bool = true;
-                while { if !__for_first_861 { i = add(&i, &Value::Int(1)); } __for_first_861 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_892: bool = true;
+                while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut item: Value = get_value(&balances, &i);
                 let mut item: Value = get_value(&balances, &i);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "asset", &[]);
@@ -1821,8 +1821,8 @@ impl LbankCore {
         if is_equal(&isArray, &Value::Bool(true)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_862: bool = true;
-                while { if !__for_first_862 { i = add(&i, &Value::Int(1)); } __for_first_862 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_893: bool = true;
+                while { if !__for_first_893 { i = add(&i, &Value::Int(1)); } __for_first_893 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut item: Value = get_value(&data, &i);
                 let mut item: Value = get_value(&data, &i);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
@@ -2089,8 +2089,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_863: bool = true;
-            while { if !__for_first_863 { i = add(&i, &Value::Int(1)); } __for_first_863 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_894: bool = true;
+            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -3465,8 +3465,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_865: bool = true;
-            while { if !__for_first_865 { i = add(&i, &Value::Int(1)); } __for_first_865 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_896: bool = true;
+            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -3478,8 +3478,8 @@ impl LbankCore {
 }));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_864: bool = true;
-                while { if !__for_first_864 { j = add(&j, &Value::Int(1)); } __for_first_864 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+                let mut __for_first_895: bool = true;
+                while { if !__for_first_895 { j = add(&j, &Value::Int(1)); } __for_first_895 = false; is_less_than(&j, &get_array_length(&networkList)) } {
                 let mut networkEntry: Value = get_value(&networkList, &j);
                 let mut networkEntry: Value = get_value(&networkList, &j);
                 let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
@@ -3555,8 +3555,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_866: bool = true;
-            while { if !__for_first_866 { i = add(&i, &Value::Int(1)); } __for_first_866 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_897: bool = true;
+            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut item: Value = get_value(&result, &i);
             let mut item: Value = get_value(&result, &i);
             let mut canWithdraw: Value = self.safe_value_k(item.clone(), "canWithDraw", &[]);
@@ -3750,8 +3750,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_867: bool = true;
-            while { if !__for_first_867 { i = add(&i, &Value::Int(1)); } __for_first_867 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_898: bool = true;
+            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = get_value(&response, &i);
             let mut fee: Value = get_value(&response, &i);
             let mut canWithdraw: Value = self.safe_value_k(fee.clone(), "canWithDraw", &[]);
@@ -3837,8 +3837,8 @@ impl LbankCore {
         let mut networkList: Value = self.safe_value_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_868: bool = true;
-            while { if !__for_first_868 { j = add(&j, &Value::Int(1)); } __for_first_868 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_899: bool = true;
+            while { if !__for_first_899 { j = add(&j, &Value::Int(1)); } __for_first_899 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
@@ -3973,8 +3973,8 @@ impl LbankCore {
         let mut pem: Value = Value::Str("-----BEGIN PRIVATE KEY-----\n".to_string()); // eslint-disable-line
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_869: bool = true;
-            while { if !__for_first_869 { i = add(&i, &Value::Int(1)); } __for_first_869 = false; is_less_than(&i, &numLines) } {
+            let mut __for_first_900: bool = true;
+            while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &numLines) } {
             let mut start: Value = multiply(&i, &lineLength);
             let mut end: Value = self.sum(&[start.clone(), lineLength.clone()]);
             pem = add(&pem, &add(&slice(&self.secret, &start, &end), &Value::Str("\n".to_string()))); // eslint-disable-line

@@ -900,8 +900,8 @@ impl GeminiCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { i = add(&i, &Value::Int(1)); } __for_first_665 = false; is_less_than(&i, &numRows) } {
+            let mut __for_first_696: bool = true;
+            while { if !__for_first_696 { i = add(&i, &Value::Int(1)); } __for_first_696 = false; is_less_than(&i, &numRows) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut cells: Value = split(&row, &Value::Str("</td>\n".to_string())); // eslint-disable-line quotes
@@ -1034,8 +1034,8 @@ impl GeminiCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i = add(&i, &Value::Int(1)); } __for_first_666 = false; is_less_than(&i, &get_array_length(&fetchUsdtMarkets)) } {
+            let mut __for_first_697: bool = true;
+            while { if !__for_first_697 { i = add(&i, &Value::Int(1)); } __for_first_697 = false; is_less_than(&i, &get_array_length(&fetchUsdtMarkets)) } {
             let mut marketId: Value = get_value(&fetchUsdtMarkets, &i);
             let mut marketId: Value = get_value(&fetchUsdtMarkets, &i);
             let mut request: Value = Value::Map({
@@ -1076,8 +1076,8 @@ impl GeminiCore {
         let mut marketIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i = add(&i, &Value::Int(1)); } __for_first_667 = false; is_less_than(&i, &get_array_length(&marketIdsRaw)) } {
+            let mut __for_first_698: bool = true;
+            while { if !__for_first_698 { i = add(&i, &Value::Int(1)); } __for_first_698 = false; is_less_than(&i, &get_array_length(&marketIdsRaw)) } {
             if !is_true(&self.in_array(get_value(&marketIdsRaw, &i), brokenPairs.clone())) {
                 append_to_array(&mut marketIds, get_value(&marketIdsRaw, &i));
             }
@@ -1087,8 +1087,8 @@ impl GeminiCore {
             let mut promises: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_668: bool = true;
-                while { if !__for_first_668 { i = add(&i, &Value::Int(1)); } __for_first_668 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_699: bool = true;
+                while { if !__for_first_699 { i = add(&i, &Value::Int(1)); } __for_first_699 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut request: Value = Value::Map({
@@ -1103,8 +1103,8 @@ impl GeminiCore {
             let mut responses: Value = promise_all(&promises).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_669: bool = true;
-                while { if !__for_first_669 { i = add(&i, &Value::Int(1)); } __for_first_669 = false; is_less_than(&i, &get_array_length(&responses)) } {
+                let mut __for_first_700: bool = true;
+                while { if !__for_first_700 { i = add(&i, &Value::Int(1)); } __for_first_700 = false; is_less_than(&i, &get_array_length(&responses)) } {
                 append_to_array(&mut result, self.parse_market(get_value(&responses, &i)));
             }
             }
@@ -1115,8 +1115,8 @@ impl GeminiCore {
                 let mut indexedTradingPairs: Value = self.index_by(tradingPairs.clone(), Value::Int(0));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_670: bool = true;
-                    while { if !__for_first_670 { i = add(&i, &Value::Int(1)); } __for_first_670 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                    let mut __for_first_701: bool = true;
+                    while { if !__for_first_701 { i = add(&i, &Value::Int(1)); } __for_first_701 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut pairInfo: Value = self.safe_list(indexedTradingPairs.clone(), to_upper(&marketId), &[]);
@@ -1128,8 +1128,8 @@ impl GeminiCore {
             }  else {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_671: bool = true;
-                    while { if !__for_first_671 { i = add(&i, &Value::Int(1)); } __for_first_671 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                    let mut __for_first_702: bool = true;
+                    while { if !__for_first_702 { i = add(&i, &Value::Int(1)); } __for_first_702 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                     if !is_true(&self.in_array(get_value(&marketIds, &i), brokenPairs.clone())) {
                         append_to_array(&mut result, self.parse_market(get_value(&marketIds, &i)));
                     }
@@ -1227,8 +1227,8 @@ impl GeminiCore {
                 let mut quoteCurrencies: Value = self.handle_option(Value::Str("fetchMarketsFromAPI".to_string()), Value::Str("quoteCurrencies".to_string()), &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_672: bool = true;
-                    while { if !__for_first_672 { i = add(&i, &Value::Int(1)); } __for_first_672 = false; is_less_than(&i, &get_array_length(&quoteCurrencies)) } {
+                    let mut __for_first_703: bool = true;
+                    while { if !__for_first_703 { i = add(&i, &Value::Int(1)); } __for_first_703 = false; is_less_than(&i, &get_array_length(&quoteCurrencies)) } {
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
                     if is_true(&Value::Bool(ends_with(&marketIdWithoutPerp, &quoteCurrency))) {
@@ -1716,8 +1716,8 @@ impl GeminiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { i = add(&i, &Value::Int(1)); } __for_first_673 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_704: bool = true;
+            while { if !__for_first_704 { i = add(&i, &Value::Int(1)); } __for_first_704 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1790,8 +1790,8 @@ impl GeminiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { i = add(&i, &Value::Int(1)); } __for_first_674 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_705: bool = true;
+            while { if !__for_first_705 { i = add(&i, &Value::Int(1)); } __for_first_705 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -654,8 +654,8 @@ impl CoinbaseinternationalCore {
         let mut accounts: Value = self.fetch_accounts(&[]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_517: bool = true;
+            while { if !__for_first_517 { i = add(&i, &Value::Int(1)); } __for_first_517 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut info: Value = self.safe_dict_k(account.clone(), "info", &[Value::Map({
@@ -1215,8 +1215,8 @@ impl CoinbaseinternationalCore {
         let mut networksArray: Value = self.to_array(networks.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&networksArray)) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { i = add(&i, &Value::Int(1)); } __for_first_518 = false; is_less_than(&i, &get_array_length(&networksArray)) } {
             let mut info: Value = get_value(&get_value(&networksArray, &i), &Value::Str("info".to_string()));
             let mut is_default: Value = self.safe_bool_k(info.clone(), "is_default", &[Value::Bool(false)]);
             if is_equal(&is_default, &Value::Bool(true)) {
@@ -1280,8 +1280,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&networks)) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i = add(&i, &Value::Int(1)); } __for_first_519 = false; is_less_than(&i, &get_array_length(&networks)) } {
             let __ws_arg_5 = self.parse_network(get_value(&networks, &i), &[]);
             let mut network: Value = self.extend(__ws_arg_5, &[params.clone()]);
             add_element_to_object(&mut result, &get_value(&network, &Value::Str("network".to_string())), network.clone());
@@ -2038,8 +2038,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&instruments)) } {
+            let mut __for_first_520: bool = true;
+            while { if !__for_first_520 { i = add(&i, &Value::Int(1)); } __for_first_520 = false; is_less_than(&i, &get_array_length(&instruments)) } {
             let mut instrument: Value = get_value(&instruments, &i);
             let mut instrument: Value = get_value(&instruments, &i);
             let mut marketId: Value = self.safe_string_k(instrument.clone(), "symbol", &[]);
@@ -2190,8 +2190,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i = add(&i, &Value::Int(1)); } __for_first_490 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i = add(&i, &Value::Int(1)); } __for_first_521 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawBalance: Value = get_value(&response, &i);
             let mut rawBalance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "asset_name", &[]);

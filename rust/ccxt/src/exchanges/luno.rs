@@ -762,8 +762,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_878: bool = true;
-            while { if !__for_first_878 { i = add(&i, &Value::Int(1)); } __for_first_878 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut __for_first_909: bool = true;
+            while { if !__for_first_909 { i = add(&i, &Value::Int(1)); } __for_first_909 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
@@ -870,8 +870,8 @@ impl LunoCore {
         let mut markets: Value = self.safe_value_k(response.clone(), "markets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_879: bool = true;
-            while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_910: bool = true;
+            while { if !__for_first_910 { i = add(&i, &Value::Int(1)); } __for_first_910 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -968,8 +968,8 @@ impl LunoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_880: bool = true;
-            while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_911: bool = true;
+            while { if !__for_first_911 { i = add(&i, &Value::Int(1)); } __for_first_911 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut account: Value = get_value(&wallets, &i);
             let mut account: Value = get_value(&wallets, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
@@ -1001,8 +1001,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_881: bool = true;
-            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&wallets)) } {
+            let mut __for_first_912: bool = true;
+            while { if !__for_first_912 { i = add(&i, &Value::Int(1)); } __for_first_912 = false; is_less_than(&i, &get_array_length(&wallets)) } {
             let mut wallet: Value = get_value(&wallets, &i);
             let mut wallet: Value = get_value(&wallets, &i);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
@@ -1389,8 +1389,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_882: bool = true;
-            while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_913: bool = true;
+            while { if !__for_first_913 { i = add(&i, &Value::Int(1)); } __for_first_913 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);

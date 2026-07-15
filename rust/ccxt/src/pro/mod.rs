@@ -160,6 +160,7 @@ pub mod xt;
 
 pub use cache::{
     ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide,
+    ArrayCacheByOutcomeById,
     KIND_ARRAY_CACHE, KIND_ARRAY_CACHE_BY_TIMESTAMP,
     KIND_ARRAY_CACHE_BY_SYMBOL_ID, KIND_ARRAY_CACHE_BY_SYMBOL_SIDE,
 };

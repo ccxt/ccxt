@@ -545,8 +545,8 @@ impl Bit2cCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_267: bool = true;
-            while { if !__for_first_267 { i = add(&i, &Value::Int(1)); } __for_first_267 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_298: bool = true;
+            while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -785,8 +785,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_268: bool = true;
-            while { if !__for_first_268 { i = add(&i, &Value::Int(1)); } __for_first_268 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_299: bool = true;
+            while { if !__for_first_299 { i = add(&i, &Value::Int(1)); } __for_first_299 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1132,8 +1132,8 @@ impl Bit2cCore {
         let mut strParts: Value = split(&str_val, &Value::Str(",".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_269: bool = true;
-            while { if !__for_first_269 { i = add(&i, &Value::Int(1)); } __for_first_269 = false; is_less_than(&i, &get_array_length(&strParts)) } {
+            let mut __for_first_300: bool = true;
+            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&strParts)) } {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }

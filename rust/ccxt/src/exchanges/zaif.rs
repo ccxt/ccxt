@@ -611,8 +611,8 @@ impl ZaifCore {
         let mut currencyIds: Value = object_keys(&funds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1066: bool = true;
-            while { if !__for_first_1066 { i = add(&i, &Value::Int(1)); } __for_first_1066 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1097: bool = true;
+            while { if !__for_first_1097 { i = add(&i, &Value::Int(1)); } __for_first_1097 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);

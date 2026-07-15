@@ -668,8 +668,8 @@ impl ExtendedCore {
         let mut keys: Value = object_keys(&input);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_646: bool = true;
+            while { if !__for_first_646 { i = add(&i, &Value::Int(1)); } __for_first_646 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
@@ -1151,8 +1151,8 @@ impl ExtendedCore {
             let mut marketIds: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_616: bool = true;
-                while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_647: bool = true;
+                while { if !__for_first_647 { i = add(&i, &Value::Int(1)); } __for_first_647 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
             }
@@ -1185,8 +1185,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut marketData: Value = get_value(&data, &i);
             let mut marketData: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(marketData.clone(), "name", &[]);
@@ -1461,8 +1461,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_649: bool = true;
+            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -1557,8 +1557,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_650: bool = true;
+            while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -1619,8 +1619,8 @@ impl ExtendedCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&histories)) } {
+            let mut __for_first_651: bool = true;
+            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&histories)) } {
             append_to_array(&mut result, self.parse_funding_history(get_value(&histories, &i), &[market.clone()]));
         }
         }
@@ -1861,8 +1861,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2055,8 +2055,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2226,8 +2226,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_654: bool = true;
+            while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2373,8 +2373,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_655: bool = true;
+            while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2583,8 +2583,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2923,8 +2923,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { i = add(&i, &Value::Int(1)); } __for_first_657 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut fee: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3232,8 +3232,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { i = add(&i, &Value::Int(1)); } __for_first_658 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -4292,8 +4292,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = add(&i, &Value::Int(1)); } __for_first_628 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {

@@ -12,6 +12,7 @@ const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
 const RUST_PATH = './rust/ccxt/src/exchanges/'
+const RUST_PREDICTION_PATH = './rust/ccxt/src/prediction/'
 const IDEN = '    ';
 
 let storedCamelCaseMethods: Dict = {};
@@ -376,9 +377,9 @@ async function editAPIFilesGo(subdir = ''){
     await Promise.all(files.map((path, idx) => writeFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
-async function editAPIFilesRust(){
+async function editAPIFilesRust(basePath = RUST_PATH){
     const exchanges = Object.keys(storedCamelCaseMethods);
-    const files = exchanges.map(ex => RUST_PATH + ex + '_api.rs');
+    const files = exchanges.map(ex => basePath + ex + '_api.rs');
     await Promise.all(files.map((path, idx) => writeFile(path, storedRustMethods[exchanges[idx]].join ('\n') + '\n')))
 }
 
@@ -623,18 +624,29 @@ async function main() {
 
     await generateImplicitAPIs (allExchanges.ids, shouldGenerateAll);
 
+    const wantRust = shouldGenerateAll || langKeys['--rust'];
+    // Rust `_api.rs` files are emitted per-pass (before the prediction pass
+    // resets storedCamelCaseMethods), so the main exchanges write to
+    // exchanges/ and prediction venues to prediction/.
+    if (wantRust) {
+        createImplicitMethodsRust()
+        await editAPIFilesRust(RUST_PATH)
+    }
+
     // second pass: prediction-market exchanges → abstract/prediction/ subfolders
     const predictionIds = allExchanges.prediction || [];
     if (predictionIds.length) {
         resetStoredMethods ();
         isPrediction = true;
         await generateImplicitAPIs (predictionIds, shouldGenerateAll, 'prediction/');
+        if (wantRust) {
+            createImplicitMethodsRust()
+            await editAPIFilesRust(RUST_PREDICTION_PATH)
+        }
         isPrediction = false;
     }
 
-    if (shouldGenerateAll || langKeys['--rust']) {
-        createImplicitMethodsRust()
-        await editAPIFilesRust()
+    if (wantRust) {
         log.bright.cyan ('Rust implicit api methods completed!')
     }
 

@@ -753,8 +753,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_600: bool = true;
-            while { if !__for_first_600 { i = add(&i, &Value::Int(1)); } __for_first_600 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut pair: Value = get_value(&pairs, &i);
             let mut pair: Value = get_value(&pairs, &i);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
@@ -810,8 +810,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i = add(&i, &Value::Int(1)); } __for_first_601 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_value(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[Value::Map({
@@ -919,8 +919,8 @@ impl ExmoCore {
         let mut cryptoListKeys: Value = object_keys(&cryptoList);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i = add(&i, &Value::Int(1)); } __for_first_603 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
+            let mut __for_first_634: bool = true;
+            while { if !__for_first_634 { i = add(&i, &Value::Int(1)); } __for_first_634 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
             let mut code: Value = get_value(&cryptoListKeys, &i);
             let mut code: Value = get_value(&cryptoListKeys, &i);
             if !is_equal(&codes, &Value::Null) && !is_true(&self.in_array(code.clone(), codes.clone())) {
@@ -937,8 +937,8 @@ impl ExmoCore {
             let mut providers: Value = self.safe_value(cryptoList.clone(), currencyId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_602: bool = true;
-                while { if !__for_first_602 { j = add(&j, &Value::Int(1)); } __for_first_602 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_633: bool = true;
+                while { if !__for_first_633 { j = add(&j, &Value::Int(1)); } __for_first_633 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut typeInner: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -1024,8 +1024,8 @@ impl ExmoCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i = add(&i, &Value::Int(1)); } __for_first_604 = false; is_less_than(&i, &get_array_length(&fee)) } {
+            let mut __for_first_635: bool = true;
+            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&fee)) } {
             let mut provider: Value = get_value(&fee, &i);
             let mut provider: Value = get_value(&fee, &i);
             let mut type_var: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -1130,8 +1130,8 @@ impl ExmoCore {
         let mut newArray: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { i = add(&i, &Value::Int(1)); } __for_first_605 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
+            let mut __for_first_636: bool = true;
+            while { if !__for_first_636 { i = add(&i, &Value::Int(1)); } __for_first_636 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currencyId: Value = self.safe_string_k(currency.clone(), "name", &[]);
@@ -1167,8 +1167,8 @@ impl ExmoCore {
         }  else {
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_606: bool = true;
-                while { if !__for_first_606 { j = add(&j, &Value::Int(1)); } __for_first_606 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_637: bool = true;
+                while { if !__for_first_637 { j = add(&j, &Value::Int(1)); } __for_first_637 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut name: Value = self.safe_string_k(provider.clone(), "name", &[]);
@@ -1317,8 +1317,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i = add(&i, &Value::Int(1)); } __for_first_607 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_638: bool = true;
+            while { if !__for_first_638 { i = add(&i, &Value::Int(1)); } __for_first_638 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&spotResponse, &id);
@@ -1500,8 +1500,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&wallets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_608: bool = true;
-                while { if !__for_first_608 { i = add(&i, &Value::Int(1)); } __for_first_608 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_639: bool = true;
+                while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut item: Value = get_value(&wallets, &currencyId);
@@ -1525,8 +1525,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_609: bool = true;
-                while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_640: bool = true;
+                while { if !__for_first_640 { i = add(&i, &Value::Int(1)); } __for_first_640 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1668,8 +1668,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_641: bool = true;
+            while { if !__for_first_641 { i = add(&i, &Value::Int(1)); } __for_first_641 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1769,8 +1769,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_642: bool = true;
+            while { if !__for_first_642 { i = add(&i, &Value::Int(1)); } __for_first_642 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -2048,8 +2048,8 @@ impl ExmoCore {
         let mut marketIdsInner: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { i = add(&i, &Value::Int(1)); } __for_first_612 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
+            let mut __for_first_643: bool = true;
+            while { if !__for_first_643 { i = add(&i, &Value::Int(1)); } __for_first_643 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut resultMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -2520,8 +2520,8 @@ impl ExmoCore {
             let mut marketIds: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_613: bool = true;
-                while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_644: bool = true;
+                while { if !__for_first_644 { i = add(&i, &Value::Int(1)); } __for_first_644 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
@@ -2805,8 +2805,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { i = add(&i, &Value::Int(1)); } __for_first_614 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_645: bool = true;
+            while { if !__for_first_645 { i = add(&i, &Value::Int(1)); } __for_first_645 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             if is_equal(&get_value(&order, &Value::Str("status".to_string())), &Value::Str("canceled".to_string())) {

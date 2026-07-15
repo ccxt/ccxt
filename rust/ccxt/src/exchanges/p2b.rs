@@ -1222,8 +1222,8 @@ impl P2bCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_955: bool = true;
-            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_986: bool = true;
+            while { if !__for_first_986 { i = add(&i, &Value::Int(1)); } __for_first_986 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currencyId: Value = get_value(&keys, &i);
             let mut currencyId: Value = get_value(&keys, &i);
             let mut balance: Value = get_value(&response, &currencyId);
@@ -1694,8 +1694,8 @@ impl P2bCore {
         let mut keys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_956: bool = true;
-            while { if !__for_first_956 { i = add(&i, &Value::Int(1)); } __for_first_956 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_987: bool = true;
+            while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketOrders: Value = get_value(&result, &marketId);

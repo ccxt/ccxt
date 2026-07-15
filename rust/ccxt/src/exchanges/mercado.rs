@@ -550,8 +550,8 @@ impl MercadoCore {
         })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_883: bool = true;
-            while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_914: bool = true;
+            while { if !__for_first_914 { i = add(&i, &Value::Int(1)); } __for_first_914 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut coin: Value = get_value(&response, &i);
             let mut coin: Value = get_value(&response, &i);
             let mut baseId: Value = coin.clone();
@@ -837,8 +837,8 @@ impl MercadoCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_884: bool = true;
-            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_915: bool = true;
+            while { if !__for_first_915 { i = add(&i, &Value::Int(1)); } __for_first_915 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1450,13 +1450,13 @@ impl MercadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_886: bool = true;
-            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_917: bool = true;
+            while { if !__for_first_917 { i = add(&i, &Value::Int(1)); } __for_first_917 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut trades: Value = self.safe_value_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
-                let mut __for_first_885: bool = true;
-                while { if !__for_first_885 { y = add(&y, &Value::Int(1)); } __for_first_885 = false; is_less_than(&y, &get_array_length(&trades)) } {
+                let mut __for_first_916: bool = true;
+                while { if !__for_first_916 { y = add(&y, &Value::Int(1)); } __for_first_916 = false; is_less_than(&y, &get_array_length(&trades)) } {
                 append_to_array(&mut result, get_value(&trades, &y));
             }
             }

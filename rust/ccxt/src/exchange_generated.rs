@@ -3,13 +3,14 @@
 
 // Generated from `ts/src/base/Exchange.ts` — methods below the
 // "METHODS BELOW THIS LINE ARE TRANSPILED" marker. Everything
-// above the marker is hand-written in `src/exchange.rs`.
+// above the marker is hand-written (src/exchange.rs / src/prediction_exchange.rs).
 
 #![allow(unused, non_snake_case, clippy::all)]
 
 use crate::Value;
 use crate::ExchangeError;
 use crate::exchange::Exchange;
+
 use crate::runtime::*;
 
 impl Exchange {

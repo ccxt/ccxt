@@ -75,3 +75,13 @@ impl ArrayCacheBySymbolBySide {
         new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_SIDE, max_size)
     }
 }
+
+/// Prediction-market analogue of `ArrayCacheBySymbolById`, keyed by outcome id
+/// instead of symbol id. Behaviourally identical for the cache marker, so it
+/// reuses the same kind.
+pub struct ArrayCacheByOutcomeById;
+impl ArrayCacheByOutcomeById {
+    pub fn new(max_size: Value) -> Value {
+        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_ID, max_size)
+    }
+}

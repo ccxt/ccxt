@@ -1513,8 +1513,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_402: bool = true;
-            while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_433: bool = true;
+            while { if !__for_first_433 { i = add(&i, &Value::Int(1)); } __for_first_433 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rate: Value = get_value(&data, &i);
             let mut rate: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "fundingTime", &[]);
@@ -1679,8 +1679,8 @@ impl BlofinCore {
         let mut details: Value = self.safe_list_k(data.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_403: bool = true;
-            while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_434: bool = true;
+            while { if !__for_first_434 { i = add(&i, &Value::Int(1)); } __for_first_434 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut balance: Value = get_value(&details, &i);
             let mut balance: Value = get_value(&details, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1730,8 +1730,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_404: bool = true;
-            while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_435: bool = true;
+            while { if !__for_first_435 { i = add(&i, &Value::Int(1)); } __for_first_435 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -2258,8 +2258,8 @@ impl BlofinCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_405: bool = true;
-            while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_436: bool = true;
+            while { if !__for_first_436 { i = add(&i, &Value::Int(1)); } __for_first_436 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2818,8 +2818,8 @@ impl BlofinCore {
             if !is_equal(&tpslIds, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_406: bool = true;
-                    while { if !__for_first_406 { i = add(&i, &Value::Int(1)); } __for_first_406 = false; is_less_than(&i, &get_array_length(&tpslIds)) } {
+                    let mut __for_first_437: bool = true;
+                    while { if !__for_first_437 { i = add(&i, &Value::Int(1)); } __for_first_437 = false; is_less_than(&i, &get_array_length(&tpslIds)) } {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), get_value(&tpslIds, &i));
@@ -2831,8 +2831,8 @@ impl BlofinCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_407: bool = true;
-                while { if !__for_first_407 { i = add(&i, &Value::Int(1)); } __for_first_407 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_438: bool = true;
+                while { if !__for_first_438 { i = add(&i, &Value::Int(1)); } __for_first_438 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 if is_true(&trigger) {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -2853,8 +2853,8 @@ impl BlofinCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_408: bool = true;
-                while { if !__for_first_408 { i = add(&i, &Value::Int(1)); } __for_first_408 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+                let mut __for_first_439: bool = true;
+                while { if !__for_first_439 { i = add(&i, &Value::Int(1)); } __for_first_439 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
                 append_to_array(&mut request, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -3265,8 +3265,8 @@ impl BlofinCore {
         let mut instIds: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_409: bool = true;
-            while { if !__for_first_409 { i = add(&i, &Value::Int(1)); } __for_first_409 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
+            let mut __for_first_440: bool = true;
+            while { if !__for_first_440 { i = add(&i, &Value::Int(1)); } __for_first_440 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
             let mut entry: Value = get_value(&symbolsList, &i);
             let mut entry: Value = get_value(&symbolsList, &i);
             let mut entryMarket: Value = self.market(entry.clone());

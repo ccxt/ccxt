@@ -949,8 +949,8 @@ impl DeltaCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_562: bool = true;
-            while { if !__for_first_562 { j = add(&j, &Value::Int(1)); } __for_first_562 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { j = add(&j, &Value::Int(1)); } __for_first_593 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "network", &[]);
@@ -1052,8 +1052,8 @@ impl DeltaCore {
         let mut keys: Value = object_keys(&input);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_563: bool = true;
-            while { if !__for_first_563 { i = add(&i, &Value::Int(1)); } __for_first_563 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
@@ -1265,8 +1265,8 @@ impl DeltaCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_564: bool = true;
-            while { if !__for_first_564 { i = add(&i, &Value::Int(1)); } __for_first_564 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_595: bool = true;
+            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut type_var: Value = self.safe_string_k(market.clone(), "contract_type", &[]);
@@ -1879,8 +1879,8 @@ impl DeltaCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { i = add(&i, &Value::Int(1)); } __for_first_565 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -2201,8 +2201,8 @@ impl DeltaCore {
 })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_566: bool = true;
-            while { if !__for_first_566 { i = add(&i, &Value::Int(1)); } __for_first_566 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_597: bool = true;
+            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset_id", &[]);
@@ -4092,8 +4092,8 @@ impl DeltaCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i = add(&i, &Value::Int(1)); } __for_first_567 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_598: bool = true;
+            while { if !__for_first_598 { i = add(&i, &Value::Int(1)); } __for_first_598 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), market.clone()));
         }
         }

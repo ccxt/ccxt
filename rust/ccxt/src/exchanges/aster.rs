@@ -1262,8 +1262,8 @@ impl AsterCore {
         let mut fapiRowsFiltered: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_183: bool = true;
-            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&fapiRows)) } {
+            let mut __for_first_214: bool = true;
+            while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&fapiRows)) } {
             let mut market: Value = get_value(&fapiRows, &i);
             let mut market: Value = get_value(&fapiRows, &i);
             // tmp skip some markets with base = undefined
@@ -1999,8 +1999,8 @@ impl AsterCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_184: bool = true;
-            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_215: bool = true;
+            while { if !__for_first_215 { i = add(&i, &Value::Int(1)); } __for_first_215 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut marketId: Value = self.safe_string_k(get_value(&response, &i), "symbol", &[]);
             let mut safeMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             let __ws_arg_14 = self.parse_last_price(get_value(&response, &i), &[safeMarket.clone()]);
@@ -2331,8 +2331,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_216: bool = true;
+            while { if !__for_first_216 { i = add(&i, &Value::Int(1)); } __for_first_216 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -2894,8 +2894,8 @@ impl AsterCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_217: bool = true;
+            while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3813,8 +3813,8 @@ impl AsterCore {
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_187: bool = true;
-            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&leverageBracket)) } {
+            let mut __for_first_218: bool = true;
+            while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&leverageBracket)) } {
             let mut bracket: Value = get_value(&leverageBracket, &i);
             let mut bracket: Value = get_value(&leverageBracket, &i);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
@@ -4016,8 +4016,8 @@ impl AsterCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_188: bool = true;
-            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_219: bool = true;
+            while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawPosition: Value = get_value(&response, &i);
             let mut rawPosition: Value = get_value(&response, &i);
             let mut entryPriceString: Value = self.safe_string_k(rawPosition.clone(), "entryPrice", &[]);
@@ -4079,8 +4079,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_189: bool = true;
-            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i = add(&i, &Value::Int(1)); } __for_first_220 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut entry: Value = get_value(&assets, &i);
             let mut entry: Value = get_value(&assets, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -4098,8 +4098,8 @@ impl AsterCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_190: bool = true;
-            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_221: bool = true;
+            while { if !__for_first_221 { i = add(&i, &Value::Int(1)); } __for_first_221 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
@@ -4171,8 +4171,8 @@ impl AsterCore {
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_191: bool = true;
-            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&leverageBracket)) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { i = add(&i, &Value::Int(1)); } __for_first_222 = false; is_less_than(&i, &get_array_length(&leverageBracket)) } {
             let mut bracket: Value = get_value(&leverageBracket, &i);
             let mut bracket: Value = get_value(&leverageBracket, &i);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
@@ -4375,8 +4375,8 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
             { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("leverageBrackets".to_string()), __be_tmp); };
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_193: bool = true;
-                while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_224: bool = true;
+                while { if !__for_first_224 { i = add(&i, &Value::Int(1)); } __for_first_224 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut entry: Value = get_value(&response, &i);
                 let mut entry: Value = get_value(&response, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -4385,8 +4385,8 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
                 let mut result: Value = Value::List(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_192: bool = true;
-                    while { if !__for_first_192 { j = add(&j, &Value::Int(1)); } __for_first_192 = false; is_less_than(&j, &get_array_length(&brackets)) } {
+                    let mut __for_first_223: bool = true;
+                    while { if !__for_first_223 { j = add(&j, &Value::Int(1)); } __for_first_223 = false; is_less_than(&j, &get_array_length(&brackets)) } {
                     let mut bracket: Value = get_value(&brackets, &j);
                     let mut bracket: Value = get_value(&brackets, &j);
                     let mut floorValue: Value = self.safe_string_k(bracket.clone(), "notionalFloor", &[]);
@@ -4826,8 +4826,8 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
         let mut keys: Value = object_keys(&values);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_194: bool = true;
-            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_225: bool = true;
+            while { if !__for_first_225 { i = add(&i, &Value::Int(1)); } __for_first_225 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&values, &key);
@@ -4850,8 +4850,8 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
         let mut keys: Value = object_keys(&dict);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_195: bool = true;
-            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_226: bool = true;
+            while { if !__for_first_226 { i = add(&i, &Value::Int(1)); } __for_first_226 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
@@ -4927,8 +4927,8 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
         let mut found: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &length) } {
+            let mut __for_first_227: bool = true;
+            while { if !__for_first_227 { i = add(&i, &Value::Int(1)); } __for_first_227 = false; is_less_than(&i, &length) } {
             let mut builderInfo: Value = self.safe_dict(approvedBuilders.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

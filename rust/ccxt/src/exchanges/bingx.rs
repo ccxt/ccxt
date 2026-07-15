@@ -1569,8 +1569,8 @@ impl BingxCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_254: bool = true;
-            while { if !__for_first_254 { j = add(&j, &Value::Int(1)); } __for_first_254 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_285: bool = true;
+            while { if !__for_first_285 { j = add(&j, &Value::Int(1)); } __for_first_285 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut rawNetwork: Value = get_value(&networkList, &j);
             let mut rawNetwork: Value = get_value(&networkList, &j);
             let mut network: Value = self.safe_string_k(rawNetwork.clone(), "network", &[]);
@@ -3401,8 +3401,8 @@ impl BingxCore {
         if is_true(&isContract) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_255: bool = true;
-                while { if !__for_first_255 { i = add(&i, &Value::Int(1)); } __for_first_255 = false; is_less_than(&i, &get_array_length(&contractBalances)) } {
+                let mut __for_first_286: bool = true;
+                while { if !__for_first_286 { i = add(&i, &Value::Int(1)); } __for_first_286 = false; is_less_than(&i, &get_array_length(&contractBalances)) } {
                 let mut balance: Value = get_value(&contractBalances, &i);
                 let mut balance: Value = get_value(&contractBalances, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -3420,8 +3420,8 @@ impl BingxCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_256: bool = true;
-                while { if !__for_first_256 { i = add(&i, &Value::Int(1)); } __for_first_256 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
+                let mut __for_first_287: bool = true;
+                while { if !__for_first_287 { i = add(&i, &Value::Int(1)); } __for_first_287 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
                 let mut balance: Value = get_value(&spotBalances, &i);
                 let mut balance: Value = get_value(&spotBalances, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -4225,8 +4225,8 @@ impl BingxCore {
         let mut marketIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_257: bool = true;
-            while { if !__for_first_257 { i = add(&i, &Value::Int(1)); } __for_first_257 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_288: bool = true;
+            while { if !__for_first_288 { i = add(&i, &Value::Int(1)); } __for_first_288 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -5041,8 +5041,8 @@ impl BingxCore {
         let mut parsedIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_258: bool = true;
-            while { if !__for_first_258 { i = add(&i, &Value::Int(1)); } __for_first_258 = false; is_less_than(&i, &get_array_length(&idsToParse)) } {
+            let mut __for_first_289: bool = true;
+            while { if !__for_first_289 { i = add(&i, &Value::Int(1)); } __for_first_289 = false; is_less_than(&i, &get_array_length(&idsToParse)) } {
             let mut id: Value = get_value(&idsToParse, &i);
             let mut id: Value = get_value(&idsToParse, &i);
             let mut stringId: Value = to_string_val(&id);
@@ -6607,8 +6607,8 @@ impl BingxCore {
         if !is_equal(&networksLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_259: bool = true;
-                while { if !__for_first_259 { i = add(&i, &Value::Int(1)); } __for_first_259 = false; is_less_than(&i, &networksLength) } {
+                let mut __for_first_290: bool = true;
+                while { if !__for_first_290 { i = add(&i, &Value::Int(1)); } __for_first_290 = false; is_less_than(&i, &networksLength) } {
                 let mut networkCode: Value = get_value(&networkCodes, &i);
                 let mut networkCode: Value = get_value(&networkCodes, &i);
                 let mut network: Value = get_value(&networks, &networkCode);
@@ -6666,8 +6666,8 @@ impl BingxCore {
         let mut responseCodes: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_260: bool = true;
-            while { if !__for_first_260 { i = add(&i, &Value::Int(1)); } __for_first_260 = false; is_less_than(&i, &get_array_length(&responseCodes)) } {
+            let mut __for_first_291: bool = true;
+            while { if !__for_first_291 { i = add(&i, &Value::Int(1)); } __for_first_291 = false; is_less_than(&i, &get_array_length(&responseCodes)) } {
             let mut code: Value = get_value(&responseCodes, &i);
             let mut code: Value = get_value(&responseCodes, &i);
             if is_true(&(is_equal(&codes, &Value::Null))) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
@@ -6749,8 +6749,8 @@ impl BingxCore {
         let mut keys: Value = self.sort(rawKeys.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_262: bool = true;
-            while { if !__for_first_262 { i = add(&i, &Value::Int(1)); } __for_first_262 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_293: bool = true;
+            while { if !__for_first_293 { i = add(&i, &Value::Int(1)); } __for_first_293 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&params, &key);
@@ -6758,8 +6758,8 @@ impl BingxCore {
                 let mut arrStr: Value = Value::Str("[".to_string());
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_261: bool = true;
-                    while { if !__for_first_261 { j = add(&j, &Value::Int(1)); } __for_first_261 = false; is_less_than(&j, &get_array_length(&value)) } {
+                    let mut __for_first_292: bool = true;
+                    while { if !__for_first_292 { j = add(&j, &Value::Int(1)); } __for_first_292 = false; is_less_than(&j, &get_array_length(&value)) } {
                     let mut arrayElement: Value = get_value(&value, &j);
                     let mut arrayElement: Value = get_value(&value, &j);
                     if is_greater_than(&j, &Value::Int(0)) {
@@ -7040,8 +7040,8 @@ impl BingxCore {
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_263: bool = true;
-            while { if !__for_first_263 { i = add(&i, &Value::Int(1)); } __for_first_263 = false; is_less_than(&i, &get_array_length(&success)) } {
+            let mut __for_first_294: bool = true;
+            while { if !__for_first_294 { i = add(&i, &Value::Int(1)); } __for_first_294 = false; is_less_than(&i, &get_array_length(&success)) } {
             let mut position: Value = self.parse_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("positionId".to_string(), get_value(&success, &i));
@@ -7373,8 +7373,8 @@ impl BingxCore {
         let mut result: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_265: bool = true;
-            while { if !__for_first_265 { i = add(&i, &Value::Int(1)); } __for_first_265 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_296: bool = true;
+            while { if !__for_first_296 { i = add(&i, &Value::Int(1)); } __for_first_296 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&params, &key);
@@ -7382,8 +7382,8 @@ impl BingxCore {
                 let mut arrStr: Value = Value::Null;
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_264: bool = true;
-                    while { if !__for_first_264 { j = add(&j, &Value::Int(1)); } __for_first_264 = false; is_less_than(&j, &get_array_length(&value)) } {
+                    let mut __for_first_295: bool = true;
+                    while { if !__for_first_295 { j = add(&j, &Value::Int(1)); } __for_first_295 = false; is_less_than(&j, &get_array_length(&value)) } {
                     let mut arrayElement: Value = get_value(&value, &j);
                     let mut arrayElement: Value = get_value(&value, &j);
                     let mut isString: Value = Value::Bool(is_string(&arrayElement));
@@ -7485,8 +7485,8 @@ impl BingxCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_266: bool = true;
-            while { if !__for_first_266 { i = add(&i, &Value::Int(1)); } __for_first_266 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_297: bool = true;
+            while { if !__for_first_297 { i = add(&i, &Value::Int(1)); } __for_first_297 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
             let mut tierString: Value = self.safe_string_k(tier.clone(), "tier", &[]);
             let mut tierParts: Value = split(&tierString, &Value::Str(" ".to_string()));

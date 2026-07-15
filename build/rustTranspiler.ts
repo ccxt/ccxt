@@ -46,9 +46,13 @@ function toSnakeCase(s: string): string {
 // ── output paths ─────────────────────────────────────────────────────────────
 const RUST_BASE              = './rust/ccxt/src';
 const BASE_METHODS_FILE      = `${RUST_BASE}/exchange_generated.rs`;
+const PREDICTION_BASE_FILE   = `${RUST_BASE}/prediction_exchange_generated.rs`;
 const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
 const EXCHANGES_FOLDER       = `${RUST_BASE}/exchanges`;
 const EXCHANGES_WS_FOLDER    = `${RUST_BASE}/pro`;
+// Prediction venues live in their own module so ids that also exist as a
+// regular exchange (e.g. `hyperliquid`) don't clobber each other.
+const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
 const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
@@ -1813,7 +1817,7 @@ class RustTranspilerBuilder {
         const lines = content.split('\n');
         let counter = 0;
         const out: string[] = [];
-        const mutMethods = /\b(watch|watch_multiple|fetch_order_book_snapshot|un_watch|client|spawn|delay|fetch_tickers|extend)\b/;
+        const mutMethods = /\b(watch|watch_multiple|fetch_order_book_snapshot|un_watch|client|spawn|delay|fetch_tickers|extend|fetch|send_evm_transaction)\b/;
         for (let li = 0; li < lines.length; li++) {
             const line = lines[li];
             // Find outer `self.<X>(` where X looks WS-mut-ish.
@@ -2956,6 +2960,43 @@ class RustTranspilerBuilder {
      * accept exactly 2 args (CCXT's TS signature has an optional precision
      * arg the wrappers ignore).
      */
+    /**
+     * The runtime `rsa(message, key, hash)` helper takes 3 args (PKCS#1 v1.5);
+     * TS `rsa` has an optional 4th `padding` (e.g. kalshi passes `'pss'`). Trim
+     * `rsa(a, b, c, d)` back to 3 args so the call type-checks. (Padding choice
+     * is a private-signing detail not exercised by the public test suite.)
+     */
+    dropExtraRsaArgs(content: string): string {
+        const pattern = /(^|[^.:\w])rsa\(/;
+        let i = 0, out = '';
+        while (i < content.length) {
+            const rest = content.slice(i);
+            const m = rest.match(pattern);
+            if (!m || m.index === undefined) { out += rest; break; }
+            const lead = m[1];
+            out += rest.slice(0, m.index) + lead;
+            const callStart = i + m.index + m[0].length;
+            let depth = 1, j = callStart, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(callStart); break; }
+            const args = this.splitArgs(this.dropExtraRsaArgs(content.slice(callStart, j))) ?? [];
+            out += `rsa(${args.slice(0, 3).join(', ')})`;
+            i = j + 1;
+        }
+        return out;
+    }
+
     dropExtraPreciseArgs(content: string): string {
         const pattern = /crate::precise::Precise::(string(?:Div|Mul|Add|Sub|Mod|Eq|Gt|Ge|Lt|Le|Min|Max|Abs|Neg))\(/;
         let i = 0;
@@ -3923,6 +3964,18 @@ class RustTranspilerBuilder {
      * us having to enumerate them by hand.
      */
     private _discoveredVariadicsCache: Record<string, number> | null = null;
+    /** Names of every `pub async fn` in a generated Rust file (for async-await
+     *  propagation seeds — e.g. a venue's implicit-API endpoints). */
+    private extractAsyncFnNames(path: string): Record<string, true> {
+        const out: Record<string, true> = {};
+        if (!fs.existsSync(path)) return out;
+        const content = fs.readFileSync(path, 'utf-8');
+        const re = /\bpub\s+async\s+fn\s+([a-z_][a-z0-9_]*)\s*\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) out[m[1]] = true;
+        return out;
+    }
+
     private _variadicsByExchange: Record<string, Record<string, number>> = {};
     private extractVariadicsFromFile(path: string): Record<string, number> {
         const out: Record<string, number> = {};
@@ -3973,6 +4026,31 @@ class RustTranspilerBuilder {
         }
         this._discoveredVariadicsCache = out;
         return out;
+    }
+
+    /**
+     * Variadic-wrap map for a prediction venue (`prediction/<id>.rs`): the shared
+     * base (`Exchange`) methods, plus the prediction tier's own base methods
+     * (`prediction_exchange_generated.rs` → parsePredictionOrder, fetchOutcomes,
+     * …), plus this venue's implicit-API endpoints (`prediction/<id>_api.rs` →
+     * kalshiPublicGetMarkets, …) and any variadic methods it defines itself.
+     * Without the last two, calls like `self.kalshi_public_get_markets(x)` never
+     * get their bare arg folded into the expected `&[Value]` slice.
+     */
+    private _predictionVariadicsCache: Record<string, number> | null = null;
+    discoveredPredictionVariadicsFor(exchangeId: string): Record<string, number> {
+        const id = exchangeId.toLowerCase();
+        if (!this._predictionVariadicsCache) {
+            this._predictionVariadicsCache = this.extractVariadicsFromFile(
+                './rust/ccxt/src/prediction_exchange_generated.rs',
+            );
+        }
+        return {
+            ...this.discoveredVariadics(),
+            ...this._predictionVariadicsCache,
+            ...this.extractVariadicsFromFile(`./rust/ccxt/src/prediction/${id}_api.rs`),
+            ...this.extractVariadicsFromFile(`./rust/ccxt/src/prediction/${id}.rs`),
+        };
     }
 
     /**
@@ -4701,7 +4779,7 @@ ${isBase
 
     // ── exchange file creation ────────────────────────────────────────────────
 
-    createRustExchange(className: string, rustResult: any, ws = false): string {
+    createRustExchange(className: string, rustResult: any, ws = false, isPrediction = false): string {
         const coreName = capitalize(className) + 'Core';
         const header = this.createGeneratedHeader().join('\n');
 
@@ -4724,7 +4802,9 @@ ${isBase
         try {
             const srcPath = ws
                 ? `./ts/src/pro/${className}.ts`
-                : `./ts/src/${className}.ts`;
+                : isPrediction
+                    ? `./ts/src/prediction/${className}.ts`
+                    : `./ts/src/${className}.ts`;
             const tsSrc = fs.readFileSync(srcPath, 'utf8');
             const m = tsSrc.match(/\bclass\s+\w+\s+extends\s+([A-Za-z_]\w*)/);
             if (m && m[1] !== 'Exchange') {
@@ -4848,7 +4928,9 @@ ${isBase
         // pro/<id>.rs so methods that vary across exchanges
         // (`edit_order_request`, …) get the right boundary.
         content = this.wrapVariadicCalls(content, {
-            ...(ws ? this.discoveredVariadicsFor(className) : this.discoveredVariadics()),
+            ...(isPrediction
+                ? this.discoveredPredictionVariadicsFor(className)
+                : ws ? this.discoveredVariadicsFor(className) : this.discoveredVariadics()),
             ...this.handWrittenVariadics(),
         });
         content = this.autoCloneCallArgs(content);
@@ -4868,7 +4950,19 @@ ${isBase
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
             const asyncSnake = Array.from(asyncMethods).map(n => toSnakeCase(n));
-            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'fetch', 'load_markets', 'throttle']);
+            // Prediction venues call their implicit-API endpoints and the
+            // PredictionExchange base methods inside `Promise.all([...])`
+            // arrays, where the source has no explicit `await`. Those methods
+            // live in `_api.rs` / `prediction_exchange_generated.rs`, invisible
+            // to this file's AST, so seed the async set with their names or the
+            // futures never get `.await`ed (E0308 "expected Value, found future").
+            const predAsync: string[] = isPrediction
+                ? Object.keys({
+                    ...this.extractAsyncFnNames(`./rust/ccxt/src/prediction/${className}_api.rs`),
+                    ...this.extractAsyncFnNames('./rust/ccxt/src/prediction_exchange_generated.rs'),
+                  })
+                : [];
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = content;
                 content = this.appendAwaitToAsyncCalls(content, currentSet);
@@ -4924,6 +5018,9 @@ ${isBase
         // arg lists for `self.<mut>(... )` so the two borrows don't
         // conflict at the call site.
         content = this.hoistSelfArgFromMutCall(content);
+        if (isPrediction) {
+            content = this.dropExtraRsaArgs(content);
+        }
 
         // Clone bare-identifier args passed to known cache / order-book
         // methods on local variables (`candles.get_limit(symbol, limit)`,
@@ -5030,7 +5127,10 @@ ${isBase
         // via the pro module's re-exports so the transpiled `let cache
         // = ArrayCache::new(limit);` call sites resolve. The REST
         // surface doesn't need this.
-        const proImport = ws ? 'use crate::pro::*;\n' : '';
+        // Prediction venues merge REST+WS into one class, so they use the WS
+        // cache types (ArrayCache, ArrayCacheByOutcomeById, …) even though they
+        // transpile through the REST (non-ws) path — pull in `crate::pro::*` too.
+        const proImport = (ws || isPrediction) ? 'use crate::pro::*;\n' : '';
         const useStatements = `#![allow(unused, non_snake_case, clippy::all)]
 use crate::Value;
 use crate::get_value;
@@ -5048,13 +5148,23 @@ ${proImport}`;
         // `Deref`s to it (Go-style embedding); a base exchange holds the
         // `Exchange` directly. Either way `self.exchange` resolves through
         // the Deref chain, so the `init`/`bind` boilerplate is shared.
+        // A prediction venue that extends the base (`class kalshi extends
+        // Exchange`, where `Exchange` is the imported PredictionExchange alias)
+        // holds a `PredictionExchange` instead of a plain `Exchange`, so its
+        // unified overrides (createOrder/fetchTicker/…) win over the shared base
+        // via the Deref chain Core → PredictionExchange → Exchange. Base field
+        // writes in the init boilerplate (`self.exchange.api = …`) still work
+        // because Rust's dot operator auto-derefs through PredictionExchange.
+        const baseType = isPrediction
+            ? 'crate::prediction_exchange::PredictionExchange'
+            : 'crate::exchange::Exchange';
         const structField = parentCore
             ? `    pub parent: ${parentCore},`
-            : `    pub exchange: crate::exchange::Exchange,`;
+            : `    pub exchange: ${baseType},`;
         const newInit = parentCore
             ? `Self { parent: ${parentCore}::new(config) }`
-            : `Self { exchange: crate::exchange::Exchange::new(config) }`;
-        const derefTarget = parentCore ?? 'crate::exchange::Exchange';
+            : `Self { exchange: ${baseType}::new(config) }`;
+        const derefTarget = parentCore ?? baseType;
         const derefField  = parentCore ? 'parent' : 'exchange';
 
         // Proper struct + Deref delegation + trait impl. `bind()` must be
@@ -5227,20 +5337,33 @@ impl std::ops::DerefMut for ${coreName} {
         pattern = '.ts',
         force = false,
         ws = false,
+        isPrediction = false,
     ) {
-        const ids: string[] = ws ? exchangeIdsWs : exchangeIds;
+        // Prediction venues are enumerated from ts/src/prediction/ (they are not
+        // in exchanges.json's `ids`); everything else uses the REST/WS id lists.
+        const ids: string[] = isPrediction
+            ? fs.readdirSync(tsFolder).filter(f => f.endsWith('.ts')).map(f => basename(f, '.ts'))
+            : (ws ? exchangeIdsWs : exchangeIds);
         const regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
         let files: string[];
         if (options.exchanges && options.exchanges.length) {
-            files = options.exchanges.map((x: string) => x + pattern);
+            // Single/subset mode: only keep requested ids that actually have a
+            // source file in this folder (so `transpile kalshi` hits the
+            // prediction pass and `transpile binance` skips it, and vice versa).
+            files = options.exchanges
+                .map((x: string) => x + pattern)
+                .filter((f: string) => fs.existsSync(`${tsFolder}/${f}`));
         } else {
             files = fs.readdirSync(tsFolder).filter(
                 f => f.match(regex) && ids.includes(basename(f, '.ts'))
             );
         }
+        if (files.length === 0) return;
 
-        const outFolder: string = ws ? EXCHANGES_WS_FOLDER : EXCHANGES_FOLDER;
+        const outFolder: string = isPrediction
+            ? PREDICTION_EXCHANGES_FOLDER
+            : (ws ? EXCHANGES_WS_FOLDER : EXCHANGES_FOLDER);
         log.blue(`[rust] Transpiling [${files.join(', ')}]`);
 
         const written: string[] = [];
@@ -5256,7 +5379,7 @@ impl std::ops::DerefMut for ${coreName} {
             let rustContent: string;
             try {
                 result = this.transpiler.transpileRustByPath(tsPath);
-                rustContent = this.createRustExchange(exchangeName, result, ws);
+                rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
                 rustContent = this.rewriteJavaReqAliases(rustContent);
             } catch (e: any) {
@@ -5505,8 +5628,13 @@ impl std::ops::DerefMut for ${coreName} {
 
     // ── base methods transpilation ─────────────────────────────────────────────
 
-    transpileBaseMethods(baseFile: string, isWs = false) {
-        log.bright.cyan('Transpiling base methods →', baseFile.yellow, BASE_METHODS_FILE.yellow);
+    transpileBaseMethods(baseFile: string, isWs = false, opts: { structName?: string, outFile?: string } = {}) {
+        // `structName`/`outFile` let the same pipeline emit the prediction tier
+        // (`impl PredictionExchange` → prediction_exchange_generated.rs) as well
+        // as the default `impl Exchange` → exchange_generated.rs.
+        const structName = opts.structName ?? 'Exchange';
+        const outFile = opts.outFile ?? BASE_METHODS_FILE;
+        log.bright.cyan('Transpiling base methods →', baseFile.yellow, outFile.yellow);
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
 
         // Strip bodyless TS overload signatures (which crash the AST rust
@@ -5589,7 +5717,14 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Wrap variadic call sites for the hand-written above-marker methods
         // (safe_value/safe_string/extend/omit/...) into the `&[Value]` shape.
-        basePart = this.wrapVariadicCalls(basePart, this.handWrittenVariadics());
+        // The prediction tier additionally calls the shared `Exchange` base
+        // methods (parse_order, safe_market, …) which the single-file AST pass
+        // over PredictionExchange.ts can't see, so fold in the discovered base
+        // variadic arities too.
+        basePart = this.wrapVariadicCalls(basePart, {
+            ...(structName !== 'Exchange' ? this.discoveredVariadics() : {}),
+            ...this.handWrittenVariadics(),
+        });
 
         // Auto-clone simple identifier args in every `self.X(...)` call.
         basePart = this.autoCloneCallArgs(basePart);
@@ -5618,6 +5753,21 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteSelfFieldMutCloneCast(basePart);
         basePart = this.rewriteCallMethodToDirect(basePart);
 
+        // The prediction tier has many methods that mutate instance state
+        // (set_events/set_outcomes/load_outcomes/index_market_outcomes/…). The
+        // `Exchange` base pins its `&mut self` receivers via a hard-coded regex
+        // list in getRustRegexes(); the prediction base instead uses the
+        // auto-detecting promoter (same pass the per-venue files use), which
+        // walks each fn and promotes any that assign to a `self.<field>`.
+        if (structName !== 'Exchange') {
+            basePart = this.promoteSelfMutMethods(basePart);
+            // The prediction base has `self.fetch(url, &[…, self.json(x)])` and
+            // `self.send_evm_transaction(url, self.parse_to_int(id), …)` shapes
+            // that borrow `*self` mutably and immutably at once; hoist the inner
+            // `self.<m>(…)` args into temporaries (same pass the venues use).
+            basePart = this.hoistSelfArgFromMutCall(basePart);
+        }
+
         // Add `.await` to `return self.X(...);` calls when X is async. The
         // ast-transpiler only emits `.await` when the source had explicit
         // `await`, but TS auto-awaits returns in async functions.
@@ -5637,6 +5787,13 @@ impl std::ops::DerefMut for ${coreName} {
                 currentSet = found;
             }
             basePart = this.appendValueNullToVoidEnds(basePart);
+        }
+
+        // The prediction base has async cycles (loadOutcomes → … → loadOutcomes)
+        // that Rust rejects as infinitely-sized futures; box the recursive calls
+        // (same pass the venues use). Harmless for the Exchange base (no cycles).
+        if (structName !== 'Exchange') {
+            basePart = this.boxRecursiveAsyncCalls(basePart);
         }
 
         // Same regex shims as createRustExchange: wrap `error.clone()`
@@ -5672,20 +5829,21 @@ impl std::ops::DerefMut for ${coreName} {
         // ── 3. wrap in `impl Exchange { ... }` and emit ───────────────────────
         const file = [
             ...this.createGeneratedHeader(),
-            '// Generated from `ts/src/base/Exchange.ts` — methods below the',
+            `// Generated from \`${baseFile.replace(/^\.\//, '')}\` — methods below the`,
             '// "METHODS BELOW THIS LINE ARE TRANSPILED" marker. Everything',
-            '// above the marker is hand-written in `src/exchange.rs`.',
+            `// above the marker is hand-written (src/exchange.rs / src/prediction_exchange.rs).`,
             '',
             '#![allow(unused, non_snake_case, clippy::all)]',
             '',
             'use crate::Value;',
             'use crate::ExchangeError;',
             'use crate::exchange::Exchange;',
+            structName !== 'Exchange' ? `use crate::prediction_exchange::${structName};` : '',
             'use crate::runtime::*;',
             '',
-            `impl Exchange {`,
+            `impl ${structName} {`,
             basePart,
-            // call_dynamic on Exchange — lets derived exchanges'
+            // call_dynamic on the base — lets derived exchanges'
             // call_dynamic fall through to base methods (e.g.
             // cancelOrderWithClientOrderId which is only on the base).
             this.emitCallDynamicForBase(basePart),
@@ -5718,8 +5876,8 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(BASE_METHODS_FILE, finalFile);
-        log.green('Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
+        fs.writeFileSync(outFile, finalFile);
+        log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
     // ── error hierarchy ────────────────────────────────────────────────────────
@@ -7327,9 +7485,16 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Base methods are always needed for wrapper info
         this.transpileBaseMethods(exchangeBase);
+        // Prediction tier base (impl PredictionExchange → prediction_exchange_generated.rs).
+        this.transpileBaseMethods('./ts/src/base/PredictionExchange.ts', false, {
+            structName: 'PredictionExchange',
+            outFile: PREDICTION_BASE_FILE,
+        });
 
         if (!baseOnly) {
             await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
+            // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
+            await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
         }
 
         if (child || transpilingSingle || baseOnly) return;

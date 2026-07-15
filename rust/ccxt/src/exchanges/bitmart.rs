@@ -1371,8 +1371,8 @@ impl BitmartCore {
         let mut fees: Value = get_value(&self.fees, &Value::Str("trading".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { i = add(&i, &Value::Int(1)); } __for_first_328 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { i = add(&i, &Value::Int(1)); } __for_first_359 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&symbols, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1513,8 +1513,8 @@ impl BitmartCore {
         let mut fees: Value = get_value(&self.fees, &Value::Str("trading".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { i = add(&i, &Value::Int(1)); } __for_first_329 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_360: bool = true;
+            while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&symbols, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1681,8 +1681,8 @@ impl BitmartCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { i = add(&i, &Value::Int(1)); } __for_first_330 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currency: Value = get_value(&currencies, &i);
             let mut currency: Value = get_value(&currencies, &i);
             let mut fullId: Value = self.safe_string_k(currency.clone(), "currency", &[]);
@@ -1754,8 +1754,8 @@ impl BitmartCore {
         let mut keys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_331: bool = true;
-            while { if !__for_first_331 { i = add(&i, &Value::Int(1)); } __for_first_331 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut currency: Value = get_value(&result, &key);
@@ -2228,8 +2228,8 @@ impl BitmartCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_332: bool = true;
-            while { if !__for_first_332 { i = add(&i, &Value::Int(1)); } __for_first_332 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2888,8 +2888,8 @@ impl BitmartCore {
         if is_equal(&marketType, &Value::Str("margin".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_333: bool = true;
-                while { if !__for_first_333 { i = add(&i, &Value::Int(1)); } __for_first_333 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_364: bool = true;
+                while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -2917,8 +2917,8 @@ impl BitmartCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_334: bool = true;
-                while { if !__for_first_334 { i = add(&i, &Value::Int(1)); } __for_first_334 = false; is_less_than(&i, &get_array_length(&wallet)) } {
+                let mut __for_first_365: bool = true;
+                while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&wallet)) } {
                 let mut balance: Value = get_value(&wallet, &i);
                 let mut balance: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("id".to_string()), Value::Str("currency".to_string()), &[]);
@@ -3411,8 +3411,8 @@ impl BitmartCore {
         let mut market: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3475,8 +3475,8 @@ impl BitmartCore {
         let mut parsedOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i = add(&i, &Value::Int(1)); } __for_first_336 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_367: bool = true;
+            while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut orderId: Value = get_value(&orderIds, &i);
             let mut orderId: Value = get_value(&orderIds, &i);
             let mut order: Value = self.safe_order(Value::Map({
@@ -3968,8 +3968,8 @@ impl BitmartCore {
         let mut successIds: Value = self.safe_list_k(data.clone(), "successIds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i = add(&i, &Value::Int(1)); } __for_first_337 = false; is_less_than(&i, &get_array_length(&successIds)) } {
+            let mut __for_first_368: bool = true;
+            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&successIds)) } {
             let mut id: Value = get_value(&successIds, &i);
             let mut id: Value = get_value(&successIds, &i);
             append_to_array(&mut allOrders, self.safe_order(Value::Map({
@@ -3983,8 +3983,8 @@ impl BitmartCore {
         let mut failIds: Value = self.safe_list_k(data.clone(), "failIds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_338: bool = true;
-            while { if !__for_first_338 { i = add(&i, &Value::Int(1)); } __for_first_338 = false; is_less_than(&i, &get_array_length(&failIds)) } {
+            let mut __for_first_369: bool = true;
+            while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&failIds)) } {
             let mut id: Value = get_value(&failIds, &i);
             let mut id: Value = get_value(&failIds, &i);
             append_to_array(&mut allOrders, self.safe_order(Value::Map({
@@ -5967,8 +5967,8 @@ impl BitmartCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i = add(&i, &Value::Int(1)); } __for_first_339 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_370: bool = true;
+            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -6180,8 +6180,8 @@ impl BitmartCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_340: bool = true;
-            while { if !__for_first_340 { i = add(&i, &Value::Int(1)); } __for_first_340 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_371: bool = true;
+            while { if !__for_first_371 { i = add(&i, &Value::Int(1)); } __for_first_371 = false; is_less_than(&i, &get_array_length(&positions)) } {
             append_to_array(&mut result, self.parse_position(get_value(&positions, &i), &[]));
         }
         }
@@ -6331,8 +6331,8 @@ impl BitmartCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_341: bool = true;
-            while { if !__for_first_341 { i = add(&i, &Value::Int(1)); } __for_first_341 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_372: bool = true;
+            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut checkLiquidation: Value = self.safe_string_k(entry.clone(), "type", &[]);
@@ -6765,8 +6765,8 @@ impl BitmartCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_342: bool = true;
-            while { if !__for_first_342 { i = add(&i, &Value::Int(1)); } __for_first_342 = false; is_less_than(&i, &get_array_length(&contracts)) } {
+            let mut __for_first_373: bool = true;
+            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&contracts)) } {
             let mut contract: Value = get_value(&contracts, &i);
             let mut contract: Value = get_value(&contracts, &i);
             append_to_array(&mut result, self.parse_funding_history(contract.clone(), &[market.clone()]));
@@ -6824,8 +6824,8 @@ impl BitmartCore {
         let mut addresses: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_343: bool = true;
-            while { if !__for_first_343 { i = add(&i, &Value::Int(1)); } __for_first_343 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
+            let mut __for_first_374: bool = true;
+            while { if !__for_first_374 { i = add(&i, &Value::Int(1)); } __for_first_374 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
             let mut address: Value = get_value(&allAddresses, &i);
             let mut address: Value = get_value(&allAddresses, &i);
             let mut noteMatch: Value = Value::Bool(is_true(&(is_equal(&note, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("note".to_string())), &note))));

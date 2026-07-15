@@ -977,8 +977,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1011: bool = true;
-            while { if !__for_first_1011 { i = add(&i, &Value::Int(1)); } __for_first_1011 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i = add(&i, &Value::Int(1)); } __for_first_1042 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1092,8 +1092,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1012: bool = true;
-            while { if !__for_first_1012 { i = add(&i, &Value::Int(1)); } __for_first_1012 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i = add(&i, &Value::Int(1)); } __for_first_1043 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut orderbook: Value = get_value(&response, &i);
             let mut orderbook: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(orderbook.clone(), "market", &[]);
@@ -1226,8 +1226,8 @@ impl UpbitCore {
         let mut queries: Value = self.ids_query_strings(ids.clone(), Value::Int(6400)); // seems upbit server limitations
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1013: bool = true;
-            while { if !__for_first_1013 { i = add(&i, &Value::Int(1)); } __for_first_1013 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i = add(&i, &Value::Int(1)); } __for_first_1044 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut idsQuery: Value = get_value(&queries, &i);
             let mut idsQuery: Value = get_value(&queries, &i);
             append_to_array(&mut promises, self.public_get_ticker(&[Value::Map({
@@ -1277,8 +1277,8 @@ impl UpbitCore {
         let mut queries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1014: bool = true;
-            while { if !__for_first_1014 { i = add(&i, &Value::Int(1)); } __for_first_1014 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i = add(&i, &Value::Int(1)); } __for_first_1045 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if !is_equal(&idsString, &Value::Str("".to_string())) {
@@ -1540,8 +1540,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1015: bool = true;
-            while { if !__for_first_1015 { i = add(&i, &Value::Int(1)); } __for_first_1015 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i = add(&i, &Value::Int(1)); } __for_first_1046 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
             let mut element: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2336,8 +2336,8 @@ impl UpbitCore {
             cost = Value::Str("0".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1016: bool = true;
-                while { if !__for_first_1016 { i = add(&i, &Value::Int(1)); } __for_first_1016 = false; is_less_than(&i, &numTrades) } {
+                let mut __for_first_1047: bool = true;
+                while { if !__for_first_1047 { i = add(&i, &Value::Int(1)); } __for_first_1047 = false; is_less_than(&i, &numTrades) } {
                 let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade.clone(), "cost", &[]));

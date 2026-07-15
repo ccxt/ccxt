@@ -919,8 +919,8 @@ impl BitbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_270: bool = true;
-            while { if !__for_first_270 { i = add(&i, &Value::Int(1)); } __for_first_270 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_301: bool = true;
+            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut pair: Value = get_value(&pairs, &i);
             let mut pair: Value = get_value(&pairs, &i);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
@@ -1038,8 +1038,8 @@ impl BitbankCore {
         let mut assets: Value = self.safe_value_k(data.clone(), "assets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_271: bool = true;
-            while { if !__for_first_271 { i = add(&i, &Value::Int(1)); } __for_first_271 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut balance: Value = get_value(&assets, &i);
             let mut balance: Value = get_value(&assets, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);

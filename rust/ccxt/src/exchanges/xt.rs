@@ -1303,8 +1303,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1055: bool = true;
-            while { if !__for_first_1055 { i = add(&i, &Value::Int(1)); } __for_first_1055 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
+            let mut __for_first_1086: bool = true;
+            while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &get_array_length(&currenciesData)) } {
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut entry: Value = get_value(&currenciesData, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -1320,8 +1320,8 @@ impl XtCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1054: bool = true;
-                while { if !__for_first_1054 { j = add(&j, &Value::Int(1)); } __for_first_1054 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+                let mut __for_first_1085: bool = true;
+                while { if !__for_first_1085 { j = add(&j, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut rawNetwork: Value = get_value(&rawNetworks, &j);
                 let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chain", &[]);
@@ -1586,8 +1586,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { i = add(&i, &Value::Int(1)); } __for_first_1056 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1087: bool = true;
+            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
         }
         }
@@ -1730,8 +1730,8 @@ impl XtCore {
         let mut amountPrecision: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { i = add(&i, &Value::Int(1)); } __for_first_1057 = false; is_less_than(&i, &get_array_length(&filters)) } {
+            let mut __for_first_1088: bool = true;
+            while { if !__for_first_1088 { i = add(&i, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&i, &get_array_length(&filters)) } {
             let mut entry: Value = get_value(&filters, &i);
             let mut entry: Value = get_value(&filters, &i);
             let mut filter: Value = self.safe_string_k(entry.clone(), "filter", &[]);
@@ -2321,8 +2321,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { i = add(&i, &Value::Int(1)); } __for_first_1058 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_1089: bool = true;
+            while { if !__for_first_1089 { i = add(&i, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[market.clone()]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -3000,8 +3000,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1059: bool = true;
-            while { if !__for_first_1059 { i = add(&i, &Value::Int(1)); } __for_first_1059 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1090: bool = true;
+            while { if !__for_first_1090 { i = add(&i, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("currency".to_string()), Value::Str("coin".to_string()), &[]);
@@ -5217,8 +5217,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1060: bool = true;
-            while { if !__for_first_1060 { i = add(&i, &Value::Int(1)); } __for_first_1060 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_1091: bool = true;
+            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5325,8 +5325,8 @@ impl XtCore {
         let mut brackets: Value = self.safe_value_k(info.clone(), "leverageBrackets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1061: bool = true;
-            while { if !__for_first_1061 { i = add(&i, &Value::Int(1)); } __for_first_1061 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
@@ -5434,8 +5434,8 @@ impl XtCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { i = add(&i, &Value::Int(1)); } __for_first_1062 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5654,8 +5654,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { i = add(&i, &Value::Int(1)); } __for_first_1063 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_1094: bool = true;
+            while { if !__for_first_1094 { i = add(&i, &Value::Int(1)); } __for_first_1094 = false; is_less_than(&i, &get_array_length(&items)) } {
             let mut entry: Value = get_value(&items, &i);
             let mut entry: Value = get_value(&items, &i);
             append_to_array(&mut result, self.parse_funding_history(entry.clone(), &[market.clone()]));
@@ -5760,8 +5760,8 @@ impl XtCore {
         let mut positions: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1064: bool = true;
-            while { if !__for_first_1064 { i = add(&i, &Value::Int(1)); } __for_first_1064 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1095: bool = true;
+            while { if !__for_first_1095 { i = add(&i, &Value::Int(1)); } __for_first_1095 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5832,8 +5832,8 @@ impl XtCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1065: bool = true;
-            while { if !__for_first_1065 { i = add(&i, &Value::Int(1)); } __for_first_1065 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1096: bool = true;
+            while { if !__for_first_1096 { i = add(&i, &Value::Int(1)); } __for_first_1096 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);

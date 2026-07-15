@@ -1044,8 +1044,8 @@ impl HitbtcCore {
         let mut ids: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_697: bool = true;
-            while { if !__for_first_697 { i = add(&i, &Value::Int(1)); } __for_first_697 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_728: bool = true;
+            while { if !__for_first_728 { i = add(&i, &Value::Int(1)); } __for_first_728 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if is_true(&Value::Bool(ends_with(&id, &Value::Str("_BQX".to_string())))) {
@@ -1238,8 +1238,8 @@ impl HitbtcCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_698: bool = true;
-            while { if !__for_first_698 { j = add(&j, &Value::Int(1)); } __for_first_698 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
+            let mut __for_first_729: bool = true;
+            while { if !__for_first_729 { j = add(&j, &Value::Int(1)); } __for_first_729 = false; is_less_than(&j, &get_array_length(&rawNetworks)) } {
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut networkId: Value = self.safe_string2(rawNetwork.clone(), Value::Str("protocol".to_string()), Value::Str("network".to_string()), &[]);
@@ -1412,8 +1412,8 @@ impl HitbtcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_699: bool = true;
-            while { if !__for_first_699 { i = add(&i, &Value::Int(1)); } __for_first_699 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_730: bool = true;
+            while { if !__for_first_730 { i = add(&i, &Value::Int(1)); } __for_first_730 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -1549,8 +1549,8 @@ impl HitbtcCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_700: bool = true;
-            while { if !__for_first_700 { i = add(&i, &Value::Int(1)); } __for_first_700 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { i = add(&i, &Value::Int(1)); } __for_first_731 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1658,8 +1658,8 @@ impl HitbtcCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_701: bool = true;
-            while { if !__for_first_701 { i = add(&i, &Value::Int(1)); } __for_first_701 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_732: bool = true;
+            while { if !__for_first_732 { i = add(&i, &Value::Int(1)); } __for_first_732 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketInner: Value = self.market(marketId.clone());
@@ -2121,8 +2121,8 @@ impl HitbtcCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_702: bool = true;
-            while { if !__for_first_702 { i = add(&i, &Value::Int(1)); } __for_first_702 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_733: bool = true;
+            while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut orderbook: Value = get_value(&response, &marketId);
@@ -2281,8 +2281,8 @@ impl HitbtcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_703: bool = true;
-            while { if !__for_first_703 { i = add(&i, &Value::Int(1)); } __for_first_703 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { i = add(&i, &Value::Int(1)); } __for_first_734 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&response, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
@@ -3430,8 +3430,8 @@ impl HitbtcCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_704: bool = true;
-            while { if !__for_first_704 { i = add(&i, &Value::Int(1)); } __for_first_704 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = self.safe_string(marketIds.clone(), i.clone(), &[]);
             if is_equal(&marketId, &Value::Null) {
                 continue;
@@ -3515,16 +3515,16 @@ impl HitbtcCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_706: bool = true;
-            while { if !__for_first_706 { i = add(&i, &Value::Int(1)); } __for_first_706 = false; is_less_than(&i, &get_array_length(&contracts)) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i = add(&i, &Value::Int(1)); } __for_first_737 = false; is_less_than(&i, &get_array_length(&contracts)) } {
             let mut marketId: Value = get_value(&contracts, &i);
             let mut marketId: Value = get_value(&contracts, &i);
             let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
             let mut fundingRateData: Value = get_value(&response, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_705: bool = true;
-                while { if !__for_first_705 { j = add(&j, &Value::Int(1)); } __for_first_705 = false; is_less_than(&j, &get_array_length(&fundingRateData)) } {
+                let mut __for_first_736: bool = true;
+                while { if !__for_first_736 { j = add(&j, &Value::Int(1)); } __for_first_736 = false; is_less_than(&j, &get_array_length(&fundingRateData)) } {
                 let mut entry: Value = get_value(&fundingRateData, &j);
                 let mut entry: Value = get_value(&fundingRateData, &j);
                 let mut symbolInner: Value = self.safe_symbol(get_value(&marketInner, &Value::Str("symbol".to_string())), &[]);
@@ -3632,8 +3632,8 @@ impl HitbtcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_707: bool = true;
-            while { if !__for_first_707 { i = add(&i, &Value::Int(1)); } __for_first_707 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { i = add(&i, &Value::Int(1)); } __for_first_738 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut result, self.parse_position(get_value(&response, &i), &[]));
         }
         }
@@ -3736,8 +3736,8 @@ impl HitbtcCore {
         let mut contracts: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_708: bool = true;
-            while { if !__for_first_708 { i = add(&i, &Value::Int(1)); } __for_first_708 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_739: bool = true;
+            while { if !__for_first_739 { i = add(&i, &Value::Int(1)); } __for_first_739 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut entry: Value = get_value(&positions, &i);
             let mut entry: Value = get_value(&positions, &i);
             liquidationPrice = self.safe_number_k(entry.clone(), "price_liquidation", &[]);
@@ -3749,8 +3749,8 @@ impl HitbtcCore {
         let mut collateral: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_709: bool = true;
-            while { if !__for_first_709 { i = add(&i, &Value::Int(1)); } __for_first_709 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_740: bool = true;
+            while { if !__for_first_740 { i = add(&i, &Value::Int(1)); } __for_first_740 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut entry: Value = get_value(&currencies, &i);
             let mut entry: Value = get_value(&currencies, &i);
             collateral = self.safe_number_k(entry.clone(), "margin_balance", &[]);
@@ -3879,8 +3879,8 @@ impl HitbtcCore {
         let mut markets: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_710: bool = true;
-            while { if !__for_first_710 { i = add(&i, &Value::Int(1)); } __for_first_710 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_741: bool = true;
+            while { if !__for_first_741 { i = add(&i, &Value::Int(1)); } __for_first_741 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut marketId: Value = get_value(&markets, &i);
             let mut marketId: Value = get_value(&markets, &i);
             let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
@@ -4338,8 +4338,8 @@ impl HitbtcCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_711: bool = true;
-            while { if !__for_first_711 { j = add(&j, &Value::Int(1)); } __for_first_711 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_742: bool = true;
+            while { if !__for_first_742 { j = add(&j, &Value::Int(1)); } __for_first_742 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);

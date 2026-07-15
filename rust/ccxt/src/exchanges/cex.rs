@@ -713,8 +713,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&rawNetworks);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_455: bool = true;
-            while { if !__for_first_455 { j = add(&j, &Value::Int(1)); } __for_first_455 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { j = add(&j, &Value::Int(1)); } __for_first_486 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &networkId);
@@ -1348,8 +1348,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_456: bool = true;
-            while { if !__for_first_456 { i = add(&i, &Value::Int(1)); } __for_first_456 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = Value::Null;
@@ -1362,8 +1362,8 @@ impl CexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_457: bool = true;
-            while { if !__for_first_457 { i = add(&i, &Value::Int(1)); } __for_first_457 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
                 let mut market: Value = self.market(symbol.clone());
@@ -1528,8 +1528,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_458: bool = true;
-            while { if !__for_first_458 { i = add(&i, &Value::Int(1)); } __for_first_458 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut balance: Value = self.safe_dict(response.clone(), key.clone(), &[Value::Map({
@@ -2054,8 +2054,8 @@ impl CexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_459: bool = true;
-            while { if !__for_first_459 { i = add(&i, &Value::Int(1)); } __for_first_459 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { i = add(&i, &Value::Int(1)); } __for_first_490 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             append_to_array(&mut orders, Value::Map({

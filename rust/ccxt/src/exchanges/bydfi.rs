@@ -1020,8 +1020,8 @@ impl BydfiCore {
         let mut result: Value = Value::Int(1000);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_451: bool = true;
-            while { if !__for_first_451 { i = add(&i, &Value::Int(1)); } __for_first_451 = false; is_less_than(&i, &get_array_length(&limits)) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&limits)) } {
             if is_less_than_or_equal(&limit, &get_value(&limits, &i)) {
                 result = get_value(&limits, &i);
                 break;
@@ -1878,8 +1878,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_452: bool = true;
-            while { if !__for_first_452 { i = add(&i, &Value::Int(1)); } __for_first_452 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_483: bool = true;
+            while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -1976,8 +1976,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_453: bool = true;
-            while { if !__for_first_453 { i = add(&i, &Value::Int(1)); } __for_first_453 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -3379,8 +3379,8 @@ impl BydfiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_454: bool = true;
-            while { if !__for_first_454 { i = add(&i, &Value::Int(1)); } __for_first_454 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset", &[]);

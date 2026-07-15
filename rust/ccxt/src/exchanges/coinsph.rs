@@ -914,8 +914,8 @@ impl CoinsphCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_522: bool = true;
-            while { if !__for_first_522 { j = add(&j, &Value::Int(1)); } __for_first_522 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_553: bool = true;
+            while { if !__for_first_553 { j = add(&j, &Value::Int(1)); } __for_first_553 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkItem: Value = get_value(&networkList, &j);
             let mut networkItem: Value = get_value(&networkList, &j);
             let mut network: Value = self.safe_string_k(networkItem.clone(), "network", &[]);
@@ -989,8 +989,8 @@ impl CoinsphCore {
             let mut byNumberOfSymbols: Value = get_value(&config, &Value::Str("byNumberOfSymbols".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_523: bool = true;
-                while { if !__for_first_523 { i = add(&i, &Value::Int(1)); } __for_first_523 = false; is_less_than(&i, &get_array_length(&byNumberOfSymbols)) } {
+                let mut __for_first_554: bool = true;
+                while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&byNumberOfSymbols)) } {
                 let mut entry: Value = get_value(&byNumberOfSymbols, &i);
                 let mut entry: Value = get_value(&byNumberOfSymbols, &i);
                 if is_greater_than_or_equal(&symbolsAmount, &get_value(&entry, &Value::Int(0))) {
@@ -1003,8 +1003,8 @@ impl CoinsphCore {
             let mut byLimit: Value = get_value(&config, &Value::Str("byLimit".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_524: bool = true;
-                while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_555: bool = true;
+                while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_greater_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {
@@ -1141,8 +1141,8 @@ impl CoinsphCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_525: bool = true;
-            while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_556: bool = true;
+            while { if !__for_first_556 { i = add(&i, &Value::Int(1)); } __for_first_556 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1264,8 +1264,8 @@ impl CoinsphCore {
             let mut ids: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_526: bool = true;
-                while { if !__for_first_526 { i = add(&i, &Value::Int(1)); } __for_first_526 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_557: bool = true;
+                while { if !__for_first_557 { i = add(&i, &Value::Int(1)); } __for_first_557 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 let mut id: Value = get_value(&market, &Value::Str("id".to_string()));
                 append_to_array(&mut ids, id.clone());
@@ -1799,8 +1799,8 @@ impl CoinsphCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_527: bool = true;
-            while { if !__for_first_527 { i = add(&i, &Value::Int(1)); } __for_first_527 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_558: bool = true;
+            while { if !__for_first_558 { i = add(&i, &Value::Int(1)); } __for_first_558 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -2413,8 +2413,8 @@ impl CoinsphCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { i = add(&i, &Value::Int(1)); } __for_first_528 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_559: bool = true;
+            while { if !__for_first_559 { i = add(&i, &Value::Int(1)); } __for_first_559 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&response, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
@@ -2784,8 +2784,8 @@ impl CoinsphCore {
         let mut keys: Value = object_keys(&query);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { i = add(&i, &Value::Int(1)); } __for_first_529 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_560: bool = true;
+            while { if !__for_first_560 { i = add(&i, &Value::Int(1)); } __for_first_560 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_true(&Value::Bool(is_array(&get_value(&query, &key)))) {

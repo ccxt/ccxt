@@ -808,8 +808,8 @@ impl BigoneCore {
         let mut currencyMaxPrecision: Value = self.parse_precision(&[self.safe_string2(rawCurrency.clone(), Value::Str("withdrawal_scale".to_string()), Value::Str("scale".to_string()), &[])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { j = add(&j, &Value::Int(1)); } __for_first_202 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_233: bool = true;
+            while { if !__for_first_233 { j = add(&j, &Value::Int(1)); } __for_first_233 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "gateway_name", &[]);
@@ -972,8 +972,8 @@ impl BigoneCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_203: bool = true;
-            while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_234: bool = true;
+            while { if !__for_first_234 { i = add(&i, &Value::Int(1)); } __for_first_234 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut baseAsset: Value = self.safe_dict_k(market.clone(), "base_asset", &[Value::Map({
@@ -1056,8 +1056,8 @@ impl BigoneCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_204: bool = true;
-            while { if !__for_first_204 { i = add(&i, &Value::Int(1)); } __for_first_204 = false; is_less_than(&i, &get_array_length(&contractResponse)) } {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { i = add(&i, &Value::Int(1)); } __for_first_235 = false; is_less_than(&i, &get_array_length(&contractResponse)) } {
             let mut market: Value = get_value(&contractResponse, &i);
             let mut market: Value = get_value(&contractResponse, &i);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
@@ -1461,8 +1461,8 @@ impl BigoneCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_205: bool = true;
-            while { if !__for_first_205 { i = add(&i, &Value::Int(1)); } __for_first_205 = false; is_less_than(&i, &get_array_length(&bidsAsksKeys)) } {
+            let mut __for_first_236: bool = true;
+            while { if !__for_first_236 { i = add(&i, &Value::Int(1)); } __for_first_236 = false; is_less_than(&i, &get_array_length(&bidsAsksKeys)) } {
             let mut price: Value = get_value(&bidsAsksKeys, &i);
             let mut price: Value = get_value(&bidsAsksKeys, &i);
             let mut amount: Value = get_value(&bidsAsks, &price);
@@ -1816,8 +1816,8 @@ impl BigoneCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_206: bool = true;
-            while { if !__for_first_206 { i = add(&i, &Value::Int(1)); } __for_first_206 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i = add(&i, &Value::Int(1)); } __for_first_237 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset_symbol", &[]);
@@ -2194,8 +2194,8 @@ impl BigoneCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_207: bool = true;
-            while { if !__for_first_207 { i = add(&i, &Value::Int(1)); } __for_first_207 = false; is_less_than(&i, &get_array_length(&cancelled)) } {
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i = add(&i, &Value::Int(1)); } __for_first_238 = false; is_less_than(&i, &get_array_length(&cancelled)) } {
             let mut orderId: Value = get_value(&cancelled, &i);
             let mut orderId: Value = get_value(&cancelled, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -2209,8 +2209,8 @@ impl BigoneCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_208: bool = true;
-            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&failed)) } {
+            let mut __for_first_239: bool = true;
+            while { if !__for_first_239 { i = add(&i, &Value::Int(1)); } __for_first_239 = false; is_less_than(&i, &get_array_length(&failed)) } {
             let mut orderId: Value = get_value(&failed, &i);
             let mut orderId: Value = get_value(&failed, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({

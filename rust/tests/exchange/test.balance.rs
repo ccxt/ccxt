@@ -47,8 +47,8 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&(is_equal(&codesLength, &freeLength))) || is_true(&(is_equal(&codesLength, &usedLength)))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1087: bool = true;
-        while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&allCodes)) } {
+        let mut __for_first_1317: bool = true;
+        while { if !__for_first_1317 { i = add(&i, &Value::Int(1)); } __for_first_1317 = false; is_less_than(&i, &get_array_length(&allCodes)) } {
         let mut code: Value = get_value(&allCodes, &i);
         // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
         assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&entry, &Value::Str("total".to_string())), &code)))));

@@ -16,8 +16,8 @@ pub async fn testFetchClosedOrders(mut exchange: Value, mut skippedProperties: V
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1104: bool = true;
-        while { if !__for_first_1104 { i = add(&i, &Value::Int(1)); } __for_first_1104 = false; is_less_than(&i, &get_array_length(&orders)) } {
+        let mut __for_first_1334: bool = true;
+        while { if !__for_first_1334 { i = add(&i, &Value::Int(1)); } __for_first_1334 = false; is_less_than(&i, &get_array_length(&orders)) } {
         let mut order: Value = get_value(&orders, &i);
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), order.clone(), symbol.clone(), now.clone());
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order.clone(), Value::Str("status".to_string()).clone(), Value::List(vec![Value::Str("closed".to_string()), Value::Str("canceled".to_string())]).clone()]);

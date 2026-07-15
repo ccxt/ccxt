@@ -829,8 +829,8 @@ impl BitvavoCore {
         let mut fees: Value = self.fees.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_395: bool = true;
-            while { if !__for_first_395 { i = add(&i, &Value::Int(1)); } __for_first_395 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
@@ -982,8 +982,8 @@ impl BitvavoCore {
         let mut minWithdraw: Value = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_396: bool = true;
-            while { if !__for_first_396 { j = add(&j, &Value::Int(1)); } __for_first_396 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
+            let mut __for_first_427: bool = true;
+            while { if !__for_first_427 { j = add(&j, &Value::Int(1)); } __for_first_427 = false; is_less_than(&j, &get_array_length(&networksArray)) } {
             let mut networkId: Value = get_value(&networksArray, &j);
             let mut networkId: Value = get_value(&networksArray, &j);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1355,8 +1355,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_397: bool = true;
-            while { if !__for_first_397 { i = add(&i, &Value::Int(1)); } __for_first_397 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1564,8 +1564,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_398: bool = true;
-            while { if !__for_first_398 { i = add(&i, &Value::Int(1)); } __for_first_398 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_429: bool = true;
+            while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);

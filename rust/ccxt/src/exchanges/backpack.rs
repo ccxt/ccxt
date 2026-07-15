@@ -939,8 +939,8 @@ impl BackpackCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { j = add(&j, &Value::Int(1)); } __for_first_197 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { j = add(&j, &Value::Int(1)); } __for_first_228 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "blockchain", &[]);
@@ -1686,8 +1686,8 @@ impl BackpackCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_229: bool = true;
+            while { if !__for_first_229 { i = add(&i, &Value::Int(1)); } __for_first_229 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rate: Value = get_value(&response, &i);
             let mut rate: Value = get_value(&response, &i);
             let mut datetime: Value = self.safe_string_k(rate.clone(), "intervalEndTimestamp", &[]);
@@ -1986,8 +1986,8 @@ impl BackpackCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&balanceKeys)) } {
+            let mut __for_first_230: bool = true;
+            while { if !__for_first_230 { i = add(&i, &Value::Int(1)); } __for_first_230 = false; is_less_than(&i, &get_array_length(&balanceKeys)) } {
             let mut id: Value = get_value(&balanceKeys, &i);
             let mut id: Value = get_value(&balanceKeys, &i);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -2421,8 +2421,8 @@ impl BackpackCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_231: bool = true;
+            while { if !__for_first_231 { i = add(&i, &Value::Int(1)); } __for_first_231 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3180,8 +3180,8 @@ impl BackpackCore {
         let mut payload: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&params)) } {
+            let mut __for_first_232: bool = true;
+            while { if !__for_first_232 { i = add(&i, &Value::Int(1)); } __for_first_232 = false; is_less_than(&i, &get_array_length(&params)) } {
             let mut order: Value = self.safe_dict(params.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

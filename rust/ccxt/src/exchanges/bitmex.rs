@@ -865,8 +865,8 @@ impl BitmexCore {
         let mut precision: Value = self.parse_number(precisionString.clone(), &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_344: bool = true;
-            while { if !__for_first_344 { j = add(&j, &Value::Int(1)); } __for_first_344 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { j = add(&j, &Value::Int(1)); } __for_first_375 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "asset", &[]);
@@ -1241,8 +1241,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i = add(&i, &Value::Int(1)); } __for_first_345 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_376: bool = true;
+            while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1330,8 +1330,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i = add(&i, &Value::Int(1)); } __for_first_346 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_377: bool = true;
+            while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             let mut side: Value = ternary(is_true(&(is_equal(&get_value(&order, &Value::Str("side".to_string())), &Value::Str("Sell".to_string())))), Value::Str("asks".to_string()), Value::Str("bids".to_string()));
@@ -1947,8 +1947,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_347: bool = true;
-            while { if !__for_first_347 { i = add(&i, &Value::Int(1)); } __for_first_347 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_378: bool = true;
+            while { if !__for_first_378 { i = add(&i, &Value::Int(1)); } __for_first_378 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
@@ -2103,8 +2103,8 @@ impl BitmexCore {
         if is_true(&useOpenTimestamp) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_348: bool = true;
-                while { if !__for_first_348 { i = add(&i, &Value::Int(1)); } __for_first_348 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_379: bool = true;
+                while { if !__for_first_379 { i = add(&i, &Value::Int(1)); } __for_first_379 = false; is_less_than(&i, &get_array_length(&result)) } {
                 { let __be_tmp = subtract(&self.parse_to_int(get_value(&get_value(&result, &i), &Value::Int(0))), &duration); add_element_to_object(get_value_mut(&mut result, &i), &Value::Int(0), __be_tmp); };
             }
             }
@@ -3146,8 +3146,8 @@ impl BitmexCore {
         let mut filteredResponse: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_349: bool = true;
-            while { if !__for_first_349 { i = add(&i, &Value::Int(1)); } __for_first_349 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_380: bool = true;
+            while { if !__for_first_380 { i = add(&i, &Value::Int(1)); } __for_first_380 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
@@ -3479,8 +3479,8 @@ impl BitmexCore {
             let mut precision: Value = self.parse_precision(&[scale.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_350: bool = true;
-                while { if !__for_first_350 { i = add(&i, &Value::Int(1)); } __for_first_350 = false; is_less_than(&i, &networksLength) } {
+                let mut __for_first_381: bool = true;
+                while { if !__for_first_381 { i = add(&i, &Value::Int(1)); } __for_first_381 = false; is_less_than(&i, &networksLength) } {
                 let mut network: Value = get_value(&networks, &i);
                 let mut network: Value = get_value(&networks, &i);
                 let mut networkId: Value = self.safe_string_k(network.clone(), "asset", &[]);
@@ -3944,8 +3944,8 @@ impl BitmexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_351: bool = true;
-            while { if !__for_first_351 { i = add(&i, &Value::Int(1)); } __for_first_351 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_382: bool = true;
+            while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), &[market.clone()]));
         }
         }

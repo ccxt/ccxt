@@ -717,8 +717,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i = add(&i, &Value::Int(1)); } __for_first_582 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             // set ID on first loop
@@ -1052,8 +1052,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_552: bool = true;
-            while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_583: bool = true;
+            while { if !__for_first_583 { i = add(&i, &Value::Int(1)); } __for_first_583 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut balanceEntry: Value = get_value(&balance, &i);
             let mut balanceEntry: Value = get_value(&balance, &i);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "ticker", &[]);
@@ -1267,8 +1267,8 @@ impl CryptomusCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_553: bool = true;
-            while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut order: Value = get_value(&result, &i);
             let mut order: Value = get_value(&result, &i);
             append_to_array(&mut orders, self.parse_order(order.clone(), &[market.clone()]));
@@ -1567,8 +1567,8 @@ impl CryptomusCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_554: bool = true;
-            while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_585: bool = true;
+            while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1595,8 +1595,8 @@ impl CryptomusCore {
         let mut makerFees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_555: bool = true;
-            while { if !__for_first_555 { i = add(&i, &Value::Int(1)); } __for_first_555 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);

@@ -983,8 +983,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_981: bool = true;
+            while { if !__for_first_981 { i = add(&i, &Value::Int(1)); } __for_first_981 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut tierObject: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), firstSpotTier.clone(), firstFuturesTier.clone());
@@ -1070,8 +1070,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_951: bool = true;
-            while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_982: bool = true;
+            while { if !__for_first_982 { i = add(&i, &Value::Int(1)); } __for_first_982 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut makerFee: Value = ternary(is_true(&(get_value(&market, &Value::Str("spot".to_string())))), spotMakerFee.clone(), futuresMakerFee.clone());
@@ -1100,8 +1100,8 @@ impl OnetradingCore {
         let mut makerFees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_952: bool = true;
-            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
+            let mut __for_first_983: bool = true;
+            while { if !__for_first_983 { i = add(&i, &Value::Int(1)); } __for_first_983 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
@@ -1257,8 +1257,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_953: bool = true;
-            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_984: bool = true;
+            while { if !__for_first_984 { i = add(&i, &Value::Int(1)); } __for_first_984 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -1568,8 +1568,8 @@ impl OnetradingCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_954: bool = true;
-            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_985: bool = true;
+            while { if !__for_first_985 { i = add(&i, &Value::Int(1)); } __for_first_985 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);

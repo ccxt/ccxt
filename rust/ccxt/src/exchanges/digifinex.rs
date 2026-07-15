@@ -876,8 +876,8 @@ impl DigifinexCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_581: bool = true;
-            while { if !__for_first_581 { j = add(&j, &Value::Int(1)); } __for_first_581 = false; is_less_than(&j, &get_array_length(&networkEntries)) } {
+            let mut __for_first_612: bool = true;
+            while { if !__for_first_612 { j = add(&j, &Value::Int(1)); } __for_first_612 = false; is_less_than(&j, &get_array_length(&networkEntries)) } {
             let mut networkEntry: Value = get_value(&networkEntries, &j);
             let mut networkEntry: Value = get_value(&networkEntries, &j);
             let mut networkId: Value = self.safe_string2(networkEntry.clone(), Value::Str("chain".to_string()), Value::Str("currency".to_string()), &[]);
@@ -1030,8 +1030,8 @@ impl DigifinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { i = add(&i, &Value::Int(1)); } __for_first_582 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_613: bool = true;
+            while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string2(market.clone(), Value::Str("symbol".to_string()), Value::Str("instrument_id".to_string()), &[]);
@@ -1165,8 +1165,8 @@ impl DigifinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_583: bool = true;
-            while { if !__for_first_583 { i = add(&i, &Value::Int(1)); } __for_first_583 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_614: bool = true;
+            while { if !__for_first_614 { i = add(&i, &Value::Int(1)); } __for_first_614 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market", &[]);
@@ -1276,8 +1276,8 @@ impl DigifinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_584: bool = true;
-            while { if !__for_first_584 { i = add(&i, &Value::Int(1)); } __for_first_584 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_615: bool = true;
+            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1564,8 +1564,8 @@ impl DigifinexCore {
         let mut date: Value = self.safe_integer_k(response.clone(), "date", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_616: bool = true;
+            while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut rawTicker: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), date.clone());
@@ -2277,8 +2277,8 @@ impl DigifinexCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2356,8 +2356,8 @@ impl DigifinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_587: bool = true;
-            while { if !__for_first_587 { i = add(&i, &Value::Int(1)); } __for_first_587 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut individualOrder: Value = Value::Map({
@@ -2624,8 +2624,8 @@ impl DigifinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_588: bool = true;
-            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&success)) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &get_array_length(&success)) } {
             let mut order: Value = get_value(&success, &i);
             let mut order: Value = get_value(&success, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -2639,8 +2639,8 @@ impl DigifinexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_589: bool = true;
-            while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&error)) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&error)) } {
             let mut order: Value = get_value(&error, &i);
             let mut order: Value = get_value(&error, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -4105,8 +4105,8 @@ impl DigifinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_590: bool = true;
-            while { if !__for_first_590 { i = add(&i, &Value::Int(1)); } __for_first_590 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_equal(&self.safe_string_k(entry.clone(), "currency", &[]), &code) {
@@ -4201,8 +4201,8 @@ impl DigifinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_591: bool = true;
-            while { if !__for_first_591 { i = add(&i, &Value::Int(1)); } __for_first_591 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut item: Value = get_value(&info, &i);
             let mut currency: Value = self.safe_string(item.clone(), codeKey.clone(), &[]);
@@ -4407,8 +4407,8 @@ impl DigifinexCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_592: bool = true;
-            while { if !__for_first_592 { i = add(&i, &Value::Int(1)); } __for_first_592 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_id", &[]);
@@ -4621,8 +4621,8 @@ impl DigifinexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { i = add(&i, &Value::Int(1)); } __for_first_593 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&positions)) } {
             append_to_array(&mut result, self.parse_position(get_value(&positions, &i), &[market.clone()]));
         }
         }
@@ -5099,8 +5099,8 @@ impl DigifinexCore {
         })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_594: bool = true;
-            while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut tier: Value = get_value(&brackets, &i);
             let mut tier: Value = get_value(&brackets, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "instrument_id", &[]);
@@ -5245,8 +5245,8 @@ impl DigifinexCore {
         codes = self.market_codes(&[codes.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_595: bool = true;
-            while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -5294,8 +5294,8 @@ impl DigifinexCore {
         let mut depositWithdrawCodes: Value = object_keys(&depositWithdrawFees);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_596: bool = true;
-            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&depositWithdrawCodes)) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&depositWithdrawCodes)) } {
             let mut code: Value = get_value(&depositWithdrawCodes, &i);
             let mut code: Value = get_value(&depositWithdrawCodes, &i);
             let mut currency: Value = self.currency(code.clone());

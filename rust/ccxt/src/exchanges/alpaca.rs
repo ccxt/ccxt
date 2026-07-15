@@ -1239,8 +1239,8 @@ impl AlpacaCore {
         let mut marketIds: Value = object_keys(&snapshots);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_177: bool = true;
-            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_208: bool = true;
+            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -2096,8 +2096,8 @@ impl AlpacaCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_178: bool = true;
-            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_209: bool = true;
+            while { if !__for_first_209 { i = add(&i, &Value::Int(1)); } __for_first_209 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);

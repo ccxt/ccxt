@@ -520,8 +520,8 @@ impl BitbnsCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_272: bool = true;
-            while { if !__for_first_272 { i = add(&i, &Value::Int(1)); } __for_first_272 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -778,8 +778,8 @@ impl BitbnsCore {
         let mut keys: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_273: bool = true;
-            while { if !__for_first_273 { i = add(&i, &Value::Int(1)); } __for_first_273 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("availableorder".to_string()));

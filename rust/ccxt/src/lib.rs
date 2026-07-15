@@ -37,6 +37,22 @@ pub mod exchange_stubs;
 #[cfg(feature = "transpiled-base")]
 pub mod exchange_generated;
 
+// Prediction-market tier (ts/src/base/PredictionExchange.ts + ts/src/prediction/*).
+// `prediction_exchange` is the hand-written base struct; the `_generated` module
+// holds its transpiled methods (`impl PredictionExchange`). Both gated behind the
+// same `transpiled-base` feature as the rest of the transpiled surface.
+#[cfg(feature = "transpiled-base")]
+pub mod prediction_exchange;
+
+#[cfg(feature = "transpiled-base")]
+pub mod prediction_exchange_generated;
+
+// Transpiled prediction-market venue Cores (ts/src/prediction/*.ts). Kept in
+// their own module so an id that also exists as a regular exchange (hyperliquid)
+// doesn't collide under `exchanges`.
+#[cfg(feature = "transpiled-base")]
+pub mod prediction;
+
 #[cfg(feature = "transpiled-base")]
 pub mod exchanges;
 

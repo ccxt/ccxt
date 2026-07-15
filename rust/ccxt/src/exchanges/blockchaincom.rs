@@ -580,8 +580,8 @@ impl BlockchaincomCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_399: bool = true;
-            while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_value(markets.clone(), marketId.clone(), &[]);
@@ -1124,8 +1124,8 @@ impl BlockchaincomCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_400: bool = true;
-            while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_431: bool = true;
+            while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1718,8 +1718,8 @@ impl BlockchaincomCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_401: bool = true;
-            while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_432: bool = true;
+            while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
