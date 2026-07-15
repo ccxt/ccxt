@@ -1440,7 +1440,7 @@ class gate extends Exchange {
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
-                    // Fee is in %, so divide by 100
+                    // fee is in %, so divide by 100
                     'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                     'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                     'contractSize' => null,
@@ -1671,7 +1671,7 @@ class gate extends Exchange {
             'swap' => $marketType === 'swap',
             'future' => $marketType === 'future',
             'option' => $marketType === 'option',
-            'active' => $status == 'trading',
+            'active' => $status === 'trading',
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
