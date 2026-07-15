@@ -1635,10 +1635,11 @@ export default class gate extends Exchange {
         let amountPrecision = this.parseNumber ('1');
         const enableDecimal = this.safeBool (market, 'enable_decimal', false);
         const orderSizeMin = this.safeString (market, 'order_size_min');
+        const swap = marketType === 'swap';
         const minAmount = this.parseNumber (orderSizeMin);
         if (orderSizeMin !== undefined) {
             const isDecimalOrderSizeMin = (orderSizeMin.indexOf ('.') >= 0);
-            if ((marketType === 'swap') && enableDecimal && isDecimalOrderSizeMin && Precise.stringGt (orderSizeMin, '0')) {
+            if (swap && enableDecimal && isDecimalOrderSizeMin && Precise.stringGt (orderSizeMin, '0')) {
                 amountPrecision = minAmount;
             }
         }   
@@ -1655,7 +1656,7 @@ export default class gate extends Exchange {
             'type': marketType,
             'spot': false,
             'margin': false,
-            'swap': marketType === 'swap',
+            'swap': swap,
             'future': marketType === 'future',
             'option': marketType === 'option',
             'active': status === 'trading',
