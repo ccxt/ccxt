@@ -1422,7 +1422,7 @@ export default class gate extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                // Fee is in %, so divide by 100
+                // fee is in %, so divide by 100
                 'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                 'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                 'contractSize': undefined,
