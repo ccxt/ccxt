@@ -62,7 +62,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 					}()
 					// try block:
 
-					response = (UnWrapType(<-exchange.WatchBidsAsks(argSymbols, argParams)))
+					response = (<-exchange.(ccxt.IWatchBidsAsks).WatchBidsAsks(argSymbols, argParams))
 					PanicOnError(response)
 					return nil
 				}()

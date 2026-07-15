@@ -50,7 +50,7 @@ func (this *Hyperliquid) FetchMarkets(params ...any) ([]ccxt.MarketInterface, er
  * @name hyperliquid#fetchTicker
  * @description fetches a ticker for a single outcome market using the L2 order book snapshot
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
- * @param {string} outcome unified outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
+ * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
@@ -570,7 +570,7 @@ func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.
 /**
  * @method
  * @name hyperliquid#fetchEvents
- * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+ * @description Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
  * @param {object} [params] extra parameters
  * @param {string} [params.query] a single query string to filter by (matches description/outcome)
  * @param {string[]} [params.queries] multiple query strings (alternative to query)

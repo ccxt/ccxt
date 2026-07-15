@@ -67,7 +67,7 @@ func (this *HyperliquidCore) Describe() any {
 			"1M":  "1M",
 		},
 		"urls": map[string]any{
-			"logo": "https://hyperliquid.xyz/favicon.ico",
+			"logo": "https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8",
 			"api": map[string]any{
 				"public":  "https://api.hyperliquid.xyz",
 				"private": "https://api.hyperliquid.xyz",
@@ -225,7 +225,7 @@ func (this *HyperliquidCore) ParseOutcomeDescription(description any) any {
  * @ignore
  * @method
  * @name hyperliquid#buildOutcomeSymbol
- * @description builds a human-readable outcome from a parsed description and side, e.g. BTC-ABOVE-78213-20260503:YES for side 0 and BTC-ABOVE-78213-20260503:NO for side 1
+ * @description builds a human-readable outcome from a parsed description and side, e.g. BTC_ABOVE_78213_20260503:YES for side 0 and BTC_ABOVE_78213_20260503:NO for side 1
  * @param {object} desc parsed outcome description
  * @param {int} side outcome side, 0 = YES, 1 = NO
  * @param {int} outcomeId integer outcome id
@@ -240,10 +240,10 @@ func (this *HyperliquidCore) BuildOutcomeSymbol(desc any, side any, outcomeId an
 	var label any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(side, 0))), "YES", "NO")
 	var base any = ccxt.ToUpper(underlying)
 	if ccxt.IsTrue(targetPrice) {
-		base = ccxt.Add(ccxt.Add(base, "-ABOVE-"), targetPrice)
+		base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 	}
 	if ccxt.IsTrue(expiryDate) {
-		base = ccxt.Add(ccxt.Add(base, "-"), expiryDate)
+		base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 	}
 	return ccxt.Add(ccxt.Add(base, ":"), label)
 }
@@ -251,39 +251,8 @@ func (this *HyperliquidCore) BuildOutcomeSymbol(desc any, side any, outcomeId an
 /**
  * @ignore
  * @method
- * @name hyperliquid#slugifyUpper
- * @description converts a name into an upper-case slug of alphanumeric parts joined by hyphens
- * @param {string} name the raw name to slugify
- * @returns {string} the upper-case slug
- */
-func (this *HyperliquidCore) SlugifyUpper(name any) any {
-	var upper any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(name, nil))), "", ccxt.ToUpper(name))
-	var allowed any = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	var chars any = this.StringToCharsArray(upper)
-	var s any = ""
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(chars)); i++ {
-		var ch any = ccxt.GetValue(chars, i)
-		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(allowed, ch), 0)) {
-			s = ccxt.Add(s, ch)
-		} else {
-			s = ccxt.Add(s, "-")
-		}
-	}
-	var rawParts any = ccxt.Split(s, "-")
-	var parts any = []any{}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawParts)); i++ {
-		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(ccxt.GetValue(rawParts, i)), 0)) {
-			ccxt.AppendToArray(&parts, ccxt.GetValue(rawParts, i))
-		}
-	}
-	return ccxt.Join(parts, "-")
-}
-
-/**
- * @ignore
- * @method
  * @name hyperliquid#buildOutcomeParentSymbol
- * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the name field
+ * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
  * @param {object} desc parsed outcome description
  * @param {int} outcomeId integer outcome id
  * @param {string} [name] outcome name
@@ -302,10 +271,10 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 		var expiryDate any = ccxt.Ternary(ccxt.IsTrue(expiry), ccxt.GetValue(ccxt.Split(expiry, "-"), 0), "")
 		var base any = ccxt.ToUpper(underlying)
 		if ccxt.IsTrue(targetPrice) {
-			base = ccxt.Add(ccxt.Add(base, "-ABOVE-"), targetPrice)
+			base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 		}
 		if ccxt.IsTrue(expiryDate) {
-			base = ccxt.Add(ccxt.Add(base, "-"), expiryDate)
+			base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 		}
 		return base
 	}
@@ -335,25 +304,25 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 				if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsGreaterThan(thresholdsLength, 0)) && ccxt.IsTrue(!ccxt.IsEqual(index, nil))) {
 					var bucketLabel any = nil
 					if ccxt.IsTrue(ccxt.IsLessThanOrEqual(index, 0)) {
-						bucketLabel = ccxt.Add("BELOW-", ccxt.GetValue(thresholds, 0))
+						bucketLabel = ccxt.Add("BELOW_", ccxt.GetValue(thresholds, 0))
 					} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(index, thresholdsLength)) {
 						var lastIdx any = ccxt.Subtract(thresholdsLength, 1)
-						bucketLabel = ccxt.Add("ABOVE-", ccxt.GetValue(thresholds, lastIdx))
+						bucketLabel = ccxt.Add("ABOVE_", ccxt.GetValue(thresholds, lastIdx))
 					} else {
-						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN-", ccxt.GetValue(thresholds, ccxt.Subtract(index, 1))), "-"), ccxt.GetValue(thresholds, index))
+						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN_", ccxt.GetValue(thresholds, ccxt.Subtract(index, 1))), "_"), ccxt.GetValue(thresholds, index))
 					}
-					var base any = ccxt.Add(ccxt.Add(ccxt.ToUpper(questionUnderlying), "-"), bucketLabel)
+					var base any = ccxt.Add(ccxt.Add(ccxt.ToUpper(questionUnderlying), "_"), bucketLabel)
 					if ccxt.IsTrue(expiryDate) {
-						base = ccxt.Add(ccxt.Add(base, "-"), expiryDate)
+						base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 					}
 					return base
 				}
 			}
 			var isFallbackLike any = ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(rawDescription, "other"))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(nameLower, "fallback"), 0)))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(nameLower, "other"), 0)))
 			if ccxt.IsTrue(ccxt.IsTrue(questionUnderlying) && ccxt.IsTrue(isFallbackLike)) {
-				var base any = ccxt.Add(ccxt.ToUpper(questionUnderlying), "-OTHER")
+				var base any = ccxt.Add(ccxt.ToUpper(questionUnderlying), "_OTHER")
 				if ccxt.IsTrue(expiryDate) {
-					base = ccxt.Add(ccxt.Add(base, "-"), expiryDate)
+					base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 				}
 				return base
 			}
@@ -361,13 +330,13 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 	}
 	var questionName any = this.SafeString(question, "name")
 	if ccxt.IsTrue(questionName) {
-		var questionSlug any = this.SlugifyUpper(questionName)
+		var questionSlug any = this.ShortenSlug(questionName)
 		if ccxt.IsTrue(questionSlug) {
-			var outcomeSlug any = this.SlugifyUpper(name)
+			var outcomeSlug any = this.ShortenSlug(name)
 			var genericOutcomeNames any = map[string]any{
 				"RECURRING":               true,
-				"RECURRING-FALLBACK":      true,
-				"RECURRING-NAMED-OUTCOME": true,
+				"RECURRING_FALLBACK":      true,
+				"RECURRING_NAMED_OUTCOME": true,
 			}
 			if ccxt.IsTrue(ccxt.InOp(genericOutcomeNames, outcomeSlug)) {
 				if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(outcomeSlug, "FALLBACK"), 0)) {
@@ -377,16 +346,16 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 				}
 			}
 			if ccxt.IsTrue(outcomeSlug) {
-				return ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(questionSlug, "-"), outcomeSlug), "-"), ccxt.ToString(outcomeId))
+				return ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(questionSlug, "_"), outcomeSlug), "_"), ccxt.ToString(outcomeId))
 			}
-			return ccxt.Add(ccxt.Add(questionSlug, "-"), ccxt.ToString(outcomeId))
+			return ccxt.Add(ccxt.Add(questionSlug, "_"), ccxt.ToString(outcomeId))
 		}
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
 	if ccxt.IsTrue(name) {
-		return ccxt.Add(ccxt.Add(this.SlugifyUpper(name), "-"), ccxt.ToString(outcomeId))
+		return ccxt.Add(ccxt.Add(this.ShortenSlug(name), "_"), ccxt.ToString(outcomeId))
 	}
-	return ccxt.Add("OUTCOME-", ccxt.ToString(outcomeId))
+	return ccxt.Add("OUTCOME_", ccxt.ToString(outcomeId))
 }
 
 /**
@@ -580,9 +549,9 @@ func (this *HyperliquidCore) ParseOutcomeMarket(outcomeInfo any, outcomeId any, 
 			"parsedDescription": desc,
 		},
 	}}
-	return this.SafeMarketStructure(map[string]any{
+	var marketRow any = this.SafeMarketStructure(map[string]any{
 		"id":             ccxt.ToString(outcomeId),
-		"symbol":         parentSymbol,
+		"market":         parentSymbol,
 		"base":           ccxt.GetValue(ccxt.Split(parentSymbol, "/"), 0),
 		"quote":          quoteCurrency,
 		"settle":         nil,
@@ -640,6 +609,9 @@ func (this *HyperliquidCore) ParseOutcomeMarket(outcomeInfo any, outcomeId any, 
 		}),
 		"created": nil,
 	})
+	// omit the deprecated 'symbol' key the safeMarketStructure template injects —
+	// prediction market rows carry only the unified 'market' handle
+	return this.Omit(marketRow, "symbol")
 }
 
 /**
@@ -674,7 +646,7 @@ func (this *HyperliquidCore) CalculatePricePrecision(midPx any, szDecimals any) 
  * @name hyperliquid#fetchTicker
  * @description fetches a ticker for a single outcome market using the L2 order book snapshot
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
- * @param {string} outcome unified outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
+ * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
@@ -686,8 +658,8 @@ func (this *HyperliquidCore) FetchTicker(outcome any, optionalArgs ...any) <-cha
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes6588 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes6588)
+		retRes6308 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes6308)
 		var outcomeObj any = this.Outcome(outcome)
 		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var coin any = this.SafeString(info, "coinName")
@@ -743,8 +715,8 @@ func (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <-chan any {
 			// one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
 			// then identities resolve synchronously
 
-			retRes69612 := (<-this.LoadOutcomes(outcomes))
-			ccxt.PanicOnError(retRes69612)
+			retRes66812 := (<-this.LoadOutcomes(outcomes))
+			ccxt.PanicOnError(retRes66812)
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 				var requested any = ccxt.GetValue(outcomes, i)
 				var requestedOutcomeObj any = this.SafeOutcome(requested)
@@ -754,8 +726,8 @@ func (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <-chan any {
 		} else {
 			// no filter — warm the whole outcome set so identities resolve from the cache
 
-			retRes70512 := (<-this.LoadOutcomes())
-			ccxt.PanicOnError(retRes70512)
+			retRes67712 := (<-this.LoadOutcomes())
+			ccxt.PanicOnError(retRes67712)
 		}
 
 		response := (<-this.PublicPostInfo(this.Extend(map[string]any{
@@ -890,8 +862,8 @@ func (this *HyperliquidCore) FetchOrderBook(outcome any, optionalArgs ...any) <-
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8168 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes8168)
+		retRes7888 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes7888)
 		var outcomeObj any = this.Outcome(outcome)
 		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var request any = map[string]any{
@@ -964,8 +936,8 @@ func (this *HyperliquidCore) FetchOHLCV(outcome any, optionalArgs ...any) <-chan
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes8668 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes8668)
+		retRes8388 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes8388)
 		var outcomeObj any = this.Outcome(outcome)
 		// markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
 		var market any = this.Market(this.SafeString(outcomeObj, "market"))
@@ -1129,8 +1101,8 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <-chan any {
 			// one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
 			// then identities resolve synchronously
 
-			retRes100412 := (<-this.LoadOutcomes(outcomes))
-			ccxt.PanicOnError(retRes100412)
+			retRes97612 := (<-this.LoadOutcomes(outcomes))
+			ccxt.PanicOnError(retRes97612)
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
 				var requested any = ccxt.GetValue(outcomes, i)
 				var requestedOutcomeObj any = this.SafeOutcome(requested)
@@ -1140,8 +1112,8 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <-chan any {
 		} else {
 			// no filter — warm the whole outcome set so identities resolve from the cache
 
-			retRes101312 := (<-this.LoadOutcomes())
-			ccxt.PanicOnError(retRes101312)
+			retRes98512 := (<-this.LoadOutcomes())
+			ccxt.PanicOnError(retRes98512)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
@@ -1384,11 +1356,11 @@ func (this *HyperliquidCore) CreateOrder(outcome any, typeVar any, side any, amo
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12368 := (<-this.InitializeClient())
-		ccxt.PanicOnError(retRes12368)
+		retRes12088 := (<-this.InitializeClient())
+		ccxt.PanicOnError(retRes12088)
 
-		retRes12378 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes12378)
+		retRes12098 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes12098)
 		var outcomeObj any = this.Outcome(outcome)
 		// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 		// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -1567,11 +1539,11 @@ func (this *HyperliquidCore) CancelOrders(ids any, optionalArgs ...any) <-chan a
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelOrders() requires an outcome argument")))
 		}
 
-		retRes13818 := (<-this.InitializeClient())
-		ccxt.PanicOnError(retRes13818)
+		retRes13538 := (<-this.InitializeClient())
+		ccxt.PanicOnError(retRes13538)
 
-		retRes13828 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes13828)
+		retRes13548 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes13548)
 		var outcomeObj any = this.Outcome(outcome)
 		var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var assetId any = this.SafeInteger(outcomeInfo, "assetId")
@@ -1717,8 +1689,8 @@ func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var outcomeHandle any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes148612 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes148612)
+			retRes145812 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes145812)
 			var outcomeObj any = this.Outcome(outcome)
 			outcomeHandle = this.SafeString(outcomeObj, "outcome")
 		}
@@ -1792,8 +1764,8 @@ func (this *HyperliquidCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var outcomeHandle any = nil
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes153512 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes153512)
+			retRes150712 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes150712)
 			var outcomeObj any = this.Outcome(outcome)
 			outcomeHandle = this.SafeString(outcomeObj, "outcome")
 		}
@@ -1849,8 +1821,8 @@ func (this *HyperliquidCore) FetchOrder(id any, optionalArgs ...any) <-chan any 
 		var parsed any = this.ParsePredictionOrder(orderWrapper, nil)
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
-			retRes157012 := (<-this.LoadOutcome(outcome))
-			ccxt.PanicOnError(retRes157012)
+			retRes154212 := (<-this.LoadOutcome(outcome))
+			ccxt.PanicOnError(retRes154212)
 			var outcomeObj any = this.Outcome(outcome)
 			var expected any = this.SafeString(outcomeObj, "outcome")
 			if ccxt.IsTrue(!ccxt.IsEqual(this.SafeString(parsed, "outcome"), expected)) {
@@ -2004,8 +1976,8 @@ func (this *HyperliquidCore) FetchTrades(outcome any, optionalArgs ...any) <-cha
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes17098 := (<-this.LoadOutcome(outcome))
-		ccxt.PanicOnError(retRes17098)
+		retRes16818 := (<-this.LoadOutcome(outcome))
+		ccxt.PanicOnError(retRes16818)
 		var outcomeObj any = this.Outcome(outcome)
 		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 		var request any = map[string]any{
@@ -2061,8 +2033,8 @@ func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
 			// cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
 
-			retRes174312 := (<-this.LoadOutcomes())
-			ccxt.PanicOnError(retRes174312)
+			retRes171512 := (<-this.LoadOutcomes())
+			ccxt.PanicOnError(retRes171512)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchMyTrades", params)
@@ -2174,7 +2146,7 @@ func (this *HyperliquidCore) ParsePredictionTrade(trade any, optionalArgs ...any
 /**
  * @method
  * @name hyperliquid#fetchEvents
- * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+ * @description Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
  * @param {object} [params] extra parameters
  * @param {string} [params.query] a single query string to filter by (matches description/outcome)
  * @param {string[]} [params.queries] multiple query strings (alternative to query)
@@ -2211,14 +2183,14 @@ func (this *HyperliquidCore) FetchEvents(optionalArgs ...any) <-chan any {
 				continue
 			}
 			var info any = this.SafeDict(mkt, "info", map[string]any{})
-			var parentSymbol any = this.SafeString(info, "parentSymbol", this.SafeString(mkt, "symbol"))
+			var parentSymbol any = this.SafeString(info, "parentSymbol", this.SafeString2(mkt, "market", "symbol"))
 			// Apply query filter
 			if ccxt.IsTrue(ccxt.IsGreaterThan(lowerQueriesLength, 0)) {
 				var description any = ccxt.ToLower(this.SafeString(info, "description", ""))
 				var parentSymbolOrEmpty any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(parentSymbol, nil))), parentSymbol, "")
 				var symLower any = ccxt.ToLower(parentSymbolOrEmpty)
-				// the parentSymbol uses hyphens (BTC-ABOVE-...), so match the haystack word-by-word
-				// and require every word of a query to appear, letting "BTC above" match BTC-ABOVE
+				// the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
+				// and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
 				var haystack any = ccxt.Add(ccxt.Add(description, " "), symLower)
 				var matches any = false
 				for qi := 0; ccxt.IsLessThan(qi, ccxt.GetArrayLength(lowerQueries)); qi++ {
@@ -2437,8 +2409,8 @@ func (this *HyperliquidCore) InitializeClient() <-chan any {
 		// resolve the outcome's market and precision. loading them also keeps this method genuinely
 		// async for the PHP and typed transpilers, which mishandle an async body that never suspends
 
-		retRes20838 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes20838)
+		retRes20558 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes20558)
 		var buildFee any = this.SafeBool(this.Options, "builderFee", false)
 		if !ccxt.IsTrue(buildFee) {
 

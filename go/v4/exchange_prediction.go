@@ -548,15 +548,59 @@ func  (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug an
 }
 func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome any) any  {
     // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-    // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
-    return Add(Add(this.SlugToMarketSymbol(eventSlug, marketSlug), ":"), ToUpper(outcome))
+    // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
+    // the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
+    // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
+    // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
+    // instead of leaking raw text into the outcome handle
+    var upper any = ToUpper(outcome)
+    var allowed any = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    var chars any = this.StringToCharsArray(upper)
+    var label any = ""
+    var pendingSep any = false
+    for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
+        var ch any = GetValue(chars, i)
+        if IsTrue(IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0)) {
+            if IsTrue(IsTrue(pendingSep) && IsTrue((!IsEqual(label, "")))) {
+                label = Add(label, "_")
+            }
+            label = Add(label, ch)
+            pendingSep = false
+        } else {
+            pendingSep = true
+        }
+    }
+    if IsTrue(IsEqual(label, "")) {
+        // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
+        label = upper
+    }
+    return Add(Add(this.SlugToMarketSymbol(eventSlug, marketSlug), ":"), label)
 }
 func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) any  {
+    // prediction market rows carry only the unified `market` handle — `symbol` is
+    // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
+    // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
     currencies := GetArg(optionalArgs, 0, nil)
     _ = currencies
-    var result any = this.BaseExchange.SetMarkets(markets, currencies)
+    var marketsList any = this.ToArray(markets)
+    var aliased any = []any{}
+    for i := 0; IsLessThan(i, GetArrayLength(marketsList)); i++ {
+        var row any = GetValue(marketsList, i)
+        var copy any = this.Extend(map[string]any {}, row)
+        AddElementToObject(copy, "symbol", this.SafeString2(row, "market", "symbol"))
+        AppendToArray(&aliased, copy)
+    }
+    this.BaseExchange.SetMarkets(aliased, currencies)
+    // strip the alias back off the stored rows — venues assemble user-visible event
+    // structures from this.markets (hyperliquid groups its outcome markets that way),
+    // so a leftover 'symbol' key would leak the deprecated field back to the caller
+    var marketKeys any = ObjectKeys(this.Markets)
+    for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
+        var key any = GetValue(marketKeys, i)
+        AddElementToObject(this.Markets, key, this.Omit(GetValue(this.Markets, key), "symbol"))
+    }
     this.PopulateOutcomes()
-    return result
+    return this.Markets
 }
 func  (this *PredictionExchange) IndexMarketOutcomes(market any)  {
     // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
@@ -636,9 +680,9 @@ func  (this *PredictionExchange) IndexEventOutcomes(event any)  {
     var marketsLength any =     GetArrayLength(markets)
     for i := 0; IsLessThan(i, marketsLength); i++ {
         var m any = GetValue(markets, i)
-        var symbol any = this.SafeString(m, "symbol")
-        if IsTrue(!IsEqual(symbol, nil)) {
-            AddElementToObject(this.Markets, symbol, m)
+        var marketHandle any = this.SafeString2(m, "market", "symbol")
+        if IsTrue(!IsEqual(marketHandle, nil)) {
+            AddElementToObject(this.Markets, marketHandle, m)
         }
     }
     this.PopulateOutcomes()
@@ -677,8 +721,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
                 if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue(loadAll)) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
         
-                    retRes63016 := (<-this.LoadOutcomes())
-                    PanicOnError(retRes63016)
+                    retRes67416 := (<-this.LoadOutcomes())
+                    PanicOnError(retRes67416)
                     var stillMissing any = []any{}
                     for i := 0; IsLessThan(i, missingLength); i++ {
                         if !IsTrue(this.HasOutcome(GetValue(missing, i))) {
@@ -690,8 +734,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 }
                 if IsTrue(IsGreaterThan(missingLength, 0)) {
         
-                    retRes64116 := <-this.DerivedExchange.FetchOutcomes(missing)
-                    PanicOnError(retRes64116)
+                    retRes68516 := <-this.DerivedExchange.FetchOutcomes(missing)
+                    PanicOnError(retRes68516)
                 }
         
                 ch <- this.Outcomes
@@ -703,8 +747,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 return nil
             }
         
-            retRes6488 := (<-this.LoadMarkets(reload, params))
-            PanicOnError(retRes6488)
+            retRes6928 := (<-this.LoadMarkets(reload, params))
+            PanicOnError(retRes6928)
             this.PopulateOutcomes()
         
             ch <- this.Outcomes
@@ -728,8 +772,8 @@ func  (this *PredictionExchange) FetchOutcomes(outcomeSymbols any) <- chan any {
                 defer ReturnPanicError(ch)
                     for i := 0; IsLessThan(i, GetArrayLength(outcomeSymbols)); i++ {
         
-                retRes66312 := <-this.DerivedExchange.FetchOutcome(GetValue(outcomeSymbols, i))
-                PanicOnError(retRes66312)
+                retRes70712 := <-this.DerivedExchange.FetchOutcome(GetValue(outcomeSymbols, i))
+                PanicOnError(retRes70712)
             }
         
             ch <- this.Outcomes
@@ -777,8 +821,8 @@ func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any, optionalArgs ...
                 var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
                 if IsTrue(IsTrue(loadAll) && !IsTrue(wasWarm)) {
         
-                    retRes69616 := (<-this.LoadOutcomes())
-                    PanicOnError(retRes69616)
+                    retRes74016 := (<-this.LoadOutcomes())
+                    PanicOnError(retRes74016)
                     if IsTrue(this.HasOutcome(outcomeSymbol)) {
         
                         ch <- this.SafeOutcome(outcomeSymbol)
@@ -787,9 +831,9 @@ func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any, optionalArgs ...
                 }
             }
         
-                retRes70215 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
-                PanicOnError(retRes70215)
-                ch <- retRes70215
+                retRes74615 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
+                PanicOnError(retRes74615)
+                ch <- retRes74615
                 return nil
         
             }()
@@ -808,7 +852,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
     if IsTrue(IsEqual(GetIndexOf(marketPart, "0x"), 0)) {
         return nil
     }
-    // handles join words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+    // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
     var normalized any = Replace(ToLower(marketPart), "-", "_")
     var rawWords any = Split(normalized, "_")
     var words any = []any{}
@@ -818,7 +862,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
         var word any = GetValue(rawWords, i)
         // inline .length so the php transpiler emits strlen() — the standalone
         // `const n = str.length;` statement form wrongly becomes count() (array)
-        if IsTrue(IsEqual(GetArrayLength(word), 0)) {
+        if IsTrue(IsEqual(GetLength(word), 0)) {
             continue
         }
         var wordHasLetters any = false
@@ -880,11 +924,11 @@ func  (this *PredictionExchange) FetchOutcome(outcomeSymbol any) <- chan any {
                             }()
                 		    // try block:
                             
-                            retRes76716 := <-this.callInternal("fetchEvents", map[string]any {
+                            retRes81116 := <-this.callInternal("fetchEvents", map[string]any {
                     "query": searchQuery,
                     "limit": searchLimit,
                 })
-                            PanicOnError(retRes76716)
+                            PanicOnError(retRes81116)
                 		    return nil
                 	    }(this)
                     
@@ -990,9 +1034,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes83115 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes83115)
-                ch <- retRes83115
+                retRes87515 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes87515)
+                ch <- retRes87515
                 return nil
         
             }()
@@ -1428,9 +1472,9 @@ func  (this *PredictionExchange) CreateMarketBuyOrderWithCost(outcome any, cost 
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false))) {
         
-                    retRes107319 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
-                    PanicOnError(retRes107319)
-                    ch <- retRes107319
+                    retRes111719 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
+                    PanicOnError(retRes111719)
+                    ch <- retRes111719
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
@@ -1456,9 +1500,9 @@ func  (this *PredictionExchange) CreateMarketSellOrderWithCost(outcome any, cost
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false))) {
         
-                    retRes108919 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
-                    PanicOnError(retRes108919)
-                    ch <- retRes108919
+                    retRes113319 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
+                    PanicOnError(retRes113319)
+                    ch <- retRes113319
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
@@ -2165,9 +2209,9 @@ func  (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, fro
             var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
             PanicOnError(signed)
         
-                retRes167515 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-                PanicOnError(retRes167515)
-                ch <- retRes167515
+                retRes171915 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+                PanicOnError(retRes171915)
+                ch <- retRes171915
                 return nil
         
             }()
@@ -2191,8 +2235,8 @@ func  (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash an
                     return nil
                 }
         
-                retRes168512 := (<-this.Sleep(2000))
-                PanicOnError(retRes168512)
+                retRes172912 := (<-this.Sleep(2000))
+                PanicOnError(retRes172912)
             }
             panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
         

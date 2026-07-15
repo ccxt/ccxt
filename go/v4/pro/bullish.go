@@ -537,7 +537,7 @@ func (this *BullishCore) HandleOrders(client any, message any) {
 	//             "baseFee": "0.000000",
 	//             "quoteAmount": "0.0000000",
 	//             "price": "0.0000000",
-	//             "statusReason": "ccxt.Order accepted",
+	//             "statusReason": "Order accepted",
 	//             "type": "MKT",
 	//             "statusReasonCode": 6014,
 	//             "allowBorrow": false,
