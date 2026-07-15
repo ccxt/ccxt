@@ -8,10 +8,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestBase58ToBinary() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// todo: can be implemented stringToBinary in future
-
+	//
 	assert(ccxt.IsEqual(exchange.ParseNumber(nil), nil), "GO skip trick")
 }

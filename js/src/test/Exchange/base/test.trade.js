@@ -6,20 +6,28 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+    // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+    if (exchange.safeBool(exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend({ 'symbol': true, 'fees': true }, skippedProperties);
+    }
     const format = {
         'info': {},
-        'id': '12345-67890:09876/54321',
-        'timestamp': 1502962946216,
-        'datetime': '2017-08-17 12:42:48.000',
-        'symbol': 'ETH/BTC',
-        'order': '12345-67890:09876/54321',
-        'side': 'buy',
-        'takerOrMaker': 'taker',
-        'price': exchange.parseNumber('0.06917684'),
-        'amount': exchange.parseNumber('1.5'),
-        'cost': exchange.parseNumber('0.10376526'),
+        'id': '12345-67890:09876/54321', // string trade id
+        'timestamp': 1502962946216, // Unix timestamp in milliseconds
+        'datetime': '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        'symbol': 'ETH/BTC', // symbol
+        'order': '12345-67890:09876/54321', // string order id or undefined/None/null
+        'side': 'buy', // direction of the trade, 'buy' or 'sell'
+        'takerOrMaker': 'taker', // string, 'taker' or 'maker'
+        'price': exchange.parseNumber('0.06917684'), // float price in quote currency
+        'amount': exchange.parseNumber('1.5'), // amount of base currency
+        'cost': exchange.parseNumber('0.10376526'), // total cost (including fees), `price * amount`
         'fees': [],
-        'fee': {},
+        'fee': {
+            'cost': exchange.parseNumber('0.001'), // float, the fee amount in the quote currency
+            'currency': 'USDT', // string, the currency of the fee
+        },
     };
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side

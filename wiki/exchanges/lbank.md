@@ -63,7 +63,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-lbank.fetchTime ([params])
+lbank.fetchTime (params?)
 ```
 
 
@@ -82,7 +82,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-lbank.fetchCurrencies ([params])
+lbank.fetchCurrencies (params?)
 ```
 
 
@@ -106,7 +106,7 @@ retrieves data on all markets for lbank
 
 
 ```javascript
-lbank.fetchMarkets ([params])
+lbank.fetchMarkets (params?)
 ```
 
 
@@ -127,7 +127,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.fetchTicker (symbol[, params])
+lbank.fetchTicker (symbol, params?)
 ```
 
 
@@ -152,7 +152,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-lbank.fetchTickers (symbols[, params])
+lbank.fetchTickers (symbols, params?)
 ```
 
 
@@ -162,7 +162,7 @@ lbank.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -178,7 +178,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.fetchOrderBook (symbol[, limit, params])
+lbank.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -205,7 +205,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.fetchTrades (symbol[, since, limit, params])
+lbank.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -229,7 +229,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
+lbank.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -250,7 +250,7 @@ fetch the current funding rate
 
 
 ```javascript
-lbank.fetchFundingRate (symbol[, params])
+lbank.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -271,7 +271,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-lbank.fetchFundingRates (symbols[, params])
+lbank.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -296,7 +296,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-lbank.fetchBalance ([params])
+lbank.fetchBalance (params?)
 ```
 
 
@@ -317,7 +317,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-lbank.fetchTradingFee (symbol[, params])
+lbank.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -337,7 +337,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-lbank.fetchTradingFees ([params])
+lbank.fetchTradingFees (params?)
 ```
 
 
@@ -363,7 +363,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-lbank.createMarketBuyOrderWithCost (symbol, cost[, params])
+lbank.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -392,7 +392,7 @@ create a trade order
 
 
 ```javascript
-lbank.createOrder (symbol, type, side, amount[, price, params])
+lbank.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -418,7 +418,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-lbank.fetchOrder (id, symbol[, params])
+lbank.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -441,7 +441,7 @@ fetch all trades made by the user
 
 
 ```javascript
-lbank.fetchMyTrades (symbol[, since, limit, params])
+lbank.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -464,7 +464,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-lbank.fetchOrders (symbol[, since, limit, params])
+lbank.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -487,7 +487,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-lbank.fetchOpenOrders (symbol[, since, limit, params])
+lbank.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -509,7 +509,7 @@ cancels an open order
 
 
 ```javascript
-lbank.cancelOrder (id, symbol[, params])
+lbank.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -530,7 +530,7 @@ cancel all open orders in a market
 
 
 ```javascript
-lbank.cancelAllOrders (symbol[, params])
+lbank.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -555,7 +555,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-lbank.fetchDepositAddress (code[, params])
+lbank.fetchDepositAddress (code, params?)
 ```
 
 
@@ -579,7 +579,7 @@ make a withdrawal
 
 
 ```javascript
-lbank.withdraw (code, amount, address, tag[, params])
+lbank.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -602,7 +602,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-lbank.fetchDeposits (code[, since, limit, params])
+lbank.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -625,7 +625,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-lbank.fetchWithdrawals (code[, since, limit, params])
+lbank.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -647,7 +647,7 @@ please use fetchDepositWithdrawFees instead
 
 
 ```javascript
-lbank.fetchTransactionFees (codes[, params])
+lbank.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -672,7 +672,7 @@ when using private endpoint, only returns information for currencies with non-ze
 
 
 ```javascript
-lbank.fetchDepositWithdrawFees ([codes, params])
+lbank.fetchDepositWithdrawFees (codes?, params?)
 ```
 
 
@@ -696,7 +696,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.fetchOHLCVWs (symbol, timeframe[, since, limit, params])
+lbank.fetchOHLCVWs (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -720,7 +720,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.watchOHLCV (symbol, timeframe[, since, limit, params])
+lbank.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -741,7 +741,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.fetchTickerWs (symbol[, params])
+lbank.fetchTickerWs (symbol, params?)
 ```
 
 
@@ -762,7 +762,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.watchTicker (symbol, params[])
+lbank.watchTicker (symbol, params)
 ```
 
 
@@ -785,7 +785,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.fetchTradesWs (symbol[, since, limit, params])
+lbank.fetchTradesWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -808,7 +808,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.watchTrades (symbol[, since, limit, params])
+lbank.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -831,7 +831,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-lbank.watchOrders ([symbol, since, limit, params])
+lbank.watchOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -851,7 +851,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-lbank.watchBalance ([params])
+lbank.watchBalance (params?)
 ```
 
 
@@ -873,7 +873,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.fetchOrderBookWs (symbol, limit, params[])
+lbank.fetchOrderBookWs (symbol, limit, params)
 ```
 
 
@@ -895,6 +895,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.watchOrderBook (symbol, limit, params[])
+lbank.watchOrderBook (symbol, limit, params)
 ```
 

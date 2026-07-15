@@ -15,6 +15,13 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_trade(exchange, skipped_properties, method, entry, symbol, now):
+    # prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+    # PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        skipped_properties = exchange.extend({
+            'symbol': True,
+            'fees': True,
+        }, skipped_properties)
     format = {
         'info': {},
         'id': '12345-67890:09876/54321',
@@ -28,7 +35,10 @@ def test_trade(exchange, skipped_properties, method, entry, symbol, now):
         'amount': exchange.parse_number('1.5'),
         'cost': exchange.parse_number('0.10376526'),
         'fees': [],
-        'fee': {},
+        'fee': {
+            'cost': exchange.parse_number('0.001'),
+            'currency': 'USDT',
+        },
     }
     # todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     # removed side because some public endpoints return trades without side

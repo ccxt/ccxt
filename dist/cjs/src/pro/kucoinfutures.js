@@ -33,7 +33,6 @@ class kucoinfutures extends kucoin["default"] {
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
-                'uta': false,
             },
         });
     }
@@ -63,7 +62,9 @@ class kucoinfutures extends kucoin["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {

@@ -53,7 +53,7 @@
       },
       "market": {
         "min": 0,
-        "max": 121.91983711
+        "max": 162.41903995
       }
     },
     "marginModes": {
@@ -83,9 +83,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -103,12 +106,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "121.91983711",
+          "maxQty": "162.41903995",
           "stepSize": "0.00000000"
         },
         {
@@ -120,10 +123,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -139,8 +142,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -349,14 +360,35 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258",
+          "TRD_GRP_259"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -417,7 +449,7 @@
       },
       "market": {
         "min": 0,
-        "max": 5051.02927824
+        "max": 3027.33723125
       }
     },
     "marginModes": {
@@ -447,9 +479,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -467,12 +502,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "5051.02927824",
+          "maxQty": "3027.33723125",
           "stepSize": "0.00000000"
         },
         {
@@ -484,10 +519,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -503,8 +538,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -713,14 +756,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -781,7 +844,7 @@
       },
       "market": {
         "min": 0,
-        "max": 2253456.78870292
+        "max": 2928310.42083333
       }
     },
     "marginModes": {
@@ -811,9 +874,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -831,12 +897,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "2253456.78870292",
+          "maxQty": "2928310.42083333",
           "stepSize": "0.00000000"
         },
         {
@@ -848,10 +914,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -867,8 +933,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -1077,14 +1151,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -1145,7 +1239,7 @@
       },
       "market": {
         "min": 0,
-        "max": 13435.66369037
+        "max": 7171.03777916
       }
     },
     "marginModes": {
@@ -1175,9 +1269,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -1195,12 +1292,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "13435.66369037",
+          "maxQty": "7171.03777916",
           "stepSize": "0.00000000"
         },
         {
@@ -1212,10 +1309,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -1231,8 +1328,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -1441,14 +1546,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -1485,7 +1610,7 @@
     "strike": null,
     "optionType": null,
     "precision": {
-      "amount": 1,
+      "amount": 0.1,
       "price": 0.0001,
       "base": 1e-8,
       "quote": 1e-8
@@ -1496,7 +1621,7 @@
         "max": null
       },
       "amount": {
-        "min": 1,
+        "min": 0.1,
         "max": 9222449
       },
       "price": {
@@ -1509,7 +1634,7 @@
       },
       "market": {
         "min": 0,
-        "max": 3390003.40585774
+        "max": 2514623.70583333
       }
     },
     "marginModes": {
@@ -1539,9 +1664,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -1553,18 +1681,18 @@
         },
         {
           "filterType": "LOT_SIZE",
-          "minQty": "1.00000000",
+          "minQty": "0.10000000",
           "maxQty": "9222449.00000000",
-          "stepSize": "1.00000000"
+          "stepSize": "0.10000000"
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "3390003.40585774",
+          "maxQty": "2514623.70583333",
           "stepSize": "0.00000000"
         },
         {
@@ -1576,10 +1704,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -1595,8 +1723,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -1805,14 +1941,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -1873,7 +2029,7 @@
       },
       "market": {
         "min": 0,
-        "max": 24584725.24267782
+        "max": 33390025.67916666
       }
     },
     "marginModes": {
@@ -1903,9 +2059,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -1923,12 +2082,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "24584725.24267782",
+          "maxQty": "33390025.67916666",
           "stepSize": "0.00000000"
         },
         {
@@ -1940,10 +2099,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -1959,8 +2118,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -2169,14 +2336,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -2237,7 +2424,7 @@
       },
       "market": {
         "min": 0,
-        "max": 11420849.72845188
+        "max": 3712481.15291666
       }
     },
     "marginModes": {
@@ -2267,9 +2454,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -2287,12 +2477,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "11420849.72845188",
+          "maxQty": "3712481.15291666",
           "stepSize": "0.00000000"
         },
         {
@@ -2304,10 +2494,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -2323,8 +2513,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -2533,14 +2731,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,
@@ -2596,7 +2814,7 @@
         "max": 4529764
       },
       "cost": {
-        "min": 100,
+        "min": 50,
         "max": null
       },
       "market": {
@@ -2608,13 +2826,13 @@
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1567965300000,
     "info": {
       "symbol": "BTCUSDT",
       "pair": "BTCUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1567965300000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -2635,40 +2853,36 @@
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "maxPrice": "4529764",
           "filterType": "PRICE_FILTER",
-          "minPrice": "556.80",
-          "tickSize": "0.10"
+          "tickSize": "0.10",
+          "maxPrice": "4529764",
+          "minPrice": "556.80"
         },
         {
+          "stepSize": "0.001",
+          "filterType": "LOT_SIZE",
           "maxQty": "1000",
-          "minQty": "0.001",
-          "stepSize": "0.001",
-          "filterType": "LOT_SIZE"
-        },
-        {
-          "maxQty": "120",
-          "filterType": "MARKET_LOT_SIZE",
-          "stepSize": "0.001",
           "minQty": "0.001"
         },
         {
-          "limit": "200",
-          "filterType": "MAX_NUM_ORDERS"
+          "minQty": "0.001",
+          "filterType": "MARKET_LOT_SIZE",
+          "maxQty": "120",
+          "stepSize": "0.001"
         },
         {
-          "limit": "10",
-          "filterType": "MAX_NUM_ALGO_ORDERS"
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": "200"
         },
         {
-          "notional": "100",
-          "filterType": "MIN_NOTIONAL"
+          "filterType": "MIN_NOTIONAL",
+          "notional": "50"
         },
         {
-          "filterType": "PERCENT_PRICE",
-          "multiplierUp": "1.0500",
           "multiplierDown": "0.9500",
-          "multiplierDecimal": "4"
+          "multiplierUp": "1.0500",
+          "multiplierDecimal": "4",
+          "filterType": "PERCENT_PRICE"
         },
         {
           "positionControlSide": "NONE",
@@ -2690,6 +2904,12 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -2766,33 +2986,35 @@
       "onboardDate": "1597042800000",
       "contractStatus": "TRADING",
       "contractSize": "100",
-      "marginAsset": "BTC",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
       "baseAsset": "BTC",
       "quoteAsset": "USD",
+      "marginAsset": "BTC",
       "pricePrecision": "1",
       "quantityPrecision": "0",
       "baseAssetPrecision": "8",
       "quotePrecision": "8",
-      "equalQtyPrecision": "4",
-      "maxMoveOrderLimit": "10000",
-      "triggerProtect": "0.0500",
       "underlyingType": "COIN",
       "underlyingSubType": [
         "PoW"
       ],
+      "triggerProtect": "0.0500",
+      "liquidationFee": "0.015000",
+      "marketTakeBound": "0.05",
+      "equalQtyPrecision": "4",
+      "maxMoveOrderLimit": "10000",
       "filters": [
         {
           "minPrice": "1000",
-          "maxPrice": "4520958",
           "filterType": "PRICE_FILTER",
+          "maxPrice": "4520958",
           "tickSize": "0.1"
         },
         {
-          "stepSize": "1",
           "filterType": "LOT_SIZE",
           "maxQty": "1000000",
+          "stepSize": "1",
           "minQty": "1"
         },
         {
@@ -2802,18 +3024,18 @@
           "minQty": "1"
         },
         {
-          "limit": "200",
-          "filterType": "MAX_NUM_ORDERS"
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": "200"
         },
         {
           "limit": "20",
           "filterType": "MAX_NUM_ALGO_ORDERS"
         },
         {
-          "multiplierDown": "0.9500",
-          "multiplierUp": "1.0500",
           "multiplierDecimal": "4",
-          "filterType": "PERCENT_PRICE"
+          "multiplierUp": "1.0500",
+          "filterType": "PERCENT_PRICE",
+          "multiplierDown": "0.9500"
         }
       ],
       "orderTypes": [
@@ -2831,8 +3053,9 @@
         "FOK",
         "GTX"
       ],
-      "liquidationFee": "0.015000",
-      "marketTakeBound": "0.05"
+      "permissionSets": [
+        "GRID"
+      ]
     },
     "tierBased": false,
     "percentage": true,
@@ -2899,13 +3122,13 @@
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1574840700000,
     "info": {
       "symbol": "ETHUSDT",
       "pair": "ETHUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1574840700000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -2928,38 +3151,34 @@
         {
           "minPrice": "39.86",
           "maxPrice": "306177",
-          "filterType": "PRICE_FILTER",
-          "tickSize": "0.01"
+          "tickSize": "0.01",
+          "filterType": "PRICE_FILTER"
         },
         {
-          "maxQty": "10000",
           "filterType": "LOT_SIZE",
           "stepSize": "0.001",
+          "maxQty": "10000",
           "minQty": "0.001"
         },
         {
-          "stepSize": "0.001",
-          "minQty": "0.001",
           "filterType": "MARKET_LOT_SIZE",
-          "maxQty": "2000"
+          "maxQty": "2000",
+          "stepSize": "0.001",
+          "minQty": "0.001"
         },
         {
           "limit": "200",
           "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "10"
-        },
-        {
-          "filterType": "MIN_NOTIONAL",
-          "notional": "20"
+          "notional": "20",
+          "filterType": "MIN_NOTIONAL"
         },
         {
           "multiplierUp": "1.0500",
+          "multiplierDown": "0.9500",
           "filterType": "PERCENT_PRICE",
-          "multiplierDecimal": "4",
-          "multiplierDown": "0.9500"
+          "multiplierDecimal": "4"
         },
         {
           "filterType": "POSITION_RISK_CONTROL",
@@ -2981,6 +3200,12 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -3029,10 +3254,10 @@
       },
       "amount": {
         "min": 0.001,
-        "max": 10000
+        "max": 20000
       },
       "price": {
-        "min": 3.61,
+        "min": 0.01,
         "max": 100000
       },
       "cost": {
@@ -3048,13 +3273,13 @@
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1578557100000,
     "info": {
       "symbol": "LTCUSDT",
       "pair": "LTCUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1578557100000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -3067,52 +3292,48 @@
       "quotePrecision": "8",
       "underlyingType": "COIN",
       "underlyingSubType": [
-        "PoW"
+        "Payment"
       ],
       "triggerProtect": "0.0500",
-      "liquidationFee": "0.015000",
+      "liquidationFee": "0.012500",
       "marketTakeBound": "0.05",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
           "filterType": "PRICE_FILTER",
-          "minPrice": "3.61",
           "maxPrice": "100000",
-          "tickSize": "0.01"
+          "tickSize": "0.01",
+          "minPrice": "0.01"
         },
         {
-          "stepSize": "0.001",
-          "filterType": "LOT_SIZE",
           "minQty": "0.001",
-          "maxQty": "10000"
+          "maxQty": "20000",
+          "stepSize": "0.001",
+          "filterType": "LOT_SIZE"
         },
         {
+          "minQty": "0.001",
           "filterType": "MARKET_LOT_SIZE",
-          "minQty": "0.001",
-          "stepSize": "0.001",
-          "maxQty": "5000"
+          "maxQty": "5000",
+          "stepSize": "0.001"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "limit": "10",
-          "filterType": "MAX_NUM_ALGO_ORDERS"
+          "notional": "20",
+          "filterType": "MIN_NOTIONAL"
         },
         {
-          "filterType": "MIN_NOTIONAL",
-          "notional": "20"
-        },
-        {
-          "multiplierUp": "1.0500",
-          "multiplierDown": "0.9500",
           "filterType": "PERCENT_PRICE",
-          "multiplierDecimal": "4"
+          "multiplierDecimal": "4",
+          "multiplierUp": "1.0500",
+          "multiplierDown": "0.9500"
         },
         {
-          "positionControlSide": "NONE",
-          "filterType": "POSITION_RISK_CONTROL"
+          "filterType": "POSITION_RISK_CONTROL",
+          "positionControlSide": "NONE"
         }
       ],
       "orderTypes": [
@@ -3130,6 +3351,13 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "RPI",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -3178,10 +3406,10 @@
       },
       "amount": {
         "min": 1,
-        "max": 2000000
+        "max": 30000000
       },
       "price": {
-        "min": 0.0174,
+        "min": 0.0001,
         "max": 20000
       },
       "cost": {
@@ -3190,20 +3418,20 @@
       },
       "market": {
         "min": 1,
-        "max": 300000
+        "max": 3000000
       }
     },
     "marginModes": {
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1580457600000,
     "info": {
       "symbol": "ADAUSDT",
       "pair": "ADAUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1580457600000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -3219,45 +3447,41 @@
         "Layer-1"
       ],
       "triggerProtect": "0.0500",
-      "liquidationFee": "0.010000",
+      "liquidationFee": "0.012500",
       "marketTakeBound": "0.05",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "tickSize": "0.00010",
-          "maxPrice": "20000",
           "filterType": "PRICE_FILTER",
-          "minPrice": "0.01740"
+          "minPrice": "0.00010",
+          "maxPrice": "20000",
+          "tickSize": "0.00010"
         },
         {
           "filterType": "LOT_SIZE",
-          "stepSize": "1",
-          "maxQty": "2000000",
-          "minQty": "1"
-        },
-        {
-          "stepSize": "1",
-          "maxQty": "300000",
+          "maxQty": "30000000",
           "minQty": "1",
-          "filterType": "MARKET_LOT_SIZE"
+          "stepSize": "1"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
+          "stepSize": "1",
+          "filterType": "MARKET_LOT_SIZE",
+          "minQty": "1",
+          "maxQty": "3000000"
         },
         {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "10"
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "notional": "5",
-          "filterType": "MIN_NOTIONAL"
+          "filterType": "MIN_NOTIONAL",
+          "notional": "5"
         },
         {
-          "multiplierUp": "1.0500",
-          "filterType": "PERCENT_PRICE",
+          "multiplierDown": "0.9500",
           "multiplierDecimal": "4",
-          "multiplierDown": "0.9500"
+          "filterType": "PERCENT_PRICE",
+          "multiplierUp": "1.0500"
         },
         {
           "filterType": "POSITION_RISK_CONTROL",
@@ -3279,6 +3503,12 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -3346,13 +3576,13 @@
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1578298800000,
     "info": {
       "symbol": "XRPUSDT",
       "pair": "XRPUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1578298800000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -3373,9 +3603,9 @@
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "filterType": "PRICE_FILTER",
-          "minPrice": "0.0143",
           "maxPrice": "100000",
+          "minPrice": "0.0143",
+          "filterType": "PRICE_FILTER",
           "tickSize": "0.0001"
         },
         {
@@ -3385,32 +3615,28 @@
           "stepSize": "0.1"
         },
         {
-          "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.1",
           "stepSize": "0.1",
+          "filterType": "MARKET_LOT_SIZE",
           "maxQty": "2000000"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "10"
+          "filterType": "MIN_NOTIONAL",
+          "notional": "5"
         },
         {
-          "notional": "5",
-          "filterType": "MIN_NOTIONAL"
-        },
-        {
-          "multiplierDown": "0.9500",
           "filterType": "PERCENT_PRICE",
-          "multiplierDecimal": "4",
-          "multiplierUp": "1.0500"
+          "multiplierUp": "1.0500",
+          "multiplierDown": "0.9500",
+          "multiplierDecimal": "4"
         },
         {
-          "positionControlSide": "NONE",
-          "filterType": "POSITION_RISK_CONTROL"
+          "filterType": "POSITION_RISK_CONTROL",
+          "positionControlSide": "NONE"
         }
       ],
       "orderTypes": [
@@ -3428,6 +3654,12 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -3476,7 +3708,7 @@
       },
       "amount": {
         "min": 1,
-        "max": 50000000
+        "max": 300000000
       },
       "price": {
         "min": 0.00244,
@@ -3495,13 +3727,13 @@
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1594371600000,
     "info": {
       "symbol": "DOGEUSDT",
       "pair": "DOGEUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1594371600000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -3517,49 +3749,45 @@
         "Meme"
       ],
       "triggerProtect": "0.1000",
-      "liquidationFee": "0.010000",
+      "liquidationFee": "0.015000",
       "marketTakeBound": "0.10",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "tickSize": "0.000010",
-          "filterType": "PRICE_FILTER",
           "maxPrice": "30",
-          "minPrice": "0.002440"
+          "minPrice": "0.002440",
+          "tickSize": "0.000010",
+          "filterType": "PRICE_FILTER"
         },
         {
-          "filterType": "LOT_SIZE",
-          "maxQty": "50000000",
+          "maxQty": "300000000",
           "minQty": "1",
-          "stepSize": "1"
+          "stepSize": "1",
+          "filterType": "LOT_SIZE"
         },
         {
           "maxQty": "30000000",
           "filterType": "MARKET_LOT_SIZE",
-          "minQty": "1",
-          "stepSize": "1"
+          "stepSize": "1",
+          "minQty": "1"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
-        },
-        {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "10"
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
           "notional": "5",
           "filterType": "MIN_NOTIONAL"
         },
         {
-          "filterType": "PERCENT_PRICE",
-          "multiplierDecimal": "4",
+          "multiplierUp": "1.1000",
           "multiplierDown": "0.9000",
-          "multiplierUp": "1.1000"
+          "multiplierDecimal": "4",
+          "filterType": "PERCENT_PRICE"
         },
         {
-          "positionControlSide": "NONE",
-          "filterType": "POSITION_RISK_CONTROL"
+          "filterType": "POSITION_RISK_CONTROL",
+          "positionControlSide": "NONE"
         }
       ],
       "orderTypes": [
@@ -3577,6 +3805,13 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "RPI",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -3625,7 +3860,7 @@
       },
       "amount": {
         "min": 1,
-        "max": 10000000
+        "max": 20000000
       },
       "price": {
         "min": 0.00132,
@@ -3644,13 +3879,13 @@
       "cross": true,
       "isolated": true
     },
-    "created": 1569398400000,
+    "created": 1579075500000,
     "info": {
       "symbol": "TRXUSDT",
       "pair": "TRXUSDT",
       "contractType": "PERPETUAL",
       "deliveryDate": "4133404800000",
-      "onboardDate": "1569398400000",
+      "onboardDate": "1579075500000",
       "status": "TRADING",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
@@ -3666,49 +3901,45 @@
         "Layer-1"
       ],
       "triggerProtect": "0.0500",
-      "liquidationFee": "0.010000",
+      "liquidationFee": "0.012500",
       "marketTakeBound": "0.05",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
+          "minPrice": "0.00132",
           "filterType": "PRICE_FILTER",
           "maxPrice": "20000",
-          "tickSize": "0.00001",
-          "minPrice": "0.00132"
+          "tickSize": "0.00001"
         },
         {
-          "filterType": "LOT_SIZE",
-          "maxQty": "10000000",
+          "minQty": "1",
           "stepSize": "1",
-          "minQty": "1"
+          "maxQty": "20000000",
+          "filterType": "LOT_SIZE"
         },
         {
-          "maxQty": "5000000",
+          "minQty": "1",
           "stepSize": "1",
           "filterType": "MARKET_LOT_SIZE",
-          "minQty": "1"
+          "maxQty": "5000000"
         },
         {
-          "limit": "200",
-          "filterType": "MAX_NUM_ORDERS"
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": "200"
         },
         {
-          "limit": "10",
-          "filterType": "MAX_NUM_ALGO_ORDERS"
-        },
-        {
-          "notional": "5",
-          "filterType": "MIN_NOTIONAL"
+          "filterType": "MIN_NOTIONAL",
+          "notional": "5"
         },
         {
           "filterType": "PERCENT_PRICE",
           "multiplierDown": "0.9500",
-          "multiplierUp": "1.0500",
-          "multiplierDecimal": "4"
+          "multiplierDecimal": "4",
+          "multiplierUp": "1.0500"
         },
         {
-          "positionControlSide": "NONE",
-          "filterType": "POSITION_RISK_CONTROL"
+          "filterType": "POSITION_RISK_CONTROL",
+          "positionControlSide": "NONE"
         }
       ],
       "orderTypes": [
@@ -3726,6 +3957,13 @@
         "FOK",
         "GTX",
         "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "RPI",
+        "DCA",
+        "PSB"
       ]
     },
     "tierBased": false,
@@ -3844,54 +4082,56 @@
       "onboardDate": "1597734000000",
       "contractStatus": "TRADING",
       "contractSize": "10",
-      "marginAsset": "ETH",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
       "baseAsset": "ETH",
       "quoteAsset": "USD",
+      "marginAsset": "ETH",
       "pricePrecision": "2",
       "quantityPrecision": "0",
       "baseAssetPrecision": "8",
       "quotePrecision": "8",
-      "equalQtyPrecision": "4",
-      "maxMoveOrderLimit": "10000",
-      "triggerProtect": "0.0500",
       "underlyingType": "COIN",
       "underlyingSubType": [
         "Layer-1"
       ],
+      "triggerProtect": "0.0500",
+      "liquidationFee": "0.015000",
+      "marketTakeBound": "0.05",
+      "equalQtyPrecision": "4",
+      "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "minPrice": "50",
           "maxPrice": "306159",
           "filterType": "PRICE_FILTER",
+          "minPrice": "50",
           "tickSize": "0.01"
         },
         {
-          "stepSize": "1",
-          "filterType": "LOT_SIZE",
+          "minQty": "1",
           "maxQty": "1000000",
-          "minQty": "1"
+          "filterType": "LOT_SIZE",
+          "stepSize": "1"
         },
         {
-          "stepSize": "1",
-          "filterType": "MARKET_LOT_SIZE",
           "maxQty": "500000",
+          "filterType": "MARKET_LOT_SIZE",
+          "stepSize": "1",
           "minQty": "1"
         },
         {
-          "limit": "200",
-          "filterType": "MAX_NUM_ORDERS"
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": "200"
         },
         {
-          "limit": "20",
-          "filterType": "MAX_NUM_ALGO_ORDERS"
+          "filterType": "MAX_NUM_ALGO_ORDERS",
+          "limit": "20"
         },
         {
-          "multiplierDown": "0.9500",
           "multiplierUp": "1.0500",
           "multiplierDecimal": "4",
-          "filterType": "PERCENT_PRICE"
+          "filterType": "PERCENT_PRICE",
+          "multiplierDown": "0.9500"
         }
       ],
       "orderTypes": [
@@ -3909,8 +4149,9 @@
         "FOK",
         "GTX"
       ],
-      "liquidationFee": "0.015000",
-      "marketTakeBound": "0.05"
+      "permissionSets": [
+        "GRID"
+      ]
     },
     "tierBased": false,
     "percentage": true,
@@ -3970,7 +4211,7 @@
       },
       "market": {
         "min": 0,
-        "max": 90259.87503765
+        "max": 74129.706525
       }
     },
     "marginModes": {
@@ -4000,9 +4241,12 @@
       "icebergAllowed": true,
       "ocoAllowed": true,
       "otoAllowed": true,
+      "opoAllowed": true,
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
+      "amendAllowed": true,
+      "pegInstructionsAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -4020,12 +4264,12 @@
         },
         {
           "filterType": "ICEBERG_PARTS",
-          "limit": "10"
+          "limit": "100"
         },
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "90259.87503765",
+          "maxQty": "74129.70652500",
           "stepSize": "0.00000000"
         },
         {
@@ -4037,10 +4281,10 @@
         },
         {
           "filterType": "PERCENT_PRICE_BY_SIDE",
-          "bidMultiplierUp": "5",
-          "bidMultiplierDown": "0.2",
-          "askMultiplierUp": "5",
-          "askMultiplierDown": "0.2",
+          "bidMultiplierUp": "2",
+          "bidMultiplierDown": "0.5",
+          "askMultiplierUp": "2",
+          "askMultiplierDown": "0.5",
           "avgPriceMins": "5"
         },
         {
@@ -4056,8 +4300,16 @@
           "maxNumOrders": "200"
         },
         {
+          "filterType": "MAX_NUM_ORDER_LISTS",
+          "maxNumOrderLists": "20"
+        },
+        {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "maxNumAlgoOrders": "5"
+        },
+        {
+          "filterType": "MAX_NUM_ORDER_AMENDS",
+          "maxNumOrderAmends": "10"
         }
       ],
       "permissions": [],
@@ -4266,14 +4518,34 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236"
+          "TRD_GRP_236",
+          "TRD_GRP_237",
+          "TRD_GRP_238",
+          "TRD_GRP_239",
+          "TRD_GRP_240",
+          "TRD_GRP_242",
+          "TRD_GRP_243",
+          "TRD_GRP_244",
+          "TRD_GRP_245",
+          "TRD_GRP_246",
+          "TRD_GRP_247",
+          "TRD_GRP_248",
+          "TRD_GRP_249",
+          "TRD_GRP_250",
+          "TRD_GRP_251",
+          "TRD_GRP_252",
+          "TRD_GRP_253",
+          "TRD_GRP_256",
+          "TRD_GRP_258"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH"
+        "EXPIRE_BOTH",
+        "DECREMENT",
+        "TRANSFER"
       ]
     },
     "tierBased": false,

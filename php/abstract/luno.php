@@ -13,6 +13,21 @@ abstract class luno extends \ccxt\Exchange {
     public function exchangeprivate_get_candles($params = array()) {
         return $this->request('candles', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function exchangeprivate_get_move($params = array()) {
+        return $this->request('move', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangeprivate_get_move_list_moves($params = array()) {
+        return $this->request('move/list_moves', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangeprivate_get_transfers($params = array()) {
+        return $this->request('transfers', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangeprivate_post_convert($params = array()) {
+        return $this->request('convert', 'exchangePrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function exchangeprivate_post_move($params = array()) {
+        return $this->request('move', 'exchangePrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -70,6 +85,9 @@ abstract class luno extends \ccxt\Exchange {
     public function private_get_transfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_users_linked($params = array()) {
+        return $this->request('users/linked', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_accounts($params = array()) {
         return $this->request('accounts', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -114,6 +132,21 @@ abstract class luno extends \ccxt\Exchange {
     }
     public function exchangePrivateGetCandles($params = array()) {
         return $this->request('candles', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangePrivateGetMove($params = array()) {
+        return $this->request('move', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangePrivateGetMoveListMoves($params = array()) {
+        return $this->request('move/list_moves', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangePrivateGetTransfers($params = array()) {
+        return $this->request('transfers', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangePrivatePostConvert($params = array()) {
+        return $this->request('convert', 'exchangePrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function exchangePrivatePostMove($params = array()) {
+        return $this->request('move', 'exchangePrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -171,6 +204,9 @@ abstract class luno extends \ccxt\Exchange {
     }
     public function privateGetTransfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetUsersLinked($params = array()) {
+        return $this->request('users/linked', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostAccounts($params = array()) {
         return $this->request('accounts', 'private', 'POST', $params, null, null, array("cost" => 1));

@@ -6,11 +6,11 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestPrecise() {
-	var w interface{} = "-1.123e-6"
-	var x interface{} = "0.00000002"
-	var y interface{} = "69696900000"
-	var z interface{} = "0"
-	var a interface{} = "1e8"
+	var w any = "-1.123e-6"
+	var x any = "0.00000002"
+	var y any = "69696900000"
+	var z any = "0"
+	var a any = "1e8"
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(x, y), "1393.938"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(y, x), "1393.938"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd(x, y), "69696900000.00000002"))
@@ -105,4 +105,54 @@ func TestPrecise() {
 	Assert(ccxt.Precise.StringLe("-3.1415", "-2"))
 	Assert(ccxt.Precise.StringLe("3.1415", "3.1415"))
 	Assert(ccxt.Precise.StringLe("3.1415", "3.14150000000000000000001"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("5", "3"), "7"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("10", "5"), "15")) // 1010 | 0101 = 1111 = 15
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("0", "0"), "0"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("7", "0"), "7"))
+	// with undefined arguments
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAbs(nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringNeg(nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMod(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMod("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMod(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMin(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMin(nil, nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMax(nil, "1"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMax("1", nil), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMax(nil, nil), nil))
+	// bool false
+	Assert(ccxt.IsEqual(ccxt.Precise.StringEquals(nil, "1"), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringEquals("1", nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringEquals(nil, nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringEq(nil, "1"), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringEq("1", nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringEq(nil, nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringGt(nil, "1"), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringGt("1", nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringGt(nil, nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringGe(nil, "1"), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringGe("1", nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringGe(nil, nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringLt(nil, "1"), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringLt("1", nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringLt(nil, nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringLe(nil, "1"), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringLe("1", nil), false))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringLe(nil, nil), false))
 }

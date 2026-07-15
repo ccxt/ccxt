@@ -314,22 +314,13 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetch trades with since and limit parameters",
+                "description": "spot +since +limit",
                 "method": "fetchTrades",
-                "url": "https://api.backpack.exchange/api/v1/trades?limit=1&symbol=ETH_USDC",
+                "url": "https://api.backpack.exchange/api/v1/trades?limit=5&symbol=ETH_USDC",
                 "input": [
                     "ETH/USDC",
-                    1757604778000,
-                    1
-                ],
-                "output": null
-            },
-            {
-                "description": "Fetch trades",
-                "method": "fetchTrades",
-                "url": "https://api.backpack.exchange/api/v1/trades?symbol=ETH_USDC",
-                "input": [
-                    "ETH/USDC"
+                    1770000000000,
+                    5
                 ],
                 "output": null
             }
@@ -423,7 +414,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "Fetch currencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.backpack.exchange/api/v1/assets",
                 "input": [],

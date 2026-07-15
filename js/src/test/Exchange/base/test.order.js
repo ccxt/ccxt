@@ -7,6 +7,10 @@
 import testSharedMethods from './test.sharedMethods.js';
 import testTrade from './test.trade.js';
 function testOrder(exchange, skippedProperties, method, entry, symbol, now) {
+    // prediction-market orders are keyed by an outcome handle, not a `symbol`
+    if (exchange.safeBool(exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend({ 'symbol': true }, skippedProperties);
+    }
     const format = {
         'info': {},
         'id': '123',

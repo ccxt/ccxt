@@ -17,7 +17,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Skill names
-ALL_SKILLS=("ccxt-typescript" "ccxt-python" "ccxt-php" "ccxt-csharp" "ccxt-go")
+ALL_SKILLS=("ccxt-typescript" "ccxt-python" "ccxt-php" "ccxt-csharp" "ccxt-go" "ccxt-cli")
 
 # GitHub URL for remote installation
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ccxt/ccxt/master/.claude/skills"
@@ -68,6 +68,7 @@ OPTIONS:
     --php           Install only ccxt-php skill
     --csharp        Install only ccxt-csharp skill
     --go            Install only ccxt-go skill
+    --cli           Install only ccxt-cli skill
     --all           Install all skills (default)
     --help          Display this help message
 
@@ -251,10 +252,11 @@ interactive_mode() {
     echo "  3) ccxt-php        - PHP (sync & async, REST & WebSocket)"
     echo "  4) ccxt-csharp     - C#/.NET (REST & WebSocket)"
     echo "  5) ccxt-go         - Go (REST & WebSocket)"
-    echo "  6) All skills      - Install all of the above"
-    echo "  7) Exit            - Cancel installation"
+    echo "  6) ccxt-cli        - Command-line interface (terminal, no code)"
+    echo "  7) All skills      - Install all of the above"
+    echo "  8) Exit            - Cancel installation"
     echo ""
-    read -p "Enter your choice (1-7): " choice
+    read -p "Enter your choice (1-8): " choice
 
     case $choice in
         1)
@@ -273,9 +275,12 @@ interactive_mode() {
             selected_skills=("ccxt-go")
             ;;
         6)
-            selected_skills=("${ALL_SKILLS[@]}")
+            selected_skills=("ccxt-cli")
             ;;
         7)
+            selected_skills=("${ALL_SKILLS[@]}")
+            ;;
+        8)
             echo "Installation cancelled."
             exit 0
             ;;
@@ -331,6 +336,9 @@ main() {
                     ;;
                 --go)
                     selected_skills+=("ccxt-go")
+                    ;;
+                --cli)
+                    selected_skills+=("ccxt-cli")
                     ;;
                 --all)
                     selected_skills=("${ALL_SKILLS[@]}")

@@ -92,7 +92,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-weex.fetchStatus ([params])
+weex.fetchStatus (params?)
 ```
 
 
@@ -117,7 +117,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-weex.fetchTime ([params])
+weex.fetchTime (params?)
 ```
 
 
@@ -137,7 +137,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-weex.fetchCurrencies ([params])
+weex.fetchCurrencies (params?)
 ```
 
 
@@ -161,7 +161,7 @@ retrieves data on all markets for exchagne
 
 
 ```javascript
-weex.fetchMarkets ([params])
+weex.fetchMarkets (params?)
 ```
 
 
@@ -187,7 +187,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-weex.fetchTickers (symbols[, params])
+weex.fetchTickers (symbols, params?)
 ```
 
 
@@ -213,7 +213,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-weex.fetchBidsAsks (symbols[, params])
+weex.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -223,7 +223,7 @@ weex.fetchBidsAsks (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -239,7 +239,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-weex.fetchOrderBook (symbol[, limit, params])
+weex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -270,7 +270,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-weex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+weex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -297,7 +297,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-weex.fetchTrades (symbol[, since, limit, params])
+weex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -318,7 +318,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-weex.fetchOpenInterest (symbol[, params])
+weex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -340,7 +340,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-weex.fetchFundingRates (symbols[, params])
+weex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -364,7 +364,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-weex.fetchFundingRateHistory (symbol[, since, limit, params])
+weex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -374,7 +374,7 @@ weex.fetchFundingRateHistory (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in positions
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -389,7 +389,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-weex.fetchBalance ([params])
+weex.fetchBalance (params?)
 ```
 
 
@@ -413,7 +413,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-weex.fetchTransfers ([code, since, limit, params])
+weex.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
@@ -444,7 +444,7 @@ Create an order on the exchange
 
 
 ```javascript
-weex.createOrder (symbol, type, side, amount[, price, params])
+weex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -471,7 +471,7 @@ helper method for creating spot orders
 
 
 ```javascript
-weex.createSpotOrder (symbol, type, side, amount[, price, params])
+weex.createSpotOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -513,7 +513,7 @@ helper method for creating contract orders
 
 
 ```javascript
-weex.createContractOrder (symbol, type, side, amount[, price, params])
+weex.createContractOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -542,7 +542,7 @@ cancels an open order
 
 
 ```javascript
-weex.cancelOrder (id[, symbol, params])
+weex.cancelOrder (id, symbol?, params?)
 ```
 
 
@@ -570,7 +570,7 @@ cancel all open orders
 
 
 ```javascript
-weex.cancelAllOrders (symbol[, params])
+weex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -598,7 +598,7 @@ cancel multiple orders
 
 
 ```javascript
-weex.cancelOrders (ids[, symbol, params])
+weex.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -626,7 +626,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-weex.fetchOrder (id, symbol[, params])
+weex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -636,7 +636,7 @@ weex.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -656,7 +656,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-weex.fetchOpenOrders (symbol[, since, limit, params])
+weex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -685,7 +685,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-weex.fetchClosedOrders (symbol[, since, limit, params])
+weex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -714,7 +714,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-weex.fetchCanceledOrders (symbol[, since, limit, params])
+weex.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -739,7 +739,7 @@ fetches information on multiple spot orders made by the user
 
 
 ```javascript
-weex.fetchOrders (symbol[, since, limit, params])
+weex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -765,7 +765,7 @@ fetches information on multiple closed and canceled orders made by the user
 
 
 ```javascript
-weex.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
+weex.fetchCanceledAndClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -793,7 +793,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-weex.fetchOrderTrades (id[, symbol, since, limit, params])
+weex.fetchOrderTrades (id, symbol?, since?, limit?, params?)
 ```
 
 
@@ -822,7 +822,7 @@ fetch all trades made by the user
 
 
 ```javascript
-weex.fetchMyTrades (symbol[, since, limit, params])
+weex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -853,7 +853,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-weex.fetchLedger ([code, since, limit, params])
+weex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -874,7 +874,7 @@ fetch all open positions
 
 
 ```javascript
-weex.fetchPositions ([symbols, params])
+weex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -895,7 +895,7 @@ fetch data on an open position
 
 
 ```javascript
-weex.fetchPosition (symbol[, params])
+weex.fetchPosition (symbol, params?)
 ```
 
 
@@ -916,7 +916,7 @@ fetch all open positions for specific symbol
 
 
 ```javascript
-weex.fetchPositionsForSymbol (symbol[, params])
+weex.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
@@ -936,7 +936,7 @@ closes all open positions for a market type
 
 
 ```javascript
-weex.closeAllPositions ([params])
+weex.closeAllPositions (params?)
 ```
 
 
@@ -958,7 +958,7 @@ closes open positions for a market
 
 
 ```javascript
-weex.closePosition (symbol[, side, params])
+weex.closePosition (symbol, side?, params?)
 ```
 
 
@@ -968,7 +968,7 @@ weex.closePosition (symbol[, side, params])
 fetch the trading fees for a contract market
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract  
 
@@ -979,7 +979,7 @@ fetch the trading fees for a contract market
 
 
 ```javascript
-weex.fetchTradingFee (symbol[, params])
+weex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -1000,7 +1000,7 @@ fetches the margin mode of a specific symbol
 
 
 ```javascript
-weex.fetchMarginMode (symbol[, params])
+weex.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -1021,7 +1021,7 @@ fetches margin modes the symbols, with symbols=undefined all markets are returne
 
 
 ```javascript
-weex.fetchMarginModes (symbols[, params])
+weex.fetchMarginModes (symbols, params?)
 ```
 
 
@@ -1043,7 +1043,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-weex.setMarginMode (marginMode, symbol[, params])
+weex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -1064,7 +1064,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-weex.fetchLeverage (symbol[, params])
+weex.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1074,7 +1074,7 @@ weex.fetchLeverage (symbol[, params])
 fetch the set leverage for all markets
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig  
 
@@ -1085,7 +1085,7 @@ fetch the set leverage for all markets
 
 
 ```javascript
-weex.fetchLeverages ([symbols, params])
+weex.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -1111,7 +1111,7 @@ set the level of leverage for a market
 
 
 ```javascript
-weex.setLeverage (leverage, symbol[, params])
+weex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1132,7 +1132,7 @@ fetchs the position mode, hedged or one way
 
 
 ```javascript
-weex.fetchPositionMode (symbol[, params])
+weex.fetchPositionMode (symbol, params?)
 ```
 
 
@@ -1155,7 +1155,7 @@ set hedged to true or false for a market
 
 
 ```javascript
-weex.setPositionMode (hedged, symbol[, params])
+weex.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -1178,7 +1178,7 @@ remove margin from a position
 
 
 ```javascript
-weex.reduceMargin (symbol, amount[, params])
+weex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -1201,7 +1201,7 @@ add margin
 
 
 ```javascript
-weex.addMargin (symbol, amount[, params])
+weex.addMargin (symbol, amount, params?)
 ```
 
 
@@ -1227,7 +1227,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-weex.watchTicker (symbol[, params])
+weex.watchTicker (symbol, params?)
 ```
 
 
@@ -1252,7 +1252,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-weex.watchTickers (symbols[, params])
+weex.watchTickers (symbols, params?)
 ```
 
 
@@ -1277,7 +1277,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-weex.unWatchTicker (symbol[, params])
+weex.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1302,7 +1302,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-weex.unWatchTickers (symbols[, params])
+weex.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1329,7 +1329,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-weex.watchTrades (symbol[, since, limit, params])
+weex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1356,7 +1356,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-weex.watchTradesForSymbols (symbols[, since, limit, params])
+weex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1381,7 +1381,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-weex.unWatchTrades (symbol[, params])
+weex.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1406,7 +1406,7 @@ unsubscribes from the trades channel
 
 
 ```javascript
-weex.unWatchTradesForSymbols (symbols[, params])
+weex.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -1434,7 +1434,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-weex.watchOHLCV (symbol, timeframe[, since, limit, params])
+weex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1461,7 +1461,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-weex.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+weex.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -1487,7 +1487,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-weex.unWatchOHLCV (symbol, timeframe[, params])
+weex.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1512,7 +1512,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-weex.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+weex.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -1522,7 +1522,7 @@ weex.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1538,7 +1538,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-weex.watchOrderBook (symbol[, limit, params])
+weex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1548,7 +1548,7 @@ weex.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1564,7 +1564,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-weex.watchOrderBookForSymbols (symbols[, limit, params])
+weex.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1574,7 +1574,7 @@ weex.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1589,7 +1589,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-weex.unWatchOrderBook (symbol[, params])
+weex.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1599,7 +1599,7 @@ weex.unWatchOrderBook (symbol[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1614,7 +1614,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-weex.unWatchOrderBookForSymbols (symbols[, params])
+weex.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1624,7 +1624,7 @@ weex.unWatchOrderBookForSymbols (symbols[, params])
 watches best bid & ask for spot symbols
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel  
 
@@ -1635,7 +1635,7 @@ watches best bid & ask for spot symbols
 
 
 ```javascript
-weex.watchBidsAsks (symbols[, params])
+weex.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1645,7 +1645,7 @@ weex.watchBidsAsks (symbols[, params])
 unWatches best bid & ask for spot symbols
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel  
 
@@ -1656,7 +1656,7 @@ unWatches best bid & ask for spot symbols
 
 
 ```javascript
-weex.unWatchBidsAsks (symbols[, params])
+weex.unWatchBidsAsks (symbols, params?)
 ```
 
 
@@ -1684,7 +1684,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-weex.watchMyTrades (symbol[, since, limit, params])
+weex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1710,7 +1710,7 @@ unWatches information on multiple trades made by the user
 
 
 ```javascript
-weex.unWatchMyTrades ([symbol, params])
+weex.unWatchMyTrades (symbol?, params?)
 ```
 
 
@@ -1738,7 +1738,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-weex.watchOrders (symbol[, since, limit, params])
+weex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1748,7 +1748,7 @@ weex.watchOrders (symbol[, since, limit, params])
 unWatches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1763,7 +1763,7 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-weex.unWatchOrders ([symbol, params])
+weex.unWatchOrders (symbol?, params?)
 ```
 
 
@@ -1788,7 +1788,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-weex.watchBalance ([params])
+weex.watchBalance (params?)
 ```
 
 
@@ -1812,7 +1812,7 @@ watch all open positions
 
 
 ```javascript
-weex.watchPositions (symbols[, since, limit, params])
+weex.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -1833,6 +1833,6 @@ unWatches all open positions
 
 
 ```javascript
-weex.unWatchPositions ([symbols, params])
+weex.unWatchPositions (symbols?, params?)
 ```
 

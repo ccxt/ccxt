@@ -7,158 +7,270 @@
 
 package ccxt
 
-func (this *PacificaCore) PublicGetInfo(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInfo", args...)
 }
 
-func (this *PacificaCore) PublicGetInfoPrices(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetInfoFees(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInfoFees", args...)
+}
+
+func (this *PacificaCore) PublicGetInfoPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInfoPrices", args...)
 }
 
-func (this *PacificaCore) PublicGetKline(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetKline(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetKline", args...)
 }
 
-func (this *PacificaCore) PublicGetKlineMark(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetKlineMark(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetKlineMark", args...)
 }
 
-func (this *PacificaCore) PublicGetBook(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBook", args...)
 }
 
-func (this *PacificaCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *PacificaCore) PublicGetFundingRateHistory(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundingRateHistory", args...)
 }
 
-func (this *PacificaCore) PublicGetAccount(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetLoanPool(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLoanPool", args...)
+}
+
+func (this *PacificaCore) PublicGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccount", args...)
 }
 
-func (this *PacificaCore) PublicGetAccountSettings(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetAccountLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAccountLoan", args...)
+}
+
+func (this *PacificaCore) PublicGetAccountSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccountSettings", args...)
 }
 
-func (this *PacificaCore) PublicGetPositions(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPositions", args...)
 }
 
-func (this *PacificaCore) PublicGetTradesHistory(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetTradesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradesHistory", args...)
 }
 
-func (this *PacificaCore) PublicGetFundingHistory(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetFundingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundingHistory", args...)
 }
 
-func (this *PacificaCore) PublicGetPortfolio(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetPortfolio(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPortfolio", args...)
 }
 
-func (this *PacificaCore) PublicGetAccountBalanceHistory(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetAccountBalanceHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccountBalanceHistory", args...)
 }
 
-func (this *PacificaCore) PublicGetOrders(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetAccountSpotBalanceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAccountSpotBalanceHistory", args...)
+}
+
+func (this *PacificaCore) PublicGetAccountSpotAssetDepositHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAccountSpotAssetDepositHistory", args...)
+}
+
+func (this *PacificaCore) PublicGetAccountSpotAssetWithdrawHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAccountSpotAssetWithdrawHistory", args...)
+}
+
+func (this *PacificaCore) PublicGetAccountSpotAssetWithdrawPending(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAccountSpotAssetWithdrawPending", args...)
+}
+
+func (this *PacificaCore) PublicGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrders", args...)
 }
 
-func (this *PacificaCore) PublicGetOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrdersHistory", args...)
 }
 
-func (this *PacificaCore) PublicGetOrdersHistoryById(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetOrdersHistoryById(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrdersHistoryById", args...)
 }
 
-func (this *PacificaCore) PublicGetAccountBuilderCodesApprovals(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PublicGetSpotAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotAssets", args...)
+}
+
+func (this *PacificaCore) PublicGetSpotAssetsBridgeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotAssetsBridgeInfo", args...)
+}
+
+func (this *PacificaCore) PublicGetSpotAssetsBridgeParametersSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotAssetsBridgeParametersSymbol", args...)
+}
+
+func (this *PacificaCore) PublicGetLakeList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLakeList", args...)
+}
+
+func (this *PacificaCore) PublicGetAccountBuilderCodesApprovals(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccountBuilderCodesApprovals", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountLeverage(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountLeverage", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountMargin(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountMargin", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountWithdraw(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountWithdraw", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountSubaccountCreate(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountSettingsAutoLendDisabled(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSettingsAutoLendDisabled", args...)
+}
+
+func (this *PacificaCore) PrivatePostAccountSettingsSpot(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSettingsSpot", args...)
+}
+
+func (this *PacificaCore) PrivatePostAccountSpotAssetWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSpotAssetWithdraw", args...)
+}
+
+func (this *PacificaCore) PrivatePostAccountSubaccountCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountSubaccountCreate", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountSubaccountList(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountSubaccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountSubaccountList", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountSubaccountTransfer(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountSubaccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountSubaccountTransfer", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersCreate(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountSubaccountSpotAssetTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSubaccountSpotAssetTransfer", args...)
+}
+
+func (this *PacificaCore) PrivatePostPositionsAddIsolatedMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionsAddIsolatedMargin", args...)
+}
+
+func (this *PacificaCore) PrivatePostOrdersCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersCreate", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersCreateMarket(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersCreateMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersCreateMarket", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersStopCreate(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersStopCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersStopCreate", args...)
 }
 
-func (this *PacificaCore) PrivatePostPositionsTpsl(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostPositionsTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionsTpsl", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersCancel(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersCancelAll(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersCancelAll", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersStopCancel(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersStopCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersStopCancel", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersEdit(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersEdit", args...)
 }
 
-func (this *PacificaCore) PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountBuilderCodesApprove(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountBuilderCodesApprove(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBuilderCodesApprove", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountBuilderCodesRevoke(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountBuilderCodesRevoke(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBuilderCodesRevoke", args...)
 }
 
-func (this *PacificaCore) PrivatePostAgentBind(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAgentBind(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAgentBind", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountApiKeysCreate(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountApiKeysCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountApiKeysCreate", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountApiKeysRevoke(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountApiKeysRevoke(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountApiKeysRevoke", args...)
 }
 
-func (this *PacificaCore) PrivatePostAccountApiKeys(args ...interface{}) <-chan interface{} {
+func (this *PacificaCore) PrivatePostAccountApiKeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountApiKeys", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeAddBlacklist(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeAddBlacklist", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeAddMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeAddMaxLeverage", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeAddWhitelist(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeAddWhitelist", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeClaimManager(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeClaimManager", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeClaimReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeClaimReferralCode", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeCreate", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeDeposit", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeRemoveBlacklist(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeRemoveBlacklist", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeRemoveMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeRemoveMaxLeverage", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeRemoveWhitelist(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeRemoveWhitelist", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeUpdateDepositCap(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeUpdateDepositCap", args...)
+}
+
+func (this *PacificaCore) PrivatePostLakeWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLakeWithdraw", args...)
 }

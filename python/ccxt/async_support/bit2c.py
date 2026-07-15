@@ -213,7 +213,9 @@ class bit2c(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
+                'fetchTrades': {
+                    'method': 'public_get_exchanges_pair_trades',
+                },
             },
             'features': {
                 'spot': {
@@ -290,7 +292,7 @@ class bit2c(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -316,7 +318,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAccountBalanceV2(params)
         #
         #     {
@@ -371,11 +374,12 @@ class bit2c(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
@@ -419,9 +423,10 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.publicGetExchangesPairTicker(self.extend(request, params))
@@ -440,10 +445,12 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-        request: dict = {
+        optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility  #29154
+        method = self.handle_option('fetchTrades', 'method', optionValue)  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        request = {
             'pair': market['id'],
         }
         if since is not None:
@@ -475,7 +482,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAccountBalance(params)
         #
         #     {
@@ -495,7 +503,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         fees = self.safe_value(response, 'Fees', {})
         keys = list(fees.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(keys)):
             marketId = keys[i]
             symbol = self.safe_symbol(marketId)
@@ -528,10 +536,11 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'Amount': amount,
             'Pair': market['id'],
         }
@@ -557,7 +566,7 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privatePostOrderCancelOrder(self.extend(request, params))
@@ -577,9 +586,10 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = await self.privateGetOrderMyOrders(self.extend(request, params))
@@ -599,9 +609,10 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'id': id,
         }
         response = await self.privateGetOrderGetById(self.extend(request, params))
@@ -667,7 +678,7 @@ class bit2c(Exchange, ImplicitAPI):
         # 0 = New
         # 1 = Open
         # 5 = Completed
-        status: str
+        status = None
         if isNewOrder:
             tempStatus = self.safe_integer(orderUnified, 'status_type')
             if tempStatus == 0 or tempStatus == 1:
@@ -739,9 +750,10 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['take'] = limit
         request['take'] = limit
@@ -906,11 +918,12 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')
-        request: dict = {
+        request = {
             'Coin': currency['id'],
         }
         response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
@@ -943,7 +956,7 @@ class bit2c(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'

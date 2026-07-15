@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ export default class bitstamp extends Exchange {
                 'CORS': true,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -489,6 +489,7 @@ export default class bitstamp extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'mica': true,
                 'networksById': {
                     'bitcoin-cash': 'BCH',
                     'bitcoin': 'BTC',
@@ -681,12 +682,13 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
+            const settle = settleId ? this.safeCurrencyCode (settleId) : undefined;
             result.push ({
                 'id': this.safeString (market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settleId ? this.safeCurrencyCode (settleId) : undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -833,27 +835,33 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const description = this.safeString (market, 'description');
-            const [ baseDescription, quoteDescription ] = description.split (' / ');
-            const minimumOrder = this.safeString (market, 'minimum_order_value');
-            const parts = minimumOrder.split (' ');
-            const cost = parts[0];
-            if (!(base in result)) {
-                const baseDecimals = this.safeInteger (market, 'base_decimals');
-                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
-            }
-            if (!(quote in result)) {
-                const counterDecimals = this.safeInteger (market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
-            }
+        this.options['_temp_currencies_result'] = {};
+        const result = this.parseCurrencies (response);
+        const finalResult = this.deepExtend (result, this.options['_temp_currencies_result']);
+        delete this.options['_temp_currencies_result'];
+        return finalResult;
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const market = rawCurrency;
+        const existing = this.safeDict (this.options, '_temp_currencies_result', {});
+        const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const description = this.safeString (market, 'description');
+        const [ baseDescription, quoteDescription ] = description.split (' / ');
+        const minimumOrder = this.safeString (market, 'minimum_order_value');
+        const parts = minimumOrder.split (' ');
+        const cost = parts[0];
+        if (!(base in existing)) {
+            const baseDecimals = this.safeInteger (market, 'base_decimals');
+            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
         }
-        return result;
+        if (!(quote in existing)) {
+            const counterDecimals = this.safeInteger (market, 'counter_decimals');
+            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+        }
+        return this.options['_temp_currencies_result'][quote];
     }
 
     /**
@@ -864,10 +872,12 @@ export default class bitstamp extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -914,7 +924,7 @@ export default class bitstamp extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'pair');
-        const symbol = this.safeSymbol (marketId, market, undefined);
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
@@ -954,7 +964,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -988,7 +1000,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetTicker (params);
         //
         // {
@@ -1117,14 +1131,14 @@ export default class bitstamp extends Exchange {
         //      }
         //
         const id = this.safeString2 (trade, 'id', 'tid');
-        let symbol = undefined;
-        let side = undefined;
+        let symbol: Str = undefined;
+        let side: Str = undefined;
         let priceString = this.safeString (trade, 'price');
         let amountString = this.safeString (trade, 'amount');
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
-        let rawMarketId = undefined;
+        let rawMarketId: Str = undefined;
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
@@ -1141,14 +1155,14 @@ export default class bitstamp extends Exchange {
             market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        const feeCurrency = market['quote'];
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['id'];
+        const feeCurrency = this.safeString (market, 'quote');
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString (market, 'id');
         priceString = this.safeString (trade, priceId, priceString);
-        amountString = this.safeString (trade, market['baseId'], amountString);
-        costString = this.safeString (trade, market['quoteId'], costString);
+        amountString = this.safeString (trade, this.safeString (market, 'baseId'), amountString);
+        costString = this.safeString (trade, this.safeString (market, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = market['baseId'].toLowerCase ();
-        const quoteIdLower = market['quoteId'].toLowerCase ();
+        const baseIdLower = this.safeStringLower (market, 'baseId');
+        const quoteIdLower = this.safeStringLower (market, 'quoteId');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString (trade, dashedIdLower);
@@ -1159,9 +1173,9 @@ export default class bitstamp extends Exchange {
         if (costString === undefined) {
             costString = this.safeString (trade, quoteIdLower);
         }
-        symbol = market['symbol'];
+        symbol = this.safeString (market, 'symbol');
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (datetimeString !== undefined) {
             if (datetimeString.indexOf (' ') >= 0) {
                 // iso8601
@@ -1196,7 +1210,7 @@ export default class bitstamp extends Exchange {
         if (costString !== undefined) {
             costString = Precise.stringAbs (costString);
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
@@ -1232,7 +1246,9 @@ export default class bitstamp extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -1294,7 +1310,9 @@ export default class bitstamp extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -1338,8 +1356,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseBalance (response): Balances {
+        const finalResponse = response; // java req
         const result: Dict = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };
@@ -1368,7 +1387,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostAccountBalances (params);
         //
         //     [
@@ -1394,7 +1415,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market_symbol': market['id'],
@@ -1451,7 +1474,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostFeesTrading (params);
         //
         //     [
@@ -1481,7 +1506,9 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostFeesWithdrawal (params);
         //
         //     [
@@ -1526,7 +1553,9 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees (codes = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostFeesWithdrawal (params);
         //
         //     [
@@ -1544,10 +1573,11 @@ export default class bitstamp extends Exchange {
 
     parseDepositWithdrawFee (fee, currency = undefined) {
         const result = this.depositWithdrawFee (fee);
+        const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
             const networkEntry = fee[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             const withdrawFee = this.safeNumber (networkEntry, 'fee');
             result['withdraw'] = {
                 'fee': withdrawFee,
@@ -1586,7 +1616,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -1597,7 +1629,7 @@ export default class bitstamp extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId' ]);
         }
-        let response = undefined;
+        let response: Dict = undefined;
         const capitalizedSide = this.capitalize (side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
@@ -1642,7 +1674,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'amount': this.amountToPrecision (symbol, amount),
@@ -1672,7 +1706,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
@@ -1700,10 +1736,12 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1742,7 +1780,9 @@ export default class bitstamp extends Exchange {
     }
 
     async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request: Dict = {};
         if (clientOrderId !== undefined) {
@@ -1766,8 +1806,10 @@ export default class bitstamp extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1814,10 +1856,12 @@ export default class bitstamp extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         let method = 'privatePostUserTransactions';
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1851,9 +1895,11 @@ export default class bitstamp extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1910,7 +1956,9 @@ export default class bitstamp extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1942,7 +1990,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1962,7 +2010,9 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (since !== undefined) {
             request['timedelta'] = this.milliseconds () - since;
@@ -2041,8 +2091,8 @@ export default class bitstamp extends Exchange {
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeString (transaction, 'fee');
-        let feeCurrency = undefined;
-        let amount = undefined;
+        let feeCurrency: Str = undefined;
+        let amount: Str = undefined;
         if ('amount' in transaction) {
             amount = this.safeString (transaction, 'amount');
         } else if (currency !== undefined) {
@@ -2060,7 +2110,7 @@ export default class bitstamp extends Exchange {
         if ('status' in transaction) {
             status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         }
-        let type = undefined;
+        let type: Str = undefined;
         if ('type' in transaction) {
             // from fetchDepositsWithdrawals
             const rawType = this.safeString (transaction, 'type');
@@ -2073,7 +2123,7 @@ export default class bitstamp extends Exchange {
             // from fetchWithdrawals
             type = 'withdrawal';
         }
-        let tag = undefined;
+        let tag: Str = undefined;
         let address = this.safeString (transaction, 'address');
         if (address !== undefined) {
             // dt (destination tag) is embedded into the address field
@@ -2264,7 +2314,7 @@ export default class bitstamp extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         if (type === 'trade') {
             const parsedTrade = this.parseTrade (item);
-            let market = undefined;
+            let market: Market = undefined;
             const keys = Object.keys (item);
             for (let i = 0; i < keys.length; i++) {
                 if (keys[i].indexOf ('_') >= 0) {
@@ -2288,7 +2338,7 @@ export default class bitstamp extends Exchange {
                 'referenceId': parsedTrade['order'],
                 'referenceAccount': undefined,
                 'type': type,
-                'currency': market['base'],
+                'currency': this.safeString (market, 'base'),
                 'amount': parsedTrade['amount'],
                 'before': undefined,
                 'after': undefined,
@@ -2297,7 +2347,7 @@ export default class bitstamp extends Exchange {
             }, currency) as LedgerEntry;
         } else {
             const parsedTransaction = this.parseTransaction (item, currency);
-            let direction = undefined;
+            let direction: Str = undefined;
             if ('amount' in item) {
                 const amount = this.safeString (item, 'amount');
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
@@ -2339,13 +2389,15 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.privatePostUserTransactions (this.extend (request, params));
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2359,10 +2411,12 @@ export default class bitstamp extends Exchange {
      * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market_symbol': market['id'],
@@ -2426,8 +2480,10 @@ export default class bitstamp extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let market = undefined;
-        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2510,13 +2566,15 @@ export default class bitstamp extends Exchange {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         this.checkAddress (address);
         const request: Dict = {
             'amount': amount,
         };
-        let currency = undefined;
-        let method = undefined;
+        let currency: Currency = undefined;
+        let method: Str = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
             method = 'privatePost' + this.capitalize (name) + 'Withdrawal';
@@ -2554,13 +2612,15 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (fromAccount === 'main') {
             request['subAccount'] = toAccount;
             response = await this.privatePostTransferFromMain (this.extend (request, params));
@@ -2610,7 +2670,7 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);

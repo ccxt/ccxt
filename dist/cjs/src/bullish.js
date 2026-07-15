@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bullish$1 = require('./abstract/bullish.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,13 +20,13 @@ class bullish extends bullish$1["default"] {
             'name': 'Bullish',
             'countries': ['DE'],
             'version': 'v3',
-            'rateLimit': 20,
+            'rateLimit': 20, // 50 requests per second
             'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -234,8 +234,8 @@ class bullish extends bullish$1["default"] {
             'precisionMode': number.TICK_SIZE,
             // exchange-specific options
             'options': {
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
                     'EOS': 'EOS',
@@ -354,88 +354,88 @@ class bullish extends bullish$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    '1': errors.BadRequest,
-                    '5': errors.InvalidOrder,
-                    '6': errors.DuplicateOrderId,
-                    '13': errors.BadRequest,
-                    '15': errors.BadRequest,
-                    '18': errors.BadRequest,
-                    '1002': errors.BadRequest,
-                    '2001': errors.BadRequest,
-                    '2002': errors.BadRequest,
-                    '2003': errors.BadRequest,
-                    '2004': errors.BadRequest,
-                    '2005': errors.ExchangeError,
-                    '2006': errors.BadRequest,
-                    '2007': errors.BadRequest,
-                    '2008': errors.BadRequest,
-                    '2009': errors.BadSymbol,
-                    '2010': errors.AuthenticationError,
-                    '2011': errors.AuthenticationError,
-                    '2012': errors.BadRequest,
-                    '2013': errors.InvalidOrder,
-                    '2015': errors.OperationRejected,
-                    '2016': errors.BadRequest,
-                    '2017': errors.BadRequest,
-                    '2018': errors.BadRequest,
-                    '2020': errors.PermissionDenied,
-                    '2021': errors.OperationRejected,
-                    '2029': errors.InvalidNonce,
-                    '2035': errors.InvalidNonce,
-                    '3001': errors.InsufficientFunds,
-                    '3002': errors.OrderNotFound,
-                    '3003': errors.PermissionDenied,
-                    '3004': errors.InsufficientFunds,
-                    '3005': errors.InsufficientFunds,
-                    '3006': errors.InsufficientFunds,
-                    '3007': errors.DuplicateOrderId,
-                    '3031': errors.BadRequest,
-                    '3032': errors.BadRequest,
-                    '3033': errors.PermissionDenied,
-                    '3034': errors.RateLimitExceeded,
-                    '3035': errors.RateLimitExceeded,
-                    '3047': errors.OperationRejected,
-                    '3048': errors.OperationRejected,
-                    '3049': errors.OperationRejected,
-                    '3051': errors.InsufficientFunds,
-                    '3052': errors.InsufficientFunds,
-                    '3063': errors.BadRequest,
-                    '3064': errors.OrderNotFillable,
-                    '3065': errors.MarketClosed,
-                    '3066': errors.ExchangeError,
-                    '3067': errors.MarketClosed,
-                    '6007': errors.InvalidOrder,
-                    '6011': errors.InvalidOrder,
-                    '6012': errors.InvalidOrder,
-                    '6013': errors.InvalidOrder,
-                    '8301': errors.ExchangeError,
-                    '8305': errors.ExchangeError,
-                    '8306': errors.ExchangeError,
-                    '8307': errors.ExchangeError,
-                    '8310': errors.InvalidAddress,
-                    '8311': errors.BadRequest,
-                    '8313': errors.BadRequest,
-                    '8315': errors.OperationRejected,
-                    '8316': errors.OperationRejected,
-                    '8317': errors.OperationRejected,
-                    '8318': errors.NotSupported,
-                    '8319': errors.NotSupported,
-                    '8320': errors.InvalidAddress,
-                    '8322': errors.BadRequest,
-                    '8327': errors.AuthenticationError,
-                    '8329': errors.ExchangeError,
-                    '8331': errors.InvalidAddress,
-                    '8332': errors.BadRequest,
-                    '8333': errors.BadRequest,
-                    '8334': errors.BadRequest,
-                    '8335': errors.InvalidAddress,
-                    '8336': errors.InvalidAddress,
+                    '1': errors.BadRequest, // Unknown symbol
+                    '5': errors.InvalidOrder, // Unknown order
+                    '6': errors.DuplicateOrderId, // Duplicate order
+                    '13': errors.BadRequest, // Incorrect quantity
+                    '15': errors.BadRequest, // Invalid account
+                    '18': errors.BadRequest, // Invalid price
+                    '1002': errors.BadRequest, // Unable to place request
+                    '2001': errors.BadRequest, // Bad incoming request
+                    '2002': errors.BadRequest, // Invalid user's client id
+                    '2003': errors.BadRequest, // Invalid handle
+                    '2004': errors.BadRequest, // Invalid quantity
+                    '2005': errors.ExchangeError, // Unknown error
+                    '2006': errors.BadRequest, // Invalid account type, //  account must be spot
+                    '2007': errors.BadRequest, // Account already exist
+                    '2008': errors.BadRequest, // Invalid side, //  side must me from buy or sell
+                    '2009': errors.BadSymbol, // Invalid market
+                    '2010': errors.AuthenticationError, // Account doesn't exist
+                    '2011': errors.AuthenticationError, // Account types are different
+                    '2012': errors.BadRequest, // Invalid price
+                    '2013': errors.InvalidOrder, // Invalid order type, //  type must be from limit, //  market, //  stop-limit
+                    '2015': errors.OperationRejected, // Exceeded maximum amount of allowed open margin orders
+                    '2016': errors.BadRequest, // Unknown request type
+                    '2017': errors.BadRequest, // Invalid order id
+                    '2018': errors.BadRequest, // Unknown time in force option
+                    '2020': errors.PermissionDenied, // Margin trading is not allowed
+                    '2021': errors.OperationRejected, // Exceeded maximum amount of allowed open spot orders
+                    '2029': errors.InvalidNonce, // Invalid request id
+                    '2035': errors.InvalidNonce, // Invalid nonce
+                    '3001': errors.InsufficientFunds, // Account doesn't have sufficient balance
+                    '3002': errors.OrderNotFound, // Order is not found
+                    '3003': errors.PermissionDenied, // Borrowing is unavailable
+                    '3004': errors.InsufficientFunds, // Unable to adjust balance
+                    '3005': errors.InsufficientFunds, // Insufficient balance
+                    '3006': errors.InsufficientFunds, // Insufficient collateral
+                    '3007': errors.DuplicateOrderId, // Duplicated order id
+                    '3031': errors.BadRequest, // Price is out of range
+                    '3032': errors.BadRequest, // Order is either closed or rejected
+                    '3033': errors.PermissionDenied, // Leverage increase not permitted
+                    '3034': errors.RateLimitExceeded, // Rate limit exceeded
+                    '3035': errors.RateLimitExceeded, // Global rate limit exceeded
+                    '3047': errors.OperationRejected, // Leverage increase not permitted
+                    '3048': errors.OperationRejected, // Reached max borrowing
+                    '3049': errors.OperationRejected, // No more open loans available
+                    '3051': errors.InsufficientFunds, // Insufficient iou balance
+                    '3052': errors.InsufficientFunds, // Insufficient uoi balance
+                    '3063': errors.BadRequest, // Missing request id
+                    '3064': errors.OrderNotFillable, // Incoming order failed to make or take
+                    '3065': errors.MarketClosed, // Market open interest limit exceeded
+                    '3066': errors.ExchangeError, // Account concentration limit exceeded
+                    '3067': errors.MarketClosed, // MarketClosed
+                    '6007': errors.InvalidOrder, // Self cross prevention
+                    '6011': errors.InvalidOrder, // Self cross prevention amend
+                    '6012': errors.InvalidOrder, // Stop limit amend
+                    '6013': errors.InvalidOrder, // Partially filled
+                    '8301': errors.ExchangeError, // Unexpected Error
+                    '8305': errors.ExchangeError, // Withdraw assertion failed
+                    '8306': errors.ExchangeError, // Custody bad user
+                    '8307': errors.ExchangeError, // Unexpected withdraw exception
+                    '8310': errors.InvalidAddress, // Cannot find withdrawal destination
+                    '8311': errors.BadRequest, // Missing fields in withdraw
+                    '8313': errors.BadRequest, // Unsupported coin
+                    '8315': errors.OperationRejected, // Crypto deposit not found
+                    '8316': errors.OperationRejected, // Unable to allocate deposit address
+                    '8317': errors.OperationRejected, // Swift code is on the restricted list
+                    '8318': errors.NotSupported, // Unsupported operation
+                    '8319': errors.NotSupported, // Custody operation has been disabled
+                    '8320': errors.InvalidAddress, // Address failed validation
+                    '8322': errors.BadRequest, // Bad withdrawal amount
+                    '8327': errors.AuthenticationError, // Invalid Login
+                    '8329': errors.ExchangeError, // Unexpected destination exception
+                    '8331': errors.InvalidAddress, // Invalid Destination
+                    '8332': errors.BadRequest, // Bad network specified
+                    '8333': errors.BadRequest, // Bad symbol specified
+                    '8334': errors.BadRequest, // Bad authentication type
+                    '8335': errors.InvalidAddress, // Withdrawal destination does not belong to user
+                    '8336': errors.InvalidAddress, // Withdrawal destination not whitelisted
                     '8399': errors.ExchangeError, // Unknown error
                 },
                 'broad': {
                     'HttpInvalidParameterException': errors.BadRequest,
-                    'UNAUTHORIZED_COMMAND': errors.AuthenticationError,
-                    'QUERY_FILTER_ERROR': errors.BadRequest,
+                    'UNAUTHORIZED_COMMAND': errors.AuthenticationError, // {"message":"Unauthorized to execute command","raw":null,"errorCode":6105,"errorCodeName":"UNAUTHORIZED_COMMAND"}
+                    'QUERY_FILTER_ERROR': errors.BadRequest, // {"message":"Field 'settlementDatetime' cannot be filtered","errorCode":23001,"errorCodeName":"QUERY_FILTER_ERROR"}
                     'INVALID_SYMBOL': errors.BadSymbol, // {"message":"Invalid symbol provided","errorCode":28004,"errorCodeName":"INVALID_SYMBOL"}
                 },
             },
@@ -513,32 +513,30 @@ class bullish extends bullish$1["default"] {
         //         }, ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'name');
-            const precision = this.safeString(currency, 'precision');
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber(currency, 'minFee'),
-                'precision': this.parseNumber(this.parsePrecision(precision)),
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': currency,
-            };
-        }
-        return result;
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const name = this.safeString(rawCurrency, 'name');
+        const precision = this.safeString(rawCurrency, 'precision');
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': this.safeNumber(rawCurrency, 'minFee'),
+            'precision': this.parseNumber(this.parsePrecision(precision)),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+            'type': 'crypto',
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -888,7 +886,7 @@ class bullish extends bullish$1["default"] {
             'info': market,
         });
     }
-    parseMarketType(type, defaultType = undefined) {
+    parseMarketType(type = undefined, defaultType = undefined) {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -905,10 +903,12 @@ class bullish extends bullish$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -951,7 +951,9 @@ class bullish extends bullish$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
@@ -1012,7 +1014,7 @@ class bullish extends bullish$1["default"] {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        let response = undefined;
+        let response;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, params));
         }
@@ -1065,7 +1067,9 @@ class bullish extends bullish$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId === undefined) {
             params = this.extend({ 'orderId': id }, params);
@@ -1171,7 +1175,9 @@ class bullish extends bullish$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1326,7 +1332,9 @@ class bullish extends bullish$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const maxLimit = 100;
         let paginate = false;
@@ -1399,7 +1407,9 @@ class bullish extends bullish$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
@@ -1487,7 +1497,7 @@ class bullish extends bullish$1["default"] {
         }
         let method = 'privateGetV2HistoryOrders';
         [method, params] = this.handleOptionAndParams(params, 'fetchOrders', 'method', method);
-        let response = undefined;
+        let response = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [
@@ -2101,7 +2111,7 @@ class bullish extends bullish$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, code);
         }
         else {
             throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
@@ -2175,7 +2185,7 @@ class bullish extends bullish$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(network),
+            'network': this.networkIdToCode(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2372,7 +2382,7 @@ class bullish extends bullish$1["default"] {
                 for (let i = 0; i < safeResponse.length; i++) {
                     const entry = this.safeDict(safeResponse, i, {});
                     const networkId = this.safeString(entry, 'network');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     if (network === networkCode) {
                         data = entry;
                         break;
@@ -2388,10 +2398,11 @@ class bullish extends bullish$1["default"] {
     parseDepositAddress(depositAddress, currency = undefined) {
         const id = this.safeString(depositAddress, 'symbol');
         const network = this.safeString(depositAddress, 'network');
+        const code = this.safeCurrencyCode(id, currency);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(id, currency),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
         };
@@ -2802,7 +2813,9 @@ class bullish extends bullish$1["default"] {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2909,7 +2922,7 @@ class bullish extends bullish$1["default"] {
             const timestamp = this.getTimestamp().toString();
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
@@ -2919,8 +2932,8 @@ class bullish extends bullish$1["default"] {
             else if (method === 'POST') {
                 body = this.json(params);
                 const payload = timestamp + nonce + method + '/trading-api/' + path + body;
-                const digest = this.hash(this.encode(payload), sha256.sha256, 'hex');
-                const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256.sha256, 'hex');
+                const digest = this.hash(this.encode(payload), sha2_js.sha256, 'hex');
+                const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
@@ -2934,6 +2947,7 @@ class bullish extends bullish$1["default"] {
                 }
             }
             if (path === 'v1/users/hmac/login') {
+                headers = (headers === undefined) ? {} : headers;
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             }
             else {
@@ -2941,6 +2955,7 @@ class bullish extends bullish$1["default"] {
                 if ((token === undefined)) {
                     throw new errors.AuthenticationError(this.id + ' requires a token, please call signIn() first');
                 }
+                headers = (headers === undefined) ? {} : headers;
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

@@ -6,7 +6,7 @@ type Kraken struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewKraken(userConfig map[string]interface{}) *Kraken {
+func NewKraken(userConfig map[string]any) *Kraken {
 	p := NewKrakenCore()
 	p.Init(userConfig)
 	return &Kraken{
@@ -30,11 +30,11 @@ func NewKrakenFromCore(core *KrakenCore) *Kraken {
  * @method
  * @name kraken#fetchMarkets
  * @description retrieves data on all markets for kraken
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+ * @see https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Kraken) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Kraken) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -46,27 +46,27 @@ func (this *Kraken) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
  * @method
  * @name kraken#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+ * @see https://docs.kraken.com/api-reference/market-data/get-system-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Kraken) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Kraken) FetchStatus(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name kraken#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+ * @see https://docs.kraken.com/api-reference/market-data/get-asset-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Kraken) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Kraken) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -78,7 +78,7 @@ func (this *Kraken) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @method
  * @name kraken#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+ * @see https://docs.kraken.com/api-reference/account-data/get-trade-volume
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -91,7 +91,7 @@ func (this *Kraken) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -106,11 +106,11 @@ func (this *Kraken) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
  * @method
  * @name kraken#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+ * @see https://docs.kraken.com/api-reference/market-data/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Kraken) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -120,12 +120,12 @@ func (this *Kraken) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -140,7 +140,7 @@ func (this *Kraken) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @method
  * @name kraken#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -153,12 +153,12 @@ func (this *Kraken) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -173,7 +173,7 @@ func (this *Kraken) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @method
  * @name kraken#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-information
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -186,7 +186,7 @@ func (this *Kraken) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -201,7 +201,7 @@ func (this *Kraken) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @method
  * @name kraken#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
+ * @see https://docs.kraken.com/api-reference/market-data/get-ohlc-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -218,22 +218,22 @@ func (this *Kraken) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -248,7 +248,7 @@ func (this *Kraken) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
  * @method
  * @name kraken#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+ * @see https://docs.kraken.com/api-reference/account-data/get-ledgers-info
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -265,22 +265,22 @@ func (this *Kraken) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -290,7 +290,7 @@ func (this *Kraken) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
 	}
 	return NewLedgerEntryArray(res), nil
 }
-func (this *Kraken) FetchLedgerEntriesByIds(ids interface{}, options ...FetchLedgerEntriesByIdsOptions) ([]LedgerEntry, error) {
+func (this *Kraken) FetchLedgerEntriesByIds(ids any, options ...FetchLedgerEntriesByIdsOptions) ([]LedgerEntry, error) {
 
 	opts := FetchLedgerEntriesByIdsOptionsStruct{}
 
@@ -298,12 +298,12 @@ func (this *Kraken) FetchLedgerEntriesByIds(ids interface{}, options ...FetchLed
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -321,12 +321,12 @@ func (this *Kraken) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptio
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -341,7 +341,7 @@ func (this *Kraken) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptio
  * @method
  * @name kraken#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+ * @see https://docs.kraken.com/api-reference/market-data/get-recent-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -356,17 +356,17 @@ func (this *Kraken) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -381,11 +381,11 @@ func (this *Kraken) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @method
  * @name kraken#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+ * @see https://docs.kraken.com/api-reference/account-data/get-extended-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Kraken) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Kraken) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -397,7 +397,7 @@ func (this *Kraken) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name kraken#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -412,7 +412,7 @@ func (this *Kraken) CreateMarketOrderWithCost(symbol string, side string, cost f
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -427,7 +427,7 @@ func (this *Kraken) CreateMarketOrderWithCost(symbol string, side string, cost f
  * @method
  * @name kraken#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol, side and cost
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -441,7 +441,7 @@ func (this *Kraken) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -456,7 +456,7 @@ func (this *Kraken) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
  * @method
  * @name kraken#createOrder
  * @description create a trade order
- * @see https://docs.kraken.com/api/docs/rest-api/add-order
+ * @see https://docs.kraken.com/api-reference/trading/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -483,12 +483,12 @@ func (this *Kraken) CreateOrder(symbol string, typeVar string, side string, amou
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -503,7 +503,7 @@ func (this *Kraken) CreateOrder(symbol string, typeVar string, side string, amou
  * @method
  * @name kraken#createOrders
  * @description create a list of trade orders
- * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+ * @see https://docs.kraken.com/api-reference/trading/add-order-batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -516,7 +516,7 @@ func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -531,7 +531,7 @@ func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @method
  * @name kraken#editOrder
  * @description edit a trade order
- * @see https://docs.kraken.com/api/docs/rest-api/amend-order
+ * @see https://docs.kraken.com/api-reference/trading/amend-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -558,17 +558,17 @@ func (this *Kraken) EditOrder(id string, symbol string, typeVar string, side str
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -583,7 +583,7 @@ func (this *Kraken) EditOrder(id string, symbol string, typeVar string, side str
  * @method
  * @name kraken#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+ * @see https://docs.kraken.com/api-reference/account-data/query-orders-info
  * @param {string} id order id
  * @param {string} symbol not used by kraken fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -597,12 +597,12 @@ func (this *Kraken) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -617,7 +617,7 @@ func (this *Kraken) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @method
  * @name kraken#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+ * @see https://docs.kraken.com/api-reference/account-data/query-trades-info
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -633,22 +633,22 @@ func (this *Kraken) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -663,13 +663,13 @@ func (this *Kraken) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
  * @method
  * @name kraken#fetchOrdersByIds
  * @description fetch orders by the list of order id
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+ * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string[]} [ids] list of order id
  * @param {string} [symbol] unified ccxt market symbol
  * @param {object} [params] extra parameters specific to the kraken api endpoint
  * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) FetchOrdersByIds(ids interface{}, options ...FetchOrdersByIdsOptions) ([]map[string]interface{}, error) {
+func (this *Kraken) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions) ([]map[string]any, error) {
 
 	opts := FetchOrdersByIdsOptionsStruct{}
 
@@ -677,12 +677,12 @@ func (this *Kraken) FetchOrdersByIds(ids interface{}, options ...FetchOrdersById
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -690,14 +690,14 @@ func (this *Kraken) FetchOrdersByIds(ids interface{}, options ...FetchOrdersById
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewMapArray(res), nil
 }
 
 /**
  * @method
  * @name kraken#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
+ * @see https://docs.kraken.com/api-reference/account-data/get-trades-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -714,22 +714,22 @@ func (this *Kraken) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -744,7 +744,7 @@ func (this *Kraken) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @method
  * @name kraken#cancelOrder
  * @description cancels an open order
- * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
+ * @see https://docs.kraken.com/api-reference/trading/cancel-order
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -760,12 +760,12 @@ func (this *Kraken) CancelOrder(id string, options ...CancelOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -780,7 +780,7 @@ func (this *Kraken) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @method
  * @name kraken#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+ * @see https://docs.kraken.com/api-reference/trading/cancel-order-batch
  * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -794,12 +794,12 @@ func (this *Kraken) CancelOrders(ids []string, options ...CancelOrdersOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -814,7 +814,7 @@ func (this *Kraken) CancelOrders(ids []string, options ...CancelOrdersOptions) (
  * @method
  * @name kraken#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+ * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
  * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -827,12 +827,12 @@ func (this *Kraken) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -847,12 +847,12 @@ func (this *Kraken) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @method
  * @name kraken#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+ * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Kraken) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Kraken) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 
 	opts := CancelAllOrdersAfterOptionsStruct{}
 
@@ -860,22 +860,22 @@ func (this *Kraken) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrde
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.CancelAllOrdersAfter(timeout, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name kraken#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+ * @see https://docs.kraken.com/api-reference/account-data/get-open-orders
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -892,22 +892,22 @@ func (this *Kraken) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -922,7 +922,7 @@ func (this *Kraken) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @method
  * @name kraken#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+ * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -940,22 +940,22 @@ func (this *Kraken) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -970,7 +970,7 @@ func (this *Kraken) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @method
  * @name kraken#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+ * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -987,22 +987,22 @@ func (this *Kraken) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1017,11 +1017,11 @@ func (this *Kraken) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
  * @method
  * @name kraken#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+ * @see https://docs.kraken.com/api-reference/market-data/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Kraken) FetchTime(params ...interface{}) (int64, error) {
+func (this *Kraken) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -1033,7 +1033,7 @@ func (this *Kraken) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name kraken#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+ * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1051,22 +1051,22 @@ func (this *Kraken) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1081,7 +1081,7 @@ func (this *Kraken) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @method
  * @name kraken#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1094,7 +1094,7 @@ func (this *Kraken) CreateDepositAddress(code string, options ...CreateDepositAd
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1109,12 +1109,12 @@ func (this *Kraken) CreateDepositAddress(code string, options ...CreateDepositAd
  * @method
  * @name kraken#fetchDepositMethods
  * @description fetch deposit methods for a currency associated with this account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the kraken api endpoint
  * @returns {object} of deposit methods
  */
-func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) (map[string]any, error) {
 
 	opts := FetchDepositMethodsOptionsStruct{}
 
@@ -1122,22 +1122,22 @@ func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMeth
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositMethods(code, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name kraken#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+ * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1150,7 +1150,7 @@ func (this *Kraken) FetchDepositAddress(code string, options ...FetchDepositAddr
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1165,7 +1165,7 @@ func (this *Kraken) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @method
  * @name kraken#withdraw
  * @description make a withdrawal
- * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+ * @see https://docs.kraken.com/api-reference/funding/withdraw-funds
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
@@ -1181,12 +1181,12 @@ func (this *Kraken) Withdraw(code string, amount float64, address string, option
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1201,7 +1201,7 @@ func (this *Kraken) Withdraw(code string, amount float64, address string, option
  * @method
  * @name kraken#fetchPositions
  * @description fetch all open positions
- * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+ * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
  * @param {string[]} [symbols] not used by kraken fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -1214,12 +1214,12 @@ func (this *Kraken) FetchPositions(options ...FetchPositionsOptions) ([]Position
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1234,13 +1234,13 @@ func (this *Kraken) FetchPositions(options ...FetchPositionsOptions) ([]Position
  * @method
  * @name kraken#transferOut
  * @description transfer from spot wallet to futures wallet
- * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+ * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
  * @param {str} code Unified currency code
  * @param {float} amount Size of the transfer
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kraken) TransferOut(code string, amount interface{}, options ...TransferOutOptions) (TransferEntry, error) {
+func (this *Kraken) TransferOut(code string, amount any, options ...TransferOutOptions) (TransferEntry, error) {
 
 	opts := TransferOutOptionsStruct{}
 
@@ -1248,7 +1248,7 @@ func (this *Kraken) TransferOut(code string, amount interface{}, options ...Tran
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1262,7 +1262,7 @@ func (this *Kraken) TransferOut(code string, amount interface{}, options ...Tran
 /**
  * @method
  * @name kraken#transfer
- * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+ * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
  * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
  * @param {string} code Unified currency code
  * @param {float} amount Size of the transfer
@@ -1279,7 +1279,7 @@ func (this *Kraken) Transfer(code string, amount float64, fromAccount string, to
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1292,7 +1292,7 @@ func (this *Kraken) Transfer(code string, amount float64, fromAccount string, to
 
 // missing typed methods from base
 // nolint
-func (this *Kraken) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Kraken) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Kraken) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
@@ -1376,7 +1376,7 @@ func (this *Kraken) EditOrderWithClientOrderId(clientOrderId string, symbol stri
 func (this *Kraken) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Kraken) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Kraken) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Kraken) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1388,13 +1388,13 @@ func (this *Kraken) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, err
 func (this *Kraken) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Kraken) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Kraken) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Kraken) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Kraken) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Kraken) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1409,7 +1409,7 @@ func (this *Kraken) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 func (this *Kraken) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Kraken) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Kraken) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Kraken) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -1421,13 +1421,13 @@ func (this *Kraken) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Kraken) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Kraken) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Kraken) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Kraken) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Kraken) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Kraken) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -1457,7 +1457,7 @@ func (this *Kraken) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOpt
 func (this *Kraken) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Kraken) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Kraken) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Kraken) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1532,7 +1532,7 @@ func (this *Kraken) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 func (this *Kraken) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Kraken) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Kraken) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Kraken) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1541,7 +1541,7 @@ func (this *Kraken) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Kraken) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Kraken) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Kraken) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1556,16 +1556,16 @@ func (this *Kraken) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Kraken) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Kraken) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Kraken) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Kraken) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Kraken) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Kraken) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Kraken) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1580,10 +1580,10 @@ func (this *Kraken) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 func (this *Kraken) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Kraken) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Kraken) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Kraken) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Kraken) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Kraken) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -1658,13 +1658,13 @@ func (this *Kraken) CreateTriggerOrderWs(symbol string, typeVar string, side str
 func (this *Kraken) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Kraken) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Kraken) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Kraken) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Kraken) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Kraken) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1706,46 +1706,46 @@ func (this *Kraken) FetchTickerWs(symbol string, options ...FetchTickerWsOptions
 func (this *Kraken) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Kraken) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Kraken) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Kraken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Kraken) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Kraken) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Kraken) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Kraken) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Kraken) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Kraken) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Kraken) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Kraken) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Kraken) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Kraken) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Kraken) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Kraken) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Kraken) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Kraken) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Kraken) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Kraken) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Kraken) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Kraken) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Kraken) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Kraken) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Kraken) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Kraken) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Kraken) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Kraken) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Kraken) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Kraken) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

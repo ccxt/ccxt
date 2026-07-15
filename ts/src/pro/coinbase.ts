@@ -1,9 +1,9 @@
+import type { Market } from './../base/types.js';
 //  ---------------------------------------------------------------------------
-
+import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,8 +67,10 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     async subscribe (name: string, isPrivate: boolean, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         let messageHash = name;
         let productIds = [];
         if (Array.isArray (symbol)) {
@@ -108,12 +110,14 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol = undefined) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
-        let market = undefined;
+        let market: Market = undefined;
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds = [];
@@ -165,7 +169,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     async subscribeMultiple (name: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const productIds = [];
         const messageHashes = [];
         symbols = this.marketSymbols (symbols, undefined, false);
@@ -205,7 +211,9 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const productIds = [];
         const watchMessageHashes = [];
         const unWatchMessageHashes = [];
@@ -279,7 +287,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'ticker';
         return await this.subscribe (name, false, symbol, params);
     }
@@ -294,7 +304,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'ticker';
         return await this.unSubscribe ('ticker', name, false, symbol);
     }
@@ -309,7 +321,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -334,7 +348,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -516,7 +532,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const name = 'market_trades';
         const trades = await this.subscribe (name, false, symbol, params);
@@ -536,7 +554,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'market_trades';
         return await this.unSubscribe ('trades', name, false, symbol);
     }
@@ -553,7 +573,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'market_trades';
         const trades = await this.subscribeMultiple (name, false, symbols, params);
         if (this.newUpdates) {
@@ -574,7 +596,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'market_trades';
         return await this.unSubscribeMultiple ('trades', name, false, symbols, params);
     }
@@ -591,7 +615,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'user';
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
@@ -610,7 +636,9 @@ export default class coinbase extends coinbaseRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'user';
         return await this.unSubscribe ('orders', name, true, this.symbol (symbol));
     }
@@ -623,10 +651,12 @@ export default class coinbase extends coinbaseRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'level2';
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -641,10 +671,12 @@ export default class coinbase extends coinbaseRest {
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const name = 'level2';
         return await this.unSubscribe ('orderbook', name, false, symbol);
@@ -658,10 +690,12 @@ export default class coinbase extends coinbaseRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const name = 'level2';
         const orderbook = await this.subscribeMultiple (name, false, symbols, params);
         return orderbook.limit ();

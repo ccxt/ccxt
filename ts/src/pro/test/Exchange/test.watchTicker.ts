@@ -22,7 +22,7 @@ async function testWatchTicker (exchange: Exchange, skippedProperties: object, s
             success = false;
         }
         if (success === true) {
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json (response));
             now = exchange.milliseconds ();
             testTicker (exchange, skippedProperties, method, response, symbol);
         }

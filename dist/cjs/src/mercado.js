@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var mercado$1 = require('./abstract/mercado.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class mercado extends mercado$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
-            'countries': ['BR'],
+            'countries': ['BR'], // Brazil
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
@@ -145,7 +145,7 @@ class mercado extends mercado$1["default"] {
                 'public': {
                     'get': [
                         'coins',
-                        '{coin}/orderbook/',
+                        '{coin}/orderbook/', // last slash critical
                         '{coin}/ticker/',
                         '{coin}/trades/',
                         '{coin}/trades/{from}/',
@@ -209,13 +209,13 @@ class mercado extends mercado$1["default"] {
                         'timeInForce': {
                             'IOC': false,
                             'FOK': false,
-                            'PO': true,
+                            'PO': true, // todo
                             'GTD': false,
                         },
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo
                         'marketBuyRequiresPrice': true,
                         'selfTradePrevention': false,
                         'iceberg': false,
@@ -223,9 +223,9 @@ class mercado extends mercado$1["default"] {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': undefined, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -365,10 +365,12 @@ class mercado extends mercado$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin': market['base'],
@@ -424,7 +426,9 @@ class mercado extends mercado$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin': market['base'],
@@ -490,7 +494,9 @@ class mercado extends mercado$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let method = 'publicGetCoinTrades';
         const request = {
@@ -533,7 +539,9 @@ class mercado extends mercado$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetAccountInfo(params);
         return this.parseBalance(response);
     }
@@ -550,7 +558,9 @@ class mercado extends mercado$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
@@ -596,7 +606,9 @@ class mercado extends mercado$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
@@ -685,6 +697,7 @@ class mercado extends mercado$1["default"] {
         const filled = this.safeString(order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp(order, 'updated_timestamp');
         const rawTrades = this.safeValue(order, 'operations', []);
+        const symbol = market['symbol'];
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -692,7 +705,7 @@ class mercado extends mercado$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -722,7 +735,9 @@ class mercado extends mercado$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
@@ -747,7 +762,9 @@ class mercado extends mercado$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -860,7 +877,9 @@ class mercado extends mercado$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
@@ -895,7 +914,9 @@ class mercado extends mercado$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
@@ -919,7 +940,9 @@ class mercado extends mercado$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
@@ -944,7 +967,9 @@ class mercado extends mercado$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
@@ -988,7 +1013,7 @@ class mercado extends mercado$1["default"] {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
-                'TAPI-MAC': this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512),
+                'TAPI-MAC': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

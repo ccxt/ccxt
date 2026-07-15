@@ -16,6 +16,8 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_market(exchange, skipped_properties, method, market):
+    if market is None:
+        return
     format = {
         'id': 'btcusd',
         'symbol': 'BTC/USD',
@@ -82,6 +84,7 @@ def test_market(exchange, skipped_properties, method, market):
     inverse = market['inverse']
     quanto = exchange.safe_bool(market, 'quanto')  # todo: unify
     is_quanto = (quanto is not None) and quanto
+    is_inactive_market = market['active'] is False
     #
     empty_allowed_for = ['margin']
     if not contract:
@@ -97,6 +100,14 @@ def test_market(exchange, skipped_properties, method, market):
     if not option:
         empty_allowed_for.append('optionType')
         empty_allowed_for.append('strike')
+    if is_inactive_market:
+        empty_allowed_for.append('contractSize')
+        empty_allowed_for.append('settle')
+        empty_allowed_for.append('settleId')
+        empty_allowed_for.append('baseId')
+        empty_allowed_for.append('quoteId')
+        empty_allowed_for.append('base')
+        empty_allowed_for.append('quote')
     test_shared_methods.assert_structure(exchange, skipped_properties, method, market, format, empty_allowed_for)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
@@ -106,8 +117,8 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'taker', '100')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'maker', '100')
-    # validate type
-    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other']
+    # validate type ('prediction' for prediction-market exchanges)
+    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
     # validate subTypes
     valid_sub_types = ['linear', 'inverse', 'quanto', None]
@@ -133,14 +144,18 @@ def test_market(exchange, skipped_properties, method, market):
         # otherwise, it must be false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [False, None])
     # check mutually exclusive fields
-    if spot:
+    is_prediction = (market['type'] == 'prediction')
+    if is_prediction:
+        # prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert not spot and not contract and not future and not swap and not option, 'for prediction market, none of spot/contract/future/swap/option should be set' + log_text
+    elif spot:
         assert not contract and linear is None and inverse is None and not option and not swap and not future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + log_text
     else:
         # if not spot, any of the below should be true
         assert contract and (future or swap or option or is_index), 'for non-spot markets, any of (future/swap/option/index) should be set' + log_text
     contract_size = exchange.safe_string(market, 'contractSize')
     # contract fields
-    if contract:
+    if contract and not is_inactive_market:
         if is_quanto:
             assert linear is False, 'linear must be false when "quanto" is true' + log_text
             assert inverse is False, 'inverse must be false when "quanto" is true' + log_text
@@ -155,7 +170,7 @@ def test_market(exchange, skipped_properties, method, market):
         assert ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
         # settle should be defined
         assert ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
-    else:
+    elif not contract:
         # linear & inverse needs to be undefined
         assert linear is None and inverse is None and quanto is None, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + log_text
         # contract size should be undefined
@@ -207,7 +222,6 @@ def test_market(exchange, skipped_properties, method, market):
             continue
         if not ('precision' in skipped_properties):
             test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], price_or_amount_key)
-    is_inactive_market = market['active'] is False
     # check limits
     limits_keys = list(market['limits'].keys())
     limits_keys_length = len(limits_keys)
@@ -226,15 +240,17 @@ def test_market(exchange, skipped_properties, method, market):
             min_string = exchange.safe_string(limit_entry, 'min')
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
-    # check currencies
-    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
-    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
-    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    # check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    # not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if not is_inactive_market and not is_prediction:
+        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
+        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
+        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
     # check ts
     test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')
     # margin modes
     if not ('marginModes' in skipped_properties):
-        margin_modes = exchange.safe_dict(market, 'marginModes')  # in future, remove safeDict
+        margin_modes = exchange.safe_dict(market, 'marginModes', {})  # in future, remove safeDict
         assert 'cross' in margin_modes, 'marginModes should have "cross" key' + log_text
         assert 'isolated' in margin_modes, 'marginModes should have "isolated" key' + log_text
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, margin_modes, 'cross', [True, False, None])

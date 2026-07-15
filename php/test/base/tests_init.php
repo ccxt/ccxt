@@ -24,6 +24,7 @@ include_once __DIR__ . '/test_cryptography.php';
 include_once __DIR__ . '/test_to_array.php';
 include_once __DIR__ . '/test_extend.php';
 include_once __DIR__ . '/test_deep_extend.php';
+include_once __DIR__ . '/test_network_methods.php';
 include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
@@ -46,6 +47,7 @@ include_once __DIR__ . '/test_string_to_base64.php';
 include_once __DIR__ . '/test_urlencode.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_rawencode.php';
+include_once __DIR__ . '/test_fetch_history.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_urlencode_with_array_repeat.php';
@@ -72,7 +74,7 @@ include_once __DIR__ . '/test_encode_decode.php';
 
 function base_tests_init() {
     return Async\async(function () {
-        Async\await(test_language_specific());
+        \React\Async\await(test_language_specific());
         test_constants();
         test_after_constructor();
         test_aggregate();
@@ -107,6 +109,7 @@ function base_tests_init() {
         test_in_array();
         test_filter_by();
         test_handle_methods();
+        test_network_methods();
         test_remove_repeated_elements_from_array();
         test_is_empty();
         test_binary_concat();
@@ -121,15 +124,17 @@ function base_tests_init() {
         test_array_concat();
         test_arrays_concat();
         test_uuid();
-        Async\await(test_set_markets_from_exchange());
+        \React\Async\await(test_set_markets_from_exchange());
         test_eth_methods();
         test_keysort();
         test_implode_params();
         test_unique();
         test_urlencode_nested();
-        Async\await(test_sleep());
+        \React\Async\await(test_sleep());
+        \React\Async\await(test_fetch_history());
         test_io();
         test_is_json_encoded_object();
         test_encode_decode();
+        return true;
     }) ();
 }

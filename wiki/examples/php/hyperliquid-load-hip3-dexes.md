@@ -1,8 +1,5 @@
-- [Hyperliquid Load Hip3 Dexes](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\async\hyperliquid(array(
@@ -33,7 +29,7 @@ function example() {
                 ),
             ),
         ));
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $markets = is_array($exchange->markets) ? array_values($exchange->markets) : array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -45,6 +41,6 @@ function example() {
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

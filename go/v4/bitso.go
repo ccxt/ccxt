@@ -13,14 +13,14 @@ func NewBitsoCore() *BitsoCore {
 	return p
 }
 
-func (this *BitsoCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *BitsoCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitso",
 		"name":      "Bitso",
-		"countries": []interface{}{"MX"},
+		"countries": []any{"MX"},
 		"rateLimit": 2000,
 		"version":   "v3",
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                                   nil,
 			"spot":                                   true,
 			"margin":                                 false,
@@ -51,7 +51,7 @@ func (this *BitsoCore) Describe() interface{} {
 			"fetchBorrowRatesPerSymbol":              false,
 			"fetchCrossBorrowRate":                   false,
 			"fetchCrossBorrowRates":                  false,
-			"fetchCurrencies":                        false,
+			"fetchCurrencies":                        true,
 			"fetchDeposit":                           true,
 			"fetchDepositAddress":                    true,
 			"fetchDepositAddresses":                  false,
@@ -129,12 +129,12 @@ func (this *BitsoCore) Describe() interface{} {
 			"transfer":                               false,
 			"withdraw":                               true,
 		},
-		"urls": map[string]interface{}{
-			"logo": "https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975",
-			"api": map[string]interface{}{
+		"urls": map[string]any{
+			"logo": "https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4",
+			"api": map[string]any{
 				"rest": "https://bitso.com/api",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"rest": "https://stage.bitso.com/api",
 			},
 			"www":      "https://bitso.com",
@@ -143,21 +143,15 @@ func (this *BitsoCore) Describe() interface{} {
 			"referral": "https://bitso.com/?ref=itej",
 		},
 		"precisionMode": TICK_SIZE,
-		"options": map[string]interface{}{
-			"precision": map[string]interface{}{
-				"XRP":  0.000001,
-				"MXN":  0.01,
-				"TUSD": 0.01,
-			},
-			"defaultPrecision": 1e-8,
-			"networks": map[string]interface{}{
+		"options": map[string]any{
+			"networks": map[string]any{
 				"TRC20": "trx",
 				"ERC20": "erc20",
 				"BEP20": "bsc",
 				"BEP2":  "bep2",
 			},
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "60",
 			"5m":  "300",
 			"15m": "900",
@@ -168,20 +162,20 @@ func (this *BitsoCore) Describe() interface{} {
 			"1d":  "86400",
 			"1w":  "604800",
 		},
-		"api": map[string]interface{}{
-			"public": map[string]interface{}{
-				"get": []interface{}{"available_books", "ticker", "order_book", "trades", "ohlc"},
+		"api": map[string]any{
+			"public": map[string]any{
+				"get": []any{"available_books", "catalogues", "ticker", "order_book", "trades", "ohlc"},
 			},
-			"private": map[string]interface{}{
-				"get":    []interface{}{"account_status", "balance", "fees", "fundings", "fundings/{fid}", "funding_destination", "kyc_documents", "ledger", "ledger/trades", "ledger/fees", "ledger/fundings", "ledger/withdrawals", "mx_bank_codes", "open_orders", "order_trades/{oid}", "orders/{oid}", "user_trades", "user_trades/{tid}", "withdrawals/", "withdrawals/{wid}"},
-				"post":   []interface{}{"bitcoin_withdrawal", "debit_card_withdrawal", "ether_withdrawal", "orders", "phone_number", "phone_verification", "phone_withdrawal", "spei_withdrawal", "ripple_withdrawal", "bcash_withdrawal", "litecoin_withdrawal"},
-				"delete": []interface{}{"orders", "orders/{oid}", "orders/all"},
+			"private": map[string]any{
+				"get":    []any{"account_status", "balance", "fees", "fundings", "fundings/{fid}", "funding_destination", "kyc_documents", "ledger", "ledger/trades", "ledger/fees", "ledger/fundings", "ledger/withdrawals", "mx_bank_codes", "open_orders", "order_trades/{oid}", "orders/{oid}", "user_trades", "user_trades/{tid}", "withdrawals/", "withdrawals/{wid}"},
+				"post":   []any{"bitcoin_withdrawal", "debit_card_withdrawal", "ether_withdrawal", "orders", "phone_number", "phone_verification", "phone_withdrawal", "spei_withdrawal", "ripple_withdrawal", "bcash_withdrawal", "litecoin_withdrawal"},
+				"delete": []any{"orders", "orders/{oid}", "orders/all"},
 			},
 		},
-		"features": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"features": map[string]any{
+			"spot": map[string]any{
 				"sandbox": false,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerPriceType":           nil,
@@ -189,7 +183,7 @@ func (this *BitsoCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -204,20 +198,20 @@ func (this *BitsoCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       nil,
 					"untilDays":      nil,
 					"symbolRequired": true,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": true,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          500,
 					"trigger":        false,
@@ -226,20 +220,20 @@ func (this *BitsoCore) Describe() interface{} {
 				},
 				"fetchOrders":       nil,
 				"fetchClosedOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 300,
 				},
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"exceptions": map[string]interface{}{
+		"exceptions": map[string]any{
 			"0201": AuthenticationError,
 			"104":  InvalidNonce,
 			"0304": BadRequest,
@@ -257,9 +251,9 @@ func (this *BitsoCore) Describe() interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *BitsoCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -268,9 +262,9 @@ func (this *BitsoCore) FetchLedger(optionalArgs ...interface{}) <-chan interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request interface{} = map[string]interface{}{}
+		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
@@ -300,8 +294,8 @@ func (this *BitsoCore) FetchLedger(optionalArgs ...interface{}) <-chan interface
 		//         }]
 		//     }
 		//
-		var payload interface{} = this.SafeValue(response, "payload", []interface{}{})
-		var currency interface{} = this.SafeCurrency(code)
+		var payload any = this.SafeValue(response, "payload", []any{})
+		var currency any = this.SafeCurrency(code)
 
 		ch <- this.ParseLedger(payload, currency, since, limit)
 		return nil
@@ -309,8 +303,8 @@ func (this *BitsoCore) FetchLedger(optionalArgs ...interface{}) <-chan interface
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
-	var types interface{} = map[string]interface{}{
+func (this *BitsoCore) ParseLedgerEntryType(typeVar any) any {
+	var types any = map[string]any{
 		"funding":    "transaction",
 		"withdrawal": "transaction",
 		"trade":      "trade",
@@ -318,7 +312,7 @@ func (this *BitsoCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *BitsoCore) ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -375,18 +369,18 @@ func (this *BitsoCore) ParseLedgerEntry(item interface{}, optionalArgs ...interf
 	//     }
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var operation interface{} = this.SafeString(item, "operation")
-	var typeVar interface{} = this.ParseLedgerEntryType(operation)
-	var balanceUpdates interface{} = this.SafeValue(item, "balance_updates", []interface{}{})
-	var firstBalance interface{} = this.SafeValue(balanceUpdates, 0, map[string]interface{}{})
-	var direction interface{} = nil
-	var fee interface{} = nil
-	var amount interface{} = this.SafeString(firstBalance, "amount")
-	var currencyId interface{} = this.SafeString(firstBalance, "currency")
-	var code interface{} = this.SafeCurrencyCode(currencyId, currency)
+	var operation any = this.SafeString(item, "operation")
+	var typeVar any = this.ParseLedgerEntryType(operation)
+	var balanceUpdates any = this.SafeValue(item, "balance_updates", []any{})
+	var firstBalance any = this.SafeValue(balanceUpdates, 0, map[string]any{})
+	var direction any = nil
+	var fee any = nil
+	var amount any = this.SafeString(firstBalance, "amount")
+	var currencyId any = this.SafeString(firstBalance, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var details interface{} = this.SafeValue(item, "details", map[string]interface{}{})
-	var referenceId interface{} = this.SafeString2(details, "fid", "wid")
+	var details any = this.SafeValue(item, "details", map[string]any{})
+	var referenceId any = this.SafeString2(details, "fid", "wid")
 	if IsTrue(IsEqual(referenceId, nil)) {
 		referenceId = this.SafeString(details, "tid")
 	}
@@ -398,14 +392,14 @@ func (this *BitsoCore) ParseLedgerEntry(item interface{}, optionalArgs ...interf
 		direction = nil
 	} else if IsTrue(IsEqual(operation, "fee")) {
 		direction = "out"
-		var cost interface{} = Precise.StringAbs(amount)
-		fee = map[string]interface{}{
+		var cost any = Precise.StringAbs(amount)
+		fee = map[string]any{
 			"cost":     cost,
 			"currency": currency,
 		}
 	}
-	var timestamp interface{} = this.Parse8601(this.SafeString(item, "created_at"))
-	return this.SafeLedgerEntry(map[string]interface{}{
+	var timestamp any = this.Parse8601(this.SafeString(item, "created_at"))
+	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "eid"),
 		"direction":        direction,
@@ -432,12 +426,12 @@ func (this *BitsoCore) ParseLedgerEntry(item interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *BitsoCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.PublicGetAvailableBooks(params))
@@ -474,53 +468,53 @@ func (this *BitsoCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 		//             },
 		//         ]
 		//     }
-		var markets interface{} = this.SafeValue(response, "payload", []interface{}{})
-		var result interface{} = []interface{}{}
+		var markets any = this.SafeValue(response, "payload", []any{})
+		var currencies any = this.SafeDict(this.Options, "cachedCurrencies")
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-			var market interface{} = GetValue(markets, i)
-			var id interface{} = this.SafeString(market, "book")
+			var market any = GetValue(markets, i)
+			var id any = this.SafeString(market, "book")
 			baseIdquoteIdVariable := Split(id, "_")
 			baseId := GetValue(baseIdquoteIdVariable, 0)
 			quoteId := GetValue(baseIdquoteIdVariable, 1)
-			var base interface{} = ToUpper(baseId)
-			var quote interface{} = ToUpper(quoteId)
+			var base any = ToUpper(baseId)
+			var quote any = ToUpper(quoteId)
 			base = this.SafeCurrencyCode(base)
 			quote = this.SafeCurrencyCode(quote)
-			var fees interface{} = this.SafeValue(market, "fees", map[string]interface{}{})
-			var flatRate interface{} = this.SafeValue(fees, "flat_rate", map[string]interface{}{})
-			var takerString interface{} = this.SafeString(flatRate, "taker")
-			var makerString interface{} = this.SafeString(flatRate, "maker")
-			var taker interface{} = this.ParseNumber(Precise.StringDiv(takerString, "100"))
-			var maker interface{} = this.ParseNumber(Precise.StringDiv(makerString, "100"))
-			var feeTiers interface{} = this.SafeValue(fees, "structure", []interface{}{})
-			var fee interface{} = map[string]interface{}{
+			var fees any = this.SafeValue(market, "fees", map[string]any{})
+			var flatRate any = this.SafeValue(fees, "flat_rate", map[string]any{})
+			var takerString any = this.SafeString(flatRate, "taker")
+			var makerString any = this.SafeString(flatRate, "maker")
+			var taker any = this.ParseNumber(Precise.StringDiv(takerString, "100"))
+			var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
+			var feeTiers any = this.SafeValue(fees, "structure", []any{})
+			var fee any = map[string]any{
 				"taker":      taker,
 				"maker":      maker,
 				"percentage": true,
 				"tierBased":  true,
 			}
-			var takerFees interface{} = []interface{}{}
-			var makerFees interface{} = []interface{}{}
+			var takerFees any = []any{}
+			var makerFees any = []any{}
 			for j := 0; IsLessThan(j, GetArrayLength(feeTiers)); j++ {
-				var tier interface{} = GetValue(feeTiers, j)
-				var volume interface{} = this.SafeNumber(tier, "volume")
-				var takerFee interface{} = this.SafeNumber(tier, "taker")
-				var makerFee interface{} = this.SafeNumber(tier, "maker")
-				AppendToArray(&takerFees, []interface{}{volume, takerFee})
-				AppendToArray(&makerFees, []interface{}{volume, makerFee})
+				var tier any = GetValue(feeTiers, j)
+				var volume any = this.SafeNumber(tier, "volume")
+				var takerFee any = this.SafeNumber(tier, "taker")
+				var makerFee any = this.SafeNumber(tier, "maker")
+				AppendToArray(&takerFees, []any{volume, takerFee})
+				AppendToArray(&makerFees, []any{volume, makerFee})
 				if IsTrue(IsEqual(j, 0)) {
 					AddElementToObject(fee, "taker", takerFee)
 					AddElementToObject(fee, "maker", makerFee)
 				}
 			}
-			var tiers interface{} = map[string]interface{}{
+			var tiers any = map[string]any{
 				"taker": takerFees,
 				"maker": makerFees,
 			}
 			AddElementToObject(fee, "tiers", tiers)
-			// TODO: precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
-			var defaultPricePrecision interface{} = this.SafeNumber(GetValue(this.Options, "precision"), quote, GetValue(this.Options, "defaultPrecision"))
-			AppendToArray(&result, this.Extend(map[string]interface{}{
+			var baseCurrency any = this.SafeDict(currencies, base)
+			AppendToArray(&result, this.Extend(map[string]any{
 				"id":             id,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -546,24 +540,24 @@ func (this *BitsoCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 				"expiryDatetime": nil,
 				"strike":         nil,
 				"optionType":     nil,
-				"precision": map[string]interface{}{
-					"amount": this.SafeNumber(GetValue(this.Options, "precision"), base, GetValue(this.Options, "defaultPrecision")),
-					"price":  this.SafeNumber(market, "tick_size", defaultPricePrecision),
+				"precision": map[string]any{
+					"amount": this.SafeNumber(baseCurrency, "precision"),
+					"price":  this.SafeNumber(market, "tick_size"),
 				},
-				"limits": map[string]interface{}{
-					"leverage": map[string]interface{}{
+				"limits": map[string]any{
+					"leverage": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"amount": map[string]interface{}{
+					"amount": map[string]any{
 						"min": this.SafeNumber(market, "minimum_amount"),
 						"max": this.SafeNumber(market, "maximum_amount"),
 					},
-					"price": map[string]interface{}{
+					"price": map[string]any{
 						"min": this.SafeNumber(market, "minimum_price"),
 						"max": this.SafeNumber(market, "maximum_price"),
 					},
-					"cost": map[string]interface{}{
+					"cost": map[string]any{
 						"min": this.SafeNumber(market, "minimum_value"),
 						"max": this.SafeNumber(market, "maximum_value"),
 					},
@@ -579,19 +573,102 @@ func (this *BitsoCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseBalance(response interface{}) interface{} {
-	var payload interface{} = this.SafeValue(response, "payload", map[string]interface{}{})
-	var balances interface{} = this.SafeValue(payload, "balances", []interface{}{})
-	var result interface{} = map[string]interface{}{
+
+/**
+ * @method
+ * @name bitso#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.bitso.com/bitso-payouts-funding/docs
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *BitsoCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+
+		catalogues := (<-this.PublicGetCatalogues(params))
+		PanicOnError(catalogues)
+		//
+		//     {
+		//         "payload": {
+		//             "currencies": {
+		//                 "metadata": [
+		//                     {
+		//                         "code": "brl",
+		//                         "full_name": "Brazilian Reais",
+		//                         "color": "02A630",
+		//                         "precision": 2,
+		//                         "display_ticker": "BRL",
+		//                         "type": "fiat"
+		//                     },
+		//                     {
+		//                         "code": "usdt",
+		//                         "full_name": "USDT (Digital Dollars)",
+		//                         "color": "50AF95",
+		//                         "precision": 2,
+		//                         "display_ticker": "USDT",
+		//                         "type": "crypto"
+		//                     }, ...
+		//
+		var payload any = this.SafeDict(catalogues, "payload")
+		var currencies any = this.SafeDict(payload, "currencies")
+		var metadata any = this.SafeList(currencies, "metadata", []any{})
+
+		ch <- this.ParseCurrencies(metadata)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitsoCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "code")
+	var code any = this.SafeCurrencyCode(currencyId)
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      rawCurrency,
+		"code":      code,
+		"id":        currencyId,
+		"name":      this.SafeString(rawCurrency, "full_name"),
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))),
+		"margin":    this.SafeBool(rawCurrency, "marginAvailable"),
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": nil,
+		"type":     this.SafeString(rawCurrency, "type"),
+	})
+}
+func (this *BitsoCore) ParseBalance(response any) any {
+	var payload any = this.SafeValue(response, "payload", map[string]any{})
+	var balances any = this.SafeValue(payload, "balances", []any{})
+	var result any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-		var balance interface{} = GetValue(balances, i)
-		var currencyId interface{} = this.SafeString(balance, "currency")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
-		var account interface{} = this.Account()
+		var balance any = GetValue(balances, i)
+		var currencyId any = this.SafeString(balance, "currency")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
 		AddElementToObject(account, "total", this.SafeString(balance, "total"))
@@ -608,16 +685,18 @@ func (this *BitsoCore) ParseBalance(response interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *BitsoCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6248 := (<-this.LoadMarkets())
-		PanicOnError(retRes6248)
+			retRes69112 := (<-this.LoadMarkets())
+			PanicOnError(retRes69112)
+		}
 
 		response := (<-this.PrivateGetBalance(params))
 		PanicOnError(response)
@@ -662,29 +741,31 @@ func (this *BitsoCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *BitsoCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6658 := (<-this.LoadMarkets())
-		PanicOnError(retRes6658)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes73412 := (<-this.LoadMarkets())
+			PanicOnError(retRes73412)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"book": GetValue(market, "id"),
 		}
 
 		response := (<-this.PublicGetOrderBook(this.Extend(request, params)))
 		PanicOnError(response)
-		var orderbook interface{} = this.SafeValue(response, "payload")
-		var timestamp interface{} = this.Parse8601(this.SafeString(orderbook, "updated_at"))
+		var orderbook any = this.SafeValue(response, "payload")
+		var timestamp any = this.Parse8601(this.SafeString(orderbook, "updated_at"))
 
 		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
 		return nil
@@ -692,7 +773,7 @@ func (this *BitsoCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "high":"37446.85",
@@ -709,13 +790,13 @@ func (this *BitsoCore) ParseTicker(ticker interface{}, optionalArgs ...interface
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol interface{} = this.SafeSymbol(nil, market)
-	var timestamp interface{} = this.Parse8601(this.SafeString(ticker, "created_at"))
-	var vwap interface{} = this.SafeString(ticker, "vwap")
-	var baseVolume interface{} = this.SafeString(ticker, "volume")
-	var quoteVolume interface{} = Precise.StringMul(baseVolume, vwap)
-	var last interface{} = this.SafeString(ticker, "last")
-	return this.SafeTicker(map[string]interface{}{
+	var symbol any = this.SafeSymbol(nil, market)
+	var timestamp any = this.Parse8601(this.SafeString(ticker, "created_at"))
+	var vwap any = this.SafeString(ticker, "vwap")
+	var baseVolume any = this.SafeString(ticker, "volume")
+	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
+	var last any = this.SafeString(ticker, "last")
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -748,24 +829,26 @@ func (this *BitsoCore) ParseTicker(ticker interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *BitsoCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7318 := (<-this.LoadMarkets())
-		PanicOnError(retRes7318)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes80212 := (<-this.LoadMarkets())
+			PanicOnError(retRes80212)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"book": GetValue(market, "id"),
 		}
 
 		response := (<-this.PublicGetTicker(this.Extend(request, params)))
 		PanicOnError(response)
-		var ticker interface{} = this.SafeValue(response, "payload")
+		var ticker any = this.SafeValue(response, "payload")
 
 		//
 		//     {
@@ -802,9 +885,9 @@ func (this *BitsoCore) FetchTicker(symbol interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *BitsoCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -813,24 +896,26 @@ func (this *BitsoCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7708 := (<-this.LoadMarkets())
-		PanicOnError(retRes7708)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes84312 := (<-this.LoadMarkets())
+			PanicOnError(retRes84312)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"book":        GetValue(market, "id"),
 			"time_bucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start", since)
 			if IsTrue(!IsEqual(limit, nil)) {
-				var duration interface{} = this.ParseTimeframe(timeframe)
+				var duration any = this.ParseTimeframe(timeframe)
 				AddElementToObject(request, "end", this.Sum(since, Multiply(Multiply(duration, limit), 1000)))
 			}
 		} else if IsTrue(!IsEqual(limit, nil)) {
-			var now interface{} = this.Milliseconds()
+			var now any = this.Milliseconds()
 			AddElementToObject(request, "end", now)
 			AddElementToObject(request, "start", Subtract(now, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit)))
 		}
@@ -856,7 +941,7 @@ func (this *BitsoCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		//         ]
 		//     }
 		//
-		var payload interface{} = this.SafeList(response, "payload", []interface{}{})
+		var payload any = this.SafeList(response, "payload", []any{})
 
 		ch <- this.ParseOHLCVs(payload, market, timeframe, since, limit)
 		return nil
@@ -864,7 +949,7 @@ func (this *BitsoCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "bucket_start_time":1648219140000,
@@ -881,9 +966,9 @@ func (this *BitsoCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.SafeInteger(ohlcv, "bucket_start_time"), this.SafeNumber(ohlcv, "first_rate"), this.SafeNumber(ohlcv, "max_rate"), this.SafeNumber(ohlcv, "min_rate"), this.SafeNumber(ohlcv, "last_rate"), this.SafeNumber(ohlcv, "volume")}
+	return []any{this.SafeInteger(ohlcv, "bucket_start_time"), this.SafeNumber(ohlcv, "first_rate"), this.SafeNumber(ohlcv, "max_rate"), this.SafeNumber(ohlcv, "min_rate"), this.SafeNumber(ohlcv, "last_rate"), this.SafeNumber(ohlcv, "volume")}
 }
-func (this *BitsoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// fetchTrades (public)
 	//
@@ -934,12 +1019,12 @@ func (this *BitsoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.Parse8601(this.SafeString(trade, "created_at"))
-	var marketId interface{} = this.SafeString(trade, "book")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_")
-	var side interface{} = this.SafeString(trade, "side")
-	var makerSide interface{} = this.SafeString(trade, "maker_side")
-	var takerOrMaker interface{} = nil
+	var timestamp any = this.Parse8601(this.SafeString(trade, "created_at"))
+	var marketId any = this.SafeString(trade, "book")
+	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var side any = this.SafeString(trade, "side")
+	var makerSide any = this.SafeString(trade, "maker_side")
+	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(side, nil)) {
 		if IsTrue(IsEqual(side, makerSide)) {
 			takerOrMaker = "maker"
@@ -953,28 +1038,28 @@ func (this *BitsoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
 			side = "buy"
 		}
 	}
-	var amount interface{} = this.SafeString2(trade, "amount", "major")
+	var amount any = this.SafeString2(trade, "amount", "major")
 	if IsTrue(!IsEqual(amount, nil)) {
 		amount = Precise.StringAbs(amount)
 	}
-	var fee interface{} = nil
-	var feeCost interface{} = this.SafeString(trade, "fees_amount")
+	var fee any = nil
+	var feeCost any = this.SafeString(trade, "fees_amount")
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		var feeCurrencyId interface{} = this.SafeString(trade, "fees_currency")
-		var feeCurrency interface{} = this.SafeCurrencyCode(feeCurrencyId)
-		fee = map[string]interface{}{
+		var feeCurrencyId any = this.SafeString(trade, "fees_currency")
+		var feeCurrency any = this.SafeCurrencyCode(feeCurrencyId)
+		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrency,
 		}
 	}
-	var cost interface{} = this.SafeString(trade, "minor")
+	var cost any = this.SafeString(trade, "minor")
 	if IsTrue(!IsEqual(cost, nil)) {
 		cost = Precise.StringAbs(cost)
 	}
-	var price interface{} = this.SafeString(trade, "price")
-	var orderId interface{} = this.SafeString(trade, "oid")
-	var id interface{} = this.SafeString(trade, "tid")
-	return this.SafeTrade(map[string]interface{}{
+	var price any = this.SafeString(trade, "price")
+	var orderId any = this.SafeString(trade, "oid")
+	var id any = this.SafeString(trade, "tid")
+	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1002,22 +1087,24 @@ func (this *BitsoCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *BitsoCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9548 := (<-this.LoadMarkets())
-		PanicOnError(retRes9548)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes102912 := (<-this.LoadMarkets())
+			PanicOnError(retRes102912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"book": GetValue(market, "id"),
 		}
 
@@ -1039,16 +1126,18 @@ func (this *BitsoCore) FetchTrades(symbol interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *BitsoCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchTradingFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9728 := (<-this.LoadMarkets())
-		PanicOnError(retRes9728)
+			retRes104912 := (<-this.LoadMarkets())
+			PanicOnError(retRes104912)
+		}
 
 		response := (<-this.PrivateGetFees(params))
 		PanicOnError(response)
@@ -1095,14 +1184,14 @@ func (this *BitsoCore) FetchTradingFees(optionalArgs ...interface{}) <-chan inte
 		//        }
 		//    }
 		//
-		var payload interface{} = this.SafeValue(response, "payload", map[string]interface{}{})
-		var fees interface{} = this.SafeValue(payload, "fees", []interface{}{})
-		var result interface{} = map[string]interface{}{}
+		var payload any = this.SafeValue(response, "payload", map[string]any{})
+		var fees any = this.SafeValue(payload, "fees", []any{})
+		var result any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
-			var fee interface{} = GetValue(fees, i)
-			var marketId interface{} = this.SafeString(fee, "book")
-			var symbol interface{} = this.SafeSymbol(marketId, nil, "_")
-			AddElementToObject(result, symbol, map[string]interface{}{
+			var fee any = GetValue(fees, i)
+			var marketId any = this.SafeString(fee, "book")
+			var symbol any = this.SafeSymbol(marketId, nil, "_")
+			AddElementToObject(result, symbol, map[string]any{
 				"info":       fee,
 				"symbol":     symbol,
 				"maker":      this.SafeNumber(fee, "maker_fee_decimal"),
@@ -1130,9 +1219,9 @@ func (this *BitsoCore) FetchTradingFees(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *BitsoCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1141,16 +1230,18 @@ func (this *BitsoCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, 25)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10488 := (<-this.LoadMarkets())
-		PanicOnError(retRes10488)
-		var market interface{} = this.Market(symbol)
+			retRes112712 := (<-this.LoadMarkets())
+			PanicOnError(retRes112712)
+		}
+		var market any = this.Market(symbol)
 		// the don't support fetching trades starting from a date yet
 		// use the `marker` extra param for that
 		// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-		var markerInParams interface{} = (InOp(params, "marker"))
+		var markerInParams any = (InOp(params, "marker"))
 		// warn the user with an exception if the user wants to filter
 		// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 		if IsTrue(IsTrue((!IsEqual(since, nil))) && !IsTrue(markerInParams)) {
@@ -1158,11 +1249,12 @@ func (this *BitsoCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 		}
 		// convert it to an integer unconditionally
 		if IsTrue(markerInParams) {
-			params = this.Extend(params, map[string]interface{}{
-				"marker": ParseInt(GetValue(params, "marker")),
+			var marker any = ParseInt(GetValue(params, "marker"))
+			params = this.Extend(params, map[string]any{
+				"marker": marker,
 			})
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"book":  GetValue(market, "id"),
 			"limit": limit,
 		}
@@ -1190,20 +1282,22 @@ func (this *BitsoCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BitsoCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10898 := (<-this.LoadMarkets())
-		PanicOnError(retRes10898)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes117112 := (<-this.LoadMarkets())
+			PanicOnError(retRes117112)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"book":  GetValue(market, "id"),
 			"side":  side,
 			"type":  typeVar,
@@ -1215,9 +1309,9 @@ func (this *BitsoCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 
 		response := (<-this.PrivatePostOrders(this.Extend(request, params)))
 		PanicOnError(response)
-		var id interface{} = this.SafeString(GetValue(response, "payload"), "oid")
+		var id any = this.SafeString(GetValue(response, "payload"), "oid")
 
-		ch <- this.SafeOrder(map[string]interface{}{
+		ch <- this.SafeOrder(map[string]any{
 			"info": response,
 			"id":   id,
 		}, market)
@@ -1237,19 +1331,21 @@ func (this *BitsoCore) CreateOrder(symbol interface{}, typeVar interface{}, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BitsoCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11198 := (<-this.LoadMarkets())
-		PanicOnError(retRes11198)
-		var request interface{} = map[string]interface{}{
+			retRes120312 := (<-this.LoadMarkets())
+			PanicOnError(retRes120312)
+		}
+		var request any = map[string]any{
 			"oid": id,
 		}
 
@@ -1261,10 +1357,10 @@ func (this *BitsoCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 		//         "payload": ["yWTQGxDMZ0VimZgZ"]
 		//     }
 		//
-		var payload interface{} = this.SafeList(response, "payload", []interface{}{})
-		var orderId interface{} = this.SafeString(payload, 0)
+		var payload any = this.SafeList(response, "payload", []any{})
+		var orderId any = this.SafeString(payload, 0)
 
-		ch <- this.SafeOrder(map[string]interface{}{
+		ch <- this.SafeOrder(map[string]any{
 			"info": response,
 			"id":   orderId,
 		})
@@ -1284,24 +1380,24 @@ func (this *BitsoCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BitsoCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if !IsTrue(IsArray(ids)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() ids argument should be an array")))
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var oids interface{} = Join(ids, ",")
-		var request interface{} = map[string]interface{}{
+		var oids any = Join(ids, ",")
+		var request any = map[string]any{
 			"oids": oids,
 		}
 
@@ -1313,10 +1409,10 @@ func (this *BitsoCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
 		//         "payload": ["yWTQGxDMZ0VimZgZ"]
 		//     }
 		//
-		var payload interface{} = this.SafeValue(response, "payload", []interface{}{})
-		var orders interface{} = []interface{}{}
+		var payload any = this.SafeValue(response, "payload", []any{})
+		var orders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(payload)); i++ {
-			var id interface{} = GetValue(payload, i)
+			var id any = GetValue(payload, i)
 			AppendToArray(&orders, this.ParseOrder(id, market))
 		}
 
@@ -1336,14 +1432,14 @@ func (this *BitsoCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BitsoCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(!IsEqual(symbol, nil)) {
 			panic(NotSupported(Add(this.Id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")))
@@ -1357,10 +1453,10 @@ func (this *BitsoCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 		//         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
 		//     }
 		//
-		var payload interface{} = this.SafeValue(response, "payload", []interface{}{})
-		var canceledOrders interface{} = []interface{}{}
+		var payload any = this.SafeValue(response, "payload", []any{})
+		var canceledOrders any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(payload)); i++ {
-			var order interface{} = this.ParseOrder(GetValue(payload, i))
+			var order any = this.ParseOrder(GetValue(payload, i))
 			AppendToArray(&canceledOrders, order)
 		}
 
@@ -1370,8 +1466,8 @@ func (this *BitsoCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *BitsoCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"partial-fill":     "open",
 		"partially filled": "open",
 		"queued":           "open",
@@ -1379,7 +1475,7 @@ func (this *BitsoCore) ParseOrderStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *BitsoCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	//
 	// canceledOrder
@@ -1387,23 +1483,23 @@ func (this *BitsoCore) ParseOrder(order interface{}, optionalArgs ...interface{}
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id interface{} = nil
+	var id any = nil
 	if IsTrue(IsString(order)) {
 		id = order
 	} else {
 		id = this.SafeString(order, "oid")
 	}
-	var side interface{} = this.SafeString(order, "side")
-	var status interface{} = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var marketId interface{} = this.SafeString(order, "book")
-	var symbol interface{} = this.SafeSymbol(marketId, market, "_")
-	var orderType interface{} = this.SafeString(order, "type")
-	var timestamp interface{} = this.Parse8601(this.SafeString(order, "created_at"))
-	var price interface{} = this.SafeString(order, "price")
-	var amount interface{} = this.SafeString(order, "original_amount")
-	var remaining interface{} = this.SafeString(order, "unfilled_amount")
-	var clientOrderId interface{} = this.SafeString(order, "client_id")
-	return this.SafeOrder(map[string]interface{}{
+	var side any = this.SafeString(order, "side")
+	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var marketId any = this.SafeString(order, "book")
+	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var orderType any = this.SafeString(order, "type")
+	var timestamp any = this.Parse8601(this.SafeString(order, "created_at"))
+	var price any = this.SafeString(order, "price")
+	var amount any = this.SafeString(order, "original_amount")
+	var remaining any = this.SafeString(order, "unfilled_amount")
+	var clientOrderId any = this.SafeString(order, "client_id")
+	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1439,9 +1535,9 @@ func (this *BitsoCore) ParseOrder(order interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BitsoCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1450,16 +1546,18 @@ func (this *BitsoCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, 25)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12748 := (<-this.LoadMarkets())
-		PanicOnError(retRes12748)
-		var market interface{} = this.Market(symbol)
+			retRes136012 := (<-this.LoadMarkets())
+			PanicOnError(retRes136012)
+		}
+		var market any = this.Market(symbol)
 		// the don't support fetching trades starting from a date yet
 		// use the `marker` extra param for that
 		// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-		var markerInParams interface{} = (InOp(params, "marker"))
+		var markerInParams any = (InOp(params, "marker"))
 		// warn the user with an exception if the user wants to filter
 		// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 		if IsTrue(IsTrue((!IsEqual(since, nil))) && !IsTrue(markerInParams)) {
@@ -1467,18 +1565,19 @@ func (this *BitsoCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		}
 		// convert it to an integer unconditionally
 		if IsTrue(markerInParams) {
-			params = this.Extend(params, map[string]interface{}{
-				"marker": ParseInt(GetValue(params, "marker")),
+			var marker any = ParseInt(GetValue(params, "marker"))
+			params = this.Extend(params, map[string]any{
+				"marker": marker,
 			})
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"book":  GetValue(market, "id"),
 			"limit": limit,
 		}
 
 		response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
-		var orders interface{} = this.ParseOrders(GetValue(response, "payload"), market, since, limit)
+		var orders any = this.ParseOrders(GetValue(response, "payload"), market, since, limit)
 
 		ch <- orders
 		return nil
@@ -1497,26 +1596,28 @@ func (this *BitsoCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *BitsoCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13138 := (<-this.LoadMarkets())
-		PanicOnError(retRes13138)
+			retRes140212 := (<-this.LoadMarkets())
+			PanicOnError(retRes140212)
+		}
 
-		response := (<-this.PrivateGetOrdersOid(map[string]interface{}{
+		response := (<-this.PrivateGetOrdersOid(map[string]any{
 			"oid": id,
 		}))
 		PanicOnError(response)
-		var payload interface{} = this.SafeValue(response, "payload")
+		var payload any = this.SafeValue(response, "payload")
 		if IsTrue(IsArray(payload)) {
-			var numOrders interface{} = GetArrayLength(GetValue(response, "payload"))
+			var numOrders any = GetArrayLength(GetValue(response, "payload"))
 			if IsTrue(IsEqual(numOrders, 1)) {
 
 				ch <- this.ParseOrder(GetValue(payload, 0))
@@ -1541,9 +1642,9 @@ func (this *BitsoCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *BitsoCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1552,13 +1653,15 @@ func (this *BitsoCore) FetchOrderTrades(id interface{}, optionalArgs ...interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13408 := (<-this.LoadMarkets())
-		PanicOnError(retRes13408)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes143112 := (<-this.LoadMarkets())
+			PanicOnError(retRes143112)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"oid": id,
 		}
 
@@ -1582,19 +1685,21 @@ func (this *BitsoCore) FetchOrderTrades(id interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *BitsoCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
 		_ = code
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13608 := (<-this.LoadMarkets())
-		PanicOnError(retRes13608)
-		var request interface{} = map[string]interface{}{
+			retRes145312 := (<-this.LoadMarkets())
+			PanicOnError(retRes145312)
+		}
+		var request any = map[string]any{
 			"fid": id,
 		}
 
@@ -1623,8 +1728,8 @@ func (this *BitsoCore) FetchDeposit(id interface{}, optionalArgs ...interface{})
 		//         }]
 		//     }
 		//
-		var transactions interface{} = this.SafeValue(response, "payload", []interface{}{})
-		var first interface{} = this.SafeDict(transactions, 0, map[string]interface{}{})
+		var transactions any = this.SafeValue(response, "payload", []any{})
+		var first any = this.SafeDict(transactions, 0, map[string]any{})
 
 		ch <- this.ParseTransaction(first)
 		return nil
@@ -1644,9 +1749,9 @@ func (this *BitsoCore) FetchDeposit(id interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *BitsoCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1655,12 +1760,14 @@ func (this *BitsoCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14058 := (<-this.LoadMarkets())
-		PanicOnError(retRes14058)
-		var currency interface{} = nil
+			retRes150012 := (<-this.LoadMarkets())
+			PanicOnError(retRes150012)
+		}
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
@@ -1690,7 +1797,7 @@ func (this *BitsoCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
 		//         }]
 		//     }
 		//
-		var transactions interface{} = this.SafeList(response, "payload", []interface{}{})
+		var transactions any = this.SafeList(response, "payload", []any{})
 
 		ch <- this.ParseTransactions(transactions, currency, since, limit, params)
 		return nil
@@ -1707,33 +1814,35 @@ func (this *BitsoCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *BitsoCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14478 := (<-this.LoadMarkets())
-		PanicOnError(retRes14478)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+			retRes154412 := (<-this.LoadMarkets())
+			PanicOnError(retRes154412)
+		}
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"fund_currency": GetValue(currency, "id"),
 		}
 
 		response := (<-this.PrivateGetFundingDestination(this.Extend(request, params)))
 		PanicOnError(response)
-		var address interface{} = this.SafeString(GetValue(response, "payload"), "account_identifier")
-		var tag interface{} = nil
+		var address any = this.SafeString(GetValue(response, "payload"), "account_identifier")
+		var tag any = nil
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(address, "?dt="), 0)) {
-			var parts interface{} = Split(address, "?dt=")
+			var parts any = Split(address, "?dt=")
 			address = this.SafeString(parts, 0)
 			tag = this.SafeString(parts, 1)
 		}
 		this.CheckAddress(address)
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"info":     response,
 			"currency": code,
 			"network":  nil,
@@ -1756,18 +1865,20 @@ func (this *BitsoCore) FetchDepositAddress(code interface{}, optionalArgs ...int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *BitsoCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		codes := GetArg(optionalArgs, 0, nil)
 		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14818 := (<-this.LoadMarkets())
-		PanicOnError(retRes14818)
+			retRes158012 := (<-this.LoadMarkets())
+			PanicOnError(retRes158012)
+		}
 
 		response := (<-this.PrivateGetFees(params))
 		PanicOnError(response)
@@ -1814,37 +1925,37 @@ func (this *BitsoCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan 
 		//        }
 		//    }
 		//
-		var result interface{} = map[string]interface{}{}
-		var payload interface{} = this.SafeValue(response, "payload", map[string]interface{}{})
-		var depositFees interface{} = this.SafeValue(payload, "deposit_fees", []interface{}{})
+		var result any = map[string]any{}
+		var payload any = this.SafeValue(response, "payload", map[string]any{})
+		var depositFees any = this.SafeValue(payload, "deposit_fees", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(depositFees)); i++ {
-			var depositFee interface{} = GetValue(depositFees, i)
-			var currencyId interface{} = this.SafeString(depositFee, "currency")
-			var code interface{} = this.SafeCurrencyCode(currencyId)
+			var depositFee any = GetValue(depositFees, i)
+			var currencyId any = this.SafeString(depositFee, "currency")
+			var code any = this.SafeCurrencyCode(currencyId)
 			if IsTrue(IsTrue((!IsEqual(codes, nil))) && !IsTrue(this.InArray(code, codes))) {
 				continue
 			}
-			AddElementToObject(result, code, map[string]interface{}{
+			AddElementToObject(result, code, map[string]any{
 				"deposit":  this.SafeNumber(depositFee, "fee"),
 				"withdraw": nil,
-				"info": map[string]interface{}{
+				"info": map[string]any{
 					"deposit":  depositFee,
 					"withdraw": nil,
 				},
 			})
 		}
-		var withdrawalFees interface{} = this.SafeValue(payload, "withdrawal_fees", []interface{}{})
-		var currencyIds interface{} = ObjectKeys(withdrawalFees)
+		var withdrawalFees any = this.SafeValue(payload, "withdrawal_fees", []any{})
+		var currencyIds any = ObjectKeys(withdrawalFees)
 		for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
-			var currencyId interface{} = GetValue(currencyIds, i)
-			var code interface{} = this.SafeCurrencyCode(currencyId)
+			var currencyId any = GetValue(currencyIds, i)
+			var code any = this.SafeCurrencyCode(currencyId)
 			if IsTrue(IsTrue((!IsEqual(codes, nil))) && !IsTrue(this.InArray(code, codes))) {
 				continue
 			}
-			AddElementToObject(result, code, map[string]interface{}{
+			AddElementToObject(result, code, map[string]any{
 				"deposit":  this.SafeValue(GetValue(result, code), "deposit"),
 				"withdraw": this.SafeNumber(withdrawalFees, currencyId),
-				"info": map[string]interface{}{
+				"info": map[string]any{
 					"deposit":  this.SafeValue(GetValue(GetValue(result, code), "info"), "deposit"),
 					"withdraw": this.SafeNumber(withdrawalFees, currencyId),
 				},
@@ -1867,18 +1978,20 @@ func (this *BitsoCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *BitsoCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		codes := GetArg(optionalArgs, 0, nil)
 		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15758 := (<-this.LoadMarkets())
-		PanicOnError(retRes15758)
+			retRes167612 := (<-this.LoadMarkets())
+			PanicOnError(retRes167612)
+		}
 
 		response := (<-this.PrivateGetFees(params))
 		PanicOnError(response)
@@ -1925,7 +2038,7 @@ func (this *BitsoCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-c
 		//        }
 		//    }
 		//
-		var payload interface{} = this.SafeList(response, "payload", []interface{}{})
+		var payload any = this.SafeList(response, "payload", []any{})
 
 		ch <- this.ParseDepositWithdrawFees(payload, codes)
 		return nil
@@ -1933,7 +2046,7 @@ func (this *BitsoCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-c
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseDepositWithdrawFees(response interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "fees": [
@@ -1978,37 +2091,37 @@ func (this *BitsoCore) ParseDepositWithdrawFees(response interface{}, optionalAr
 	_ = codes
 	currencyIdKey := GetArg(optionalArgs, 1, nil)
 	_ = currencyIdKey
-	var result interface{} = map[string]interface{}{}
-	var depositResponse interface{} = this.SafeValue(response, "deposit_fees", []interface{}{})
-	var withdrawalResponse interface{} = this.SafeValue(response, "withdrawal_fees", []interface{}{})
+	var result any = map[string]any{}
+	var depositResponse any = this.SafeValue(response, "deposit_fees", []any{})
+	var withdrawalResponse any = this.SafeValue(response, "withdrawal_fees", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(depositResponse)); i++ {
-		var entry interface{} = GetValue(depositResponse, i)
-		var currencyId interface{} = this.SafeString(entry, "currency")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
+		var entry any = GetValue(depositResponse, i)
+		var currencyId any = this.SafeString(entry, "currency")
+		var code any = this.SafeCurrencyCode(currencyId)
 		if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((InOp(codes, code)))) {
-			AddElementToObject(result, code, map[string]interface{}{
-				"deposit": map[string]interface{}{
+			AddElementToObject(result, code, map[string]any{
+				"deposit": map[string]any{
 					"fee":        this.SafeNumber(entry, "fee"),
 					"percentage": !IsTrue(this.SafeValue(entry, "is_fixed")),
 				},
-				"withdraw": map[string]interface{}{
+				"withdraw": map[string]any{
 					"fee":        nil,
 					"percentage": nil,
 				},
-				"networks": map[string]interface{}{},
+				"networks": map[string]any{},
 				"info":     entry,
 			})
 		}
 	}
-	var withdrawalKeys interface{} = ObjectKeys(withdrawalResponse)
+	var withdrawalKeys any = ObjectKeys(withdrawalResponse)
 	for i := 0; IsLessThan(i, GetArrayLength(withdrawalKeys)); i++ {
-		var currencyId interface{} = GetValue(withdrawalKeys, i)
-		var code interface{} = this.SafeCurrencyCode(currencyId)
+		var currencyId any = GetValue(withdrawalKeys, i)
+		var code any = this.SafeCurrencyCode(currencyId)
 		if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((InOp(codes, code)))) {
-			var withdrawFee interface{} = this.ParseNumber(GetValue(withdrawalResponse, currencyId))
-			var resultValue interface{} = this.SafeValue(result, code)
+			var withdrawFee any = this.ParseNumber(GetValue(withdrawalResponse, currencyId))
+			var resultValue any = this.SafeValue(result, code)
 			if IsTrue(IsEqual(resultValue, nil)) {
-				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]interface{}{}))
+				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))
 			}
 			AddElementToObject(GetValue(GetValue(result, code), "withdraw"), "fee", withdrawFee)
 			AddElementToObject(GetValue(GetValue(result, code), "info"), code, withdrawFee)
@@ -2028,40 +2141,42 @@ func (this *BitsoCore) ParseDepositWithdrawFees(response interface{}, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *BitsoCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *BitsoCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17188 := (<-this.LoadMarkets())
-		PanicOnError(retRes17188)
-		var methods interface{} = map[string]interface{}{
+			retRes182112 := (<-this.LoadMarkets())
+			PanicOnError(retRes182112)
+		}
+		var methods any = map[string]any{
 			"BTC": "Bitcoin",
 			"ETH": "Ether",
 			"XRP": "Ripple",
 			"BCH": "Bcash",
 			"LTC": "Litecoin",
 		}
-		var currency interface{} = this.Currency(code)
-		var method interface{} = Ternary(IsTrue((InOp(methods, code))), GetValue(methods, code), nil)
+		var currency any = this.Currency(code)
+		var method any = Ternary(IsTrue((InOp(methods, code))), GetValue(methods, code), nil)
 		if IsTrue(IsEqual(method, nil)) {
 			panic(ExchangeError(Add(Add(this.Id, " not valid withdraw coin: "), code)))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"amount":          amount,
 			"address":         address,
 			"destination_tag": tag,
 		}
-		var classMethod interface{} = Add(Add("privatePost", method), "Withdrawal")
+		var classMethod any = Add(Add("privatePost", method), "Withdrawal")
 
 		response := (<-this.CallDynamically(classMethod, this.Extend(request, params)))
 		PanicOnError(response)
@@ -2084,8 +2199,8 @@ func (this *BitsoCore) Withdraw(code interface{}, amount interface{}, address in
 		//         ]
 		//     }
 		//
-		var payload interface{} = this.SafeValue(response, "payload", []interface{}{})
-		var first interface{} = this.SafeDict(payload, 0)
+		var payload any = this.SafeValue(response, "payload", []any{})
+		var first any = this.SafeDict(payload, 0)
 
 		ch <- this.ParseTransaction(first, currency)
 		return nil
@@ -2093,7 +2208,7 @@ func (this *BitsoCore) Withdraw(code interface{}, amount interface{}, address in
 	}()
 	return ch
 }
-func (this *BitsoCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// deposit
 	//     {
@@ -2132,18 +2247,18 @@ func (this *BitsoCore) ParseTransaction(transaction interface{}, optionalArgs ..
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId interface{} = this.SafeString2(transaction, "currency", "asset")
+	var currencyId any = this.SafeString2(transaction, "currency", "asset")
 	currency = this.SafeCurrency(currencyId, currency)
-	var details interface{} = this.SafeValue(transaction, "details", map[string]interface{}{})
-	var datetime interface{} = this.SafeString(transaction, "created_at")
-	var withdrawalAddress interface{} = this.SafeString(details, "withdrawal_address")
-	var receivingAddress interface{} = this.SafeString(details, "receiving_address")
-	var networkId interface{} = this.SafeString2(transaction, "network", "method")
-	var status interface{} = this.SafeString(transaction, "status")
-	var withdrawId interface{} = this.SafeString(transaction, "wid")
-	var networkCode interface{} = this.NetworkIdToCode(networkId)
-	var networkCodeUpper interface{} = Ternary(IsTrue((!IsEqual(networkCode, nil))), ToUpper(networkCode), nil)
-	return map[string]interface{}{
+	var details any = this.SafeValue(transaction, "details", map[string]any{})
+	var datetime any = this.SafeString(transaction, "created_at")
+	var withdrawalAddress any = this.SafeString(details, "withdrawal_address")
+	var receivingAddress any = this.SafeString(details, "receiving_address")
+	var networkId any = this.SafeString2(transaction, "network", "method")
+	var status any = this.SafeString(transaction, "status")
+	var withdrawId any = this.SafeString(transaction, "wid")
+	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+	var networkCodeUpper any = Ternary(IsTrue((!IsEqual(networkCode, nil))), ToUpper(networkCode), nil)
+	return map[string]any{
 		"id":          this.SafeString2(transaction, "wid", "fid"),
 		"txid":        this.SafeString(details, "tx_hash"),
 		"timestamp":   this.Parse8601(datetime),
@@ -2166,8 +2281,8 @@ func (this *BitsoCore) ParseTransaction(transaction interface{}, optionalArgs ..
 		"info":        transaction,
 	}
 }
-func (this *BitsoCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *BitsoCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"pending":     "pending",
 		"in_progress": "pending",
 		"complete":    "ok",
@@ -2175,53 +2290,54 @@ func (this *BitsoCore) ParseTransactionStatus(status interface{}) interface{} {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *BitsoCore) Nonce() interface{} {
+func (this *BitsoCore) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *BitsoCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var endpoint interface{} = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
+	var endpoint any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		}
 	}
-	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), "rest"), endpoint)
+	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), endpoint)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce interface{} = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		endpoint = Add("/api", endpoint)
-		var request interface{} = Join([]interface{}{nonce, method, endpoint}, "")
+		var content any = []any{nonce, method, endpoint}
+		var request any = Join(content, "")
 		if IsTrue(IsTrue(!IsEqual(method, "GET")) && IsTrue(!IsEqual(method, "DELETE"))) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
 				body = this.Json(query)
 				request = Add(request, body)
 			}
 		}
-		var signature interface{} = this.Hmac(this.Encode(request), this.Encode(this.Secret), sha256)
-		var auth interface{} = Add(Add(Add(Add(this.ApiKey, ":"), nonce), ":"), signature)
-		headers = map[string]interface{}{
+		var signature any = this.Hmac(this.Encode(request), this.Encode(this.Secret), sha256)
+		var auth any = Add(Add(Add(Add(this.ApiKey, ":"), nonce), ":"), signature)
+		headers = map[string]any{
 			"Authorization": Add("Bitso ", auth),
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *BitsoCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *BitsoCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
@@ -2229,7 +2345,7 @@ func (this *BitsoCore) HandleErrors(httpCode interface{}, reason interface{}, ur
 		//
 		//     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
 		//
-		var success interface{} = this.SafeBool(response, "success", false)
+		var success any = this.SafeBool(response, "success", false)
 		if IsTrue(IsString(success)) {
 			if IsTrue(IsTrue((IsEqual(success, "true"))) || IsTrue((IsEqual(success, "1")))) {
 				success = true
@@ -2238,12 +2354,12 @@ func (this *BitsoCore) HandleErrors(httpCode interface{}, reason interface{}, ur
 			}
 		}
 		if !IsTrue(success) {
-			var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
-			var error interface{} = this.SafeValue(response, "error")
+			var feedback any = Add(Add(this.Id, " "), this.Json(response))
+			var error any = this.SafeValue(response, "error")
 			if IsTrue(IsEqual(error, nil)) {
 				panic(ExchangeError(feedback))
 			}
-			var code interface{} = this.SafeString(error, "code")
+			var code any = this.SafeString(error, "code")
 			this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
 			panic(ExchangeError(feedback))
 		}
@@ -2251,8 +2367,8 @@ func (this *BitsoCore) HandleErrors(httpCode interface{}, reason interface{}, ur
 	return nil
 }
 
-func (this *BitsoCore) Init(userConfig map[string]interface{}) {
+func (this *BitsoCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

@@ -1,10 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ export default class bullish extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -514,32 +514,31 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'symbol');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const precision = this.safeString (currency, 'precision');
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber (currency, 'minFee'),
-                'precision': this.parseNumber (this.parsePrecision (precision)),
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': currency,
-            };
-        }
-        return result;
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        const name = this.safeString (rawCurrency, 'name');
+        const precision = this.safeString (rawCurrency, 'precision');
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': this.safeNumber (rawCurrency, 'minFee'),
+            'precision': this.parseNumber (this.parsePrecision (precision)),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+            'type': 'crypto',
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -774,7 +773,7 @@ export default class bullish extends Exchange {
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        const id = this.safeString (market, 'symbol');
+        const id = this.safeString (market, 'symbol') as string;
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
@@ -820,7 +819,7 @@ export default class bullish extends Exchange {
             } else {
                 expiryDatetime = this.safeString (market, 'expiryDatetime');
                 const idParts = id.split ('-');
-                const datePart = this.safeString (idParts, 2);
+                const datePart = this.safeString (idParts, 2) as string;
                 const dateYmd = datePart.slice (2);
                 symbol += '-' + dateYmd;
                 if (type === 'future') {
@@ -889,14 +888,14 @@ export default class bullish extends Exchange {
         });
     }
 
-    parseMarketType (type: string, defaultType: Str = undefined): string {
+    parseMarketType (type: Str = undefined, defaultType: Str = undefined): Str {
         const types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
             'DATED_FUTURE': 'future',
             'OPTION': 'option',
         };
-        return this.safeString (types, type, defaultType);
+        return this.safeString (types, type as string, defaultType);
     }
 
     /**
@@ -907,10 +906,12 @@ export default class bullish extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -954,7 +955,9 @@ export default class bullish extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
@@ -1016,7 +1019,7 @@ export default class bullish extends Exchange {
             request['symbol'] = market['id'];
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let response = undefined;
+        let response: List;
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
@@ -1069,7 +1072,9 @@ export default class bullish extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             params = this.extend ({ 'orderId': id }, params);
@@ -1138,11 +1143,11 @@ export default class bullish extends Exchange {
         const currency = market['quote'];
         const code = this.safeCurrencyCode (currency);
         const feeCost = this.safeNumber (trade, 'quoteFee');
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isTaker) {
             takerOrMaker = 'taker';
         } else {
@@ -1176,7 +1181,9 @@ export default class bullish extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1291,13 +1298,13 @@ export default class bullish extends Exchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
-        let maxRetries = undefined;
+        let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let errors = 0;
         params = this.omit (params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
-        while (errors <= maxRetries) {
+        while (errors <= (maxRetries as number)) {
             try {
                 if (timeframe && method !== 'fetchFundingRateHistory') {
                     return await this[method] (symbol, timeframe, since, limit, params);
@@ -1309,7 +1316,7 @@ export default class bullish extends Exchange {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
                 errors += 1;
-                if (errors > maxRetries) {
+                if (errors > (maxRetries as number)) {
                     throw e;
                 }
             }
@@ -1332,7 +1339,9 @@ export default class bullish extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const maxLimit = 100;
         let paginate = false;
@@ -1355,7 +1364,7 @@ export default class bullish extends Exchange {
             until = this.milliseconds ();
             startTime = until - maxDelta;
         } else if (startTime === undefined) {
-            startTime = until - maxDelta;
+            startTime = (until as number) - maxDelta;
         } else if (until === undefined) {
             until = this.sum (startTime, maxDelta);
         }
@@ -1405,7 +1414,9 @@ export default class bullish extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const maxLimit = 100;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
@@ -1437,7 +1448,7 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        const rates = [];
+        const rates: List = [];
         const result = this.toArray (response);
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -1480,7 +1491,7 @@ export default class bullish extends Exchange {
             params = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
@@ -1494,7 +1505,7 @@ export default class bullish extends Exchange {
         }
         let method = 'privateGetV2HistoryOrders';
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
-        let response = undefined;
+        let response: Dict[] = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [
@@ -1555,12 +1566,12 @@ export default class bullish extends Exchange {
         if ((since !== undefined) || (until !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             if (since === undefined) {
-                since = until - timeDelta;
+                since = (until as number) - timeDelta;
                 params = this.omit (params, 'until');
             } else if (until === undefined) {
                 until = this.sum (since, timeDelta);
                 const now = this.milliseconds ();
-                if (until > now) {
+                if ((until as number) > now) {
                     until = now;
                 }
             }
@@ -1574,11 +1585,11 @@ export default class bullish extends Exchange {
 
     getClosestLimit (limit: Int): Int {
         let pageSize = 5;
-        if ((limit > 5) && (limit < 26)) {
+        if (((limit as number) > 5) && ((limit as number) < 26)) {
             pageSize = 25;
-        } else if ((limit > 25) && (limit < 51)) {
+        } else if (((limit as number) > 25) && ((limit as number) < 51)) {
             pageSize = 50;
-        } else if (limit > 50) {
+        } else if ((limit as number) > 50) {
             pageSize = 100;
         }
         return pageSize;
@@ -1677,7 +1688,7 @@ export default class bullish extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1742,7 +1753,7 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'commandType': 'V3CreateOrder',
             'symbol': market['id'],
-            'side': side.toUpperCase (),
+            'side': (side as string).toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
             'tradingAccountId': tradingAccountId,
         };
@@ -1881,7 +1892,7 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2011,7 +2022,7 @@ export default class bullish extends Exchange {
             'CANCELLED': 'canceled',
             'REJECTED': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     parseOrderType (type: Str) {
@@ -2021,7 +2032,7 @@ export default class bullish extends Exchange {
             'POST_ONLY': 'limit',
             'STOP_LIMIT': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, type as string, type);
     }
 
     /**
@@ -2082,7 +2093,7 @@ export default class bullish extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2119,7 +2130,7 @@ export default class bullish extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId (networkCode);
+            request['network'] = this.networkCodeToId (networkCode, code);
         } else {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
@@ -2178,7 +2189,7 @@ export default class bullish extends Exchange {
         const sources = this.safeList (transactionDetails, 'sources', []);
         const source = this.safeDict (sources, 0, {});
         const sourceAddress = this.safeString (source, 'address');
-        const fee = {
+        const fee: FeeInterface = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2193,7 +2204,7 @@ export default class bullish extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (network),
+            'network': this.networkIdToCode (network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2227,7 +2238,7 @@ export default class bullish extends Exchange {
             'PENDING': 'pending',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as string, status);
     }
 
     async loadAccount (params = {}) {
@@ -2382,7 +2393,7 @@ export default class bullish extends Exchange {
         const safeResponse = this.toArray (response);
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
-        let network = undefined;
+        let network: Str = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const networkDefinedByUser = network !== undefined;
         if ((length > 1) || (networkDefinedByUser)) {
@@ -2396,7 +2407,7 @@ export default class bullish extends Exchange {
                 for (let i = 0; i < safeResponse.length; i++) {
                     const entry = this.safeDict (safeResponse, i, {});
                     const networkId = this.safeString (entry, 'network');
-                    const networkCode = this.networkIdToCode (networkId);
+                    const networkCode = this.networkIdToCode (networkId, code);
                     if (network === networkCode) {
                         data = entry;
                         break;
@@ -2413,10 +2424,11 @@ export default class bullish extends Exchange {
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
+        const code = this.safeCurrencyCode (id, currency);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode (id, currency),
-            'network': this.networkIdToCode (network),
+            'currency': code,
+            'network': this.networkIdToCode (network, code),
             'address': this.safeString (depositAddress, 'address'),
             'tag': undefined,
         } as DepositAddress;
@@ -2472,7 +2484,7 @@ export default class bullish extends Exchange {
         const account = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');
         account['used'] = this.safeString (response, 'lockedQuantity');
-        result[code] = account;
+        result[code as string] = account;
         return this.safeBalance (result);
     }
 
@@ -2596,7 +2608,7 @@ export default class bullish extends Exchange {
             'BUY': 'long',
             'SELL': 'short',
         };
-        return this.safeString (sides, side, side);
+        return this.safeString (sides, side as string, side);
     }
 
     /**
@@ -2840,7 +2852,9 @@ export default class bullish extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2939,7 +2953,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
@@ -2973,12 +2987,14 @@ export default class bullish extends Exchange {
                 }
             }
             if (path === 'v1/users/hmac/login') {
+                headers = (headers === undefined) ? {} : headers;
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
                 }
+                headers = (headers === undefined) ? {} : headers;
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
@@ -3012,9 +3028,9 @@ export default class bullish extends Exchange {
         const token = this.safeString (response, 'token');
         const authorizer = this.safeString (response, 'authorizer');
         this.options['authorizer'] = authorizer;
-        this.token = token;
+        this.token = token as string;
         this.options['tokenExpires'] = this.sum (this.milliseconds (), 1000 * 60 * 60 * 24); // token expires in 24 hours
-        return token;
+        return token as string;
     }
 
     async handleToken (params = {}) {
@@ -3053,7 +3069,7 @@ export default class bullish extends Exchange {
             if (errorCodeName !== undefined) {
                 message = errorCodeName;
             } else {
-                message = type;
+                message = type as string;
             }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

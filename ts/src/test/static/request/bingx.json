@@ -115,6 +115,44 @@
         ],
         "createOrder": [
             {
+                "description": "with stopLoss (exchange-specific)",
+                "disabledGO": true,
+                "disabledJava": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=1000&quantity=0.01&side=BUY&stopLoss=%7B%22stopPrice%22%3A%20900%2C%22workingType%22%3A%20%22MARK_PRICE%22%2C%22type%22%3A%22STOP%22%2C%22price%22%3A%20890%7D&symbol=ETH-USDT&timestamp=1783631671969&type=LIMIT&signature=ca496710dd26886c078db762178d25f5bea12993e90bfa7ba403e4553d4d21b3",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    1000,
+                    {
+                        "stopLoss": "{\"stopPrice\": 900,\"workingType\": \"MARK_PRICE\",\"type\":\"STOP\",\"price\": 890}"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "with stopLoss (unified)",
+                "disabledGO": true,
+                "disabledJava": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=1000&quantity=0.01&side=BUY&stopLoss=%7B%22stopPrice%22%3A900%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.01%7D&symbol=ETH-USDT&timestamp=1783631494336&type=LIMIT&signature=726bfb0716145dd9490425b36a68c9b4f8b9ef09a19a3b4a2591636c5e3c4b5c",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    1000,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 900
+                        }
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0",
@@ -397,6 +435,7 @@
             },
             {
                 "description": "Swap order with attached tp and sl",
+                "disabledJava": true,
                 "disabledGO": true,
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=1&side=BUY&stopLoss=%7B%22stopPrice%22%3A50%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A1%7D&symbol=LTC-USDT&takeProfit=%7B%22stopPrice%22%3A150%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A1%7D&timestamp=1704026482160&type=MARKET&signature=cbc5f76613bb456d642bd90f556a58d674cafab85559804ddd19c28a4daadddc",
@@ -634,6 +673,7 @@
             {
                 "description": "Spot create multiple limit orders at once",
                 "disabledGO": true,
+                "disabledJava": true,
                 "method": "createOrders",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/batchOrders?data=%5B%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22quantity%22%3A0.0002%2C%22price%22%3A25000%7D%2C%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22quantity%22%3A0.0002%2C%22price%22%3A27000%7D%5D&timestamp=1699073035068&signature=6864c0fb646b46b6f7ff266fe4cbd12cf8aa3d565cc57f74ce3ac229c42a686e",
                 "input": [
@@ -658,6 +698,7 @@
             {
                 "description": "Swap create multiple limit orders at once",
                 "disabledGO": true,
+                "disabledJava": true,
                 "method": "createOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22price%22%3A25000%2C%22positionSide%22%3A%22BOTH%22%2C%22quantity%22%3A0.0001%7D%2C%7B%22symbol%22%3A%22BTC-USDT%22%2C%22type%22%3A%22LIMIT%22%2C%22side%22%3A%22BUY%22%2C%22price%22%3A27000%2C%22positionSide%22%3A%22BOTH%22%2C%22quantity%22%3A0.0001%7D%5D&timestamp=1699073296743&signature=0e9387a6bdfe14bce939479b3ad9ec3124081e34aa878725c5812b70febe1545",
                 "input": [

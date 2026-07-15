@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cryptocom$1 = require('./abstract/cryptocom.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -20,7 +20,7 @@ class cryptocom extends cryptocom$1["default"] {
             'name': 'Crypto.com',
             'countries': ['MT'],
             'version': 'v2',
-            'rateLimit': 10,
+            'rateLimit': 10, // 100 requests per second
             'certified': true,
             'pro': true,
             'has': {
@@ -189,7 +189,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
-                            'private/amend-order': 4 / 3,
+                            'private/amend-order': 4 / 3, // no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -397,7 +397,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': false,
                         'iceberg': false,
                         'leverage': false,
@@ -480,12 +480,13 @@ class cryptocom extends cryptocom$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': errors.InvalidOrder, // { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219': errors.InvalidOrder,
-                    '306': errors.InsufficientFunds,
-                    '314': errors.InvalidOrder,
-                    '315': errors.InvalidOrder,
-                    '325': errors.InvalidOrder,
-                    '415': errors.InvalidOrder,
+                    '306': errors.InsufficientFunds, // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
+                    '314': errors.InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '315': errors.InvalidOrder, // { "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : { "client_oid" : "1769xxx", "order_id" : "6530xxx" } }
+                    '325': errors.InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415': errors.InvalidOrder, // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,
@@ -497,7 +498,7 @@ class cryptocom extends cryptocom$1["default"] {
                     '10009': errors.BadRequest,
                     '20001': errors.BadRequest,
                     '20002': errors.InsufficientFunds,
-                    '20005': errors.AccountNotEnabled,
+                    '20005': errors.AccountNotEnabled, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': errors.BadSymbol,
                     '30004': errors.BadRequest,
                     '30005': errors.BadRequest,
@@ -521,17 +522,17 @@ class cryptocom extends cryptocom$1["default"] {
                     '40006': errors.BadRequest,
                     '40007': errors.BadRequest,
                     '40101': errors.AuthenticationError,
-                    '40102': errors.InvalidNonce,
-                    '40103': errors.AuthenticationError,
-                    '40104': errors.AuthenticationError,
-                    '40107': errors.BadRequest,
+                    '40102': errors.InvalidNonce, // Nonce value differs by more than 60 seconds from server
+                    '40103': errors.AuthenticationError, // IP address not whitelisted
+                    '40104': errors.AuthenticationError, // Disallowed based on user tier
+                    '40107': errors.BadRequest, // Session subscription limit has been exceeded
                     '40401': errors.OrderNotFound,
                     '40801': errors.RequestTimeout,
                     '42901': errors.RateLimitExceeded,
-                    '43005': errors.InvalidOrder,
-                    '43003': errors.InvalidOrder,
-                    '43004': errors.InvalidOrder,
-                    '43012': errors.BadRequest,
+                    '43005': errors.InvalidOrder, // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': errors.InvalidOrder, // FOK order has not been filled and cancelled
+                    '43004': errors.InvalidOrder, // IOC order has not been filled and cancelled
+                    '43012': errors.BadRequest, // Canceled due to Self Trade Prevention
                     '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -563,7 +564,8 @@ class cryptocom extends cryptocom$1["default"] {
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
         }
         catch (e) {
-            if (e instanceof errors.ExchangeError) {
+            const erString = this.exceptionMessage(e);
+            if (erString.indexOf('SYS_ERROR') >= 0) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
                 return {};
@@ -616,57 +618,54 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const resultData = this.safeDict(response, 'result', {});
         const currencyMap = this.safeDict(resultData, 'currency_map', {});
-        const keys = Object.keys(currencyMap);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = currencyMap[key];
-            const id = key;
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const chains = this.safeList(currency, 'network_list', []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'network_id');
-                const network = this.networkIdToCode(networkId);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'full_name'),
+        const enhancedArray = this.addKeyInArrayItems(currencyMap, '_coin_id');
+        return this.parseCurrencies(enhancedArray);
+    }
+    parseCurrency(currency) {
+        const id = this.safeString(currency, '_coin_id');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        const chains = this.safeList(currency, 'network_list', []);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'network_id');
+            const network = this.networkIdToCode(networkId, code);
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                'fee': this.safeNumber(chain, 'withdrawal_fee'),
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'withdraw': {
+                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
                         'max': undefined,
                     },
                 },
-                'type': 'crypto',
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(currency, 'full_name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto', // only crypto now
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -810,6 +809,8 @@ class cryptocom extends cryptocom$1["default"] {
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
+            const isLinear = (contract) ? true : undefined;
+            const isInverse = (contract) ? false : undefined;
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
@@ -827,8 +828,8 @@ class cryptocom extends cryptocom$1["default"] {
                 'option': option,
                 'active': this.safeBool(market, 'tradable'),
                 'contract': contract,
-                'linear': (contract) ? true : undefined,
-                'inverse': (contract) ? false : undefined,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': this.safeNumber(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry),
@@ -873,7 +874,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbols !== undefined) {
@@ -930,7 +933,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.fetchTickers([symbol], params);
         return this.safeValue(tickers, symbol);
@@ -949,7 +954,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -1030,7 +1037,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -1091,7 +1100,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1158,10 +1169,12 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1219,7 +1232,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateUserBalance(params);
         //
         //     {
@@ -1277,7 +1292,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1454,7 +1471,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.v1PrivatePostPrivateCreateOrder(request);
@@ -1483,7 +1502,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1498,7 +1519,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         const contigency = this.safeString(params, 'contingency_type', 'LIST');
         const request = {
-            'contingency_type': contigency,
+            'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
         const response = await this.v1PrivatePostPrivateCreateOrderList(this.extend(request, params));
@@ -1699,7 +1720,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = this.editOrderRequest(id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder(request);
         const result = this.safeDict(response, 'result', {});
@@ -1737,7 +1760,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1758,7 +1783,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1796,7 +1823,9 @@ class cryptocom extends cryptocom$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const orderRequests = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1825,7 +1854,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orderRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1858,7 +1889,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1921,7 +1954,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2006,7 +2041,9 @@ class cryptocom extends cryptocom$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
         const request = {
             'currency': currency['id'],
@@ -2018,7 +2055,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }
@@ -2052,7 +2089,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -2119,10 +2158,8 @@ class cryptocom extends cryptocom$1["default"] {
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
-        else {
-            const keys = Object.keys(depositAddresses);
-            return depositAddresses[keys[0]];
-        }
+        const keys = Object.keys(depositAddresses);
+        return depositAddresses[keys[0]];
     }
     /**
      * @method
@@ -2137,7 +2174,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2196,7 +2235,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2693,7 +2734,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
         const data = this.safeValue(response, 'result');
         const currencyMap = this.safeList(data, 'currency_map');
@@ -2712,7 +2755,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2853,7 +2898,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateGetAccounts(params);
         //
         //     {
@@ -2938,7 +2985,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3022,7 +3071,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
@@ -3104,7 +3155,9 @@ class cryptocom extends cryptocom$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -3174,7 +3227,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3216,7 +3271,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -3333,8 +3390,8 @@ class cryptocom extends cryptocom$1["default"] {
             paramsKeys = object;
         }
         else {
-            const sorted = this.keysort(object);
-            paramsKeys = Object.keys(sorted);
+            const objectKeys = Object.keys(object);
+            paramsKeys = this.sort(objectKeys);
         }
         for (let i = 0; i < paramsKeys.length; i++) {
             const key = paramsKeys[i];
@@ -3369,7 +3426,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3408,7 +3467,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -3441,7 +3502,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivatePostPrivateGetFeeRate(params);
         //
         //   {
@@ -3528,7 +3591,7 @@ class cryptocom extends cryptocom$1["default"] {
             const paramsKeys = Object.keys(requestParams);
             const strSortKey = this.paramsToString(requestParams, 0);
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json({
                 'id': nonce,

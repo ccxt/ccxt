@@ -80,7 +80,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-cryptocom.fetchCurrencies ([params])
+cryptocom.fetchCurrencies (params?)
 ```
 
 
@@ -100,7 +100,7 @@ retrieves data on all markets for cryptocom
 
 
 ```javascript
-cryptocom.fetchMarkets ([params])
+cryptocom.fetchMarkets (params?)
 ```
 
 
@@ -125,7 +125,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-cryptocom.fetchTickers (symbols[, params])
+cryptocom.fetchTickers (symbols, params?)
 ```
 
 
@@ -146,7 +146,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cryptocom.fetchTicker (symbol[, params])
+cryptocom.fetchTicker (symbol, params?)
 ```
 
 
@@ -171,7 +171,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-cryptocom.fetchOrders (symbol[, since, limit, params])
+cryptocom.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -196,7 +196,7 @@ get a list of the most recent trades for a particular symbol
 
 
 ```javascript
-cryptocom.fetchTrades (symbol[, since, limit, params])
+cryptocom.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -222,7 +222,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-cryptocom.fetchOHLCV (symbol, timeframe[, since, limit, params])
+cryptocom.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -232,7 +232,7 @@ cryptocom.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book  
 
@@ -244,7 +244,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cryptocom.fetchOrderBook (symbol[, limit, params])
+cryptocom.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -264,7 +264,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-cryptocom.fetchBalance ([params])
+cryptocom.fetchBalance (params?)
 ```
 
 
@@ -286,7 +286,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-cryptocom.fetchOrder (id, symbol[, params])
+cryptocom.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -316,7 +316,7 @@ create a trade order
 
 
 ```javascript
-cryptocom.createOrder (symbol, type, side, amount[, price, params])
+cryptocom.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -341,7 +341,7 @@ create a list of trade orders
 
 
 ```javascript
-cryptocom.createOrders (orders[, params])
+cryptocom.createOrders (orders, params?)
 ```
 
 
@@ -368,7 +368,7 @@ edit a trade order
 
 
 ```javascript
-cryptocom.editOrder (id, symbol[, type, side, amount, price, params])
+cryptocom.editOrder (id, symbol, type?, side?, amount, price, params?)
 ```
 
 
@@ -389,7 +389,7 @@ cancel all open orders
 
 
 ```javascript
-cryptocom.cancelAllOrders (symbol[, params])
+cryptocom.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -411,7 +411,7 @@ cancels an open order
 
 
 ```javascript
-cryptocom.cancelOrder (id[, symbol, params])
+cryptocom.cancelOrder (id, symbol?, params?)
 ```
 
 
@@ -433,7 +433,7 @@ cancel multiple orders
 
 
 ```javascript
-cryptocom.cancelOrders (ids, symbol[, params])
+cryptocom.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -454,7 +454,7 @@ cancel multiple orders for multiple symbols
 
 
 ```javascript
-cryptocom.cancelOrdersForSymbols (orders[, params])
+cryptocom.cancelOrdersForSymbols (orders, params?)
 ```
 
 
@@ -477,7 +477,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-cryptocom.fetchOpenOrders (symbol[, since, limit, params])
+cryptocom.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -502,7 +502,7 @@ fetch all trades made by the user
 
 
 ```javascript
-cryptocom.fetchMyTrades (symbol[, since, limit, params])
+cryptocom.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -526,7 +526,7 @@ make a withdrawal
 
 
 ```javascript
-cryptocom.withdraw (code, amount, address, tag[, params])
+cryptocom.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -547,7 +547,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-cryptocom.fetchDepositAddressesByNetwork (code[, params])
+cryptocom.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -568,7 +568,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-cryptocom.fetchDepositAddress (code[, params])
+cryptocom.fetchDepositAddress (code, params?)
 ```
 
 
@@ -592,7 +592,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-cryptocom.fetchDeposits (code[, since, limit, params])
+cryptocom.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -616,7 +616,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-cryptocom.fetchWithdrawals (code[, since, limit, params])
+cryptocom.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -637,7 +637,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-cryptocom.fetchDepositWithdrawFees (codes[, params])
+cryptocom.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -661,7 +661,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-cryptocom.fetchLedger ([code, since, limit, params])
+cryptocom.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -681,7 +681,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-cryptocom.fetchAccounts ([params])
+cryptocom.fetchAccounts (params?)
 ```
 
 
@@ -705,7 +705,7 @@ fetches historical settlement records
 
 
 ```javascript
-cryptocom.fetchSettlementHistory (symbol[, since, limit, params])
+cryptocom.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -726,7 +726,7 @@ fetches historical funding rates
 
 
 ```javascript
-cryptocom.fetchFundingRate (symbol[, params])
+cryptocom.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -751,7 +751,7 @@ fetches historical funding rates
 
 
 ```javascript
-cryptocom.fetchFundingRateHistory (symbol[, since, limit, params])
+cryptocom.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -772,7 +772,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-cryptocom.fetchPosition (symbol[, params])
+cryptocom.fetchPosition (symbol, params?)
 ```
 
 
@@ -793,7 +793,7 @@ fetch all open positions
 
 
 ```javascript
-cryptocom.fetchPositions (symbols[, params])
+cryptocom.fetchPositions (symbols, params?)
 ```
 
 
@@ -817,7 +817,7 @@ closes open positions for a market
 
 
 ```javascript
-cryptocom.closePositions (symbol[, side, params])
+cryptocom.closePositions (symbol, side?, params?)
 ```
 
 
@@ -838,7 +838,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-cryptocom.fetchTradingFee (symbol[, params])
+cryptocom.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -858,7 +858,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-cryptocom.fetchTradingFees ([params])
+cryptocom.fetchTradingFees (params?)
 ```
 
 
@@ -868,7 +868,7 @@ cryptocom.fetchTradingFees ([params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -882,7 +882,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cryptocom.watchOrderBook (symbol[, limit, params])
+cryptocom.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -892,7 +892,7 @@ cryptocom.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -905,7 +905,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-cryptocom.unWatchOrderBook (symbol[, params])
+cryptocom.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -915,7 +915,7 @@ cryptocom.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -929,7 +929,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-cryptocom.watchOrderBookForSymbols (symbols[, limit, params])
+cryptocom.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -939,7 +939,7 @@ cryptocom.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -953,7 +953,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-cryptocom.unWatchOrderBookForSymbols (symbols[, params])
+cryptocom.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -976,7 +976,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cryptocom.watchTrades (symbol[, since, limit, params])
+cryptocom.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -997,7 +997,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cryptocom.unWatchTrades (symbol[, params])
+cryptocom.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1020,7 +1020,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cryptocom.watchTradesForSymbols (symbols[, since, limit, params])
+cryptocom.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1041,7 +1041,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-cryptocom.unWatchTradesForSymbols ([symbols, params])
+cryptocom.unWatchTradesForSymbols (symbols?, params?)
 ```
 
 
@@ -1064,7 +1064,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-cryptocom.watchMyTrades (symbol[, since, limit, params])
+cryptocom.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1085,7 +1085,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cryptocom.watchTicker (symbol[, params])
+cryptocom.watchTicker (symbol, params?)
 ```
 
 
@@ -1106,7 +1106,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-cryptocom.unWatchTicker (symbol[, params])
+cryptocom.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1127,7 +1127,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-cryptocom.watchTickers (symbols[, params])
+cryptocom.watchTickers (symbols, params?)
 ```
 
 
@@ -1148,7 +1148,7 @@ unWatches a price ticker
 
 
 ```javascript
-cryptocom.unWatchTickers (symbols[, params])
+cryptocom.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1169,7 +1169,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-cryptocom.watchBidsAsks (symbols[, params])
+cryptocom.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1193,7 +1193,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-cryptocom.watchOHLCV (symbol, timeframe[, since, limit, params])
+cryptocom.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1215,7 +1215,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-cryptocom.unWatchOHLCV (symbol, timeframe[, params])
+cryptocom.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1238,7 +1238,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-cryptocom.watchOrders (symbol[, since, limit, params])
+cryptocom.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1261,7 +1261,7 @@ watch all open positions
 
 
 ```javascript
-cryptocom.watchPositions ([symbols, since, limit, params])
+cryptocom.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1281,7 +1281,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-cryptocom.watchBalance ([params])
+cryptocom.watchBalance (params?)
 ```
 
 
@@ -1306,7 +1306,7 @@ create a trade order
 
 
 ```javascript
-cryptocom.createOrderWs (symbol, type, side, amount[, price, params])
+cryptocom.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -1333,7 +1333,7 @@ edit a trade order
 
 
 ```javascript
-cryptocom.editOrderWs (id, symbol[, type, side, amount, price, params])
+cryptocom.editOrderWs (id, symbol, type?, side?, amount, price, params?)
 ```
 
 
@@ -1355,7 +1355,7 @@ cancels an open order
 
 
 ```javascript
-cryptocom.cancelOrderWs (id[, symbol, params])
+cryptocom.cancelOrderWs (id, symbol?, params?)
 ```
 
 
@@ -1376,6 +1376,6 @@ cancel all open orders
 
 
 ```javascript
-cryptocom.cancelAllOrdersWs (symbol[, params])
+cryptocom.cancelAllOrdersWs (symbol, params?)
 ```
 

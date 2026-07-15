@@ -18,24 +18,27 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchOrderBookForSymbols'
-    now = exchange.milliseconds()
-    ends = now + 15000
-    while now < ends:
+    current_time = exchange.milliseconds()
+    deadline = current_time + 15000
+    seen_symbols = []
+    # keep polling until the time window elapses and every requested symbol has been observed
+    while current_time < deadline or len(seen_symbols) < len(symbols):
         response = None
-        success = True
+        succeeded = True
         try:
             response = await exchange.watch_order_book_for_symbols(symbols)
         except Exception as e:
-            # temporary fix for InvalidNonce for c#
+            # interim workaround for InvalidNonce raised by the c# runtime
             if not test_shared_methods.is_temporary_failure(e) and not (isinstance(e, InvalidNonce)):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
-            success = False
-        if success:
-            # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response)
-            now = exchange.milliseconds()
+            current_time = exchange.milliseconds()
+            succeeded = False
+        if (succeeded) and (response is not None):
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return a dictionary. ' + exchange.json(response)
+            current_time = exchange.milliseconds()
             test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
             test_order_book(exchange, skipped_properties, method, response, None)
+            symbol = response['symbol']
+            if (symbol is not None) and not exchange.in_array(symbol, seen_symbols):
+                seen_symbols.append(symbol)
     return True

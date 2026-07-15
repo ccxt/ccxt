@@ -11,7 +11,7 @@ class OrderBook {
     constructor(snapshot = {}, depth = undefined) {
         this.cache = []; // make prop visible so we use typed OrderBooks
         Object.defineProperty(this, 'cache', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: [],
             writable: true,
             enumerable: false,
@@ -77,6 +77,14 @@ class OrderBook {
         this.timestamp = snapshot.timestamp;
         this.datetime = time.iso8601(this.timestamp);
         this.symbol = snapshot.symbol;
+        // prediction-market identity — only attach when present, so crypto books are unchanged
+        if (snapshot.outcome !== undefined) {
+            this.outcome = snapshot.outcome;
+            this.outcomeId = snapshot.outcomeId;
+            this.market = snapshot.market;
+            // prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
+            delete this.symbol;
+        }
         return this;
     }
 }

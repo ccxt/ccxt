@@ -60,7 +60,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bullish.fetchTime ([params])
+bullish.fetchTime (params?)
 ```
 
 
@@ -80,7 +80,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bullish.fetchCurrencies ([params])
+bullish.fetchCurrencies (params?)
 ```
 
 
@@ -100,7 +100,7 @@ retrieves data on all markets for ace
 
 
 ```javascript
-bullish.fetchMarkets ([params])
+bullish.fetchMarkets (params?)
 ```
 
 
@@ -110,7 +110,7 @@ bullish.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bullish</code>](#bullish)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/orderbook/hybrid  
 
@@ -122,7 +122,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bullish.fetchOrderBook (symbol[, limit, params])
+bullish.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -151,7 +151,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bullish.fetchTrades (symbol[, since, limit, params])
+bullish.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -178,7 +178,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bullish.fetchMyTrades ([symbol, since, limit, params])
+bullish.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -203,7 +203,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-bullish.fetchOrderTrades (id, symbol[, since, limit, params])
+bullish.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -224,7 +224,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bullish.fetchTicker (symbol[, params])
+bullish.fetchTicker (symbol, params?)
 ```
 
 
@@ -250,7 +250,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bullish.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bullish.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -273,7 +273,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bullish.fetchFundingRateHistory (symbol[, since, limit, params])
+bullish.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -306,7 +306,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bullish.fetchOrders (symbol[, since, limit, params])
+bullish.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -330,7 +330,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bullish.fetchOpenOrders (symbol[, since, limit, params])
+bullish.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -354,7 +354,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bullish.fetchCanceledOrders (symbol[, since, limit, params])
+bullish.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -378,7 +378,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bullish.fetchClosedOrders (symbol[, since, limit, params])
+bullish.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -402,7 +402,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bullish.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+bullish.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -425,7 +425,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bullish.fetchOrder (id[, symbol, params])
+bullish.fetchOrder (id, symbol?, params?)
 ```
 
 
@@ -456,7 +456,7 @@ create a trade order
 
 
 ```javascript
-bullish.createOrder (symbol, type, side, amount[, price, params])
+bullish.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -485,7 +485,7 @@ edit a trade limit order
 
 
 ```javascript
-bullish.editOrder (id[, symbol, type, side, amount, price, params])
+bullish.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
 ```
 
 
@@ -509,7 +509,7 @@ cancels an open order
 
 
 ```javascript
-bullish.cancelOrder ([id, symbol, params])
+bullish.cancelOrder (id?, symbol, params?)
 ```
 
 
@@ -531,7 +531,7 @@ cancel all open orders in a market
 
 
 ```javascript
-bullish.cancelAllOrders ([symbol, params])
+bullish.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -554,7 +554,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-bullish.fetchDepositsWithdrawals ([code, since, limit, params])
+bullish.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -581,7 +581,7 @@ make a withdrawal
 
 
 ```javascript
-bullish.withdraw (code, amount, address[, tag, params])
+bullish.withdraw (code, amount, address, tag?, params?)
 ```
 
 
@@ -601,7 +601,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-bullish.fetchAccounts ([params])
+bullish.fetchAccounts (params?)
 ```
 
 
@@ -623,7 +623,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bullish.fetchDepositAddress (code[, params])
+bullish.fetchDepositAddress (code, params?)
 ```
 
 
@@ -649,7 +649,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bullish.fetchBalance ([params])
+bullish.fetchBalance (params?)
 ```
 
 
@@ -671,7 +671,7 @@ fetch all open positions
 
 
 ```javascript
-bullish.fetchPositions (symbols[, params])
+bullish.fetchPositions (symbols, params?)
 ```
 
 
@@ -696,7 +696,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bullish.fetchTransfers (code[, since, limit, params])
+bullish.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -720,7 +720,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-bullish.transfer (code, amount, fromAccount, toAccount[, params])
+bullish.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -745,7 +745,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 
 
 ```javascript
-bullish.fetchBorrowRateHistory (code[, since, limit, params])
+bullish.fetchBorrowRateHistory (code, since?, limit?, params?)
 ```
 
 
@@ -766,7 +766,7 @@ fetches the open interest of a specific market
 
 
 ```javascript
-bullish.fetchOpenInterest (symbol[, params])
+bullish.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -786,7 +786,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-bullish.signIn ([params])
+bullish.signIn (params?)
 ```
 
 
@@ -809,7 +809,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bullish.watchTrades (symbol[, since, limit, params])
+bullish.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -830,7 +830,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bullish.watchTicker (symbol[, params])
+bullish.watchTicker (symbol, params?)
 ```
 
 
@@ -840,7 +840,7 @@ bullish.watchTicker (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bullish</code>](#bullish)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--multi-orderbook-websocket-unauthenticated  
 
@@ -852,7 +852,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bullish.watchOrderBook (symbol[, limit, params])
+bullish.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -876,7 +876,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bullish.watchOrders (symbol[, since, limit, params])
+bullish.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -900,7 +900,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bullish.watchMyTrades (symbol[, since, limit, params])
+bullish.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -921,7 +921,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bullish.watchBalance ([params])
+bullish.watchBalance (params?)
 ```
 
 
@@ -944,6 +944,6 @@ watch all open positions
 
 
 ```javascript
-bullish.watchPositions ([symbols, since, limit, params])
+bullish.watchPositions (symbols?, since?, limit?, params)
 ```
 

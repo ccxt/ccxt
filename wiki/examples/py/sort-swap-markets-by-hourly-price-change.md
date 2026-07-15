@@ -1,15 +1,16 @@
-- [Sort Swap Markets By Hourly Price Change](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import time
 from pprint import pprint
-from datetime import datetime
+from datetime import datetime, timezone
 
 import ccxt.async_support as ccxt  # noqa: E402
 exchange = ccxt.binanceusdm()
@@ -61,7 +62,7 @@ async def main():
 
     end = time.time()
     duration = str(int((end - start) * 1000))
-    now = str(datetime.utcnow().isoformat())
+    now = str(datetime.now(timezone.utc).isoformat())
 
     print('python', sys.version)
     print('CCXT Version:', ccxt.__version__)
@@ -70,6 +71,6 @@ async def main():
     pprint(priceChanges)
 
 
-asyncio.run(main())
- 
+run(main())
+
 ```

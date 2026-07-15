@@ -1039,6 +1039,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_post_account_set_trading_config($params = array()) {
         return $this->request('account/set-trading-config', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function private_post_account_demo_adjust_balance($params = array()) {
+        return $this->request('account/demo-adjust-balance', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function private_post_asset_subaccount_transfer($params = array()) {
         return $this->request('asset/subaccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -2334,6 +2337,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostAccountSetTradingConfig($params = array()) {
         return $this->request('account/set-trading-config', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privatePostAccountDemoAdjustBalance($params = array()) {
+        return $this->request('account/demo-adjust-balance', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     public function privatePostAssetSubaccountTransfer($params = array()) {
         return $this->request('asset/subaccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));

@@ -40,7 +40,7 @@ retrieves data on all markets for bitflyer
 
 
 ```javascript
-bitflyer.fetchMarkets ([params])
+bitflyer.fetchMarkets (params?)
 ```
 
 
@@ -60,7 +60,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitflyer.fetchBalance ([params])
+bitflyer.fetchBalance (params?)
 ```
 
 
@@ -70,7 +70,7 @@ bitflyer.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#order-book  
 
@@ -82,7 +82,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitflyer.fetchOrderBook (symbol[, limit, params])
+bitflyer.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -103,7 +103,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitflyer.fetchTicker (symbol[, params])
+bitflyer.fetchTicker (symbol, params?)
 ```
 
 
@@ -126,7 +126,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitflyer.fetchTrades (symbol[, since, limit, params])
+bitflyer.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -147,7 +147,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-bitflyer.fetchTradingFee (symbol[, params])
+bitflyer.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -172,7 +172,7 @@ create a trade order
 
 
 ```javascript
-bitflyer.createOrder (symbol, type, side, amount[, price, params])
+bitflyer.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -194,7 +194,7 @@ cancels an open order
 
 
 ```javascript
-bitflyer.cancelOrder (id, symbol[, params])
+bitflyer.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -217,7 +217,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitflyer.fetchOrders (symbol[, since, limit, params])
+bitflyer.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -240,7 +240,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitflyer.fetchOpenOrders (symbol[, since, limit, params])
+bitflyer.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -263,7 +263,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitflyer.fetchClosedOrders (symbol[, since, limit, params])
+bitflyer.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -285,7 +285,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitflyer.fetchOrder (id, symbol[, params])
+bitflyer.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -308,7 +308,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitflyer.fetchMyTrades (symbol[, since, limit, params])
+bitflyer.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -329,7 +329,7 @@ fetch all open positions
 
 
 ```javascript
-bitflyer.fetchPositions (symbols[, params])
+bitflyer.fetchPositions (symbols, params?)
 ```
 
 
@@ -353,7 +353,7 @@ make a withdrawal
 
 
 ```javascript
-bitflyer.withdraw (code, amount, address, tag[, params])
+bitflyer.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -376,7 +376,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bitflyer.fetchDeposits (code[, since, limit, params])
+bitflyer.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -399,7 +399,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bitflyer.fetchWithdrawals (code[, since, limit, params])
+bitflyer.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -420,6 +420,6 @@ fetch the current funding rate
 
 
 ```javascript
-bitflyer.fetchFundingRate (symbol[, params])
+bitflyer.fetchFundingRate (symbol, params?)
 ```
 

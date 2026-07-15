@@ -8,41 +8,41 @@ import (
 )
 
 // BaseUID generates a new UUID and returns it as a string without dashes.
-func (this *Exchange) BaseUID() string {
+func (this *BaseExchange) BaseUID() string {
 	return strings.ReplaceAll(u.New().String(), "-", "")
 }
 
 // uuid2 generates a new UUID and returns it as a string.
-func (this *Exchange) Uuid2() string {
+func (this *BaseExchange) Uuid2() string {
 	return u.New().String()
 }
 
-// func (this *Exchange) uuid22() string {
+// func (this *BaseExchange) uuid22() string {
 // 	return ""
 // }
 
 // uuid is a wrapper for uuid2.
-func (this *Exchange) Uuid() string {
+func (this *BaseExchange) Uuid() string {
 	return this.Uuid2()
 }
 
 // uuid16 returns the first 16 characters of a UUID without dashes.
-func (this *Exchange) Uuid16() string {
+func (this *BaseExchange) Uuid16() string {
 	return this.BaseUID()[:16]
 }
 
 // uuid22 returns the first 22 characters of a UUID without dashes.
-func (this *Exchange) Uuid22() string {
+func (this *BaseExchange) Uuid22() string {
 	return this.BaseUID()[:22]
 }
 
 // strip trims whitespace from both ends of a string.
-func (this *Exchange) Strip(str interface{}) interface{} {
+func (this *BaseExchange) Strip(str any) any {
 	return strings.TrimSpace(str.(string))
 }
 
 // capitalize capitalizes the first letter of a string.
-func (this *Exchange) Capitalize(str2 interface{}) string {
+func (this *BaseExchange) Capitalize(str2 any) string {
 	str := str2.(string)
 	if len(str) == 0 {
 		return str

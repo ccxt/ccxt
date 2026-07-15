@@ -13,7 +13,7 @@ function log_template($exchange, $method, $entry) {
     // there are cases when exchange is undefined (eg. base tests)
     $id = ($exchange !== null) ? $exchange->id : 'undefined';
     $method_string = ($method !== null) ? $method : 'undefined';
-    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    $entry_string = ($exchange !== null && $entry !== null) ? $exchange->json($entry) : '';
     return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 
@@ -47,7 +47,14 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     $same_numeric = ((is_int($entry_key_val) || is_float($entry_key_val))) && ((is_int($format_key_val) || is_float($format_key_val)));
     $same_boolean = (($entry_key_val === true) || ($entry_key_val === false)) && (($format_key_val === true) || ($format_key_val === false));
     $same_array = gettype($entry_key_val) === 'array' && array_is_list($entry_key_val) && gettype($format_key_val) === 'array' && array_is_list($format_key_val);
-    $same_object = (is_array($entry_key_val)) && (is_array($format_key_val));
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    $format_is_empty_array = false;
+    if (gettype($format_key_val) === 'array' && array_is_list($format_key_val)) {
+        $format_len = count($format_key_val);
+        $format_is_empty_array = ($format_len === 0);
+    }
+    $same_object = $exchange->is_dictionary($entry_key_val) && ($exchange->is_dictionary($format_key_val) || $format_is_empty_array);
     $result = ($entry_key_val === null) || $same_string || $same_numeric || $same_boolean || $same_array || $same_object;
     return $result;
 }
@@ -84,7 +91,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
-        assert(is_array($entry), 'entry is not an object' . $log_text);
+        assert($exchange->is_dictionary($entry), 'entry is not a dict' . $log_text);
         $keys = is_array($format) ? array_keys($format) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -110,7 +117,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
                 if ($deep) {
-                    if (is_array($value)) {
+                    if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
                         assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
                     }
                 }
@@ -342,7 +349,7 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
         assert(gettype($entry) === 'array' && array_is_list($entry), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
-        assert(is_array($entry), 'fee container is expected to be an object' . $log_text);
+        assert($exchange->is_dictionary($entry), 'fee container is expected to be a dict' . $log_text);
         assert(is_array($entry) && array_key_exists($key, $entry), 'fee key "' . $key . '" was expected to be present in entry' . $log_text);
     }
     $fee_object = $exchange->safe_value($entry, $key);
@@ -661,4 +668,28 @@ function exchange_prop($exchange, $key, $default_value = null) {
     // try UpperCase key also, for other langs
     $key_upper = $exchange->capitalize(((string) $key));
     return $exchange->get_property($exchange, $key_upper, $default_value);
+}
+
+
+function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    $e_message = $exchange->exception_message($ex, false);
+    if (in_array('percentage should be above', $e_message) || in_array('percentage should be below', $e_message)) {
+        $symbol = $ticker['symbol'];
+        if ($symbol !== null) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+                return;
+            }
+            // if OHLCV supported
+            if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
+                $ohlcv = $exchange->fetch_ohlcv($symbol, '1d', null, 5);
+                if (count($ohlcv) <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert($e_message === '', $e_message); // trigger error
 }

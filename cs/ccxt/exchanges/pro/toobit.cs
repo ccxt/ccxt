@@ -49,7 +49,7 @@ public partial class toobit : ccxt.toobit
                         { "1w", "1w" },
                         { "1M", "1M" },
                     } },
-                    { "watchOrderBook", new Dictionary<string, object>() {
+                    { "watchOrderBookForSymbols", new Dictionary<string, object>() {
                         { "channel", "depth" },
                     } },
                     { "listenKeyRefreshRate", 1200000 },
@@ -141,7 +141,7 @@ public partial class toobit : ccxt.toobit
             { "ticketInfo", this.handleMyTrade },
             { "outboundContractPositionInfo", this.handlePositions },
         };
-        object method = this.safeValue(methods, topic);
+        object method = ((bool) isTrue((isEqual(topic, null)))) ? null : this.safeValue(methods, topic);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -152,7 +152,7 @@ public partial class toobit : ccxt.toobit
             {
                 object item = getValue(message, i);
                 object eventVar = this.safeString(item, "e");
-                object method2 = this.safeValue(methods, eventVar);
+                object method2 = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
                 if (isTrue(!isEqual(method2, null)))
                 {
                     DynamicInvoker.InvokeMethod(method2, new object[] { client, item});
@@ -170,7 +170,7 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -187,7 +187,7 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -198,7 +198,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object subParams = new List<object>() {};
@@ -282,7 +285,8 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -303,7 +307,8 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -313,7 +318,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
         object messageHashes = new List<object>() {};
         object timeframes = this.safeDict(getValue(this.options, "ws"), "timeframes", new Dictionary<string, object>() {});
@@ -430,7 +438,8 @@ public partial class toobit : ccxt.toobit
     /**
      * @method
      * @name toobit#watchTicker
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -439,7 +448,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -448,7 +460,8 @@ public partial class toobit : ccxt.toobit
     /**
      * @method
      * @name toobit#watchTickers
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -457,7 +470,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object subParams = new List<object>() {};
@@ -547,11 +563,14 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -563,19 +582,25 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object channel = null;
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "depth");
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object messageHashes = new List<object>() {};
@@ -655,7 +680,7 @@ public partial class toobit : ccxt.toobit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta);
+        object bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -717,14 +742,18 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+     * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -843,7 +872,8 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+     * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -853,7 +883,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.marketOrNull(symbol);
         symbol = this.safeString(market, "symbol", symbol);
@@ -972,7 +1005,8 @@ public partial class toobit : ccxt.toobit
      * @method
      * @name toobit#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+     * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -983,7 +1017,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.marketOrNull(symbol);
         symbol = this.safeString(market, "symbol", symbol);
@@ -1057,7 +1094,7 @@ public partial class toobit : ccxt.toobit
     /**
      * @method
      * @name toobit#watchPositions
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for
@@ -1068,7 +1105,10 @@ public partial class toobit : ccxt.toobit
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object messageHash = "";
         if (!isTrue(this.isEmpty(symbols)))

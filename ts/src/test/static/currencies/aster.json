@@ -97,5 +97,38 @@
                 "max": null
             }
         }
+    },
+    "ETH": {
+        "info": {
+            "asset": "ETH",
+            "marginAvailable": true,
+            "autoAssetExchange": "0"
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": null,
+        "type": "crypto",
+        "name": "ETH",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

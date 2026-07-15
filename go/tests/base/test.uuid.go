@@ -8,12 +8,12 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestUuid() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
-	var id1 interface{} = exchange.Uuid() // need type for .length understanding
-	var id2 interface{} = exchange.Uuid()
+	var id1 any = exchange.Uuid() // need type for .length understanding
+	var id2 any = exchange.Uuid()
 	assert(!ccxt.IsEqual(id1, nil), "uuid 1 must return a value")
 	assert(!ccxt.IsEqual(id2, nil), "uuid 2 must return a value")
 	assert(!ccxt.IsEqual(id1, id2), "uuid() must return unique values on each call")
@@ -23,8 +23,8 @@ func TestUuid() {
 	assert(ccxt.IsEqual(ccxt.GetLength(id2), 36), ccxt.Add("uuid() must return a 36-character string, returned id2: ", id2))
 	assert(ccxt.IsEqual(ccxt.GetIndexOf(id1, "-"), 8), ccxt.Add("uuid() must have dash, returned id1: ", id1))
 	// uuid16() - 16-char hex string
-	var id16a interface{} = exchange.Uuid16()
-	var id16b interface{} = exchange.Uuid16()
+	var id16a any = exchange.Uuid16()
+	var id16b any = exchange.Uuid16()
 	assert(!ccxt.IsEqual(id16a, nil), "uuid16 1 must return a value")
 	assert(!ccxt.IsEqual(id16b, nil), "uuid16 2 must return a value")
 	assert(!ccxt.IsEqual(id16a, id16b), ccxt.Add(ccxt.Add(ccxt.Add("uuid16() must return unique values on each call, returned id16a: ", id16a), ", id16b: "), id16b))
@@ -33,8 +33,8 @@ func TestUuid() {
 	assert(ccxt.IsEqual(ccxt.GetLength(id16a), 16), ccxt.Add("uuid16() must return a 16-character string, returned id16a: ", id16a))
 	assert(ccxt.IsEqual(ccxt.GetLength(id16b), 16), ccxt.Add("uuid16() must return a 16-character string, returned id16b: ", id16b))
 	// uuid22() - 22-char hex string
-	var id22a interface{} = exchange.Uuid22()
-	var id22b interface{} = exchange.Uuid22()
+	var id22a any = exchange.Uuid22()
+	var id22b any = exchange.Uuid22()
 	assert(!ccxt.IsEqual(id22a, nil), "uuid22 1 must return a value")
 	assert(!ccxt.IsEqual(id22b, nil), "uuid22 2 must return a value")
 	assert(!ccxt.IsEqual(id22a, id22b), "uuid22() must return unique values on each call")

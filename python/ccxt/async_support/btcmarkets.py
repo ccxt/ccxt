@@ -305,8 +305,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         })
 
     async def fetch_transactions_with_method(self, method, code: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -360,7 +361,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         return await self.fetch_transactions_with_method('privateGetWithdrawals', code, since, limit, params)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
             'Complete': 'ok',
@@ -370,7 +371,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        statuses: dict = {
+        statuses = {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         }
@@ -586,7 +587,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         return self.parse8601(self.safe_string(response, 'timestamp'))
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'assetName')
@@ -606,7 +607,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAccountsMeBalances(params)
         return self.parse_balance(response)
 
@@ -643,9 +645,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'marketId': market['id'],
             'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': self.iso8601(since),
@@ -677,11 +680,12 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'marketId': market['id'],
         }
         response = await self.publicGetMarketsMarketIdOrderbook(self.extend(request, params))
@@ -766,9 +770,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'marketId': market['id'],
         }
         response = await self.publicGetMarketsMarketIdTicker(self.extend(request, params))
@@ -790,9 +795,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         return self.parse_ticker(response, market)
 
     async def fetch_ticker_2(self, symbol: str, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'id': market['id'],
         }
         response = await self.publicGetMarketsMarketIdTicker(self.extend(request, params))
@@ -874,9 +880,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             # 'since': 59868345231,
             'marketId': market['id'],
         }
@@ -905,9 +912,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'marketId': market['id'],
             # 'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
@@ -992,12 +1000,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         numericIds = []
         for i in range(0, len(ids)):
             # numericIds[i] = int(ids[i])
             numericIds.append(int(ids[i]))
-        request: dict = {
+        request = {
             'ids': numericIds,
         }
         response = await self.privateDeleteBatchordersIds(self.extend(request, params))
@@ -1035,8 +1044,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'id': id,
         }
         response = await self.privateDeleteOrdersId(self.extend(request, params))
@@ -1082,7 +1092,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         }
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'Accepted': 'open',
             'Placed': 'open',
             'Partially Matched': 'open',
@@ -1167,8 +1177,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'id': id,
         }
         response = await self.privateGetOrdersId(self.extend(request, params))
@@ -1186,8 +1197,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'status': 'all',
         }
         market = None
@@ -1213,7 +1225,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {'status': 'open'}
+        request = {'status': 'open'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1243,8 +1255,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1297,9 +1310,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'assetName': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
@@ -1330,7 +1344,7 @@ class btcmarkets(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.keysort(self.omit(params, self.extract_params(path)))
         if api == 'private':

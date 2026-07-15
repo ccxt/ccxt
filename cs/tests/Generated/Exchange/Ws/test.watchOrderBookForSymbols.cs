@@ -11,33 +11,38 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
         object method = "watchOrderBookForSymbols";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object currentTime = exchange.milliseconds();
+        object deadline = add(currentTime, 15000);
+        object seenSymbols = new List<object>() {};
+        // keep polling until the time window elapses and every requested symbol has been observed
+        while (isTrue(isLessThan(currentTime, deadline)) || isTrue(isLessThan(getArrayLength(seenSymbols), getArrayLength(symbols))))
         {
             object response = null;
-            object success = true;
+            object succeeded = true;
             try
             {
                 response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
             } catch(Exception e)
             {
-                // temporary fix for InvalidNonce for c#
+                // interim workaround for InvalidNonce raised by the c# runtime
                 if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
-                success = false;
+                currentTime = exchange.milliseconds();
+                succeeded = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(succeeded, true))) && isTrue((!isEqual(response, null)))))
             {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
-                now = exchange.milliseconds();
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return a dictionary. "), exchange.json(response)));
+                currentTime = exchange.milliseconds();
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 testOrderBook(exchange, skippedProperties, method, response, null);
+                object symbol = getValue(response, "symbol");
+                if (isTrue(isTrue((!isEqual(symbol, null))) && !isTrue(exchange.inArray(symbol, seenSymbols))))
+                {
+                    ((IList<object>)seenSymbols).Add(symbol);
+                }
             }
         }
         return true;

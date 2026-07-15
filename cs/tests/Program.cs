@@ -146,39 +146,30 @@ public class Tests
             }
             else
             {
-                await RestBaseTests();
+                await baseTestInstance.baseTestsInit();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
         return Task.CompletedTask;
     }
 
-    static async Task RestBaseTests()
-    {
-        baseTestInstance.testCryptography();
-        Helper.Green(" [C#] Crypto tests passed");
-
-        // run auto-transpiled tests (all of them start by 'testFunction')
-        await RunAutoTranspiledBaseTests (baseTestInstance);
-    }
-
-    static async Task RunAutoTranspiledBaseTests(object testsInstance)
-    {
-        MethodInfo[] methods = testsInstance.GetType()
-                        .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                        .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
-                        .ToArray();
-        // 2. Invoke Each Method
-        foreach (MethodInfo method in methods)
-        {
-            var res = method.Invoke(testsInstance, null);
-            if (res is Task)
-            {
-                await (Task)res;
-            }
-            Helper.Green(" [C#] " + method.ToString() + " tests passed");
-        }
-    }
+    // static async Task RunAutoTranspiledBaseTests(object testsInstance)
+    // {
+    //     MethodInfo[] methods = testsInstance.GetType()
+    //                     .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+    //                     .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
+    //                     .ToArray();
+    //     // 2. Invoke Each Method
+    //     foreach (MethodInfo method in methods)
+    //     {
+    //         var res = method.Invoke(testsInstance, null);
+    //         if (res is Task)
+    //         {
+    //             await (Task)res;
+    //         }
+    //         Helper.Green(" [C#] " + method.ToString() + " tests passed");
+    //     }
+    // }
 
     static void WsCacheTests()
     {

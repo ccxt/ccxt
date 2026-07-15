@@ -14,28 +14,32 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order_book.php';
 function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symbols) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbols) {
         $method = 'watchOrderBookForSymbols';
-        $now = $exchange->milliseconds();
-        $ends = $now + 15000;
-        while ($now < $ends) {
+        $current_time = $exchange->milliseconds();
+        $deadline = $current_time + 15000;
+        $seen_symbols = [];
+        // keep polling until the time window elapses and every requested symbol has been observed
+        while ($current_time < $deadline || count($seen_symbols) < count($symbols)) {
             $response = null;
-            $success = true;
+            $succeeded = true;
             try {
-                $response = Async\await($exchange->watch_order_book_for_symbols($symbols));
+                $response = \React\Async\await($exchange->watch_order_book_for_symbols($symbols));
             } catch(\Throwable $e) {
-                // temporary fix for InvalidNonce for c#
+                // interim workaround for InvalidNonce raised by the c# runtime
                 if (!is_temporary_failure($e) && !($e instanceof InvalidNonce)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
-                // continue;
-                $success = false;
+                $current_time = $exchange->milliseconds();
+                $succeeded = false;
             }
-            if ($success === true) {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
-                $now = $exchange->milliseconds();
+            if (($succeeded === true) && ($response !== null)) {
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return a dictionary. ' . $exchange->json($response));
+                $current_time = $exchange->milliseconds();
                 assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
+                $symbol = $response['symbol'];
+                if (($symbol !== null) && !$exchange->in_array($symbol, $seen_symbols)) {
+                    $seen_symbols[] = $symbol;
+                }
             }
         }
         return true;

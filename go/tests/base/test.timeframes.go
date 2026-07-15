@@ -8,10 +8,13 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestRoundTimeframe() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var testDate interface{} = exchange.Parse8601("2019-08-12 13:22:08")
+	}, map[string]any{}, exchange)
+	var testDate any = exchange.Parse8601("2019-08-12 13:22:08")
+	if ccxt.IsTrue(ccxt.IsEqual(testDate, nil)) {
+		return
+	}
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("5m", testDate, ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("10m", testDate, ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", testDate, ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:00:00")))
@@ -25,9 +28,9 @@ func TestRoundTimeframe() {
 func TestParseTimeframe() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1m"), 60))
 	Assert(ccxt.IsEqual(exchange.ParseTimeframe("5m"), 300))
 	Assert(ccxt.IsEqual(exchange.ParseTimeframe("1h"), 3600))

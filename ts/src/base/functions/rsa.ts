@@ -1,19 +1,37 @@
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
-import { base16, base64, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString, base64ToBase64Url } from './encode.js';
+import crypto from 'crypto';
+import { CHash } from '@noble/hashes/utils.js';
+import { utf8 } from '@scure/base';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
-import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
 import { Dictionary } from "../types.js";
-import { ed25519 } from "../../static_dependencies/noble-curves/ed25519.js";
+import { Str } from "../types.js";
+import { ed25519 } from "@noble/curves/ed25519.js";
 
-function rsa (request: string, secret: string, hash: CHash) {
-    const RSA = new JSEncrypt ()
-    const digester = (input: Input) => base16.encode (hash (input))
-    RSA.setPrivateKey (secret)
-    const name = (hash.create ()).constructor.name.toLowerCase ()
-    return RSA.sign (request, digester, name) as string;
+// RSASSA-PKCS1-v1_5 (and RSASSA-PSS via padding = 'pss') signing through Node's built-in
+// `crypto` module. This is synchronous and works in Node.js / Bun / Deno (anything exposing
+// node:crypto). It is NOT available in the browser bundle (rspack stubs the `crypto` module),
+// so rsa throws there: RSA signing is currently unsupported in the browser.
+function rsa (request: string, secret: string, hash: CHash, padding: string = 'pkcs1'): string {
+    if (crypto === undefined || crypto.createSign === undefined) {
+        throw new Error ('rsa is currently not supported in the browser');
+    }
+    // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
+    const name = (hash.create ()).constructor.name.toLowerCase ().replace ('_', '');
+    const algorithms = {
+        'sha256': 'RSA-SHA256',
+        'sha384': 'RSA-SHA384',
+        'sha512': 'RSA-SHA512',
+    };
+    const algorithm = algorithms[name];
+    const signer = crypto.createSign (algorithm);
+    signer.update (request);
+    if (padding === 'pss') {
+        // RSASSA-PSS (RFC 8017), salt length = digest length, MGF1 with the same hash
+        return signer.sign ({ 'key': secret, 'padding': crypto.constants.RSA_PKCS1_PSS_PADDING, 'saltLength': crypto.constants.RSA_PSS_SALTLEN_DIGEST }, 'base64');
+    }
+    return signer.sign (secret, 'base64');
 }
 
 function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA = false, opts: Dictionary<any> = {}) {
@@ -31,7 +49,7 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
     const encodedData = urlencodeBase64 (JSON.stringify (request));
     let token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
-    let signature = undefined;
+    let signature: Str = undefined;
     if (algoType === 'HS') {
         signature = urlencodeBase64 (hmac (token, secret, hash, 'binary'));
     } else if (isRSA || algoType === 'RS') {

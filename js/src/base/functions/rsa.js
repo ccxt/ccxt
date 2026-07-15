@@ -4,19 +4,36 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
+import crypto from 'crypto';
+import { utf8 } from '@scure/base';
 import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
-import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
-import { ed25519 } from "../../static_dependencies/noble-curves/ed25519.js";
-function rsa(request, secret, hash) {
-    const RSA = new JSEncrypt();
-    const digester = (input) => base16.encode(hash(input));
-    RSA.setPrivateKey(secret);
-    const name = (hash.create()).constructor.name.toLowerCase();
-    return RSA.sign(request, digester, name);
+import { ed25519 } from "@noble/curves/ed25519.js";
+// RSASSA-PKCS1-v1_5 (and RSASSA-PSS via padding = 'pss') signing through Node's built-in
+// `crypto` module. This is synchronous and works in Node.js / Bun / Deno (anything exposing
+// node:crypto). It is NOT available in the browser bundle (rspack stubs the `crypto` module),
+// so rsa throws there: RSA signing is currently unsupported in the browser.
+function rsa(request, secret, hash, padding = 'pkcs1') {
+    if (crypto === undefined || crypto.createSign === undefined) {
+        throw new Error('rsa is currently not supported in the browser');
+    }
+    // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
+    const name = (hash.create()).constructor.name.toLowerCase().replace('_', '');
+    const algorithms = {
+        'sha256': 'RSA-SHA256',
+        'sha384': 'RSA-SHA384',
+        'sha512': 'RSA-SHA512',
+    };
+    const algorithm = algorithms[name];
+    const signer = crypto.createSign(algorithm);
+    signer.update(request);
+    if (padding === 'pss') {
+        // RSASSA-PSS (RFC 8017), salt length = digest length, MGF1 with the same hash
+        return signer.sign({ 'key': secret, 'padding': crypto.constants.RSA_PKCS1_PSS_PADDING, 'saltLength': crypto.constants.RSA_PSS_SALTLEN_DIGEST }, 'base64');
+    }
+    return signer.sign(secret, 'base64');
 }
 function jwt(request, secret, hash, isRSA = false, opts = {}) {
     let alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8);

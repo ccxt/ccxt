@@ -1,6 +1,6 @@
 # CCXT Usage Skills
 
-This directory contains **five language-specific skills** to help developers **use CCXT** in their own projects. These skills provide comprehensive guides for installing CCXT, connecting to exchanges, fetching market data, placing orders, handling authentication, managing errors, and using both REST and WebSocket APIs.
+This directory contains **six language-specific skills** plus a **CLI skill** to help developers **use CCXT** in their own projects. These skills provide comprehensive guides for installing CCXT, connecting to exchanges, fetching market data, placing orders, handling authentication, managing errors, and using both REST and WebSocket APIs.
 
 ## Available Skills
 
@@ -56,6 +56,31 @@ Go skill covering:
 - Rate limiting
 
 **Invoke with:** `/ccxt-go`
+
+### 6. ccxt-java
+Java skill covering:
+- Installation via Gradle/Maven
+- Typed subclass pattern (Binance extends BinanceCore)
+- REST API with typed returns (Ticker, List\<Trade\>, OrderBook)
+- WebSocket API (CompletableFuture-based)
+- Exchange-specific implicit API methods
+- Sync and async variants
+- Error handling with CompletionException unwrapping
+- Requires Java 21+ (virtual threads)
+
+**Invoke with:** `/ccxt-java`
+
+### 7. ccxt-cli
+Command-line interface skill covering:
+- Installation via npm (`ccxt-cli` package)
+- Calling any unified CCXT method from the terminal
+- Argument rules (`undefined` placeholders, `--param`, ISO8601 auto-conversion)
+- Authentication (env vars, config file, keys.json)
+- Sandbox/testnet and demo modes
+- Live WebSocket tickers/orderbooks and OHLCV charts
+- Scripting with `--raw` JSON output
+
+**Invoke with:** `/ccxt-cli`
 
 ## Common Features Across All Skills
 
@@ -117,6 +142,8 @@ Once installed, you can invoke skills in Claude Code or OpenCode:
 /ccxt-php
 /ccxt-csharp
 /ccxt-go
+/ccxt-java
+/ccxt-cli
 ```
 
 Or simply ask questions:

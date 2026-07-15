@@ -9,6 +9,7 @@ import math
 from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -32,16 +33,16 @@ class pacifica(Exchange, ImplicitAPI):
             'countries': [],
             'version': 'v1',
             'isSandboxModeEnabled': False,  # is testnet api
-            'rateLimit': 50,  # 125 requests per minute without api-key(300 with api-key) ~ 2 req/sec = 1 req/500 ms.
+            'rateLimit': 600,  # 100 credits per minute without an API Config Key(300 with a key)
             'certified': False,
             'pro': True,
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
@@ -63,7 +64,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'editOrder': True,
                 'editOrders': False,
-                'fetchAccounts': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
@@ -77,7 +78,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': False,
-                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': False,
@@ -143,10 +144,12 @@ class pacifica(Exchange, ImplicitAPI):
                 '8h': '8h',
                 '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'hostname': 'pacifica.fi',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4',
+                'logo': 'https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -165,22 +168,33 @@ class pacifica(Exchange, ImplicitAPI):
                     'get': {
                         # ~12 weight depends on the limit 3 max for api-key, but min without api-key
                         'info': 1,
+                        'info/fees': 1,
                         'info/prices': 1,
                         'kline': 12,
                         'kline/mark': 12,
                         'book': 1,
                         'trades': 1,  # Recent
                         'funding_rate/history': 1,
+                        'loan_pool': 1,
                         'account': 1,
+                        'account/loan': 1,
                         'account/settings': 1,
                         'positions': 1,
                         'trades/history': 12,
                         'funding/history': 1,
                         'portfolio': 1,
                         'account/balance/history': 12,
+                        'account/spot_balance/history': 1,
+                        'account/spot_asset/deposit/history': 1,
+                        'account/spot_asset/withdraw/history': 1,
+                        'account/spot_asset/withdraw/pending': 1,
                         'orders': 1,
                         'orders/history': 12,
                         'orders/history_by_id': 1,
+                        'spot_assets': 1,
+                        'spot_assets/bridge/info': 1,
+                        'spot_assets/bridge/parameters/{symbol}': 1,
+                        'lake/list': 1,
                         'account/builder_codes/approvals': 1,
                     },
                 },
@@ -189,9 +203,14 @@ class pacifica(Exchange, ImplicitAPI):
                         'account/leverage': 1,
                         'account/margin': 1,
                         'account/withdraw': 1,
+                        'account/settings/auto_lend_disabled': 1,
+                        'account/settings/spot': 1,
+                        'account/spot_asset/withdraw': 1,
                         'account/subaccount/create': 1,
                         'account/subaccount/list': 1,
                         'account/subaccount/transfer': 1,
+                        'account/subaccount/spot_asset/transfer': 1,
+                        'positions/add_isolated_margin': 1,
                         'orders/create': 1,
                         'orders/create_market': 1,
                         'orders/stop/create': 1,
@@ -207,6 +226,18 @@ class pacifica(Exchange, ImplicitAPI):
                         'account/api_keys/create': 1,
                         'account/api_keys/revoke': 1,
                         'account/api_keys': 1,
+                        'lake/add_blacklist': 1,
+                        'lake/add_max_leverage': 1,
+                        'lake/add_whitelist': 1,
+                        'lake/claim_manager': 1,
+                        'lake/claim_referral_code': 1,
+                        'lake/create': 1,
+                        'lake/deposit': 1,
+                        'lake/remove_blacklist': 1,
+                        'lake/remove_max_leverage': 1,
+                        'lake/remove_whitelist': 1,
+                        'lake/update_deposit_cap': 1,
+                        'lake/withdraw': 1,
                     },
                 },
             },
@@ -229,15 +260,136 @@ class pacifica(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
-                    '400': BadRequest,
-                    '403': PermissionDenied,
-                    '404': BadRequest,
-                    '409': ExchangeError,
-                    '422': ExchangeError,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeError,
-                    '503': ExchangeNotAvailable,
-                    '504': RequestTimeout,
+                    '0': ExchangeError,  # INTERNAL
+                    '1': ExchangeError,  # ACCOUNT_NOT_FOUND
+                    '2': ExchangeError,  # ACCOUNT_ALREADY_EXISTS
+                    '3': ExchangeError,  # BOOK_NOT_FOUND
+                    '4': InvalidOrder,  # INVALID_TICK_LEVEL
+                    '5': InsufficientFunds,  # INSUFFICIENT_BALANCE
+                    '6': OrderNotFound,  # ORDER_NOT_FOUND
+                    '7': InvalidOrder,  # ORDER_AMOUNT_TOO_LOW
+                    '8': InvalidOrder,  # ORDER_AMOUNT_TOO_HIGH
+                    '9': InsufficientFunds,  # OVER_WITHDRAWAL
+                    '10': InvalidOrder,  # OPEN_ORDER_LIMIT_REACHED
+                    '11': ExchangeError,  # INVALID_LEVERAGE
+                    '12': ExchangeError,  # CANNOT_UPDATE_MARGIN
+                    '13': ExchangeError,  # POSITION_NOT_FOUND
+                    '14': ExchangeError,  # DATABASE_ERROR
+                    '15': BadRequest,  # INVALID_DEPOSIT_NONCE
+                    '16': InvalidOrder,  # INVALID_STOP_TICK
+                    '17': InvalidOrder,  # INVALID_STOP_ORDER_SIDE
+                    '18': InvalidOrder,  # INVALID_STOP_ORDER_AMOUNT
+                    '19': InvalidOrder,  # INVALID_STOP_ORDER_REDUCE_ONLY
+                    '20': InvalidOrder,  # INVALID_ORDER_TYPE
+                    '21': InvalidOrder,  # INVALID_REDUCE_ONLY_ORDER_SIDE
+                    '22': InvalidOrder,  # INVALID_REDUCE_ONLY_ORDER_AMOUNT
+                    '23': InvalidOrder,  # NO_POSITION_FOR_REDUCE_ONLY_ORDER
+                    '24': ExchangeError,  # INVALID_LIQUIDATION_SIDE
+                    '25': InvalidOrder,  # NO_REASONABLE_PRICE
+                    '26': ExchangeError,  # CHANNEL_CLOSED
+                    '27': ExchangeError,  # RESPONSE_DROPPED
+                    '28': InvalidOrder,  # IMMEDIATE_LIQUIDATION
+                    '29': InvalidOrder,  # WITHDRAW_AMOUNT_TOO_LOW
+                    '30': InvalidOrder,  # PRICE_TOO_FAR_FROM_MARK
+                    '31': PermissionDenied,  # DAILY_WITHDRAW_LIMIT_EXCEEDED
+                    '32': PermissionDenied,  # WITHDRAWAL_BLOCKED
+                    '33': BadRequest,  # INVALID_TRANSFER_RELATIONSHIP
+                    '34': PermissionDenied,  # SUBACCOUNT_WITHDRAWAL_NOT_ALLOWED
+                    '35': PermissionDenied,  # SUBACCOUNT_CANNOT_CREATE_SUBACCOUNT
+                    '36': InvalidOrder,  # DUPLICATE_CLIENT_ORDER_ID
+                    '37': InvalidOrder,  # UNUSED_CLIENT_ORDER_ID
+                    '38': PermissionDenied,  # TRADING_DISABLED
+                    '39': BadRequest,  # INVALID_FEE_MODE
+                    '40': PermissionDenied,  # NOT_MAIN_ACCOUNT
+                    '41': InvalidOrder,  # OPEN_INTEREST_LIMIT_EXCEEDED
+                    '42': ExchangeError,  # EXCHANGE_WITHDRAW_LIMIT_REACHED
+                    '43': InvalidOrder,  # TWAP_DUPLICATE_CLIENT_ORDER_ID
+                    '44': InvalidOrder,  # TWAP_UNUSED_CLIENT_ORDER_ID
+                    '45': InvalidOrder,  # TWAP_ORDER_FAIL_TO_GET_SUB_ORDER_AMOUNT
+                    '46': InvalidOrder,  # TWAP_ORDER_DURATION_TOO_SHORT
+                    '47': OrderNotFound,  # TWAP_ORDER_NOT_FOUND
+                    '48': InvalidOrder,  # TWAP_ORDER_COUNT_PER_SYMBOL_LIMIT_EXCEEDED
+                    '49': InvalidOrder,  # POSITION_TPSL_LIMIT_EXCEEDED
+                    '50': BadRequest,  # INVALID_BUILDER_CODE
+                    '51': NotSupported,  # UNSUPPORTED_OPERATION
+                    '52': InvalidOrder,  # INVALID_TICK_SIZE
+                    '53': InvalidOrder,  # ORDER_BLOCKED_BY_LOAN_POOL_STRESS
+                    '54': ExchangeError,  # ASSET_ALREADY_EXISTS
+                    '55': ExchangeError,  # ASSET_NOT_FOUND
+                    '56': ExchangeError,  # ASSET_NOT_ACTIVE
+                    '59': InvalidOrder,  # INVALID_AMOUNT
+                    '61': InsufficientFunds,  # SPOT_WITHDRAWAL_EXCEEDS_COLLATERAL
+                    '62': InsufficientFunds,  # INSUFFICIENT_SPOT_BALANCE
+                    '63': ExchangeError,  # MISSING_MARK_PRICE
+                    '64': BadRequest,  # INVALID_FLOOR_PRICE_PCT
+                    '65': InsufficientFunds,  # SPOT_EXCLUSION_BREACHES_COLLATERAL
+                    '66': ExchangeError,  # LAKE_NOT_FOUND
+                    '67': ExchangeError,  # LAKE_ADDRESS_COLLISION
+                    '68': InvalidOrder,  # LAKE_MIN_DEPOSIT_AMOUNT
+                    '69': InvalidOrder,  # LAKE_INVALID_SHARES
+                    '70': InsufficientFunds,  # LAKE_OVER_WITHDRAWAL
+                    '71': ExchangeError,  # LAKE_NICKNAME_ALREADY_EXISTS
+                    '72': PermissionDenied,  # LAKE_WITHDRAWAL_NOT_ALLOWED
+                    '73': PermissionDenied,  # LAKE_MANAGER_IS_SUBLAKE
+                    '74': PermissionDenied,  # LAKE_NOT_CREATOR
+                    '75': InvalidOrder,  # LAKE_DEPOSIT_CAP_EXCEEDED
+                    '76': PermissionDenied,  # LAKE_WITHDRAW_TOO_EARLY
+                    '77': BadRequest,  # LAKE_INVALID_REV_SHARE_CONFIG
+                    '78': InsufficientFunds,  # LAKE_DEPOSITOR_OVER_WITHDRAWAL
+                    '79': ExchangeError,  # LAKE_ALREADY_HAS_MANAGER
+                    '80': InvalidOrder,  # LAKE_MANAGER_BALANCE_PORTION_TOO_LOW
+                    '81': BadRequest,  # LAKE_INVALID_BALANCE_PORTION_CONFIG
+                    '82': InvalidOrder,  # LAKE_LIQUIDATION_PORTION_ABOVE_MIN_PORTION
+                    '83': ExchangeNotAvailable,  # LAKE_TRADING_HALTED
+                    '84': BadRequest,  # INVALID_WITHDRAW_NONCE
+                    '85': BadRequest,  # LAKE_INVALID_WITHDRAW_WINDOW_CONFIG
+                    '86': BadRequest,  # LAKE_WITHDRAW_DURATION_ABOVE_WINDOW
+                    '87': PermissionDenied,  # LAKE_WITHDRAW_WINDOW_CLOSED
+                    '88': BadRequest,  # INVALID_SPOT_DEPOSIT_NONCE
+                    '89': BadRequest,  # SPOT_DEPOSIT_NONCE_GAP
+                    '90': BadRequest,  # INVALID_SPOT_WITHDRAW_NONCE
+                    '91': ExchangeError,  # SPOT_BRIDGE_NOT_FOUND
+                    '92': ExchangeNotAvailable,  # SPOT_BRIDGE_INACTIVE
+                    '93': BadRequest,  # LAKE_SYMBOL_NOT_ALLOWED
+                    '94': InvalidOrder,  # LAKE_MAX_LEVERAGE_EXCEEDED
+                    '95': ExchangeError,  # GAME_CONFIG_NOT_FOUND
+                    '96': ExchangeError,  # GAME_ACCOUNT_NOT_FOUND
+                    '97': ExchangeError,  # GAME_ACCOUNT_ADDRESS_COLLISION
+                    '99': InvalidOrder,  # GAME_DEPOSIT_CAP_EXCEEDED
+                    '100': PermissionDenied,  # GAME_OPERATION_NOT_ALLOWED
+                    '101': ExchangeNotAvailable,  # GAME_ALREADY_ENDED
+                    '102': BadRequest,  # GAME_INVALID_CONFIG
+                    '103': PermissionDenied,  # GAME_ACCOUNT_WITHDRAWAL_NOT_ALLOWED
+                    '104': InvalidOrder,  # GAME_LEVERAGE_EXCEEDED
+                    '105': InvalidOrder,  # GAME_DEPOSIT_BELOW_MINIMUM
+                    '106': NotSupported,  # REDUCE_ONLY_NOT_SUPPORTED_FOR_SPOT
+                    '107': NotSupported,  # TP_SL_NOT_SUPPORTED_FOR_SPOT
+                    '108': NotSupported,  # BUILDER_CODE_NOT_SUPPORTED_FOR_SPOT
+                    '109': NotSupported,  # MARGIN_SETTINGS_NOT_APPLICABLE_FOR_SPOT
+                    '110': BadRequest,  # INVALID_BOOK_CONFIG
+                    '111': ExchangeNotAvailable,  # TAP_GAME_NOT_ACTIVE
+                    '112': InvalidOrder,  # TAP_GAME_INVALID_AMOUNT
+                    '113': ExchangeError,  # TAP_GAME_ERROR
+                    '114': ExchangeError,  # INVALID_COLLATERAL_LIMIT / LAKE_SELF_DEPOSIT_NOT_ALLOWED
+                    '115': ExchangeError,  # SPOT_COLLATERAL_LIMIT_BREACHES_COLLATERAL / LAKE_DEPOSITOR_NOT_WHITELISTED
+                    '116': ExchangeError,  # DAILY_SPOT_WITHDRAW_LIMIT_EXCEEDED / RFQ_SELF_QUOTE_NOT_ALLOWED
+                    '117': ExchangeError,  # EXCHANGE_SPOT_WITHDRAW_LIMIT_REACHED / RFQ_NOT_SUPPORTED_FOR_SPOT
+                    '118': ExchangeError,  # INVALID_SPOT_LIMIT / RFQ_MISSING_CLIENT_ORDER_ID
+                    '119': ExchangeNotAvailable,  # ORACLE_NOT_AVAILABLE
+                    '120': PermissionDenied,  # VAULT_WITHDRAWAL_NOT_ALLOWED
+                    '121': InvalidOrder,  # RFQ_QUOTE_WORSE_THAN_BOOK
+                    '400': BadRequest,  # Bad Request; INVALID_REQUEST_CODE
+                    '401': AuthenticationError,  # INVALID_SIGNATURE_CODE
+                    '402': AuthenticationError,  # INVALID_SIGNER_CODE
+                    '403': PermissionDenied,  # Forbidden: restricted region; UNAUTHORIZED_REQUEST_CODE
+                    '404': BadRequest,  # Not Found
+                    '409': ExchangeError,  # Conflict
+                    '420': ExchangeError,  # ENGINE_ERROR_CODE
+                    '422': ExchangeError,  # Business Logic Error - See below
+                    '429': RateLimitExceeded,  # Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
+                    '500': ExchangeError,  # Internal Server Error; UNKNOWN_ERROR_CODE
+                    '503': ExchangeNotAvailable,  # Service Unavailable
+                    '504': RequestTimeout,  # Gateway Timeout
                 },
                 'broad': {
                     'UNKNOWN': ExchangeError,
@@ -265,7 +417,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'defaultType': 'swap',
                 'defaultSlippage': '0.5',
                 'expiryWindow': 5000,
-                'maxCostHugeWithApiKey': 3,
+                'maxCostHugeWithApiKey': 4,
                 'marketHelperProps': [],
                 'defaultMarginMode': 'cross',
                 'builderSupportOperations': {
@@ -418,14 +570,54 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for pacifica
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: an array of objects representing market data
+        :returns dict[]: an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
         """
-        if self.check_required_credentials(False):
-            self.initialize_client()
-            self.load_account_settings()
-        swapMarkets = self.fetch_swap_markets(params)
-        return swapMarkets
+        response = self.publicGetInfo(params)  # meta
+        # {
+        #   "success": True,
+        #   "data": [
+        #     {
+        #       "symbol": "BTC",
+        #       "tick_size": "1",
+        #       "min_tick": "0",
+        #       "max_tick": "1000000",
+        #       "lot_size": "0.00001",
+        #       "max_leverage": 50,
+        #       "isolated_only": False,
+        #       "min_order_size": "10",
+        #       "max_order_size": "5000000",
+        #       "funding_rate": "0.0000125",
+        #       "next_funding_rate": "0.0000125",
+        #       "created_at": 1748881333944,
+        #       "instrument_type": "perpetual",
+        #       "base_asset": "BTC"
+        #     },
+        #     {
+        #       "symbol": "SOL-USDC",
+        #       "tick_size": "0.01",
+        #       "min_tick": "0",
+        #       "max_tick": "1000000",
+        #       "lot_size": "0.001",
+        #       "max_leverage": 1,
+        #       "isolated_only": False,
+        #       "min_order_size": "10",
+        #       "max_order_size": "1000000",
+        #       "funding_rate": "0",
+        #       "next_funding_rate": "0",
+        #       "created_at": 1776615970246,
+        #       "instrument_type": "spot",
+        #       "base_asset": "SOL"
+        #     },
+        #   ],
+        #   "error": null,
+        #   "code": null
+        # }
+        markets = self.safe_list(response, 'data', [])
+        return self.parse_markets(markets)
 
     def fetch_swap_markets(self, params={}) -> List[Market]:
         """
@@ -436,65 +628,11 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetInfo(params)  # meta
-        # {
-        #   "success": True,
-        #   "data": [
-        #     {
-        #       "symbol": "ETH",
-        #       "tick_size": "0.1",
-        #       "min_tick": "0",
-        #       "max_tick": "1000000",
-        #       "lot_size": "0.0001",
-        #       "max_leverage": 50,
-        #       "isolated_only": False,
-        #       "min_order_size": "10",
-        #       "max_order_size": "5000000",
-        #       "funding_rate": "0.0000125",
-        #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
-        #     },
-        #     {
-        #       "symbol": "BTC",
-        #       "tick_size": "1",
-        #       "min_tick": "0",
-        #       "max_tick": "1000000",
-        #       "lot_size": "0.00001",
-        #       "max_leverage": 50,
-        #       "isolated_only": False,
-        #       "min_order_size": "10",
-        #       "max_order_size": "5000000",
-        #       "funding_rate": "0.0000125",
-        #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
-        #     },
-        #     ....
-        #   ],
-        #   "error": null,
-        #   "code": null
-        # }
-        meta = self.safe_list(response, 'data', [])
-        results = []
-        for i in range(0, len(meta)):
-            results.append(meta[i])
-        return self.parse_markets(results)
+        markets = self.fetch_markets(params)
+        return self.filter_by(markets, 'type', 'swap')
 
     def parse_market(self, market: dict) -> Market:
         #     {
-        #       "symbol": "ETH",
-        #       "tick_size": "0.1",
-        #       "min_tick": "0",
-        #       "max_tick": "1000000",
-        #       "lot_size": "0.0001",
-        #       "max_leverage": 50,
-        #       "isolated_only": False,
-        #       "min_order_size": "10",
-        #       "max_order_size": "5000000",
-        #       "funding_rate": "0.0000125",
-        #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
-        #     },
-        #     {
         #       "symbol": "BTC",
         #       "tick_size": "1",
         #       "min_tick": "0",
@@ -506,27 +644,66 @@ class pacifica(Exchange, ImplicitAPI):
         #       "max_order_size": "5000000",
         #       "funding_rate": "0.0000125",
         #       "next_funding_rate": "0.0000125",
-        #       "created_at": 1748881333944
+        #       "created_at": 1748881333944,
+        #       "instrument_type": "perpetual",
+        #       "base_asset": "BTC"
         #     },
-        quoteId = 'usdc'
-        settleId = 'usdc'
+        #     {
+        #       "symbol": "SOL-USDC",
+        #       "tick_size": "0.01",
+        #       "min_tick": "0",
+        #       "max_tick": "1000000",
+        #       "lot_size": "0.001",
+        #       "max_leverage": 1,
+        #       "isolated_only": False,
+        #       "min_order_size": "10",
+        #       "max_order_size": "1000000",
+        #       "funding_rate": "0",
+        #       "next_funding_rate": "0",
+        #       "created_at": 1776615970246,
+        #       "instrument_type": "spot",
+        #       "base_asset": "SOL"
+        #     },
         id = self.safe_string(market, 'symbol')
-        baseId = id.lower()
-        baseName = id.upper()
-        base = self.safe_currency_code(baseName)
+        baseId = self.safe_string(market, 'base_asset', id)
+        instrumentType = self.safe_string(market, 'instrument_type')
+        isSpot = (instrumentType == 'spot')
+        isSwap = not isSpot
+        quoteId = 'USDC'
+        settleId = None
+        type = 'spot'
+        linear = None
+        inverse = None
+        contractSize = None
+        minLeverage = None
+        maxLeverage = None
+        crossMargin = None
+        isolatedMargin = None
+        if isSpot:
+            idParts = id.split('-')
+            quoteId = self.safe_string(idParts, 1, quoteId)
+        isolatedOnly = self.safe_bool(market, 'isolated_only', False)
+        if isSwap:
+            settleId = quoteId
+            type = 'swap'
+            linear = True
+            inverse = False
+            contractSize = self.parse_number('1')
+            minLeverage = 1
+            maxLeverage = self.safe_integer(market, 'max_leverage')
+            crossMargin = not isolatedOnly
+            isolatedMargin = True
+        base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
-        contract = True
-        swap = True
-        if contract:
-            if swap:
-                symbol = symbol + ':' + settle
-        fees = self.safe_dict(self.fees, 'swap', {})
+        if isSwap:
+            symbol = symbol + ':' + settle
+        fees = self.safe_dict(self.fees, type, {})
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
-        amountPrecisionStr = self.safe_string(market, 'lot_size')
-        pricePrecisionStr = self.safe_string(market, 'tick_size')
+        amountPrecision = self.safe_number(market, 'lot_size')
+        pricePrecision = self.safe_number(market, 'tick_size')
         active = True  # there is no non-active markets comes from endpoint market info
         return self.safe_market_structure({
             'id': id,
@@ -535,50 +712,52 @@ class pacifica(Exchange, ImplicitAPI):
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
-            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
-            'spot': False,
-            'margin': None,
-            'swap': swap,
+            'type': type,
+            'spot': isSpot,
+            'margin': False,
+            'swap': isSwap,
             'future': False,
             'option': False,
             'active': active,
-            'contract': contract,
-            'linear': True,
-            'inverse': False,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
             'taker': taker,
             'maker': maker,
-            'contractSize': self.parse_number('1'),
+            'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number(amountPrecisionStr),
-                'price': self.parse_number(pricePrecisionStr),
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
-                    'min': 1,
-                    'max': self.safe_integer(market, 'max_leverage'),
+                    'min': minLeverage,
+                    'max': maxLeverage,
                 },
                 'amount': {
                     'min': None,
                     'max': None,
                 },
                 'price': {
-                    'min': self.safe_string(market, 'min_tick'),
-                    'max': self.safe_string(market, 'max_tick'),
+                    'min': self.safe_number(market, 'min_tick'),
+                    'max': self.safe_number(market, 'max_tick'),
                 },
                 'cost': {
-                    'min': None,
-                    'max': None,
+                    'min': self.safe_number(market, 'min_order_size'),
+                    'max': self.safe_number(market, 'max_order_size'),
                 },
             },
-            'created': None,
-            'marginModes': {'cross': True, 'isolated': True},
+            'created': self.safe_integer(market, 'created_at'),
+            'marginModes': {
+                'cross': crossMargin,
+                'isolated': isolatedMargin,
+            },
             'info': market,
         })
 
@@ -641,13 +820,17 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
         :param str symbol:  unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_account_settings()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         userAccount = None
         userAccount, params = self.handle_origin_and_single_address('fetchLeverage', params)
@@ -656,7 +839,7 @@ class pacifica(Exchange, ImplicitAPI):
         if userAccount == cacheAddress:
             settings = self.handle_option('fetchLeverage', 'settings', None)
         else:
-            request: dict = {
+            request = {
                 'account': userAccount,
             }
             settings = self.fetch_account_settings(self.extend(request, params))
@@ -712,7 +895,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         userAccount = None
         userAccount, params = self.handle_origin_and_single_address('fetchAccountSettings', params)
-        request: dict = {
+        request = {
             'account': userAccount,
         }
         response = self.publicGetAccountSettings(self.extend(request, params))
@@ -754,6 +937,9 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of the trading pair
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.account]: will default to walletAddress if not provided
@@ -767,7 +953,7 @@ class pacifica(Exchange, ImplicitAPI):
         if userAccount == cacheAddress:
             settings = self.handle_option('fetchMarginMode', 'settings', None)
         else:
-            request: dict = {
+            request = {
                 'account': userAccount,
             }
             settings = self.fetch_account_settings(self.extend(request, params))
@@ -818,13 +1004,14 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         aggLevel = None
         aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'agg_level': aggLevel,
         }
@@ -866,7 +1053,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         data = self.safe_dict(response, 'data', {})
         levels = self.safe_list(data, 'l', [])
-        result: dict = {
+        result = {
             'bids': self.safe_list(levels, 0, []),
             'asks': self.safe_list(levels, 1, []),
         }
@@ -876,6 +1063,9 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         retrieves data on all swap markets for pacifica
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -957,7 +1147,7 @@ class pacifica(Exchange, ImplicitAPI):
         https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+        :param str timeframe: the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -970,54 +1160,54 @@ class pacifica(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "symbol" argument')
         defaultMaxLimit = 3950  # 4000 by docs, but in fact >~3960 returns error
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit)
-        else:
-            tf = self.safe_string(self.timeframes, timeframe, timeframe)
-            request: dict = {
-                'symbol': market['id'],
-                'interval': tf,
-                'start_time': since,
-            }
-            request, params = self.handle_until_option('end_time', request, params)
-            nowMillis = self.milliseconds()
-            until = self.safe_integer(request, 'end_time')
+        tf = self.safe_string(self.timeframes, timeframe, timeframe)
+        request = {
+            'symbol': market['id'],
+            'interval': tf,
+            'start_time': since,
+        }
+        request, params = self.handle_until_option('end_time', request, params)
+        nowMillis = self.milliseconds()
+        until = self.safe_integer(request, 'end_time')
+        if until is None:
+            if limit is not None:
+                until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
             if until is None:
-                if limit is not None:
-                    until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
-                if until is None:
-                    until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
-                if until > nowMillis:
-                    until = nowMillis
-                request['end_time'] = until
-            response = self.publicGetKline(self.extend(request, params))
-            #
-            # {
-            #   "success": True,
-            #   "data": [
-            #     {
-            #       "t": 1748954160000,
-            #       "T": 1748954220000,
-            #       "s": "BTC",
-            #       "i": "1m",
-            #       "o": "105376",
-            #       "c": "105376",
-            #       "h": "105376",
-            #       "l": "105376",
-            #       "v": "0.00022",
-            #       "n": 2
-            #     }
-            #   ],
-            #   "error": null,
-            #   "code": null
-            # }
-            #
-            candles = self.safe_list(response, 'data', [])
-            return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+                until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
+            if until > nowMillis:
+                until = nowMillis
+            request['end_time'] = until
+        response = self.publicGetKline(self.extend(request, params))
+        #
+        # {
+        #   "success": True,
+        #   "data": [
+        #     {
+        #       "t": 1748954160000,
+        #       "T": 1748954220000,
+        #       "s": "BTC",
+        #       "i": "1m",
+        #       "o": "105376",
+        #       "c": "105376",
+        #       "h": "105376",
+        #       "l": "105376",
+        #       "v": "0.00022",
+        #       "n": 2
+        #     }
+        #   ],
+        #   "error": null,
+        #   "code": null
+        # }
+        #
+        candles = self.safe_list(response, 'data', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -1055,7 +1245,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1098,7 +1289,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1109,11 +1301,11 @@ class pacifica(Exchange, ImplicitAPI):
         defaultLimit = 100  # Default max limit
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('end_time', request, params)
         request['account'] = userAddress
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -1242,7 +1434,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.initialize_client()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
         params = self.omit(params, [
@@ -1276,7 +1469,7 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(order, 'order_id')
         return self.safe_order({'id': orderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> list:
         """
  @ignore
         create a trade order
@@ -1300,7 +1493,7 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: an [order structure]
         """
         market = self.market(symbol)
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
             'side': self.map_side(side),
         }
@@ -1346,14 +1539,14 @@ class pacifica(Exchange, ImplicitAPI):
             else:
                 sigPayload['tif'] = timeInForce
         if isTakeProfitOrder:
-            tpPayload: dict = {
+            tpPayload = {
                 'stop_price': self.price_to_precision(symbol, takeProfitPrice),
             }
             if price is not None:
                 tpPayload['limit_price'] = self.price_to_precision(symbol, price)
             sigPayload['take_profit'] = tpPayload
         if isStopLossOrder:
-            slPayload: dict = {
+            slPayload = {
                 'stop_price': self.price_to_precision(symbol, stopLossPrice),
             }
             if price is not None:
@@ -1363,7 +1556,7 @@ class pacifica(Exchange, ImplicitAPI):
             sigPayload['price'] = self.price_to_precision(symbol, price)
         if amount is not None and (operationType != 'create_stop_order' and operationType != 'set_position_tpsl'):
             sigPayload['amount'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string_n(params, ['clientOrderId'])
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             sigPayload['client_order_id'] = clientOrderId
         request = self.post_action_request(operationType, sigPayload, params)
@@ -1447,7 +1640,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.initialize_client()
         request = self.create_orders_request(orders)
         response = self.privatePostOrdersBatch(self.extend(request, params))
@@ -1498,7 +1692,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.initialize_client()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a "symbol" argument!')
@@ -1576,7 +1771,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.initialize_client()
         request = self.cancel_all_orders_request(symbol, params)
         params = self.omit(params, ['excludeReduceOnly', 'expiryWindow'])
@@ -1599,7 +1795,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     def cancel_all_orders_request(self, symbol: Str, params={}):
         operationType = 'cancel_all_orders'
-        sigPayload: dict = {}
+        sigPayload = {}
         excludeReduceOnly = self.safe_bool(params, 'excludeReduceOnly', False)
         sigPayload['exclude_reduce_only'] = excludeReduceOnly
         if symbol is not None:
@@ -1626,7 +1822,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.initialize_client()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1658,7 +1855,7 @@ class pacifica(Exchange, ImplicitAPI):
         else:
             operationType = 'cancel_order'
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
         }
         if clientOrderId is not None:
@@ -1685,7 +1882,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.initialize_client()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, market, params)
@@ -1711,8 +1909,8 @@ class pacifica(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         priceNormalized = self.price_to_precision(symbol, price)
         amountNormalized = self.amount_to_precision(symbol, amount)
-        sigPayload: dict = {
-            'symbol': market['id'],
+        sigPayload = {
+            'symbol': self.safe_string(market, 'id'),
             'price': priceNormalized,
             'amount': amountNormalized,
         }
@@ -1739,7 +1937,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
@@ -1748,7 +1947,7 @@ class pacifica(Exchange, ImplicitAPI):
         defaultLimit = 100  # Default max limit
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1797,7 +1996,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetInfoPrices(params)
         #
@@ -1822,7 +2022,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             info = data[i]
             ticker = self.parse_ticker(info)
@@ -1864,6 +2064,9 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently closed orders
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -1871,7 +2074,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orders = self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
         closedOrders = self.filter_by_array(orders, 'status', ['closed'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
@@ -1879,6 +2083,9 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all canceled orders
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -1886,7 +2093,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orders = self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
         closedOrders = self.filter_by_array(orders, 'status', ['canceled'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
@@ -1894,6 +2102,9 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all closed and canceled orders
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -1901,7 +2112,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orders = self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
         closedOrders = self.filter_by_array(orders, 'status', ['canceled', 'closed', 'rejected'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
@@ -1919,10 +2131,11 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchOpenOrders', params)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         market = None
@@ -1973,7 +2186,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate', False)
         defaultLimit = 100  # max default 100
@@ -1984,7 +2198,7 @@ class pacifica(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         if limit is not None:
@@ -2046,11 +2260,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.publicGetOrdersHistoryById(self.extend(request, params))
@@ -2109,7 +2324,7 @@ class pacifica(Exchange, ImplicitAPI):
         return self.parse_order(lastInfo, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'open': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -2119,7 +2334,7 @@ class pacifica(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def map_time_in_force(self, tifRaw: Str):
-        tifMap: dict = {
+        tifMap = {
             'GTC': 'GTC',
             'IOC': 'IOC',
             'PO': 'ALO',
@@ -2134,14 +2349,14 @@ class pacifica(Exchange, ImplicitAPI):
         return self.safe_string(tifMap, tif, None)
 
     def map_side(self, sideRaw: str):
-        sideMap: dict = {
+        sideMap = {
             'sell': 'ask',
             'buy': 'bid',
         }
         return self.safe_string(sideMap, sideRaw, sideRaw)
 
     def parse_order_type(self, status: str):
-        statuses: dict = {
+        statuses = {
             'stop_limit': 'limit',
             'stop_market': 'market',
             'take_profit_limit': 'limit',
@@ -2302,11 +2517,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchPositions', params)
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         response = self.publicGetPositions(self.extend(request, params))
@@ -2400,10 +2616,11 @@ class pacifica(Exchange, ImplicitAPI):
         operationType = 'update_margin_mode'
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         isIsolated = (marginMode == 'isolated')
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
         }
@@ -2430,9 +2647,10 @@ class pacifica(Exchange, ImplicitAPI):
         operationType = 'update_leverage'
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
             'leverage': leverage,
         }
@@ -2459,9 +2677,10 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         operationType = 'withdraw'
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
-        sigPayload: dict = {
+        sigPayload = {
             'amount': str(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
@@ -2480,11 +2699,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchTradingFee', params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         response = self.publicGetAccount(self.extend(request, params))
@@ -2510,7 +2730,7 @@ class pacifica(Exchange, ImplicitAPI):
         #   "error": null,
         #   "code": null
         # }
-        data: dict = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -2547,11 +2767,15 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_open_interests(self, symbols: Strings = None, params={}):
         """
         Retrieves the open interest for a list of symbols
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
         :param str[] [symbols]: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         swapMarkets = self.fetch_swap_markets()
         return self.parse_open_interests(swapMarkets, symbols)
@@ -2559,12 +2783,16 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a contract trading pair
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         symbol = self.symbol(symbol)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ois = self.fetch_open_interests([symbol], params)
         return ois[symbol]
 
@@ -2618,7 +2846,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate', False)
         userAddress = None
@@ -2626,7 +2855,7 @@ class pacifica(Exchange, ImplicitAPI):
         defaultLimit = 100  # Default max limit
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         if limit is not None:
@@ -2683,7 +2912,7 @@ class pacifica(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+        ledgerType = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
             'deposit_release': 'transaction',
@@ -2705,6 +2934,9 @@ class pacifica(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -2714,7 +2946,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2722,7 +2955,7 @@ class pacifica(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchFundingHistory', params)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         if limit is not None:
@@ -2845,6 +3078,9 @@ class pacifica(Exchange, ImplicitAPI):
     def create_sub_account(self, name: str, params={}):
         """
         creates a sub-account under the main account
+
+        https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
+
         :param str name: unused argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.expiryWindow]: time to live in milliseconds
@@ -2959,7 +3195,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return self.privatePostAccountBuilderCodesRevoke(self.extend(request, params))
 
-    def handle_origin_and_single_address(self, methodName: str, params: dict):
+    def handle_origin_and_single_address(self, methodName: str, params: dict) -> list:
         address = None
         address, params = self.handle_param_string_2(params, 'account', 'address', None)  # self is for get endpoints that accept account or address
         if address is not None:
@@ -2993,7 +3229,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])
@@ -3027,7 +3263,7 @@ class pacifica(Exchange, ImplicitAPI):
         return costNumber
 
     def sort_json_keys(self, value: Any) -> Any:
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             result = {}
             keys = list(value.keys())
             sortedKeys = self.sort(keys)

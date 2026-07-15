@@ -11,11 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+
+use const ccxt\TICK_SIZE;
 
 class paradex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paradex',
@@ -38,8 +39,8 @@ class paradex extends Exchange {
                 'borrowIsolatedMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => false,
-                'cancelOrder' => false,
-                'cancelOrders' => false,
+                'cancelOrder' => true,
+                'cancelOrders' => true,
                 'cancelOrdersForSymbols' => false,
                 'closeAllPositions' => false,
                 'closePosition' => false,
@@ -47,11 +48,11 @@ class paradex extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
-                'createOrders' => false,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchAllGreeks' => true,
                 'fetchBalance' => true,
@@ -73,18 +74,18 @@ class paradex extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchGreeks' => true,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
-                'fetchLiquidations' => true,
+                'fetchLiquidations' => false,
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
-                'fetchMyLiquidations' => false,
+                'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -104,10 +105,10 @@ class paradex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransfer' => false,
-                'fetchTransfers' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -133,9 +134,11 @@ class paradex extends Exchange {
                 'logo' => 'https://github.com/user-attachments/assets/84628770-784e-4ec4-a759-ec2fbb2244ea',
                 'api' => array(
                     'v1' => 'https://api.prod.{hostname}/v1',
+                    'v2' => 'https://api.prod.{hostname}/v2',
                 ),
                 'test' => array(
                     'v1' => 'https://api.testnet.{hostname}/v1',
+                    'v2' => 'https://api.testnet.{hostname}/v2',
                 ),
                 'www' => 'https://www.paradex.trade/',
                 'doc' => 'https://docs.api.testnet.paradex.trade/',
@@ -146,16 +149,25 @@ class paradex extends Exchange {
                 'public' => array(
                     'get' => array(
                         'bbo/{market}' => 1,
+                        'bbo/{market}/interactive' => 1,
                         'funding/data' => 1,
                         'markets' => 1,
                         'markets/klines' => 1,
                         'markets/summary' => 1,
                         'orderbook/{market}' => 1,
+                        'orderbook/{market}/impact-price' => 1,
+                        'orderbook/{market}/interactive' => 1,
                         'insurance' => 1,
+                        'jwks.json' => 1,
+                        'onboarding' => 1,
                         'referrals/config' => 1,
+                        'staking/config' => 1,
+                        'system/announcements' => 1,
                         'system/config' => 1,
+                        'system/portfolio-margin-config' => 1,
                         'system/state' => 1,
                         'system/time' => 1,
+                        'system/volume-tiers' => 1,
                         'trades' => 1,
                         'vaults' => 1,
                         'vaults/balance' => 1,
@@ -164,56 +176,99 @@ class paradex extends Exchange {
                         'vaults/positions' => 1,
                         'vaults/summary' => 1,
                         'vaults/transfers' => 1,
+                        'xp/fee-config' => 1,
+                        'xp/public-transfers' => 1,
+                        'xp/transfer/{transfer_id}' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'account' => 1,
-                        'account/info' => 1,
+                        'account/compliance' => 1,
                         'account/history' => 1,
+                        'account/info' => 1,
                         'account/margin' => 1,
                         'account/profile' => 1,
+                        'account/settings' => 1,
                         'account/subaccounts' => 1,
+                        'account/summary' => 1,
                         'balance' => 1,
                         'fills' => 1,
                         'funding/payments' => 1,
                         'positions' => 1,
                         'tradebusts' => 1,
                         'transactions' => 1,
+                        'account/keys/subkeys' => 1,
+                        'account/keys/subkeys/{public_key}' => 1,
+                        'account/tokens' => 1,
+                        'algo/orders' => 1,
+                        'algo/orders-history' => 1,
+                        'algo/orders/{algo_id}' => 1,
+                        'block-trades' => 1,
+                        'block-trades/{block_trade_id}' => 1,
+                        'block-trades/{block_trade_id}/offers' => 1,
+                        'block-trades/{block_trade_id}/offers/{offer_id}' => 1,
                         'liquidations' => 1,
                         'orders' => 1,
                         'orders-history' => 1,
                         'orders/by_client_id/{client_id}' => 1,
                         'orders/{order_id}' => 1,
-                        'points_data/{market}/{program}' => 1,
                         'referrals/qr-code' => 1,
                         'referrals/summary' => 1,
+                        'staking/history' => 1,
+                        'staking/summary' => 1,
                         'transfers' => 1,
-                        'algo/orders' => 1,
-                        'algo/orders-history' => 1,
-                        'algo/orders/{algo_id}' => 1,
                         'vaults/account-summary' => 1,
+                        'vaults/mine' => 1,
+                        'xp/account-balance' => 1,
+                        'xp/transfers' => 1,
+                        // 'points_data/{market}/{program}' => 1,
                     ),
                     'post' => array(
+                        'account/compliance' => 1,
                         'account/margin/{market}' => 1,
-                        'account/profile/max_slippage' => 1,
+                        'account/profile/market_max_slippage/{market}' => 1,
+                        'account/profile/notifications' => 1,
+                        'account/profile/notifications/last_seen' => 1,
                         'account/profile/referral_code' => 1,
+                        'account/profile/refresh_inventory' => 1,
+                        'account/profile/size_currency_display' => 1,
                         'account/profile/username' => 1,
+                        'account/referrer' => 1,
+                        'account/settings/trading_value_display' => 1,
+                        'account/keys/subkeys/activate' => 1,
+                        'account/keys/subkeys' => 1,
+                        'account/tokens' => 1,
+                        'algo/orders' => 1,
                         'auth' => 1,
+                        'block-trades' => 1,
+                        'block-trades/{block_trade_id}/execute' => 1,
+                        'block-trades/{block_trade_id}/offers' => 1,
+                        'block-trades/{block_trade_id}/offers/{offer_id}/execute' => 1,
                         'onboarding' => 1,
                         'orders' => 1,
                         'orders/batch' => 1,
-                        'algo/orders' => 1,
+                        'v2/auth' => 1,
+                        'v2/onboarding' => 1,
                         'vaults' => 1,
+                        'xp/transfer' => 1,
+                        // 'account/profile/max_slippage' => 1,
                     ),
                     'put' => array(
+                        'account/profile' => 1,
+                        'account/keys/subkeys/{public_key}' => 1,
                         'orders/{order_id}' => 1,
                     ),
                     'delete' => array(
+                        'account/keys/subkeys/{public_key}' => 1,
+                        'account/tokens/{lookup_id}' => 1,
+                        'algo/orders/{algo_id}' => 1,
+                        'block-trades/{block_trade_id}' => 1,
+                        'block-trades/{block_trade_id}/offers/{offer_id}' => 1,
                         'orders' => 1,
+                        'orders/batch' => 1,
                         'orders/by_client_id/{client_id}' => 1,
                         'orders/{order_id}' => 1,
-                        'algo/orders/{algo_id}' => 1,
                     ),
                 ),
             ),
@@ -329,7 +384,9 @@ class paradex extends Exchange {
                         'selfTradePrevention' => true, // todo
                         'iceberg' => false,
                     ),
-                    'createOrders' => null, // todo
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => 100, // todo
@@ -378,7 +435,7 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -388,17 +445,17 @@ class paradex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetSystemTime ($params));
+            $response = Async\await($this->publicGetSystemTime($params));
             //
             //     {
             //         "server_time" => "1681493415023"
             //     }
             //
             return $this->safe_integer($response, 'server_time');
-        }) ();
+        })();
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -408,7 +465,7 @@ class paradex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            $response = Async\await($this->publicGetSystemState ($params));
+            $response = Async\await($this->publicGetSystemState($params));
             //
             //     {
             //         "status" => "ok"
@@ -422,20 +479,20 @@ class paradex extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves $data on all markets for bitget
+             * retrieves $data on all markets for paradex
              *
              * @see https://docs.paradex.trade/api/prod/markets/get-markets
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
-            $response = Async\await($this->publicGetMarkets ($params));
+            $response = Async\await($this->publicGetMarkets($params));
             //
             //     {
             //         "results" => array(
@@ -471,7 +528,7 @@ class paradex extends Exchange {
             //
             $data = $this->safe_list($response, 'results');
             return $this->parse_markets($data);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -578,6 +635,7 @@ class paradex extends Exchange {
         } else {
             $expiry = null;
         }
+        $expireDatetime = ($expiry === 0) ? null : $this->iso8601($expiry);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -601,7 +659,7 @@ class paradex extends Exchange {
             'maker' => $makerFee,
             'contractSize' => $this->parse_number('1'),
             'expiry' => $expiry,
-            'expiryDatetime' => ($expiry === 0) ? null : $this->iso8601($expiry),
+            'expiryDatetime' => $expireDatetime,
             'strike' => $this->parse_number($strikePrice),
             'optionType' => $this->safe_string_lower($market, 'option_type'),
             'precision' => array(
@@ -631,7 +689,134 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "BTC-USD-PERP",
+        //         "fee_config" => {
+        //             "api_fee" => {
+        //                 "maker_fee" => array(
+        //                     "fee" => "0.000075",
+        //                     "fee_cap" => "0.125",
+        //                     "fee_floor" => "-0.125"
+        //                 ),
+        //                 "taker_fee" => {
+        //                     "fee" => "0.000125",
+        //                     "fee_cap" => "0.125",
+        //                     "fee_floor" => "-0.125"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        $marketId = $this->safe_string($fee, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $feeConfig = $this->safe_dict($fee, 'fee_config', array());
+        $apiFee = $this->safe_dict($feeConfig, 'api_fee', array());
+        $makerFee = $this->safe_dict($apiFee, 'maker_fee', array());
+        $takerFee = $this->safe_dict($apiFee, 'taker_fee', array());
+        return array(
+            'info' => $fee,
+            'symbol' => $market['symbol'],
+            'maker' => $this->safe_number($makerFee, 'fee', $this->safe_number($market, 'maker')),
+            'taker' => $this->safe_number($takerFee, 'fee', $this->safe_number($market, 'taker')),
+            'percentage' => true,
+            'tierBased' => false,
+        );
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fees for a $market
+             *
+             * @see https://docs.paradex.trade/api/prod/markets/get-markets
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTradingFee() requires a $symbol argument');
+            }
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarkets($this->extend($request, $params)));
+            //
+            //     {
+            //         "results" => array(
+            //             {
+            //                 "symbol" => "BTC-USD-PERP",
+            //                 "fee_config" => {
+            //                     "api_fee" => {
+            //                         "maker_fee" => array(
+            //                             "fee" => "0.000075"
+            //                         ),
+            //                         "taker_fee" => {
+            //                             "fee" => "0.000125"
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'results', array());
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_trading_fee($first, $market);
+        })();
+    }
+
+    public function fetch_trading_fees($params = array()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading $fees for multiple markets
+             *
+             * @see https://docs.paradex.trade/api/prod/markets/get-markets
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->publicGetMarkets($params));
+            //
+            //     {
+            //         "results" => array(
+            //             {
+            //                 "symbol" => "BTC-USD-PERP",
+            //                 "fee_config" => {
+            //                     "api_fee" => {
+            //                         "maker_fee" => array(
+            //                             "fee" => "0.000075"
+            //                         ),
+            //                         "taker_fee" => {
+            //                             "fee" => "0.000125"
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         )
+            //     }
+            //
+            $fees = $this->safe_list($response, 'results', array());
+            $result = array();
+            for ($i = 0; $i < count($fees); $i++) {
+                $fee = $this->parse_trading_fee($fees[$i]);
+                $symbol = $fee['symbol'];
+                $result[$symbol] = $fee;
+            }
+            return $result;
+        })();
+    }
+
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
@@ -647,7 +832,9 @@ class paradex extends Exchange {
              * @param {string} [$params->price] "last", "mark", "index", default is "last"
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -676,7 +863,7 @@ class paradex extends Exchange {
                     $request['start_at'] = $until - $duration * 101 * 1000 + 1;
                 }
             }
-            $response = Async\await($this->publicGetMarketsKlines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketsKlines($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -693,7 +880,7 @@ class paradex extends Exchange {
             //
             $data = $this->safe_list($response, 'results', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -717,7 +904,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -728,12 +915,14 @@ class paradex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $request = array(
                 'market' => 'ALL',
             );
-            $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -757,10 +946,10 @@ class paradex extends Exchange {
             //
             $data = $this->safe_list($response, 'results', array());
             return $this->parse_tickers($data, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -771,12 +960,14 @@ class paradex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -801,7 +992,7 @@ class paradex extends Exchange {
             $data = $this->safe_list($response, 'results', array());
             $ticker = $this->safe_dict($data, 0, array());
             return $this->parse_ticker($ticker, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -856,7 +1047,7 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -866,12 +1057,14 @@ class paradex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array( 'market' => $market['id'] );
-            $response = Async\await($this->publicGetOrderbookMarket ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOrderbookMarket($this->extend($request, $params)));
             //
             //     {
             //         "market" => "BTC-USD-PERP",
@@ -898,10 +1091,10 @@ class paradex extends Exchange {
             $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'seq_no');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -916,7 +1109,9 @@ class paradex extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
             if ($paginate) {
@@ -927,13 +1122,13 @@ class paradex extends Exchange {
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['page_size'] = $limit;
+                $request['page_size'] = min($limit, 1000);
             }
             if ($since !== null) {
                 $request['start_at'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
             //
             //     {
             //         "next" => "...",
@@ -956,7 +1151,7 @@ class paradex extends Exchange {
                 $trades[$i]['next'] = $this->safe_string($response, 'next');
             }
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1024,7 +1219,7 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open $interest of a contract trading pair
@@ -1035,7 +1230,9 @@ class paradex extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/?id=open-$interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['contract']) {
                 throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
@@ -1043,7 +1240,7 @@ class paradex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -1068,7 +1265,7 @@ class paradex extends Exchange {
             $data = $this->safe_list($response, 'results', array());
             $interest = $this->safe_dict($data, 0, array());
             return $this->parse_open_interest($interest, $market);
-        }) ();
+        })();
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -1120,12 +1317,12 @@ class paradex extends Exchange {
     }
 
     public function get_system_config() {
-        return Async\async(function ()  {
+        return Async\async(function () {
             $cachedConfig = $this->safe_dict($this->options, 'systemConfig');
             if ($cachedConfig !== null) {
                 return $cachedConfig;
             }
-            $response = Async\await($this->publicGetSystemConfig ());
+            $response = Async\await($this->publicGetSystemConfig());
             //
             // {
             //     "starknet_gateway_url" => "https://potc-testnet-sepolia.starknet.io",
@@ -1156,7 +1353,7 @@ class paradex extends Exchange {
             //
             $this->options['systemConfig'] = $response;
             return $response;
-        }) ();
+        })();
     }
 
     public function prepare_paradex_domain($l1 = false) {
@@ -1176,11 +1373,11 @@ class paradex extends Exchange {
                 'version' => 1,
             );
             return $domain;
-        }) ();
+        })();
     }
 
     public function retrieve_account() {
-        return Async\async(function ()  {
+        return Async\async(function () {
             $cachedAccount = $this->safe_dict($this->options, 'paradexAccount');
             if ($cachedAccount !== null) {
                 return $cachedAccount;
@@ -1205,10 +1402,10 @@ class paradex extends Exchange {
             );
             $this->options['paradexAccount'] = $account;
             return $account;
-        }) ();
+        })();
     }
 
-    public function onboarding($params = array ()) {
+    public function onboarding($params = array()) {
         return Async\async(function () use ($params) {
             $account = Async\await($this->retrieve_account());
             $req = array(
@@ -1225,12 +1422,12 @@ class paradex extends Exchange {
             $params['signature'] = $signature;
             $params['account'] = $account['address'];
             $params['public_key'] = $account['publicKey'];
-            $response = Async\await($this->privatePostOnboarding ($params));
+            $response = Async\await($this->privatePostOnboarding($params));
             return $response;
-        }) ();
+        })();
     }
 
-    public function authenticate_rest($params = array ()) {
+    public function authenticate_rest($params = array()) {
         return Async\async(function () use ($params) {
             $cachedToken = $this->safe_string($this->options, 'authToken');
             $now = $this->nonce();
@@ -1266,7 +1463,7 @@ class paradex extends Exchange {
             $params['account'] = $account['address'];
             $params['timestamp'] = $req['timestamp'];
             $params['expiration'] = $req['expiration'];
-            $response = Async\await($this->privatePostAuth ($params));
+            $response = Async\await($this->privatePostAuth($params));
             //
             // {
             //     jwt_token => "ooooccxtooootoooootheoooomoonooooo"
@@ -1276,7 +1473,7 @@ class paradex extends Exchange {
             $this->options['authToken'] = $token;
             $this->options['expires'] = $expires;
             return $token;
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1310,7 +1507,7 @@ class paradex extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'created_at');
         $orderId = $this->safe_string($order, 'id');
-        $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_id'));
+        $clientOrderId = $this->omit_zero(($this->safe_string($order, 'client_id')));
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -1327,8 +1524,8 @@ class paradex extends Exchange {
             }
         }
         $side = $this->safe_string_lower($order, 'side');
-        $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
-        $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
+        $average = $this->omit_zero(($this->safe_string($order, 'avg_fill_price')));
+        $remaining = $this->omit_zero(($this->safe_string($order, 'remaining_size')));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
@@ -1373,7 +1570,7 @@ class paradex extends Exchange {
             'GTC' => 'GTC',
             'POST_ONLY' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1403,7 +1600,133 @@ class paradex extends Exchange {
         return Precise::string_mul($num, '100000000');
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        $market = $this->market($symbol);
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $orderType = strtoupper($type);
+        $orderSide = strtoupper($side);
+        $request = array(
+            'market' => $market['id'],
+            'side' => $orderSide,
+            'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
+            'instruction' => 'GTC',
+        );
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isMarket = $orderType === 'MARKET';
+        $isTakeProfitOrder = ($takeProfitPrice !== null);
+        $isStopLossOrder = ($stopLossPrice !== null);
+        $isStopOrder = ($triggerPrice !== null) || $isTakeProfitOrder || $isStopLossOrder;
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->is_post_only($isMarket, null, $params);
+        if (!$isMarket) {
+            if ($postOnly) {
+                $request['instruction'] = 'POST_ONLY';
+            } elseif ($timeInForce === 'IOC') {
+                $request['instruction'] = 'IOC';
+            }
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+        if ($clientOrderId !== null) {
+            $request['client_id'] = $clientOrderId;
+        }
+        $sizeString = '0';
+        $stopPrice = null;
+        if ($isStopOrder) {
+            // flags => Reduce_Only must be provided for TPSL orders.
+            if ($isMarket) {
+                if ($isStopLossOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'STOP_LOSS_MARKET';
+                } elseif ($isTakeProfitOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'TAKE_PROFIT_MARKET';
+                } else {
+                    $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
+                    $sizeString = $this->amount_to_precision($symbol, $amount);
+                    $request['type'] = 'STOP_MARKET';
+                }
+            } else {
+                if ($isStopLossOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'STOP_LOSS_LIMIT';
+                } elseif ($isTakeProfitOrder) {
+                    $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $reduceOnly = true;
+                    $request['type'] = 'TAKE_PROFIT_LIMIT';
+                } else {
+                    $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
+                    $sizeString = $this->amount_to_precision($symbol, $amount);
+                    $request['type'] = 'STOP_LIMIT';
+                }
+            }
+        } else {
+            $sizeString = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($stopPrice !== null) {
+            $request['trigger_price'] = $stopPrice;
+        }
+        $request['size'] = $sizeString;
+        if ($reduceOnly) {
+            $request['flags'] = array(
+                'REDUCE_ONLY',
+            );
+        }
+        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return $this->extend($request, $params);
+    }
+
+    public function sign_order_request(array $request, $modify = false) {
+        return Async\async(function () use ($request, $modify) {
+            $account = Async\await($this->retrieve_account());
+            $now = $this->nonce();
+            $orderType = $this->safe_string($request, 'type');
+            $isMarket = (mb_strpos($orderType, 'MARKET') !== false);
+            $orderReq = array(
+                'timestamp' => $now * 1000,
+                'market' => $this->string_to_base16($request['market']),
+                'side' => ($request['side'] === 'BUY') ? '1' : '2',
+                'orderType' => $this->string_to_base16($request['type']),
+                'size' => $this->scale_number($request['size']),
+                'price' => ($isMarket) ? '0' : $this->scale_number($request['price']),
+            );
+            $orderFields = array(
+                array( 'name' => 'timestamp', 'type' => 'felt' ),
+                array( 'name' => 'market', 'type' => 'felt' ),
+                array( 'name' => 'side', 'type' => 'felt' ),
+                array( 'name' => 'orderType', 'type' => 'felt' ),
+                array( 'name' => 'size', 'type' => 'felt' ),
+                array( 'name' => 'price', 'type' => 'felt' ),
+            );
+            $messageTypes = array();
+            if ($modify) {
+                $orderReq['id'] = $request['id'];
+                $orderFields[] = array( 'name' => 'id', 'type' => 'felt' );
+                $messageTypes = array(
+                    'ModifyOrder' => $orderFields,
+                );
+            } else {
+                $messageTypes = array(
+                    'Order' => $orderFields,
+                );
+            }
+            $domain = Async\await($this->prepare_paradex_domain());
+            $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $orderReq, $account['address']);
+            $signature = $this->starknet_sign($msg, $account['privateKey']);
+            $request['signature'] = $signature;
+            $request['signature_timestamp'] = $orderReq['timestamp'];
+            return $request;
+        })();
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1416,7 +1739,7 @@ class paradex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] alias for $triggerPrice
+             * @param {float} [$params->stopPrice] alias for triggerPrice
              * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
              * @param {float} [$params->stopLossPrice] the $price that a stop loss $order is triggered at
              * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at
@@ -1427,111 +1750,13 @@ class paradex extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
-            $orderType = strtoupper($type);
-            $orderSide = strtoupper($side);
-            $request = array(
-                'market' => $market['id'],
-                'side' => $orderSide,
-                'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
-            );
-            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-            $isMarket = $orderType === 'MARKET';
-            $isTakeProfitOrder = ($takeProfitPrice !== null);
-            $isStopLossOrder = ($stopLossPrice !== null);
-            $isStopOrder = ($triggerPrice !== null) || $isTakeProfitOrder || $isStopLossOrder;
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, null, $params);
-            if (!$isMarket) {
-                if ($postOnly) {
-                    $request['instruction'] = 'POST_ONLY';
-                } elseif ($timeInForce === 'ioc') {
-                    $request['instruction'] = 'IOC';
-                }
-            }
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            if ($clientOrderId !== null) {
-                $request['client_id'] = $clientOrderId;
-            }
-            $sizeString = '0';
-            $stopPrice = null;
-            if ($isStopOrder) {
-                // flags => Reduce_Only must be provided for TPSL orders.
-                if ($isMarket) {
-                    if ($isStopLossOrder) {
-                        $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
-                        $reduceOnly = true;
-                        $request['type'] = 'STOP_LOSS_MARKET';
-                    } elseif ($isTakeProfitOrder) {
-                        $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                        $reduceOnly = true;
-                        $request['type'] = 'TAKE_PROFIT_MARKET';
-                    } else {
-                        $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
-                        $sizeString = $this->amount_to_precision($symbol, $amount);
-                        $request['type'] = 'STOP_MARKET';
-                    }
-                } else {
-                    if ($isStopLossOrder) {
-                        $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
-                        $reduceOnly = true;
-                        $request['type'] = 'STOP_LOSS_LIMIT';
-                    } elseif ($isTakeProfitOrder) {
-                        $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                        $reduceOnly = true;
-                        $request['type'] = 'TAKE_PROFIT_LIMIT';
-                    } else {
-                        $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
-                        $sizeString = $this->amount_to_precision($symbol, $amount);
-                        $request['type'] = 'STOP_LIMIT';
-                    }
-                }
-            } else {
-                $sizeString = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($stopPrice !== null) {
-                $request['trigger_price'] = $stopPrice;
-            }
-            $request['size'] = $sizeString;
-            if ($reduceOnly) {
-                $request['flags'] = array(
-                    'REDUCE_ONLY',
-                );
-            }
-            $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $account = Async\await($this->retrieve_account());
-            $now = $this->nonce();
-            $orderReq = array(
-                'timestamp' => $now * 1000,
-                'market' => $this->string_to_base16($request['market']),
-                'side' => ($orderSide === 'BUY') ? '1' : '2',
-                'orderType' => $this->string_to_base16($request['type']),
-                'size' => $this->scale_number($request['size']),
-                'price' => ($isMarket) ? '0' : $this->scale_number($request['price']),
-            );
-            $domain = Async\await($this->prepare_paradex_domain());
-            $messageTypes = array(
-                'Order' => array(
-                    array( 'name' => 'timestamp', 'type' => 'felt' ),
-                    array( 'name' => 'market', 'type' => 'felt' ),
-                    array( 'name' => 'side', 'type' => 'felt' ),
-                    array( 'name' => 'orderType', 'type' => 'felt' ),
-                    array( 'name' => 'size', 'type' => 'felt' ),
-                    array( 'name' => 'price', 'type' => 'felt' ),
-                ),
-            );
-            $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $orderReq, $account['address']);
-            $signature = $this->starknet_sign($msg, $account['privateKey']);
-            $request['signature'] = $signature;
-            $request['signature_timestamp'] = $orderReq['timestamp'];
-            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $request = Async\await($this->sign_order_request($request));
+            $response = Async\await($this->privatePostOrders($request));
             //
             // {
             //     "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -1562,10 +1787,148 @@ class paradex extends Exchange {
             //
             $order = $this->parse_order($response, $market);
             return $order;
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit an open limit order or TPSL order
+             *
+             * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+             *
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to edit an order in
+             * @param {string} $type 'limit' or a TPSL order $type
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->stopPrice] alias for triggerPrice
+             * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+             */
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            }
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
+            }
+            Async\await($this->authenticate_rest());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $request = $this->omit($request, array( 'instruction', 'client_id', 'flags' ));
+            $request['order_id'] = $id;
+            $request['id'] = $id;
+            $request = Async\await($this->sign_order_request($request, true));
+            $response = Async\await($this->privatePutOrdersOrderId($request));
+            //
+            //     {
+            //         "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+            //         "avg_fill_price" => "26000",
+            //         "cancel_reason" => "NOT_ENOUGH_MARGIN",
+            //         "client_id" => "x1234",
+            //         "created_at" => 1681493746016,
+            //         "flags" => array(
+            //             "REDUCE_ONLY"
+            //         ),
+            //         "id" => "123456",
+            //         "instruction" => "GTC",
+            //         "last_updated_at" => 1681493746016,
+            //         "market" => "BTC-USD-PERP",
+            //         "price" => "26000",
+            //         "published_at" => 1681493746016,
+            //         "received_at" => 1681493746016,
+            //         "remaining_size" => "0",
+            //         "request_info" => array(
+            //             "id" => "string",
+            //             "message" => "string",
+            //             "request_type" => "string",
+            //             "status" => "string"
+            //         ),
+            //         "seq_no" => 1681471234972000000,
+            //         "side" => "BUY",
+            //         "size" => "0.05",
+            //         "status" => "NEW",
+            //         "stp" => "EXPIRE_MAKER",
+            //         "timestamp" => 1681493746016,
+            //         "trigger_price" => "26000",
+            //         "type" => "MARKET"
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        })();
+    }
+
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             *
+             * @see https://docs.paradex.trade/api/prod/orders/batch
+             *
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             */
+            Async\await($this->authenticate_rest());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $symbol = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_number($rawOrder, 'amount');
+                $price = $this->safe_number($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $extendedParams = $this->extend($params, $orderParams);
+                $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $extendedParams);
+                $orderRequest = Async\await($this->sign_order_request($orderRequest));
+                $ordersRequests[] = $orderRequest;
+            }
+            $response = Async\await($this->privatePostOrdersBatch($ordersRequests));
+            //
+            // {
+            //     "errors" => array(
+            //         {
+            //             "error" => "VALIDATION_ERROR",
+            //             "message" => "Invalid order"
+            //         }
+            //     ),
+            //     "orders" => array(
+            //         {
+            //             "id" => "123456",
+            //             "market" => "BTC-USD-PERP",
+            //             "side" => "BUY",
+            //             "type" => "LIMIT",
+            //             "price" => "26000",
+            //             "size" => "0.05",
+            //             "status" => "NEW"
+            //         }
+            //     )
+            // }
+            //
+            $responseOrders = $this->safe_list($response, 'orders', array());
+            $parsedOrders = $this->parse_orders($responseOrders);
+            $errors = $this->safe_list($response, 'errors', array());
+            for ($i = 0; $i < count($errors); $i++) {
+                $error = $errors[$i];
+                $parsedOrders[] = $this->safe_order(array(
+                    'info' => $error,
+                    'status' => 'rejected',
+                ));
+            }
+            return $parsedOrders;
+        })();
+    }
+
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1580,25 +1943,109 @@ class paradex extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            $response = null;
             if ($clientOrderId !== null) {
                 $request['client_id'] = $clientOrderId;
-                $response = Async\await($this->privateDeleteOrdersByClientIdClientId ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteOrdersByClientIdClientId($this->extend($request, $params)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteOrdersOrderId($this->extend($request, $params)));
             }
             //
             // if success, no $response->..
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple $orders
+             *
+             * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
+             *
+             * @param {string[]} $ids order $ids
+             * @param {string} [$symbol] unified $market $symbol, not used by paradex cancelOrders()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client order $ids
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             */
+            Async\await($this->authenticate_rest());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
+            $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
+            $hasOrderIds = ($ids !== null) && ((gettype($ids) === 'array' && array_keys($ids) === array_keys(array_keys($ids))));
+            $hasClientOrderIds = ($clientOrderIds !== null) && ((gettype($clientOrderIds) === 'array' && array_keys($clientOrderIds) === array_keys(array_keys($clientOrderIds))));
+            if (!$hasOrderIds && !$hasClientOrderIds) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty $ids argument or a non-empty $clientOrderIds parameter');
+            }
+            $request = array();
+            if ($hasOrderIds) {
+                $request['order_ids'] = $ids;
+            }
+            if ($hasClientOrderIds) {
+                $request['client_order_ids'] = $clientOrderIds;
+            }
+            $response = Async\await($this->privateDeleteOrdersBatch($this->extend($request, $params)));
+            //
+            // {
+            //     "results" => array(
+            //         array(
+            //             "id" => "order-id-1",
+            //             "client_id" => "client-id-X",
+            //             "account" => "account-1",
+            //             "market" => "BTC-USD-PERP",
+            //             "status" => "QUEUED_FOR_CANCELLATION"
+            //         ),
+            //         array(
+            //             "id" => "order-id-2",
+            //             "client_id" => "client-id-Y",
+            //             "account" => "account-1",
+            //             "market" => "ETH-USD-PERP",
+            //             "status" => "ALREADY_CLOSED"
+            //         ),
+            //         {
+            //             "client_id" => "client-id-2",
+            //             "status" => "NOT_FOUND"
+            //         }
+            //     )
+            // }
+            //
+            $results = $this->safe_list($response, 'results', array());
+            $orders = array();
+            for ($i = 0; $i < count($results); $i++) {
+                $result = $results[$i];
+                $marketId = $this->safe_string($result, 'market');
+                $market = $this->safe_market($marketId, null);
+                $status = $this->safe_string($result, 'status');
+                $orderStatus = null;
+                if ($status === 'QUEUED_FOR_CANCELLATION') {
+                    $orderStatus = 'canceled';
+                } elseif ($status === 'ALREADY_CLOSED') {
+                    $orderStatus = 'closed';
+                } elseif ($status === 'NOT_FOUND') {
+                    $orderStatus = 'rejected';
+                }
+                $orders[] = $this->safe_order(array(
+                    'info' => $result,
+                    'id' => $this->safe_string($result, 'id'),
+                    'clientOrderId' => $this->safe_string($result, 'client_id'),
+                    'status' => $orderStatus,
+                    'symbol' => $market['symbol'],
+                ), $market);
+            }
+            return $orders;
+        })();
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -1613,20 +2060,22 @@ class paradex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
             //
             // if success, no $response->..
             //
             return array( $this->safe_order(array( 'info' => $response )) );
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1641,17 +2090,18 @@ class paradex extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            $response = null;
             if ($clientOrderId !== null) {
                 $request['client_id'] = $clientOrderId;
-                $response = Async\await($this->privateGetOrdersByClientIdClientId ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetOrdersByClientIdClientId($this->extend($request, $params)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetOrdersOrderId($this->extend($request, $params)));
             }
             //
             //     {
@@ -1680,10 +2130,10 @@ class paradex extends Exchange {
             //     }
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -1700,7 +2150,9 @@ class paradex extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
@@ -1719,7 +2171,7 @@ class paradex extends Exchange {
                 $request['page_size'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-            $response = Async\await($this->privateGetOrdersHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrdersHistory($this->extend($request, $params)));
             //
             // {
             //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -1763,10 +2215,10 @@ class paradex extends Exchange {
                 $orders[0] = $first;
             }
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -1780,14 +2232,16 @@ class paradex extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
             //
             //  {
             //     "results" => array(
@@ -1822,10 +2276,10 @@ class paradex extends Exchange {
             //
             $orders = $this->safe_list($response, 'results', array());
             return $this->parse_orders($orders, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1836,8 +2290,10 @@ class paradex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetBalance ());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetBalance());
             //
             //     {
             //         "results" => array(
@@ -1851,7 +2307,7 @@ class paradex extends Exchange {
             //
             $data = $this->safe_list($response, 'results', array());
             return $this->parse_balance($data);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1867,7 +2323,7 @@ class paradex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1883,7 +2339,9 @@ class paradex extends Exchange {
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -1902,7 +2360,7 @@ class paradex extends Exchange {
                 $request['start_at'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFills($this->extend($request, $params)));
             //
             //     {
             //         "next" => null,
@@ -1931,10 +2389,10 @@ class paradex extends Exchange {
                 $trades[$i]['next'] = $this->safe_string($response, 'next');
             }
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
@@ -1946,14 +2404,16 @@ class paradex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $positions = Async\await($this->fetch_positions([ $market['symbol'] ], $params));
+            $positions = Async\await($this->fetch_positions(array( $market['symbol'] ), $params));
             return $this->safe_dict($positions, 0, array());
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -1965,9 +2425,11 @@ class paradex extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->privateGetPositions ());
+            $response = Async\await($this->privateGetPositions());
             //
             //     {
             //         "results" => array(
@@ -1995,7 +2457,7 @@ class paradex extends Exchange {
             //
             $data = $this->safe_list($response, 'results', array());
             return $this->parse_positions($data, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2056,30 +2518,36 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * retrieves the public liquidations of a trading pair
+             * retrieves the users liquidated positions
              *
              * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
              *
-             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {string} [$symbol] unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-             * @param {array} [$params] exchange specific parameters for the huobi api endpoint
+             * @param {array} [$params] exchange specific parameters
              * @param {int} [$params->until] timestamp in ms of the latest liquidation
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
             Async\await($this->authenticate_rest());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($since !== null) {
                 $request['from'] = $since;
             } else {
                 $request['from'] = 1;
             }
-            $market = $this->market($symbol);
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             list($request, $params) = $this->handle_until_option('to', $request, $params);
-            $response = Async\await($this->privateGetLiquidations ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetLiquidations($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -2092,7 +2560,7 @@ class paradex extends Exchange {
             //
             $data = $this->safe_list($response, 'results', array());
             return $this->parse_liquidations($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_liquidation($liquidation, ?array $market = null) {
@@ -2105,7 +2573,7 @@ class paradex extends Exchange {
         $timestamp = $this->safe_integer($liquidation, 'created_at');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => null,
+            'symbol' => $this->safe_string($market, 'symbol'),
             'contracts' => null,
             'contractSize' => null,
             'price' => null,
@@ -2117,7 +2585,7 @@ class paradex extends Exchange {
         ));
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
@@ -2129,11 +2597,13 @@ class paradex extends Exchange {
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
             if ($paginate) {
@@ -2147,7 +2617,7 @@ class paradex extends Exchange {
                 $request['start_at'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-            $response = Async\await($this->privateGetTransfers ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTransfers($this->extend($request, $params)));
             //
             //     {
             //         "next" => null,
@@ -2178,10 +2648,10 @@ class paradex extends Exchange {
                 }
             }
             return $this->parse_transactions($deposits, null, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2193,11 +2663,13 @@ class paradex extends Exchange {
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
             if ($paginate) {
@@ -2211,7 +2683,7 @@ class paradex extends Exchange {
                 $request['start_at'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_at', $request, $params);
-            $response = Async\await($this->privateGetTransfers ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTransfers($this->extend($request, $params)));
             //
             //     {
             //         "next" => null,
@@ -2242,7 +2714,112 @@ class paradex extends Exchange {
                 }
             }
             return $this->parse_transactions($deposits, null, $since, $limit);
-        }) ();
+        })();
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch a history of transfers made on an account
+             *
+             * @see https://docs.paradex.trade/api/prod/transfers/get
+             *
+             * @param {string} $code unified $currency $code
+             * @param {int} [$since] the earliest time in ms to fetch transfers for
+             * @param {int} [$limit] the maximum number of transfer structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+             */
+            Async\await($this->authenticate_rest());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'next', 'cursor', null, 100));
+            }
+            $request = array();
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->safe_currency($code);
+            }
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start_at'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('end_at', $request, $params);
+            $response = Async\await($this->privateGetTransfers($this->extend($request, $params)));
+            //
+            //     {
+            //         "next" => null,
+            //         "prev" => null,
+            //         "results" => array(
+            //             {
+            //                 "id" => "1718940471200201703989430000",
+            //                 "account" => "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3",
+            //                 "kind" => "DEPOSIT",
+            //                 "status" => "COMPLETED",
+            //                 "amount" => "100000",
+            //                 "token" => "USDC",
+            //                 "created_at" => 1718940471208,
+            //                 "last_updated_at" => 1718941455546,
+            //                 "txn_hash" => "0x73a415ca558a97bbdcd1c43e52b45f1e0486a0a84b3bb4958035ad6c59cb866",
+            //                 "external_txn_hash" => "",
+            //                 "socialized_loss_factor" => ""
+            //             }
+            //         )
+            //     }
+            //
+            $rows = $this->safe_list($response, 'results', array());
+            return $this->parse_transfers($rows, $currency, $since, $limit);
+        })();
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        //     {
+        //         "id" => "1718940471200201703989430000",
+        //         "account" => "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3",
+        //         "kind" => "DEPOSIT",
+        //         "status" => "COMPLETED",
+        //         "amount" => "100000",
+        //         "token" => "USDC",
+        //         "created_at" => 1718940471208,
+        //         "last_updated_at" => 1718941455546,
+        //         "txn_hash" => "0x73a415ca558a97bbdcd1c43e52b45f1e0486a0a84b3bb4958035ad6c59cb866",
+        //         "external_txn_hash" => "",
+        //         "socialized_loss_factor" => ""
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'token');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->safe_integer($transfer, 'created_at');
+        $kind = $this->safe_string($transfer, 'kind');
+        $fromAccount = null;
+        $toAccount = null;
+        if ($kind === 'DEPOSIT') {
+            $fromAccount = 'external';
+            $toAccount = 'account';
+        } elseif ($kind === 'WITHDRAWAL') {
+            $fromAccount = 'account';
+            $toAccount = 'external';
+        }
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $code,
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transaction_status($this->safe_string($transfer, 'status')),
+        );
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2308,7 +2885,7 @@ class paradex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches the margin mode of a specific $symbol
@@ -2320,12 +2897,14 @@ class paradex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->privateGetAccountMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountMargin($this->extend($request, $params)));
             //
             // {
             //     "account" => "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -2340,7 +2919,7 @@ class paradex extends Exchange {
             //
             $configs = $this->safe_list($response, 'configs');
             return $this->parse_margin_mode($this->safe_dict($configs, 0), $market);
-        }) ();
+        })();
     }
 
     public function parse_margin_mode(array $rawMarginMode, $market = null): array {
@@ -2349,12 +2928,12 @@ class paradex extends Exchange {
         $marginMode = $this->safe_string_lower($rawMarginMode, 'margin_type');
         return array(
             'info' => $rawMarginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
         );
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -2369,7 +2948,9 @@ class paradex extends Exchange {
              */
             $this->check_required_argument('setMarginMode', $symbol, 'symbol');
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $leverage = null;
             list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 1);
@@ -2378,11 +2959,11 @@ class paradex extends Exchange {
                 'leverage' => $leverage,
                 'margin_type' => $this->encode_margin_mode($marginMode),
             );
-            return Async\await($this->privatePostAccountMarginMarket ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->privatePostAccountMarginMarket($this->extend($request, $params)));
+        })();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -2394,12 +2975,14 @@ class paradex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->privateGetAccountMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountMargin($this->extend($request, $params)));
             //
             // {
             //     "account" => "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -2414,7 +2997,7 @@ class paradex extends Exchange {
             //
             $configs = $this->safe_list($response, 'configs');
             return $this->parse_leverage($this->safe_dict($configs, 0), $market);
-        }) ();
+        })();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -2438,7 +3021,7 @@ class paradex extends Exchange {
         return $this->safe_string($modes, $mode, $mode);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -2453,7 +3036,9 @@ class paradex extends Exchange {
              */
             $this->check_required_argument('setLeverage', $symbol, 'symbol');
             Async\await($this->authenticate_rest());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
@@ -2462,11 +3047,11 @@ class paradex extends Exchange {
                 'leverage' => $leverage,
                 'margin_type' => $this->encode_margin_mode($marginMode),
             );
-            return Async\await($this->privatePostAccountMarginMarket ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->privatePostAccountMarginMarket($this->extend($request, $params)));
+        })();
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
@@ -2477,12 +3062,14 @@ class paradex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$greeks-structure $greeks structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -2520,10 +3107,10 @@ class paradex extends Exchange {
             $data = $this->safe_list($response, 'results', array());
             $greeks = $this->safe_dict($data, 0, array());
             return $this->parse_greeks($greeks, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_all_greeks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_all_greeks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
@@ -2534,12 +3121,14 @@ class paradex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $request = array(
                 'market' => 'ALL',
             );
-            $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
             //
             //     {
             //         "results" => array(
@@ -2576,7 +3165,7 @@ class paradex extends Exchange {
             //
             $results = $this->safe_list($response, 'results', array());
             return $this->parse_all_greeks($results, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {
@@ -2640,7 +3229,97 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the history of funding payments paid and received on this account
+             *
+             * @see https://docs.paradex.trade/api/prod/account/get-funding
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch funding history for
+             * @param {int} [$limit] the maximum number of funding history structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->cursor] returns the next paginated page
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
+            }
+            Async\await($this->authenticate_rest());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'next', 'cursor', null, 100));
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['page_size'] = min($limit, 5000);
+            } else {
+                $request['page_size'] = 100;
+            }
+            if ($since !== null) {
+                $request['start_at'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('end_at', $request, $params);
+            $response = Async\await($this->privateGetFundingPayments($this->extend($request, $params)));
+            //
+            // {
+            //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+            //     "prev" => "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+            //     "results" => array(
+            //         {
+            //             "account" => "string",
+            //             "created_at" => 1681375481000,
+            //             "fill_id" => "8615262148007718462",
+            //             "id" => "1681375578221101699352320000",
+            //             "index" => "-2819.53434361",
+            //             "market" => "BTC-USD-PERP",
+            //             "payment" => "34.4490622"
+            //         }
+            //     )
+            // }
+            //
+            $results = $this->safe_list($response, 'results', array());
+            return $this->parse_incomes($results, $market, $since, $limit);
+        })();
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        //     {
+        //         "account" => "string",
+        //         "created_at" => 1681375481000,
+        //         "fill_id" => "8615262148007718462",
+        //         "id" => "1681375578221101699352320000",
+        //         "index" => "-2819.53434361",
+        //         "market" => "BTC-USD-PERP",
+        //         "payment" => "34.4490622"
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'market');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($income, 'created_at');
+        return array(
+            'info' => $income,
+            'symbol' => $market['symbol'],
+            'code' => $market['settle'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'id'),
+            'amount' => $this->safe_number($income, 'payment'),
+        );
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding $rate prices
@@ -2657,13 +3336,15 @@ class paradex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['page_size'] = min ($limit, 5000); // api maximum 5000
+                $request['page_size'] = min($limit, 5000); // api maximum 5000
             } else {
                 $request['page_size'] = 1000; // max is 5000
             }
@@ -2675,7 +3356,7 @@ class paradex extends Exchange {
                 $params = $this->omit($params, 'until');
                 $request['end_at'] = $until;
             }
-            $response = Async\await($this->publicGetFundingData ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetFundingData($this->extend($request, $params)));
             //
             // {
             //     "next" => "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -2709,11 +3390,16 @@ class paradex extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-        }) ();
+        })();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_hostname($this->urls['api'][$this->version]) . '/' . $this->implode_params($path, $params);
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+        $version = $this->version;
+        if (mb_strpos($path, 'v2/') === 0) {
+            $version = 'v2';
+            $path = str_replace('v2/', '', $path);
+        }
+        $url = $this->implode_hostname($this->urls['api'][$version]) . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
@@ -2742,7 +3428,7 @@ class paradex extends Exchange {
             } else {
                 $token = $this->options['authToken'];
                 $headers['Authorization'] = 'Bearer ' . $token;
-                if ($method === 'POST') {
+                if (($method === 'POST') || ($method === 'PUT') || (($method === 'DELETE') && ($path === 'orders/batch'))) {
                     $headers['Content-Type'] = 'application/json';
                     $body = $this->json($query);
                 } else {

@@ -116,6 +116,7 @@ public partial class lighter : ccxt.lighter
     public async virtual Task<object> subscribePrivate(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.preLoadLighterLibrary();
         ((IDictionary<string,object>)parameters)["auth"] = this.createAuth(parameters);
         return await this.subscribePublic(messageHash, parameters);
     }
@@ -175,7 +176,7 @@ public partial class lighter : ccxt.lighter
         // }
         //
         object data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
-        object channel = this.safeString(message, "channel", "");
+        object channel = ((string)this.safeString(message, "channel", ""));
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
@@ -208,12 +209,15 @@ public partial class lighter : ccxt.lighter
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("order_book/", getValue(market, "id")) },
@@ -230,12 +234,15 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("order_book/", getValue(market, "id")) },
@@ -330,12 +337,15 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("market_stats/", getValue(market, "id")) },
@@ -351,12 +361,15 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("market_stats/", getValue(market, "id")) },
@@ -373,12 +386,15 @@ public partial class lighter : ccxt.lighter
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {
             { "channel", "market_stats/all" },
@@ -417,12 +433,15 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "channel", "market_stats/all" },
         };
@@ -437,7 +456,7 @@ public partial class lighter : ccxt.lighter
      * @description watches a mark price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchMarkPrice(object symbol, object parameters = null)
     {
@@ -452,7 +471,7 @@ public partial class lighter : ccxt.lighter
      * @description watches mark prices
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -467,7 +486,7 @@ public partial class lighter : ccxt.lighter
      * @description unWatches a mark price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
@@ -482,7 +501,7 @@ public partial class lighter : ccxt.lighter
      * @description unWatches mark prices
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -588,7 +607,7 @@ public partial class lighter : ccxt.lighter
             this.handleLiquidation(client as WebSocketClient, message);
         }
         object data = this.safeList(message, "trades", new List<object>() {});
-        object channel = this.safeString(message, "channel", "");
+        object channel = ((string)this.safeString(message, "channel", ""));
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
@@ -620,12 +639,15 @@ public partial class lighter : ccxt.lighter
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("trade/", getValue(market, "id")) },
@@ -642,12 +664,15 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("trade/", getValue(market, "id")) },
@@ -692,21 +717,31 @@ public partial class lighter : ccxt.lighter
         object amountString = this.safeString(trade, "size");
         object costString = this.safeString(trade, "usd_amount");
         object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        object side = ((bool) isTrue(isMakerAsk)) ? "buy" : "sell";
         object accountIndex = this.safeInteger(trade, "accountIndex");
+        object bidAccountId = this.safeInteger(trade, "bid_account_id");
+        object askAccountId = this.safeInteger(trade, "ask_account_id");
+        object side = null;
         object order = null;
         object takerOrMaker = null;
         if (isTrue(!isEqual(accountIndex, null)))
         {
-            if (isTrue(isEqual(this.safeInteger(trade, "bid_account_id"), accountIndex)))
+            if (isTrue(isEqual(bidAccountId, accountIndex)))
             {
+                // Own trades should use the account's order side
+                side = "buy";
                 order = this.safeString(trade, "bid_id");
                 takerOrMaker = ((bool) isTrue(isMakerAsk)) ? "taker" : "maker";
-            } else if (isTrue(isEqual(this.safeInteger(trade, "ask_account_id"), accountIndex)))
+            } else if (isTrue(isEqual(askAccountId, accountIndex)))
             {
+                side = "sell";
                 order = this.safeString(trade, "ask_id");
                 takerOrMaker = ((bool) isTrue(isMakerAsk)) ? "maker" : "taker";
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (isTrue(isEqual(side, null)))
+        {
+            side = ((bool) isTrue(isMakerAsk)) ? "buy" : "sell";
         }
         object fee = null;
         if (isTrue(!isEqual(takerOrMaker, null)))
@@ -773,7 +808,7 @@ public partial class lighter : ccxt.lighter
         //         "type": "update/account_all_trades"
         //     }
         //
-        object channel = this.safeString(message, "channel", "");
+        object channel = ((string)this.safeString(message, "channel", ""));
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object accountIndex = getValue(parts, 1);
         object data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
@@ -824,12 +859,15 @@ public partial class lighter : ccxt.lighter
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -859,7 +897,7 @@ public partial class lighter : ccxt.lighter
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
@@ -973,7 +1011,7 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         object data = this.safeList(message, "liquidation_trades", new List<object>() {});
-        object channel = this.safeString(message, "channel", "");
+        object channel = ((string)this.safeString(message, "channel", ""));
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
@@ -1005,12 +1043,15 @@ public partial class lighter : ccxt.lighter
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "channel", add("trade/", getValue(market, "id")) },
@@ -1031,7 +1072,10 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object defaultType = this.safeString2(this.options, "watchBalance", "defaultType", "spot");
         object type = null;
         var typeparametersVariable = this.handleParamString(parameters, "type", defaultType);
@@ -1110,7 +1154,7 @@ public partial class lighter : ccxt.lighter
         //        "type": "update/user_stats"
         //    }
         //
-        object channel = this.safeString(message, "channel", "");
+        object channel = ((string)this.safeString(message, "channel", ""));
         object type = "spot";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "user_stats:"), 0)))
         {
@@ -1163,7 +1207,10 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -1200,7 +1247,10 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
@@ -1317,7 +1367,7 @@ public partial class lighter : ccxt.lighter
             this.handlePing(client as WebSocketClient, message);
             return;
         }
-        object channel = this.safeString(message, "channel", "");
+        object channel = ((string)this.safeString(message, "channel", ""));
         if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "order_book:"), 0)))
         {
             this.handleOrderBook(client as WebSocketClient, message);

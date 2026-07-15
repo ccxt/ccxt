@@ -8,26 +8,33 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 function testTicker(exchange, skippedProperties, method, entry, symbol) {
+    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    // books where bid==ask and a stale `last` far from the median are normal — skip the
+    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    // omits vwap/previousClose entirely, so their presence must not be asserted
+    if (exchange.safeBool(exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend({ 'symbol': true, 'spread': true, 'lastBetweenBidAsk': true, 'maxIncrease': true, 'vwap': true, 'previousClose': true }, skippedProperties);
+    }
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
         'timestamp': 1502962946216,
         'datetime': '2017-09-01T00:00:00',
-        'high': exchange.parseNumber('1.234'),
-        'low': exchange.parseNumber('1.234'),
-        'bid': exchange.parseNumber('1.234'),
-        'bidVolume': exchange.parseNumber('1.234'),
-        'ask': exchange.parseNumber('1.234'),
-        'askVolume': exchange.parseNumber('1.234'),
-        'vwap': exchange.parseNumber('1.234'),
-        'open': exchange.parseNumber('1.234'),
-        'close': exchange.parseNumber('1.234'),
-        'last': exchange.parseNumber('1.234'),
-        'previousClose': exchange.parseNumber('1.234'),
-        'change': exchange.parseNumber('1.234'),
-        'percentage': exchange.parseNumber('1.234'),
-        'average': exchange.parseNumber('1.234'),
-        'baseVolume': exchange.parseNumber('1.234'),
+        'high': exchange.parseNumber('1.234'), // highest price
+        'low': exchange.parseNumber('1.234'), // lowest price
+        'bid': exchange.parseNumber('1.234'), // current best bid (buy) price
+        'bidVolume': exchange.parseNumber('1.234'), // current best bid (buy) amount (may be missing or undefined)
+        'ask': exchange.parseNumber('1.234'), // current best ask (sell) price
+        'askVolume': exchange.parseNumber('1.234'), // current best ask (sell) amount (may be missing or undefined)
+        'vwap': exchange.parseNumber('1.234'), // volume weighed average price
+        'open': exchange.parseNumber('1.234'), // opening price
+        'close': exchange.parseNumber('1.234'), // price of last trade (closing price for current period)
+        'last': exchange.parseNumber('1.234'), // same as `close`, duplicated for convenience
+        'previousClose': exchange.parseNumber('1.234'), // closing price for the previous period
+        'change': exchange.parseNumber('1.234'), // absolute change, `last - open`
+        'percentage': exchange.parseNumber('1.234'), // relative change, `(change/open) * 100`
+        'average': exchange.parseNumber('1.234'), // average price, `(last + open) / 2`
+        'baseVolume': exchange.parseNumber('1.234'), // volume of base currency
         'quoteVolume': exchange.parseNumber('1.234'), // volume of quote currency
     };
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
@@ -42,9 +49,16 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     const logText = testSharedMethods.logTemplate(exchange, method, entry);
     // check market
     let market = undefined;
+    let isUnrecognizedSymbol = false;
+    const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString(entry, 'symbol');
-    if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
-        market = exchange.market(symbolForMarket);
+    if (symbolForMarket !== undefined) {
+        if (symbolForMarket in exchange.markets) {
+            market = exchange.market(symbolForMarket);
+        }
+        else {
+            isUnrecognizedSymbol = true;
+        }
     }
     // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
     if (!('checkInactiveMarkets' in skippedProperties)) {
@@ -150,9 +164,17 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'ask', exchange.safeString(entry, 'bid'));
     }
+    // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    const allowedPercentageVariation = '0.01';
+    if (isFetchTickerCalled && lastString !== undefined && bidString !== undefined && askString !== undefined && !('lastBetweenBidAsk' in skippedProperties)) {
+        const medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), '2');
+        const medianLow = Precise.stringMul(medianPrice, Precise.stringSub('1', allowedPercentageVariation));
+        const medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd('1', allowedPercentageVariation));
+        assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
+    }
     const percentage = exchange.safeString(entry, 'percentage');
     const change = exchange.safeString(entry, 'change');
-    if (!('maxIncrease' in skippedProperties)) {
+    if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol) {
         //
         // percentage
         //

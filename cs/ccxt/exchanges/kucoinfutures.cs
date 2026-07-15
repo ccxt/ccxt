@@ -31,7 +31,6 @@ public partial class kucoinfutures : kucoin
                 } },
                 { "defaultType", "swap" },
                 { "defaultAccountType", "contract" },
-                { "uta", false },
             } },
         });
     }
@@ -67,7 +66,10 @@ public partial class kucoinfutures : kucoin
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
         object request = new Dictionary<string, object>() {

@@ -193,7 +193,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -212,7 +215,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isContract = getValue(firstMarket, "contract");
@@ -267,7 +273,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isContract = getValue(firstMarket, "contract");
@@ -414,7 +423,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isContract = getValue(firstMarket, "contract");
@@ -453,7 +465,6 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
@@ -470,7 +481,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isContract = getValue(firstMarket, "contract");
@@ -614,7 +628,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         object channels = new List<object>() {};
@@ -691,7 +708,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         object channels = new List<object>() {};
@@ -822,7 +842,7 @@ public partial class weex : ccxt.weex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -842,12 +862,15 @@ public partial class weex : ccxt.weex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isContract = getValue(firstMarket, "contract");
@@ -883,7 +906,7 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -902,12 +925,15 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isContract = getValue(firstMarket, "contract");
@@ -995,7 +1021,7 @@ public partial class weex : ccxt.weex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta);
+        object bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1006,12 +1032,15 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         if (isTrue(getValue(firstMarket, "contract")))
@@ -1046,12 +1075,15 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         if (isTrue(getValue(firstMarket, "contract")))
@@ -1135,7 +1167,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketType = null;
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1361,7 +1396,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1396,7 +1434,7 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/contract/Websocket/private/Order-Channel
      * @param {string} [symbol] not used by the exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
@@ -1480,13 +1518,11 @@ public partial class weex : ccxt.weex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        object newOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsOrder(rawOrder);
             callDynamically(orders, "append", new object[] {parsed});
-            ((IList<object>)newOrders).Add(parsed);
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)symbols)[(string)symbol] = true;
         }
@@ -1501,9 +1537,9 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbolKeys, i);
             object symbolMessageHash = add(add(messageHash, "::"), symbol);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {newOrders, symbolMessageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {orders, symbolMessageHash});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newOrders, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -1678,7 +1714,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1843,7 +1882,10 @@ public partial class weex : ccxt.weex
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/private");
         this.authenticate(url);
         var client = this.client(url);
@@ -1984,7 +2026,7 @@ public partial class weex : ccxt.weex
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawPosition = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object position = this.parsePosition(rawPosition);
+            object position = this.parseWsPosition(rawPosition);
             callDynamically(cache, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }
@@ -2002,6 +2044,12 @@ public partial class weex : ccxt.weex
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
+    }
+
+    public virtual object parseWsPosition(object position, object market = null)
+    {
+        // same as REST api
+        return this.parsePosition(position, market);
     }
 
     public virtual object getMarketFromClientAndMessage(WebSocketClient client, object message)

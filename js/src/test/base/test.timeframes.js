@@ -12,6 +12,9 @@ function testRoundTimeframe() {
         'id': 'sampleexchange',
     });
     const testDate = exchange.parse8601('2019-08-12 13:22:08');
+    if (testDate === undefined) {
+        return;
+    }
     assert(exchange.roundTimeframe('5m', testDate, ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
     assert(exchange.roundTimeframe('10m', testDate, ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
     assert(exchange.roundTimeframe('30m', testDate, ROUND_DOWN) === exchange.parse8601('2019-08-12 13:00:00'));

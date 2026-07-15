@@ -14,7 +14,8 @@ function tcoDebug(exchange, symbol, message) {
     const debugCreateOrder = true;
     if (debugCreateOrder) {
         // for c# fix, extra step to convert them to string
-        console.log(' >>>>> testCreateOrder [', (exchange['id']).toString(), ' : ', symbol, '] ', message);
+        const msg = ' >>>>> testCreateOrder [' + (exchange['id']).toString() + ' : ' + symbol + '] ' + message;
+        console.log(msg);
     }
     return true;
 }
@@ -36,19 +37,19 @@ async function testCreateOrder(exchange, skippedProperties, symbol) {
     // **************** [Scenario 1 - START] **************** //
     tcoDebug(exchange, symbol, '### SCENARIO 1 ###');
     // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-    await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy');
     if (isSwapFuture) {
         // for swap markets, we test sell orders too
-        await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
+        await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell');
     }
     tcoDebug(exchange, symbol, '### SCENARIO 1 PASSED ###');
     // **************** [Scenario 2 - START] **************** //
     tcoDebug(exchange, symbol, '### SCENARIO 2 ###');
     // create an order which IS GUARANTEED to have a fill (full or partial)
-    await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy');
     if (isSwapFuture) {
         // for swap markets, we test sell orders too
-        await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
+        await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell');
     }
     tcoDebug(exchange, symbol, '### SCENARIO 2 PASSED ###');
     // **************** [Scenario 3 - START] **************** //
@@ -76,7 +77,7 @@ async function tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProp
         if (maximumPrice !== undefined && limitSellPrice_nonFillable > maximumPrice) {
             limitSellPrice_nonFillable = maximumPrice;
         }
-        let createdOrder = undefined;
+        let createdOrder;
         if (buyOrSell === 'buy') {
             const orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
             createdOrder = await tcoCreateOrderSafe(exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);

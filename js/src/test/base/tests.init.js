@@ -18,6 +18,7 @@ import testCryptography from './test.cryptography.js';
 import testToArray from './test.toArray.js';
 import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
+import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
@@ -40,6 +41,7 @@ import testStringToBase64 from './test.stringToBase64.js';
 import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
+import testFetchHistory from './test.fetchHistory.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
@@ -99,6 +101,7 @@ async function baseTestsInit() {
     testInArray();
     testFilterBy();
     testHandleMethods();
+    testNetworkMethods();
     testRemoveRepeatedElementsFromArray();
     testIsEmpty();
     testBinaryConcat();
@@ -120,8 +123,10 @@ async function baseTestsInit() {
     testUnique();
     testUrlencodeNested();
     await testSleep();
+    await testFetchHistory();
     testIo();
     testIsJsonEncodedObject();
     testEncodeDecode();
+    return true;
 }
 export default baseTestsInit;

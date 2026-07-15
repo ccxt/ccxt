@@ -51,7 +51,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-derive.fetchTime ([params])
+derive.fetchTime (params?)
 ```
 
 
@@ -71,7 +71,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-derive.fetchCurrencies ([params])
+derive.fetchCurrencies (params?)
 ```
 
 
@@ -91,7 +91,7 @@ retrieves data on all markets for bybit
 
 
 ```javascript
-derive.fetchMarkets ([params])
+derive.fetchMarkets (params?)
 ```
 
 
@@ -112,7 +112,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-derive.fetchTicker (symbol[, params])
+derive.fetchTicker (symbol, params?)
 ```
 
 
@@ -136,7 +136,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-derive.fetchTrades (symbol[, since, limit, params])
+derive.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -159,7 +159,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-derive.fetchFundingRateHistory (symbol[, since, limit, params])
+derive.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -180,7 +180,7 @@ fetch the current funding rate
 
 
 ```javascript
-derive.fetchFundingRate (symbol[, params])
+derive.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -212,7 +212,7 @@ create a trade order
 
 
 ```javascript
-derive.createOrder (symbol, type, side, amount[, price, params])
+derive.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -239,7 +239,7 @@ edit a trade order
 
 
 ```javascript
-derive.editOrder (id, symbol, type, side, amount[, price, params])
+derive.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -263,7 +263,7 @@ cancels an open order
 
 
 ```javascript
-derive.cancelOrder (id, symbol[, params])
+derive.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -289,7 +289,7 @@ cancel all open orders in a market
 
 
 ```javascript
-derive.cancelAllOrders (symbol[, params])
+derive.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -315,7 +315,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-derive.fetchOrders (symbol[, since, limit, params])
+derive.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -339,7 +339,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-derive.fetchOpenOrders (symbol[, since, limit, params])
+derive.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -363,7 +363,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-derive.fetchClosedOrders (symbol[, since, limit, params])
+derive.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -387,7 +387,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-derive.fetchCanceledOrders (symbol[, since, limit, params])
+derive.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -412,7 +412,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-derive.fetchOrderTrades (id, symbol[, since, limit, params])
+derive.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -437,7 +437,7 @@ fetch all trades made by the user
 
 
 ```javascript
-derive.fetchMyTrades (symbol[, since, limit, params])
+derive.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -459,7 +459,7 @@ fetch all open positions
 
 
 ```javascript
-derive.fetchPositions ([symbols, params])
+derive.fetchPositions (symbols?, params?)
 ```
 
 
@@ -483,7 +483,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-derive.fetchFundingHistory ([symbol, since, limit, params])
+derive.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -503,7 +503,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-derive.fetchBalance ([params])
+derive.fetchBalance (params?)
 ```
 
 
@@ -527,7 +527,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-derive.fetchDeposits (code[, since, limit, params])
+derive.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -551,7 +551,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-derive.fetchWithdrawals (code[, since, limit, params])
+derive.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -561,7 +561,7 @@ derive.fetchWithdrawals (code[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>derive</code>](#derive)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth  
 
@@ -573,7 +573,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-derive.watchOrderBook (symbol[, limit, params])
+derive.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -594,7 +594,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-derive.watchTicker (symbol[, params])
+derive.watchTicker (symbol, params?)
 ```
 
 
@@ -604,7 +604,7 @@ derive.watchTicker (symbol[, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>derive</code>](#derive)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -615,7 +615,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-derive.unWatchOrderBook (symbol[, params])
+derive.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -635,7 +635,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-derive.unWatchTrades (symbol[, params])
+derive.unWatchTrades (symbol, params?)
 ```
 
 
@@ -658,7 +658,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-derive.watchTrades (symbol[, since, limit, params])
+derive.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -682,7 +682,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-derive.watchOrders (symbol[, since, limit, params])
+derive.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -706,6 +706,6 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-derive.watchMyTrades (symbol[, since, limit, params])
+derive.watchMyTrades (symbol, since?, limit?, params?)
 ```
 

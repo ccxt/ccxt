@@ -6,7 +6,7 @@ type Coinbase struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewCoinbase(userConfig map[string]interface{}) *Coinbase {
+func NewCoinbase(userConfig map[string]any) *Coinbase {
 	p := NewCoinbaseCore()
 	p.Init(userConfig)
 	return &Coinbase{
@@ -30,12 +30,13 @@ func NewCoinbaseFromCore(core *CoinbaseCore) *Coinbase {
  * @method
  * @name coinbase#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/time
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Coinbase) FetchTime(params ...interface{}) (int64, error) {
+func (this *Coinbase) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -47,27 +48,27 @@ func (this *Coinbase) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name coinbase#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Coinbase) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Coinbase) FetchAccounts(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewAccountArray(res), nil
 }
-func (this *Coinbase) FetchAccountsV2(params ...interface{}) ([]Account, error) {
+func (this *Coinbase) FetchAccountsV2(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchAccountsV2(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewAccountArray(res), nil
 }
-func (this *Coinbase) FetchAccountsV3(params ...interface{}) ([]Account, error) {
+func (this *Coinbase) FetchAccountsV3(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchAccountsV3(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -79,11 +80,11 @@ func (this *Coinbase) FetchAccountsV3(params ...interface{}) ([]Account, error) 
  * @method
  * @name coinbase#fetchPortfolios
  * @description fetch all the portfolios
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Coinbase) FetchPortfolios(params ...interface{}) ([]Account, error) {
+func (this *Coinbase) FetchPortfolios(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchPortfolios(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -95,7 +96,7 @@ func (this *Coinbase) FetchPortfolios(params ...interface{}) ([]Account, error) 
  * @method
  * @name coinbase#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -108,7 +109,7 @@ func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDeposit
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -124,7 +125,7 @@ func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDeposit
  * @name coinbase#fetchMySells
  * @ignore
  * @description fetch sells
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
+ * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
  * @param {string} symbol not used by coinbase fetchMySells ()
  * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
  * @param {int} [limit] max number of sells to return, default is undefined
@@ -139,22 +140,22 @@ func (this *Coinbase) FetchMySells(options ...FetchMySellsOptions) ([]Trade, err
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -170,7 +171,7 @@ func (this *Coinbase) FetchMySells(options ...FetchMySellsOptions) ([]Trade, err
  * @name coinbase#fetchMyBuys
  * @ignore
  * @description fetch buys
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
+ * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
  * @param {string} symbol not used by coinbase fetchMyBuys ()
  * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
  * @param {int} [limit] max number of buys to return, default is undefined
@@ -185,22 +186,22 @@ func (this *Coinbase) FetchMyBuys(options ...FetchMyBuysOptions) ([]Trade, error
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -210,7 +211,7 @@ func (this *Coinbase) FetchMyBuys(options ...FetchMyBuysOptions) ([]Trade, error
 	}
 	return NewTradeArray(res), nil
 }
-func (this *Coinbase) FetchTransactionsWithMethod(method interface{}, options ...FetchTransactionsWithMethodOptions) ([]Transaction, error) {
+func (this *Coinbase) FetchTransactionsWithMethod(method any, options ...FetchTransactionsWithMethodOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsWithMethodOptionsStruct{}
 
@@ -218,22 +219,22 @@ func (this *Coinbase) FetchTransactionsWithMethod(method interface{}, options ..
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -248,7 +249,8 @@ func (this *Coinbase) FetchTransactionsWithMethod(method interface{}, options ..
  * @method
  * @name coinbase#fetchWithdrawals
  * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -264,22 +266,22 @@ func (this *Coinbase) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -294,7 +296,8 @@ func (this *Coinbase) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @method
  * @name coinbase#fetchDeposits
  * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -310,22 +313,22 @@ func (this *Coinbase) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -340,7 +343,7 @@ func (this *Coinbase) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
  * @method
  * @name coinbase#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
@@ -355,22 +358,22 @@ func (this *Coinbase) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -384,53 +387,54 @@ func (this *Coinbase) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
 /**
  * @method
  * @name coinbase#fetchMarkets
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @description retrieves data on all markets for coinbase
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching markets
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Coinbase) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Coinbase) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Coinbase) FetchMarketsV2(params ...interface{}) ([]MarketInterface, error) {
+func (this *Coinbase) FetchMarketsV2(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarketsV2(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Coinbase) FetchMarketsV3(params ...interface{}) ([]MarketInterface, error) {
+func (this *Coinbase) FetchMarketsV3(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarketsV3(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Coinbase) FetchCurrenciesFromCache(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinbase) FetchCurrenciesFromCache(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchCurrenciesFromCache(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name coinbase#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Coinbase) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinbase) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -442,8 +446,9 @@ func (this *Coinbase) FetchCurrencies(params ...interface{}) (Currencies, error)
  * @method
  * @name coinbase#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
@@ -457,12 +462,12 @@ func (this *Coinbase) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -480,12 +485,12 @@ func (this *Coinbase) FetchTickersV2(options ...FetchTickersV2Options) (Tickers,
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -503,12 +508,12 @@ func (this *Coinbase) FetchTickersV3(options ...FetchTickersV3Options) (Tickers,
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -523,10 +528,9 @@ func (this *Coinbase) FetchTickersV3(options ...FetchTickersV3Options) (Tickers,
  * @method
  * @name coinbase#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
@@ -540,7 +544,7 @@ func (this *Coinbase) FetchTicker(symbol string, options ...FetchTickerOptions) 
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -558,7 +562,7 @@ func (this *Coinbase) FetchTickerV2(symbol string, options ...FetchTickerV2Optio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -576,7 +580,7 @@ func (this *Coinbase) FetchTickerV3(symbol string, options ...FetchTickerV3Optio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -591,16 +595,16 @@ func (this *Coinbase) FetchTickerV3(symbol string, options ...FetchTickerV3Optio
  * @method
  * @name coinbase#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @param {string} [params.type] "spot" (default) or "swap" or "future"
  * @param {int} [params.limit] default 250, maximum number of accounts to return
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Coinbase) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinbase) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -612,7 +616,7 @@ func (this *Coinbase) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name coinbase#fetchLedger
  * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
- * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+ * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -628,22 +632,22 @@ func (this *Coinbase) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -658,7 +662,7 @@ func (this *Coinbase) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @method
  * @name coinbase#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -672,7 +676,7 @@ func (this *Coinbase) CreateMarketBuyOrderWithCost(symbol string, cost float64, 
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -687,7 +691,7 @@ func (this *Coinbase) CreateMarketBuyOrderWithCost(symbol string, cost float64, 
  * @method
  * @name coinbase#createOrder
  * @description create a trade order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -720,12 +724,12 @@ func (this *Coinbase) CreateOrder(symbol string, typeVar string, side string, am
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -740,7 +744,7 @@ func (this *Coinbase) CreateOrder(symbol string, typeVar string, side string, am
  * @method
  * @name coinbase#cancelOrder
  * @description cancels an open order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string} id order id
  * @param {string} symbol not used by coinbase cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -754,12 +758,12 @@ func (this *Coinbase) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -774,7 +778,7 @@ func (this *Coinbase) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @method
  * @name coinbase#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string[]} ids order ids
  * @param {string} symbol not used by coinbase cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -788,12 +792,12 @@ func (this *Coinbase) CancelOrders(ids []string, options ...CancelOrdersOptions)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -808,7 +812,7 @@ func (this *Coinbase) CancelOrders(ids []string, options ...CancelOrdersOptions)
  * @method
  * @name coinbase#editOrder
  * @description edit a trade order
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -827,17 +831,17 @@ func (this *Coinbase) EditOrder(id string, symbol string, typeVar string, side s
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -852,7 +856,7 @@ func (this *Coinbase) EditOrder(id string, symbol string, typeVar string, side s
  * @method
  * @name coinbase#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order
  * @param {string} id the order id
  * @param {string} symbol unified market symbol that the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -866,12 +870,12 @@ func (this *Coinbase) FetchOrder(id string, options ...FetchOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -886,7 +890,7 @@ func (this *Coinbase) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @method
  * @name coinbase#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol that the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -903,22 +907,22 @@ func (this *Coinbase) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -928,7 +932,7 @@ func (this *Coinbase) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Coinbase) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Coinbase) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -936,22 +940,22 @@ func (this *Coinbase) FetchOrdersByStatus(status interface{}, options ...FetchOr
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -966,7 +970,7 @@ func (this *Coinbase) FetchOrdersByStatus(status interface{}, options ...FetchOr
  * @method
  * @name coinbase#fetchOpenOrders
  * @description fetches information on all currently open orders
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -983,22 +987,22 @@ func (this *Coinbase) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1013,7 +1017,7 @@ func (this *Coinbase) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @method
  * @name coinbase#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of closed order structures to retrieve
@@ -1030,22 +1034,22 @@ func (this *Coinbase) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1060,7 +1064,7 @@ func (this *Coinbase) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @method
  * @name coinbase#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
  * @param {string} symbol unified market symbol of the orders
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of canceled order structures to retrieve
@@ -1075,22 +1079,22 @@ func (this *Coinbase) FetchCanceledOrders(options ...FetchCanceledOrdersOptions)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1105,7 +1109,8 @@ func (this *Coinbase) FetchCanceledOrders(options ...FetchCanceledOrdersOptions)
  * @method
  * @name coinbase#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1124,22 +1129,22 @@ func (this *Coinbase) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1154,7 +1159,8 @@ func (this *Coinbase) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @method
  * @name coinbase#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
  * @param {string} symbol unified market symbol of the trades
  * @param {int} [since] not used by coinbase fetchTrades
  * @param {int} [limit] the maximum number of trade structures to fetch
@@ -1170,17 +1176,17 @@ func (this *Coinbase) FetchTrades(symbol string, options ...FetchTradesOptions) 
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1195,7 +1201,7 @@ func (this *Coinbase) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @method
  * @name coinbase#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills
  * @param {string} symbol unified market symbol of the trades
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] the maximum number of trade structures to fetch
@@ -1212,22 +1218,22 @@ func (this *Coinbase) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1242,12 +1248,13 @@ func (this *Coinbase) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @method
  * @name coinbase#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinbase) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -1257,12 +1264,12 @@ func (this *Coinbase) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1277,7 +1284,7 @@ func (this *Coinbase) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
  * @method
  * @name coinbase#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1290,12 +1297,12 @@ func (this *Coinbase) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, e
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1328,12 +1335,12 @@ func (this *Coinbase) Withdraw(code string, amount float64, address string, opti
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1351,7 +1358,7 @@ func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...Fet
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1366,7 +1373,7 @@ func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...Fet
  * @method
  * @name coinbase#fetchDeposit
  * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
  * @param {string} id deposit id
  * @param {string} [code] unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1381,12 +1388,12 @@ func (this *Coinbase) FetchDeposit(id string, options ...FetchDepositOptions) (T
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1401,28 +1408,28 @@ func (this *Coinbase) FetchDeposit(id string, options ...FetchDepositOptions) (T
  * @method
  * @name coinbase#fetchDepositMethodIds
  * @description fetch the deposit id for a fiat currency associated with this account
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
-func (this *Coinbase) FetchDepositMethodIds(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Coinbase) FetchDepositMethodIds(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchDepositMethodIds(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewMapArray(res), nil
 }
 
 /**
  * @method
  * @name coinbase#fetchDepositMethodId
  * @description fetch the deposit id for a fiat currency associated with this account
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method
  * @param {string} id the deposit payment method id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
-func (this *Coinbase) FetchDepositMethodId(id string, options ...FetchDepositMethodIdOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchDepositMethodId(id string, options ...FetchDepositMethodIdOptions) (map[string]any, error) {
 
 	opts := FetchDepositMethodIdOptionsStruct{}
 
@@ -1430,22 +1437,22 @@ func (this *Coinbase) FetchDepositMethodId(id string, options ...FetchDepositMet
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositMethodId(id, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name coinbase#fetchConvertQuote
  * @description fetch a quote for converting from one currency to another
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
@@ -1463,12 +1470,12 @@ func (this *Coinbase) FetchConvertQuote(fromCode string, toCode string, options 
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1483,7 +1490,7 @@ func (this *Coinbase) FetchConvertQuote(fromCode string, toCode string, options 
  * @method
  * @name coinbase#createConvertTrade
  * @description convert from one currency to another
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade
  * @param {string} id the id of the trade that you want to make
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
@@ -1499,12 +1506,12 @@ func (this *Coinbase) CreateConvertTrade(id string, fromCode string, toCode stri
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1519,7 +1526,7 @@ func (this *Coinbase) CreateConvertTrade(id string, fromCode string, toCode stri
  * @method
  * @name coinbase#fetchConvertTrade
  * @description fetch the data for a conversion trade
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade
  * @param {string} id the id of the trade that you want to commit
  * @param {string} code the unified currency code that was converted from
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1534,12 +1541,12 @@ func (this *Coinbase) FetchConvertTrade(id string, options ...FetchConvertTradeO
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1554,8 +1561,8 @@ func (this *Coinbase) FetchConvertTrade(id string, options ...FetchConvertTradeO
  * @method
  * @name coinbase#fetchPositions
  * @description fetch all open positions
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
@@ -1569,12 +1576,12 @@ func (this *Coinbase) FetchPositions(options ...FetchPositionsOptions) ([]Positi
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1589,8 +1596,8 @@ func (this *Coinbase) FetchPositions(options ...FetchPositionsOptions) ([]Positi
  * @method
  * @name coinbase#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
- * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
@@ -1605,7 +1612,7 @@ func (this *Coinbase) FetchPosition(symbol string, options ...FetchPositionOptio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1619,13 +1626,13 @@ func (this *Coinbase) FetchPosition(symbol string, options ...FetchPositionOptio
 /**
  * @method
  * @name coinbase#fetchTradingFees
- * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap'
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Coinbase) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Coinbase) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -1637,11 +1644,11 @@ func (this *Coinbase) FetchTradingFees(params ...interface{}) (TradingFees, erro
  * @method
  * @name coinbase#fetchDepositAddresses
  * @description fetch deposit addresses for multiple currencies (when available)
- * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
  * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountId] account ID to fetch deposit addresses for
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
  */
 func (this *Coinbase) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -1651,12 +1658,12 @@ func (this *Coinbase) FetchDepositAddresses(options ...FetchDepositAddressesOpti
 		opt(&opts)
 	}
 
-	var codes interface{} = nil
+	var codes any = nil
 	if opts.Codes != nil {
 		codes = *opts.Codes
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1669,7 +1676,7 @@ func (this *Coinbase) FetchDepositAddresses(options ...FetchDepositAddressesOpti
 
 // missing typed methods from base
 // nolint
-func (this *Coinbase) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Coinbase) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Coinbase) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
@@ -1678,7 +1685,7 @@ func (this *Coinbase) CancelOrdersWithClientOrderIds(clientOrderIds []string, op
 func (this *Coinbase) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Coinbase) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Coinbase) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Coinbase) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -1768,13 +1775,13 @@ func (this *Coinbase) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks
 func (this *Coinbase) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Coinbase) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Coinbase) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Coinbase) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinbase) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Coinbase) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
@@ -1783,19 +1790,19 @@ func (this *Coinbase) FetchConvertTradeHistory(options ...FetchConvertTradeHisto
 func (this *Coinbase) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Coinbase) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Coinbase) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Coinbase) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddress(code, options...)
 }
-func (this *Coinbase) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coinbase) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Coinbase) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Coinbase) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Coinbase) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -1825,7 +1832,7 @@ func (this *Coinbase) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVO
 func (this *Coinbase) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Coinbase) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Coinbase) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Coinbase) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1903,13 +1910,13 @@ func (this *Coinbase) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 func (this *Coinbase) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinbase) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinbase) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinbase) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinbase) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinbase) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1924,19 +1931,19 @@ func (this *Coinbase) FetchPositionsRisk(options ...FetchPositionsRiskOptions) (
 func (this *Coinbase) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinbase) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinbase) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinbase) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Coinbase) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Coinbase) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Coinbase) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Coinbase) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1951,10 +1958,10 @@ func (this *Coinbase) FetchTransfers(options ...FetchTransfersOptions) ([]Transf
 func (this *Coinbase) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Coinbase) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Coinbase) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Coinbase) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinbase) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Coinbase) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -2032,13 +2039,13 @@ func (this *Coinbase) CreateTriggerOrderWs(symbol string, typeVar string, side s
 func (this *Coinbase) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Coinbase) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Coinbase) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Coinbase) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinbase) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinbase) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2080,46 +2087,46 @@ func (this *Coinbase) FetchTickerWs(symbol string, options ...FetchTickerWsOptio
 func (this *Coinbase) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Coinbase) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Coinbase) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinbase) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Coinbase) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Coinbase) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Coinbase) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Coinbase) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Coinbase) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Coinbase) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Coinbase) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Coinbase) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Coinbase) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Coinbase) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Coinbase) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Coinbase) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Coinbase) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Coinbase) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinbase) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Coinbase) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

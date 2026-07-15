@@ -1,8 +1,9 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation, Bool } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
+    describeData(): any;
     requestId(): any;
     getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): Promise<any>;
     cleanParams(params: any): any;
@@ -133,7 +134,7 @@ export default class bybit extends bybitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseWsBidAsk(orderbook: any, market?: any): Ticker;
+    parseWsBidAsk(orderbook: any, market?: Market): Ticker;
     /**
      * @method
      * @name bybit#watchOHLCV
@@ -185,7 +186,7 @@ export default class bybit extends bybitRest {
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name bybit#watchOrderBook
@@ -194,7 +195,7 @@ export default class bybit extends bybitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -205,7 +206,7 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -216,7 +217,7 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     /**
@@ -227,7 +228,7 @@ export default class bybit extends bybitRest {
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
@@ -278,7 +279,7 @@ export default class bybit extends bybitRest {
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     getPrivateType(url: any): "spot" | "unified" | "usdc";
     /**
      * @method
@@ -348,7 +349,7 @@ export default class bybit extends bybitRest {
      */
     watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     /**
      * @method
      * @name bybit#watchOrders
@@ -384,7 +385,7 @@ export default class bybit extends bybitRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    parseWsBalance(balance: any, accountType?: any): void;
+    parseWsBalance(balance: any, accountType?: Str): void;
     watchTopics(url: any, messageHashes: any, topics: any, params?: {}): Promise<any>;
     unWatchTopics(url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params?: {}, subExtension?: {}): Promise<any>;
     authenticate(url: any, params?: {}): Promise<any>;

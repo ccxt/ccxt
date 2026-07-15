@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositionHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionHistory",
+                "url": "https://api.phemex.com/api-data/g-futures/closedPosition?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "cross",
@@ -35,7 +46,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.phemex.com/public/products",
                 "input": [],

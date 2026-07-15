@@ -309,12 +309,14 @@ class alpaca extends alpaca$1["default"] {
             'options': {
                 'defaultExchange': 'CBSE',
                 'exchanges': [
-                    'CBSE',
-                    'FTX',
-                    'GNSS',
+                    'CBSE', // Coinbase
+                    'FTX', // FTXUS
+                    'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc',
+                'createOrder': {
+                    'timeInForce': 'gtc', // fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -325,8 +327,8 @@ class alpaca extends alpaca$1["default"] {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': true,
@@ -342,7 +344,7 @@ class alpaca extends alpaca$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
+                        'trailing': true, // todo: implementation
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
@@ -404,15 +406,15 @@ class alpaca extends alpaca$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'forbidden.': errors.PermissionDenied,
-                    '40410000': errors.InvalidOrder,
-                    '40010001': errors.BadRequest,
-                    '40110000': errors.PermissionDenied,
-                    '40310000': errors.InsufficientFunds,
+                    'forbidden.': errors.PermissionDenied, // {"message": "forbidden."}
+                    '40410000': errors.InvalidOrder, // { "code": 40410000, "message": "order is not found."}
+                    '40010001': errors.BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
+                    '40110000': errors.PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
+                    '40310000': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': errors.RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
-                    'Invalid format for parameter': errors.BadRequest,
+                    'Invalid format for parameter': errors.BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': errors.BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
                 },
             },
@@ -440,7 +442,7 @@ class alpaca extends alpaca$1["default"] {
         const jetlagStrStart = timestamp.length - 6;
         const jetlagStrEnd = timestamp.length - 3;
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
-        const iso = this.parse8601(localTime) - this.parseToNumeric(jetlag) * 3600 * 1000;
+        const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
     }
     /**
@@ -585,7 +587,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marketId = market['id'];
         const loc = this.safeString(params, 'loc', 'us');
@@ -659,7 +663,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const id = market['id'];
         const loc = this.safeString(params, 'loc', 'us');
@@ -726,7 +732,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marketId = market['id'];
         const loc = this.safeString(params, 'loc', 'us');
@@ -821,11 +829,11 @@ class alpaca extends alpaca$1["default"] {
         const datetime = this.safeString(ohlcv, 't');
         const timestamp = this.parse8601(datetime);
         return [
-            timestamp,
-            this.safeNumber(ohlcv, 'o'),
-            this.safeNumber(ohlcv, 'h'),
-            this.safeNumber(ohlcv, 'l'),
-            this.safeNumber(ohlcv, 'c'),
+            timestamp, // timestamp
+            this.safeNumber(ohlcv, 'o'), // open
+            this.safeNumber(ohlcv, 'h'), // high
+            this.safeNumber(ohlcv, 'l'), // low
+            this.safeNumber(ohlcv, 'c'), // close
             this.safeNumber(ohlcv, 'v'), // volume
         ];
     }
@@ -840,7 +848,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.fetchTickers([symbol], params);
         return this.safeDict(tickers, symbol);
@@ -859,7 +869,9 @@ class alpaca extends alpaca$1["default"] {
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires a symbols argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const loc = this.safeString(params, 'loc', 'us');
         const ids = this.marketIds(symbols);
@@ -980,7 +992,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const req = {
             'cost': cost,
         };
@@ -997,7 +1011,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const req = {
             'cost': cost,
         };
@@ -1014,7 +1030,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const req = {
             'cost': cost,
         };
@@ -1036,7 +1054,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const id = market['id'];
         const request = {
@@ -1044,7 +1064,7 @@ class alpaca extends alpaca$1["default"] {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             let newType;
             if (type.indexOf('limit') >= 0) {
@@ -1067,8 +1087,9 @@ class alpaca extends alpaca$1["default"] {
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
+        let defaultTIF = undefined;
+        [defaultTIF, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+        request['time_in_force'] = defaultTIF;
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
         request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
@@ -1144,10 +1165,12 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.traderPrivateDeleteV2Orders(params);
         if (Array.isArray(response)) {
-            return this.parseOrders(response, undefined);
+            return this.parseOrders(response);
         }
         else {
             return [
@@ -1168,7 +1191,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1190,7 +1215,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'status': 'all',
         };
@@ -1307,7 +1334,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
         };
@@ -1318,7 +1347,7 @@ class alpaca extends alpaca$1["default"] {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, 'triggerPrice');
@@ -1327,7 +1356,7 @@ class alpaca extends alpaca$1["default"] {
             request['limit_price'] = this.priceToPrecision(symbol, price);
         }
         let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        [timeInForce, params] = this.handleOptionAndParams(params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
@@ -1452,7 +1481,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let request = {
             'activity_type': 'FILL',
@@ -1565,7 +1596,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -1615,7 +1648,9 @@ class alpaca extends alpaca$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         if (tag) {
             address = address + ':' + tag;
@@ -1646,7 +1681,9 @@ class alpaca extends alpaca$1["default"] {
         return this.parseTransaction(response, currency);
     }
     async fetchTransactionsHelper(type, code, since, limit, params) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1799,7 +1836,9 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.traderPrivateGetV2Account(params);
         //
         //     {
@@ -1896,7 +1935,7 @@ class alpaca extends alpaca$1["default"] {
         if (code !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue(response, 'message', undefined);
+        const message = this.safeValue(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

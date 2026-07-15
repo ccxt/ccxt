@@ -8,6 +8,10 @@
 import kucoin from './kucoin.js';
 import { BadRequest } from './base/errors.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -34,7 +38,6 @@ export default class kucoinfutures extends kucoin {
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
-                'uta': false,
             },
         });
     }
@@ -64,7 +67,9 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {

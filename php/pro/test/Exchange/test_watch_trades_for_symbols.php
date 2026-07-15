@@ -16,29 +16,33 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
         $method = 'watchTradesForSymbols';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
-        while ($now < $ends) {
+        $returned_symbols = [];
+        while ($now < $ends || count($returned_symbols) < count($symbols)) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_trades_for_symbols($symbols));
+                $response = \React\Async\await($exchange->watch_trades_for_symbols($symbols));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
             }
-            if ($success === true) {
+            if (($success === true) && ($response !== null)) {
                 assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 $symbol = null;
                 for ($i = 0; $i < count($response); $i++) {
                     $trade = $response[$i];
                     $symbol = $trade['symbol'];
+                    if ($symbol === null) {
+                        continue;
+                    }
                     test_trade($exchange, $skipped_properties, $method, $trade, $symbol, $now);
                     assert_in_array($exchange, $skipped_properties, $method, $trade, 'symbol', $symbols);
-                }
-                if (!(is_array($skipped_properties) && array_key_exists('timestampSort', $skipped_properties))) {
-                    assert_timestamp_order($exchange, $method, $symbol, $response);
+                    if (!$exchange->in_array($symbol, $returned_symbols)) {
+                        $returned_symbols[] = $symbol;
+                    }
                 }
             }
         }

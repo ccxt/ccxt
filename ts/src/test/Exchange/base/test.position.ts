@@ -1,7 +1,13 @@
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testPosition (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
+    // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
+    // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
+    // leverage / margin / mark-price / liquidation / pnl fields that don't apply
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        skippedProperties = exchange.extend ({ 'symbol': true, 'timestamp': true, 'datetime': true, 'leverage': true, 'initialMargin': true, 'initialMarginPercentage': true, 'maintenanceMargin': true, 'maintenanceMarginPercentage': true, 'entryPrice': true, 'notional': true, 'unrealizedPnl': true, 'marginRatio': true, 'liquidationPrice': true, 'markPrice': true, 'collateral': true, 'percentage': true }, skippedProperties);
+    }
     const format = {
         'info': {}, // or []
         'symbol': 'XYZ/USDT',

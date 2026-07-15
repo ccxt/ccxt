@@ -1,0 +1,16 @@
+# rebuilt inside the image
+node_modules
+.next
+runtime
+
+# secrets must never be baked into the image — passed at runtime via env
+.env.local
+.env*.local
+
+# misc
+.git
+.gitignore
+*.log
+.DS_Store
+README.md
+.claude

@@ -10,7 +10,7 @@ public partial class krakenfutures
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -26,7 +26,7 @@ public partial class krakenfutures
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -37,7 +37,7 @@ public partial class krakenfutures
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -57,7 +57,7 @@ public partial class krakenfutures
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -77,7 +77,7 @@ public partial class krakenfutures
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -97,7 +97,7 @@ public partial class krakenfutures
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-trade"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -131,7 +131,7 @@ public partial class krakenfutures
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-trade"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -165,7 +165,7 @@ public partial class krakenfutures
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-public-feeds-book"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -181,7 +181,7 @@ public partial class krakenfutures
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -192,8 +192,26 @@ public partial class krakenfutures
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/open_position"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of positions to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
@@ -208,8 +226,8 @@ public partial class krakenfutures
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders"/>  <br/>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders_verbose"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -243,7 +261,7 @@ public partial class krakenfutures
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-fills"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -277,7 +295,7 @@ public partial class krakenfutures
     /// watches information on the user's account balance
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-balances"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/futures-websocket/balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

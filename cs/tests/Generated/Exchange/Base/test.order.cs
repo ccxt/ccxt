@@ -7,8 +7,15 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testOrder(Exchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testOrder(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
     {
+        // prediction-market orders are keyed by an outcome handle, not a `symbol`
+        if (isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new Dictionary<string, object>() {
+                { "symbol", true },
+            }, skippedProperties);
+        }
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "123" },
@@ -48,8 +55,8 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "filled", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "remaining", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
-        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
-        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
+        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", ((string)exchange.safeString(entry, "remaining")));
+        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", ((string)exchange.safeString(entry, "filled")));
         if (!isTrue((inOp(skippedProperties, "trades"))))
         {
             object skippedNew = exchange.deepExtend(skippedProperties, new Dictionary<string, object>() {

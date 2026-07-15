@@ -14,12 +14,12 @@ namespace ccxt;
 
 using dict = Dictionary<string, object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     protected readonly object idLock = new object();
 
-    public Exchange(object userConfig2 = null)
+    public BaseExchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
@@ -695,8 +695,10 @@ public partial class Exchange
         this.clients.TryRemove(key, out _);
     }
 
-    public async Task Close()
+    public async Task Close(bool cleanInstanceCache = false)
     {
+        // ##### language-specific cleanup of WS & REST resources #####
+        // [WS]
         var tasks = new List<Task>();
         if (this.clients.Keys.Count > 0)
         {
@@ -708,6 +710,13 @@ public partial class Exchange
 
             }
             await Task.WhenAll(tasks);
+        }
+        if (cleanInstanceCache) {
+            this.cleanWsData();
+        }
+        // [REST]
+        if (cleanInstanceCache) {
+            this.cleanRestData();
         }
     }
 
@@ -739,11 +748,24 @@ public partial class Exchange
 
     public object convertToBigInt(object value)
     {
-        if (value.GetType() == typeof(float).GetType())
+        // mirrors TS BigInt(value): produce a real big integer so ABI/eth encoders receive a
+        // numeric value (a decimal string would otherwise be misparsed as hex and overflow)
+        if (value is BigInteger)
         {
-            return Convert.ToInt64(value);
+            return value;
         }
-        return value;
+        if (value is string)
+        {
+            var str = (string)value;
+            if (str.StartsWith("0x") || str.StartsWith("0X"))
+            {
+                // hex strings pass through unchanged — the stark/eth helpers parse hex
+                // themselves (extended's pedersen chain expects the string form)
+                return value;
+            }
+            return BigInteger.Parse(str);
+        }
+        return new BigInteger(Convert.ToInt64(value));
     }
 
     public bool valueIsDefined(object value)
@@ -897,6 +919,43 @@ public partial class Exchange
         var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public object extendedStarknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString();
+        var msgHashStr = msgHash.ToString();
+        var bigIntHash = extendedParseStarknetBigInteger(msgHashStr);
+        var bigIntKey = extendedParseStarknetBigInteger(privateKeyString);
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public BigInteger extendedParseStarknetBigInteger(string value)
+    {
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            return BigInteger.Parse("00" + value[2..], System.Globalization.NumberStyles.AllowHexSpecifier);
+        }
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+            {
+                return BigInteger.Parse("00" + value, System.Globalization.NumberStyles.AllowHexSpecifier);
+            }
+        }
+        return BigInteger.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public object extendedStarknetGetSelectorFromName(object name)
+    {
+        return StarknetOps.CalculateFunctionSelector(name.ToString());
+    }
+
+    public object extendedStarknetComputePoseidonHashOnElements(object data)
+    {
+        return StarknetPoseidon.HashMany(data).ToString();
     }
 
     public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
@@ -1089,8 +1148,21 @@ public partial class Exchange
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
-        var prop = type.GetProperty(property.ToString());
-        return (prop != null) ? prop.GetValue(obj) : defaultValue;
+        var name = property.ToString();
+
+        var prop = type.GetProperty(name);
+        if (prop != null) 
+        {
+            return prop.GetValue(obj);
+        }
+
+        var field = type.GetField(name);
+        if (field != null) 
+        {
+            return field.GetValue(obj);
+        }
+
+        return defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)
@@ -1183,9 +1255,9 @@ public partial class Exchange
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
-    public IDictionary<string, object> createSafeDictionary()
+    public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
-        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+        return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;
     }
 
     public IDictionary<string, object> mapToSafeMap(object obj)

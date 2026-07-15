@@ -7,14 +7,15 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testProxies(Exchange exchange, object skippedProperties)
+    async static public Task<object> testProxies(BaseExchange exchange, object skippedProperties)
     {
         await testProxyUrl(exchange, skippedProperties);
         await testHttpProxy(exchange, skippedProperties);
         // 'httpsProxy', 'socksProxy'
         await testProxyForExceptions(exchange, skippedProperties);
+        return true;
     }
-    async static public Task<object> testProxyUrl(Exchange exchange, object skippedProperties)
+    async static public Task<object> testProxyUrl(BaseExchange exchange, object skippedProperties)
     {
         object method = "proxyUrl";
         object proxyServerIp = "5.75.153.75";
@@ -27,13 +28,13 @@ public partial class testMainClass : BaseTest
         object encodedColon = "%3A";
         object encodedSlash = "%2F";
         object ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
-        object response = await exchange.fetch(ipCheckUrl);
+        object response = await ((dynamic)exchange).fetch(ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
     }
-    async static public Task testHttpProxy(Exchange exchange, object skippedProperties)
+    async static public Task<object> testHttpProxy(BaseExchange exchange, object skippedProperties)
     {
         object method = "httpProxy";
         object proxyServerIp = "5.75.153.75";
@@ -44,13 +45,14 @@ public partial class testMainClass : BaseTest
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
         exchange.httpProxy = add(add("http://", proxyServerIp), ":8911");
         object ipCheckUrl = "https://api.ipify.org/";
-        object response = await exchange.fetch(ipCheckUrl);
+        object response = await ((dynamic)exchange).fetch(ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+        return true;
     }
     // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
-    async static public Task testProxyForExceptions(Exchange exchange, object skippedProperties)
+    async static public Task<object> testProxyForExceptions(BaseExchange exchange, object skippedProperties)
     {
         object method = "testProxyForExceptions";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = testSharedMethods.removeProxyOptions(exchange, skippedProperties);
@@ -72,7 +74,7 @@ public partial class testMainClass : BaseTest
                     object exceptionCaught = false;
                     try
                     {
-                        await exchange.fetch("http://example.com"); // url does not matter, it will not be called
+                        await ((dynamic)exchange).fetch("http://example.com"); // url does not matter, it will not be called
                     } catch(Exception e)
                     {
                         exceptionCaught = true;
@@ -86,6 +88,7 @@ public partial class testMainClass : BaseTest
         }
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+        return true;
     }
 
 }
