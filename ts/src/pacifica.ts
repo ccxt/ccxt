@@ -28,7 +28,7 @@ export default class pacifica extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -570,15 +570,51 @@ export default class pacifica extends Exchange {
      * @description retrieves data on all markets for pacifica
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
+     * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.checkRequiredCredentials (false)) {
-            await this.initializeClient ();
-            await this.loadAccountSettings ();
-        }
-        const swapMarkets = await this.fetchSwapMarkets (params);
-        return swapMarkets as Market[];
+        const response = await this.publicGetInfo (params); // meta
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "symbol": "BTC",
+        //       "tick_size": "1",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.00001",
+        //       "max_leverage": 50,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "5000000",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
+        //     },
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        const markets = this.safeList (response, 'data', []);
+        return this.parseMarkets (markets);
     }
 
     /**
@@ -590,67 +626,12 @@ export default class pacifica extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchSwapMarkets (params = {}): Promise<Market[]> {
-        const response = await this.publicGetInfo (params); // meta
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "symbol": "ETH",
-        //       "tick_size": "0.1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.0001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
-        //     {
-        //       "symbol": "BTC",
-        //       "tick_size": "1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.00001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
-        //     ....
-        //   ],
-        //   "error": null,
-        //   "code": null
-        // }
-        const meta = this.safeList (response, 'data', []);
-        const results = [];
-        for (let i = 0; i < meta.length; i++) {
-            results.push (meta[i]);
-        }
-        return this.parseMarkets (results);
+        const markets = await this.fetchMarkets (params);
+        return this.filterBy (markets, 'type', 'swap') as Market[];
     }
 
     parseMarket (market: Dict): Market {
         //     {
-        //       "symbol": "ETH",
-        //       "tick_size": "0.1",
-        //       "min_tick": "0",
-        //       "max_tick": "1000000",
-        //       "lot_size": "0.0001",
-        //       "max_leverage": 50,
-        //       "isolated_only": false,
-        //       "min_order_size": "10",
-        //       "max_order_size": "5000000",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
-        //     },
-        //     {
         //       "symbol": "BTC",
         //       "tick_size": "1",
         //       "min_tick": "0",
@@ -662,29 +643,69 @@ export default class pacifica extends Exchange {
         //       "max_order_size": "5000000",
         //       "funding_rate": "0.0000125",
         //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1748881333944
+        //       "created_at": 1748881333944,
+        //       "instrument_type": "perpetual",
+        //       "base_asset": "BTC"
         //     },
-        const quoteId = 'usdc';
-        const settleId = 'usdc';
+        //     {
+        //       "symbol": "SOL-USDC",
+        //       "tick_size": "0.01",
+        //       "min_tick": "0",
+        //       "max_tick": "1000000",
+        //       "lot_size": "0.001",
+        //       "max_leverage": 1,
+        //       "isolated_only": false,
+        //       "min_order_size": "10",
+        //       "max_order_size": "1000000",
+        //       "funding_rate": "0",
+        //       "next_funding_rate": "0",
+        //       "created_at": 1776615970246,
+        //       "instrument_type": "spot",
+        //       "base_asset": "SOL"
+        //     },
         const id = this.safeString (market, 'symbol');
-        const baseId = id.toLowerCase ();
-        const baseName = id.toUpperCase ();
-        const base = this.safeCurrencyCode (baseName);
+        const baseId = this.safeString (market, 'base_asset', id);
+        const instrumentType = this.safeString (market, 'instrument_type');
+        const isSpot = (instrumentType === 'spot');
+        const isSwap = !isSpot;
+        let quoteId = 'USDC';
+        let settleId: Str = undefined;
+        let type = 'spot';
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
+        let contractSize: Num = undefined;
+        let minLeverage: Num = undefined;
+        let maxLeverage: Int = undefined;
+        let crossMargin: Bool = undefined;
+        let isolatedMargin: Bool = undefined;
+        if (isSpot) {
+            const idParts = id.split ('-');
+            quoteId = this.safeString (idParts, 1, quoteId);
+        }
+        const isolatedOnly = this.safeBool (market, 'isolated_only', false);
+        if (isSwap) {
+            settleId = quoteId;
+            type = 'swap';
+            linear = true;
+            inverse = false;
+            contractSize = this.parseNumber ('1');
+            minLeverage = 1;
+            maxLeverage = this.safeInteger (market, 'max_leverage');
+            crossMargin = !isolatedOnly;
+            isolatedMargin = true;
+        }
+        const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        const contract = true;
-        const swap = true;
-        if (contract) {
-            if (swap) {
-                symbol = symbol + ':' + settle;
-            }
+        if (isSwap) {
+            symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict (this.fees, 'swap', {});
+        const fees = this.safeDict (this.fees, type, {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
-        const amountPrecisionStr = this.safeString (market, 'lot_size');
-        const pricePrecisionStr = this.safeString (market, 'tick_size');
+        const amountPrecision = this.safeNumber (market, 'lot_size');
+        const pricePrecision = this.safeNumber (market, 'tick_size');
         const active = true; // there is no non-active markets comes from endpoint market info
         return this.safeMarketStructure ({
             'id': id,
@@ -693,50 +714,52 @@ export default class pacifica extends Exchange {
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
-            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
-            'spot': false,
-            'margin': undefined,
-            'swap': swap,
+            'type': type,
+            'spot': isSpot,
+            'margin': false,
+            'swap': isSwap,
             'future': false,
             'option': false,
             'active': active,
-            'contract': contract,
-            'linear': true,
-            'inverse': false,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
             'taker': taker,
             'maker': maker,
-            'contractSize': this.parseNumber ('1'),
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (amountPrecisionStr),
-                'price': this.parseNumber (pricePrecisionStr),
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
-                    'min': 1,
-                    'max': this.safeInteger (market, 'max_leverage'),
+                    'min': minLeverage,
+                    'max': maxLeverage,
                 },
                 'amount': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'price': {
-                    'min': this.safeString (market, 'min_tick'),
-                    'max': this.safeString (market, 'max_tick'),
+                    'min': this.safeNumber (market, 'min_tick'),
+                    'max': this.safeNumber (market, 'max_tick'),
                 },
                 'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': this.safeNumber (market, 'min_order_size'),
+                    'max': this.safeNumber (market, 'max_order_size'),
                 },
             },
-            'created': undefined,
-            'marginModes': { 'cross': true, 'isolated': true },
+            'created': this.safeInteger (market, 'created_at'),
+            'marginModes': {
+                'cross': crossMargin,
+                'isolated': isolatedMargin,
+            },
             'info': market,
         });
     }
