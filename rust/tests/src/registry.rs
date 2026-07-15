@@ -50,6 +50,13 @@ use ccxt::exchanges::{
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
     kucoineu::KucoineuCore, mudrex::MudrexCore,
 };
+// Prediction-market venue Cores live in a separate module (they Deref through
+// PredictionExchange). `hyperliquid` shares an id with the regular exchange, so
+// it is not imported here.
+use ccxt::prediction::{
+    kalshi::KalshiCore, limitless::LimitlessCore,
+    myriad::MyriadCore, polymarket::PolymarketCore,
+};
 use indexmap::IndexMap as HashMap;
 use std::panic;
 use futures::FutureExt;
@@ -177,6 +184,13 @@ macro_rules! for_each_core {
         $cb!(gateeu, GateeuCore);
         $cb!(kucoineu, KucoineuCore);
         $cb!(mudrex, MudrexCore);
+        // Prediction-market venues (crate::prediction). `hyperliquid` is
+        // intentionally omitted here — its id collides with the regular
+        // exchange of the same name (see `for_each_prediction_extra!`).
+        $cb!(kalshi, KalshiCore);
+        $cb!(limitless, LimitlessCore);
+        $cb!(myriad, MyriadCore);
+        $cb!(polymarket, PolymarketCore);
     };
 }
 pub(crate) use for_each_core;

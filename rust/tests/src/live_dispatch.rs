@@ -51,6 +51,12 @@ use ccxt::exchanges::{
     bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
     kucoineu::KucoineuCore, mudrex::MudrexCore,
 };
+// Prediction-market venue Cores (crate::prediction); `hyperliquid` omitted
+// (id collides with the regular exchange).
+use ccxt::prediction::{
+    kalshi::KalshiCore, limitless::LimitlessCore,
+    myriad::MyriadCore, polymarket::PolymarketCore,
+};
 use crate::registry::for_each_core;
 use indexmap::IndexMap as HashMap;
 use std::sync::{Mutex, OnceLock};
