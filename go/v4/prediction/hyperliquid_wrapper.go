@@ -52,7 +52,7 @@ func (this *Hyperliquid) FetchMarkets(params ...any) ([]ccxt.MarketInterface, er
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
  * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Hyperliquid) FetchTicker(outcome string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -80,7 +80,7 @@ func (this *Hyperliquid) FetchTicker(outcome string, options ...ccxt.FetchTicker
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -114,7 +114,7 @@ func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (ccxt.Pred
  * @param {string} outcome unified outcome
  * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Hyperliquid) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -212,7 +212,7 @@ func (this *Hyperliquid) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
@@ -255,7 +255,7 @@ func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]ccx
  * @param {string} [params.slippage] slippage for market orders (default 5%)
  * @param {string} [params.clientOrderId] hex cloid
  * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Hyperliquid) CreateOrder(outcome string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -291,7 +291,7 @@ func (this *Hyperliquid) CreateOrder(outcome string, typeVar string, side string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] cancel by client order id
  * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -325,7 +325,7 @@ func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (
  * @param {string[]} ids order ids
  * @param {string} [outcome] unified outcome (required)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -362,7 +362,7 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -408,7 +408,7 @@ func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]c
  * @param {int} [limit] max number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -454,7 +454,7 @@ func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Pred
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {string} [params.clientOrderId] fetch by client order id instead
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -489,7 +489,7 @@ func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (cc
  * @param {int} [since] only return trades at or after this timestamp in ms
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Hyperliquid) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -531,7 +531,7 @@ func (this *Hyperliquid) FetchTrades(outcome string, options ...ccxt.FetchTrades
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {int} [params.until] end timestamp in ms
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 

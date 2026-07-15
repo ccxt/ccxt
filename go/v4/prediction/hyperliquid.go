@@ -648,7 +648,7 @@ func (this *HyperliquidCore) CalculatePricePrecision(midPx any, szDecimals any) 
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
  * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *HyperliquidCore) FetchTicker(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -699,7 +699,7 @@ func (this *HyperliquidCore) FetchTicker(outcome any, optionalArgs ...any) <-cha
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -776,7 +776,7 @@ func (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
  * @param {object} raw l2Book response or { mid, time } object
  * @param {object} [market] the market the ticker belongs to
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *HyperliquidCore) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//
@@ -850,7 +850,7 @@ func (this *HyperliquidCore) ParsePredictionTicker(raw any, optionalArgs ...any)
  * @param {string} outcome unified outcome
  * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *HyperliquidCore) FetchOrderBook(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1085,7 +1085,7 @@ func (this *HyperliquidCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1177,7 +1177,7 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @description parses a spot balance entry for an outcome token into a unified position object
  * @param {object} position the raw balance entry
  * @param {object} [market] the outcome object the position belongs to
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *HyperliquidCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	// `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
@@ -1344,7 +1344,7 @@ func (this *HyperliquidCore) ResolveOutcomeInput(outcomeInput any) any {
  * @param {string} [params.slippage] slippage for market orders (default 5%)
  * @param {string} [params.clientOrderId] hex cloid
  * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) CreateOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1493,7 +1493,7 @@ func (this *HyperliquidCore) CreateOrder(outcome any, typeVar any, side any, amo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] cancel by client order id
  * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1523,7 +1523,7 @@ func (this *HyperliquidCore) CancelOrder(id any, optionalArgs ...any) <-chan any
  * @param {string[]} ids order ids
  * @param {string} [outcome] unified outcome (required)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1648,7 +1648,7 @@ func (this *HyperliquidCore) CancelOrders(ids any, optionalArgs ...any) <-chan a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1712,7 +1712,7 @@ func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {int} [limit] max number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) FetchOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1787,7 +1787,7 @@ func (this *HyperliquidCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {string} [params.clientOrderId] fetch by client order id instead
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1844,7 +1844,7 @@ func (this *HyperliquidCore) FetchOrder(id any, optionalArgs ...any) <-chan any 
  * @description parses a raw hyperliquid order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the market the order belongs to
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *HyperliquidCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	//
@@ -1962,7 +1962,7 @@ func (this *HyperliquidCore) ParseTimeInForce(timeInForce any) any {
  * @param {int} [since] only return trades at or after this timestamp in ms
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *HyperliquidCore) FetchTrades(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2008,7 +2008,7 @@ func (this *HyperliquidCore) FetchTrades(outcome any, optionalArgs ...any) <-cha
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] wallet address
  * @param {int} [params.until] end timestamp in ms
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2076,7 +2076,7 @@ func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @description parses a single hyperliquid fill into a unified trade object
  * @param {object} trade the raw fill object
  * @param {object} [market] the market the trade belongs to
- * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *HyperliquidCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	//

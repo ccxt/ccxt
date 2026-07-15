@@ -161,7 +161,7 @@ func (this *Myriad) FetchRawMarketById(id string, options ...FetchRawMarketByIdO
  * @param {string[]} [outcomes] unified outcomes to filter by
  * @param {object} [params] extra exchange-specific parameters
  * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Myriad) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
@@ -232,7 +232,7 @@ func (this *Myriad) FetchTradeQuote(outcome string, side string, amount float64,
  * @param {string} [params.tradingModel] 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
  * @param {string} [params.timeInForce] order-book time in force: 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
  * @param {string} [params.expiration] unix-seconds expiration for a GTD order
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CreateOrder(outcome string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -263,7 +263,7 @@ func (this *Myriad) CreateOrder(outcome string, typeVar string, side string, amo
  * @method
  * @name myriad#createOrderbookOrder
  * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CreateOrderbookOrder(outcome string, typeVar string, side string, amount float64, options ...CreateOrderbookOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -297,7 +297,7 @@ func (this *Myriad) CreateOrderbookOrder(outcome string, typeVar string, side st
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e2bc49cf4914b07528
  * @param {object[]} orders a list of order requests, each with outcome, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CreateOrders(orders []ccxt.PredictionOrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -331,7 +331,7 @@ func (this *Myriad) CreateOrders(orders []ccxt.PredictionOrderRequest, options .
  * @param {float} amount number of outcome shares for the new order
  * @param {float} [price] price per share as a fraction in [0, 1]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) EditOrder(id string, outcome string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -367,7 +367,7 @@ func (this *Myriad) EditOrder(id string, outcome string, typeVar string, side st
  * @method
  * @name myriad#createAmmOrder
  * @description buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CreateAmmOrder(outcome string, typeVar string, side string, amount float64, options ...CreateAmmOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -400,7 +400,7 @@ func (this *Myriad) CreateAmmOrder(outcome string, typeVar string, side string, 
  * @param {string} outcome unified outcome handle
  * @param {float} cost the collateral (USDC) amount to spend
  * @param {object} [params] extra exchange-specific parameters
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CreateMarketBuyOrderWithCost(outcome string, cost float64, options ...ccxt.CreateMarketBuyOrderWithCostOptions) (ccxt.PredictionOrder, error) {
 
@@ -429,7 +429,7 @@ func (this *Myriad) CreateMarketBuyOrderWithCost(outcome string, cost float64, o
  * @param {string} id the order hash returned by createOrder
  * @param {string} [outcome] unified outcome the order belongs to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -496,7 +496,7 @@ func (this *Myriad) CancelAllOrders(options ...CancelAllOrdersOptions) (map[stri
  * @param {string[]} ids the order hashes to cancel
  * @param {string} [outcome] not used by myriad cancelOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -530,7 +530,7 @@ func (this *Myriad) CancelOrders(ids []string, options ...CancelOrdersOptions) (
  * @param {string} id the order hash
  * @param {string} [outcome] unified outcome the order belongs to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -567,7 +567,7 @@ func (this *Myriad) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.Pr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.trader] wallet address to query (defaults to the configured wallet)
  * @param {string} [params.status] 'open', 'filled', 'cancelled' or 'expired'
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -612,7 +612,7 @@ func (this *Myriad) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predictio
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -657,7 +657,7 @@ func (this *Myriad) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.P
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -702,7 +702,7 @@ func (this *Myriad) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]cc
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -749,7 +749,7 @@ func (this *Myriad) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
  * @param {int} [since] timestamp in ms of the earliest trade
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Myriad) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -809,7 +809,7 @@ func (this *Myriad) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id like 2741:756/0
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Myriad) FetchTicker(outcome string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -866,7 +866,7 @@ func (this *Myriad) FetchTradingFee(outcome string, options ...ccxt.FetchTrading
  * @param {string} outcome unified outcome like TRUMP_WIN:YES or an outcome id
  * @param {int} [limit] not used by myriad fetchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Myriad) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -945,7 +945,7 @@ func (this *Myriad) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOptions
  * @see https://docs.myriad.markets/builders/myriad-api-reference
  * @param {string[]} outcomes unified outcomes — required: myriad has no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
 func (this *Myriad) FetchTickers(options ...FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -980,7 +980,7 @@ func (this *Myriad) FetchTickers(options ...FetchTickersOptions) (ccxt.Predictio
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Myriad) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -1041,7 +1041,7 @@ func (this *Myriad) FetchEvents(params map[string]interface{}) ([]ccxt.Predictio
  * @param {string} outcome unified outcome
  * @param {int} [limit] the maximum number of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Myriad) WatchOrderBook(outcome string, options ...ccxt.WatchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -1076,7 +1076,7 @@ func (this *Myriad) WatchOrderBook(outcome string, options ...ccxt.WatchOrderBoo
  * @param {int} [since] timestamp in ms of the earliest trade
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Myriad) WatchTrades(outcome string, options ...ccxt.WatchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -1117,7 +1117,7 @@ func (this *Myriad) WatchTrades(outcome string, options ...ccxt.WatchTradesOptio
  * @param {int} [since] timestamp in ms of the earliest trade
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Myriad) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -1160,7 +1160,7 @@ func (this *Myriad) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.Predi
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
  * @param {string} outcome unified outcome
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Myriad) WatchTicker(outcome string, options ...ccxt.WatchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -1188,7 +1188,7 @@ func (this *Myriad) WatchTicker(outcome string, options ...ccxt.WatchTickerOptio
  * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
  * @param {string[]} outcomes unified outcomes to watch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
 func (this *Myriad) WatchTickers(options ...WatchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -1269,7 +1269,7 @@ func (this *Myriad) WatchOHLCV(outcome string, options ...ccxt.WatchOHLCVOptions
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Myriad) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -1314,7 +1314,7 @@ func (this *Myriad) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predictio
  * @param {int} [since] timestamp in ms of the earliest position update
  * @param {int} [limit] the maximum number of position updates to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Myriad) WatchPositions(options ...WatchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 

@@ -83,7 +83,7 @@ func (this *Limitless) FetchEvent(id string, options ...FetchEventOptions) (ccxt
  * @see https://docs.limitless.exchange/api-reference/trading/orderbook
  * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Limitless) FetchTicker(outcome string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -112,7 +112,7 @@ func (this *Limitless) FetchTicker(outcome string, options ...ccxt.FetchTickerOp
  * @see https://docs.limitless.exchange/api-reference/trading/orderbook
  * @param {string[]} outcomes unified outcomes or outcome token ids — required: limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
 func (this *Limitless) FetchTickers(options ...FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -147,7 +147,7 @@ func (this *Limitless) FetchTickers(options ...FetchTickersOptions) (ccxt.Predic
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Limitless) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -186,7 +186,7 @@ func (this *Limitless) FetchTrades(outcome string, options ...ccxt.FetchTradesOp
  * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
  * @param {int} [limit] not used by limitless fetchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Limitless) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -267,7 +267,7 @@ func (this *Limitless) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOpti
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -312,7 +312,7 @@ func (this *Limitless) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predic
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -357,7 +357,7 @@ func (this *Limitless) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccx
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -401,7 +401,7 @@ func (this *Limitless) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([
  * @param {string[]} ids list of order id
  * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -435,7 +435,7 @@ func (this *Limitless) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOpti
  * @param {string} id the order id
  * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -488,7 +488,7 @@ func (this *Limitless) FetchAccounts(params ...any) ([]ccxt.Account, error) {
  * @param {float} amount amount of outcome tokens
  * @param {float} [price] limit price (0–1 range)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) CreateOrder(outcome string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -522,7 +522,7 @@ func (this *Limitless) CreateOrder(outcome string, typeVar string, side string, 
  * @param {string} id order id
  * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -556,7 +556,7 @@ func (this *Limitless) CancelOrder(id string, options ...CancelOrderOptions) (cc
  * @param {string[]} ids order ids
  * @param {string} [outcome] unified market outcome, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -590,7 +590,7 @@ func (this *Limitless) CancelOrders(ids []string, options ...CancelOrdersOptions
  * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.slug] the market slug to cancel all orders for
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Limitless) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -625,7 +625,7 @@ func (this *Limitless) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccx
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Limitless) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -668,7 +668,7 @@ func (this *Limitless) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.Pr
  * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
  * @param {string[]} [outcomes] filter by outcome ids or outcomes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Limitless) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 

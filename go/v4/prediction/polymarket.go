@@ -1025,7 +1025,7 @@ func (this *PolymarketCore) FetchOutcomes(outcomeSymbols any) <-chan any {
  * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
  * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *PolymarketCore) FetchTicker(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1104,7 +1104,7 @@ func (this *PolymarketCore) FetchTicker(outcome any, optionalArgs ...any) <-chan
  * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
  * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
 func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1204,7 +1204,7 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @description parses a combined midpoint + order book response into a unified ticker object
  * @param {object} ticker a dict with midpoint and book entries
  * @param {object} [market] the outcome object the ticker belongs to
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *PolymarketCore) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -1302,7 +1302,7 @@ func (this *PolymarketCore) ParsePredictionTicker(ticker any, optionalArgs ...an
  * @param {string} outcome unified outcome or outcome token id
  * @param {int} [limit] not used by polymarket fetchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *PolymarketCore) FetchOrderBook(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1684,7 +1684,7 @@ func (this *PolymarketCore) FetchTradingFee(outcome any, optionalArgs ...any) <-
  * @param {int} [since] not used by polymarket fetchTrades
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *PolymarketCore) FetchTrades(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1746,7 +1746,7 @@ func (this *PolymarketCore) FetchTrades(outcome any, optionalArgs ...any) <-chan
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1794,7 +1794,7 @@ func (this *PolymarketCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *PolymarketCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1844,7 +1844,7 @@ func (this *PolymarketCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan
  * @description parses a raw data API trade object into a unified trade object
  * @param {object} trade the raw trade object
  * @param {object} [market] the outcome object the trade belongs to
- * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *PolymarketCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	// public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp'
@@ -1963,7 +1963,7 @@ func (this *PolymarketCore) ParseBalance(response any) any {
  * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
  * @param {string[]} [outcomes] unified outcomes to filter by
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2030,7 +2030,7 @@ func (this *PolymarketCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
  * @param {string} outcome unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *PolymarketCore) FetchPosition(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2057,7 +2057,7 @@ func (this *PolymarketCore) FetchPosition(outcome any, optionalArgs ...any) <-ch
  * @description parses a raw data API position object into a unified position object
  * @param {object} position the raw position object
  * @param {object} [market] the outcome object the position belongs to
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *PolymarketCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
@@ -2113,7 +2113,7 @@ func (this *PolymarketCore) ParsePredictionPosition(position any, optionalArgs .
  * @param {int} [since] not used by polymarket fetchOpenOrders
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2159,7 +2159,7 @@ func (this *PolymarketCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {string} id the order id
  * @param {string} [outcome] unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2196,7 +2196,7 @@ func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @description parses a raw CLOB order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the outcome object the order belongs to
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	//
@@ -2295,7 +2295,7 @@ func (this *PolymarketCore) ParseOrderStatus(status any) any {
  * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2335,7 +2335,7 @@ func (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amou
  * @see https://docs.polymarket.com/api-reference/trade/post-orders
  * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2547,7 +2547,7 @@ func (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side an
  * @param {string} outcome unified outcome or outcome token id
  * @param {float} cost the amount of USDC to spend
  * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) CreateMarketBuyOrderWithCost(outcome any, cost any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2755,7 +2755,7 @@ func (this *PolymarketCore) SignClobOrder(message any, exchangeAddress any, doma
  * @param {string} id the order id
  * @param {string} [outcome] unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2801,7 +2801,7 @@ func (this *PolymarketCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
  * @param {string[]} ids the order ids to cancel
  * @param {string} [outcome] not used by polymarket cancelOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2844,7 +2844,7 @@ func (this *PolymarketCore) CancelOrders(ids any, optionalArgs ...any) <-chan an
  * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
  * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3706,7 +3706,7 @@ func (this *PolymarketCore) HandleTrade(client any, event any) {
  * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
  * @param {int} [limit] optional depth limit applied after resolving
  * @param {object} [params] extra params (currently unused)
- * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+ * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
  */
 func (this *PolymarketCore) WatchOrderBook(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3748,7 +3748,7 @@ func (this *PolymarketCore) WatchOrderBook(outcome any, optionalArgs ...any) <-c
  * @param {int} [since] optional unix timestamp (ms) lower bound
  * @param {int} [limit] optional max number of trades to return
  * @param {object} [params] extra params (unused)
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
  */
 func (this *PolymarketCore) WatchTrades(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3790,7 +3790,7 @@ func (this *PolymarketCore) WatchTrades(outcome any, optionalArgs ...any) <-chan
  * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
  * @param {string} outcome unified outcome
  * @param {object} [params] extra params (unused)
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
  */
 func (this *PolymarketCore) WatchTicker(outcome any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3891,7 +3891,7 @@ func (this *PolymarketCore) WatchTicker(outcome any, optionalArgs ...any) <-chan
  * @param {int} [since] the earliest time in ms to return orders for
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *PolymarketCore) WatchOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3940,7 +3940,7 @@ func (this *PolymarketCore) WatchOrders(optionalArgs ...any) <-chan any {
  * @param {int} [since] the earliest time in ms to return trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *PolymarketCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)

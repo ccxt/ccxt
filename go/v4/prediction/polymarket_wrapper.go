@@ -143,7 +143,7 @@ func (this *Polymarket) FetchOutcomes(outcomeSymbols []string) (map[string]any, 
  * @see https://docs.polymarket.com/api-reference/data/get-last-trade-price
  * @param {string} outcome unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+ * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
 func (this *Polymarket) FetchTicker(outcome string, options ...ccxt.FetchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -173,7 +173,7 @@ func (this *Polymarket) FetchTicker(outcome string, options ...ccxt.FetchTickerO
  * @see https://docs.polymarket.com/api-reference/data/get-last-trades-prices
  * @param {string[]} outcomes unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+ * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
 func (this *Polymarket) FetchTickers(options ...FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -207,7 +207,7 @@ func (this *Polymarket) FetchTickers(options ...FetchTickersOptions) (ccxt.Predi
  * @param {string} outcome unified outcome or outcome token id
  * @param {int} [limit] not used by polymarket fetchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+ * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
 func (this *Polymarket) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -376,7 +376,7 @@ func (this *Polymarket) FetchTradingFee(outcome string, options ...ccxt.FetchTra
  * @param {int} [since] not used by polymarket fetchTrades
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Polymarket) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -416,7 +416,7 @@ func (this *Polymarket) FetchTrades(outcome string, options ...ccxt.FetchTradesO
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Polymarket) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -462,7 +462,7 @@ func (this *Polymarket) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.P
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Polymarket) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -522,7 +522,7 @@ func (this *Polymarket) FetchBalance(params ...any) (ccxt.Balances, error) {
  * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
  * @param {string[]} [outcomes] unified outcomes to filter by
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Polymarket) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
@@ -555,7 +555,7 @@ func (this *Polymarket) FetchPositions(options ...FetchPositionsOptions) ([]ccxt
  * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
  * @param {string} outcome unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+ * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Polymarket) FetchPosition(outcome string, options ...ccxt.FetchPositionOptions) (ccxt.PredictionPosition, error) {
 
@@ -585,7 +585,7 @@ func (this *Polymarket) FetchPosition(outcome string, options ...ccxt.FetchPosit
  * @param {int} [since] not used by polymarket fetchOpenOrders
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -629,7 +629,7 @@ func (this *Polymarket) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]cc
  * @param {string} id the order id
  * @param {string} [outcome] unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -674,7 +674,7 @@ func (this *Polymarket) FetchOrder(id string, options ...FetchOrderOptions) (ccx
  * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CreateOrder(outcome string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -707,7 +707,7 @@ func (this *Polymarket) CreateOrder(outcome string, typeVar string, side string,
  * @see https://docs.polymarket.com/api-reference/trade/post-orders
  * @param {object[]} orders a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CreateOrders(orders []ccxt.PredictionOrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -736,7 +736,7 @@ func (this *Polymarket) CreateOrders(orders []ccxt.PredictionOrderRequest, optio
  * @param {string} outcome unified outcome or outcome token id
  * @param {float} cost the amount of USDC to spend
  * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CreateMarketBuyOrderWithCost(outcome string, cost float64, options ...ccxt.CreateMarketBuyOrderWithCostOptions) (ccxt.PredictionOrder, error) {
 
@@ -765,7 +765,7 @@ func (this *Polymarket) CreateMarketBuyOrderWithCost(outcome string, cost float6
  * @param {string} id the order id
  * @param {string} [outcome] unified outcome or outcome token id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.PredictionOrder, error) {
 
@@ -799,7 +799,7 @@ func (this *Polymarket) CancelOrder(id string, options ...CancelOrderOptions) (c
  * @param {string[]} ids the order ids to cancel
  * @param {string} [outcome] not used by polymarket cancelOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -833,7 +833,7 @@ func (this *Polymarket) CancelOrders(ids []string, options ...CancelOrdersOption
  * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
  * @param {string} [outcome] unified outcome or outcome token id; when given only that outcome's orders are cancelled
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -955,7 +955,7 @@ func (this *Polymarket) CreateOrDeriveApiKey(params ...any) (map[string]any, err
  * @param {string} outcome unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id
  * @param {int} [limit] optional depth limit applied after resolving
  * @param {object} [params] extra params (currently unused)
- * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+ * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
  */
 func (this *Polymarket) WatchOrderBook(outcome string, options ...ccxt.WatchOrderBookOptions) (ccxt.PredictionOrderBook, error) {
 
@@ -989,7 +989,7 @@ func (this *Polymarket) WatchOrderBook(outcome string, options ...ccxt.WatchOrde
  * @param {int} [since] optional unix timestamp (ms) lower bound
  * @param {int} [limit] optional max number of trades to return
  * @param {object} [params] extra params (unused)
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
  */
 func (this *Polymarket) WatchTrades(outcome string, options ...ccxt.WatchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
@@ -1026,7 +1026,7 @@ func (this *Polymarket) WatchTrades(outcome string, options ...ccxt.WatchTradesO
  * @description streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
  * @param {string} outcome unified outcome
  * @param {object} [params] extra params (unused)
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
  */
 func (this *Polymarket) WatchTicker(outcome string, options ...ccxt.WatchTickerOptions) (ccxt.PredictionTicker, error) {
 
@@ -1056,7 +1056,7 @@ func (this *Polymarket) WatchTicker(outcome string, options ...ccxt.WatchTickerO
  * @param {int} [since] the earliest time in ms to return orders for
  * @param {int} [limit] the maximum number of orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+ * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Polymarket) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -1101,7 +1101,7 @@ func (this *Polymarket) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predi
  * @param {int} [since] the earliest time in ms to return trades for
  * @param {int} [limit] the maximum number of trades to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+ * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Polymarket) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
 
