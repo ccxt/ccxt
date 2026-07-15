@@ -179,7 +179,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 | [![polymarket](https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567)](https://polymarket.com)        | polymarket  | [Polymarket](https://polymarket.com)        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.polymarket.com)                                        |
 <!--- end prediction list -->
 
-### Builder Code Exchanges
+## Builder Code Exchanges
 
 
 
