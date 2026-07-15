@@ -2750,7 +2750,26 @@ impl Exchange {
         } else {
             synthesize_currencies_from_markets(&fetched, &self.precisionMode)
         };
-        self.set_markets(fetched, &[currencies_arg]);
+        // `PredictionExchange` overrides `setMarkets` to alias the outcome
+        // `market` handle onto `symbol` (the prediction rows carry no `symbol`,
+        // so the base indexer would build zero symbols) and to populate the
+        // outcome lookup. This base method runs as the shared `Exchange`, so a
+        // direct `self.set_markets(...)` calls the base version and bypasses that
+        // override (Rust has no virtual dispatch off the deref chain). For a
+        // prediction exchange, route through the derived dispatcher instead so
+        // the venue → PredictionExchange::set_markets override runs (mirrors Go's
+        // SetOutcomesFromMarkets hook). Regular exchanges keep the direct call.
+        let is_prediction = matches!(
+            crate::get_value(&self.has, &Value::Str("prediction".to_string())),
+            Value::Bool(true),
+        );
+        if is_prediction {
+            let _ = self
+                .dispatch_to_derived("set_markets", vec![fetched, currencies_arg])
+                .await;
+        } else {
+            self.set_markets(fetched, &[currencies_arg]);
+        }
         self.markets.clone()
     }
 
