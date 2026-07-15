@@ -6,14 +6,14 @@ import { SiDiscord, SiTelegram } from 'react-icons/si';
 
 // Top-nav section labels per locale (the Fumadocs UI chrome is translated separately
 // in lib/i18n-ui.ts). Falls back to English.
-const NAV_LABELS: Record<string, { guide: string; exchanges: string; prediction: string; examples: string }> = {
-  en: { guide: 'Guide', exchanges: 'Exchanges', prediction: 'Prediction', examples: 'Examples' },
-  es: { guide: 'Guía', exchanges: 'Exchanges', prediction: 'Predicción', examples: 'Ejemplos' },
-  pt: { guide: 'Guia', exchanges: 'Exchanges', prediction: 'Predição', examples: 'Exemplos' },
-  ko: { guide: '가이드', exchanges: '거래소', prediction: '예측', examples: '예제' },
-  zh: { guide: '指南', exchanges: '交易所', prediction: '预测', examples: '示例' },
-  fr: { guide: 'Guide', exchanges: 'Exchanges', prediction: 'Prédiction', examples: 'Exemples' },
-  de: { guide: 'Anleitung', exchanges: 'Börsen', prediction: 'Vorhersage', examples: 'Beispiele' },
+const NAV_LABELS: Record<string, { guide: string; exchanges: string; prediction: string; examples: string; blog: string }> = {
+  en: { guide: 'Guide', exchanges: 'Exchanges', prediction: 'Prediction', examples: 'Examples', blog: 'Blog' },
+  es: { guide: 'Guía', exchanges: 'Exchanges', prediction: 'Predicción', examples: 'Ejemplos', blog: 'Blog' },
+  pt: { guide: 'Guia', exchanges: 'Exchanges', prediction: 'Predição', examples: 'Exemplos', blog: 'Blog' },
+  ko: { guide: '가이드', exchanges: '거래소', prediction: '예측', examples: '예제', blog: '블로그' },
+  zh: { guide: '指南', exchanges: '交易所', prediction: '预测', examples: '示例', blog: '博客' },
+  fr: { guide: 'Guide', exchanges: 'Exchanges', prediction: 'Prédiction', examples: 'Exemples', blog: 'Blog' },
+  de: { guide: 'Anleitung', exchanges: 'Börsen', prediction: 'Vorhersage', examples: 'Beispiele', blog: 'Blog' },
 };
 
 export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutProps {
