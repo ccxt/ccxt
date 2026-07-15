@@ -1,0 +1,94 @@
+[package]
+name = "ccxt"
+version = "0.1.0"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust)"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+
+[lib]
+name = "ccxt"
+path = "src/lib.rs"
+
+[features]
+default = []
+# Includes the transpiled-from-Exchange.ts methods. Currently a work in
+# progress — the transpiler produces syntactically-valid Rust but most
+# method bodies don't yet typecheck against the typed Exchange base.
+transpiled-base = []
+# Includes the transpiled WS (pro) exchanges in `src/pro/<id>.rs`. Work
+# in progress — the structural transpile (struct shape, parent Deref)
+# works but several per-exchange method bodies still need transpiler
+# fixes. Enable to opt in; default builds skip the per-id files so the
+# hand-written `pro::{cache, order_book}` modules stay usable on their
+# own.
+transpiled-ws = ["transpiled-base"]
+
+[dependencies]
+# HTTP client (async)
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+# JSON serialisation / deserialisation
+serde = { version = "1", features = ["derive"] }
+# `preserve_order` makes `serde_json::Map` an `IndexMap`-backed type so
+# `Value::to_json` keeps Value::Map's insertion order through to the
+# `serde_json::to_string` boundary (without this, exchange URL/JSON
+# payloads come out alphabetised and break static request fixtures
+# that assert specific key orders).
+# `float_roundtrip` swaps in the lexical-core float parser so JSON
+# numbers like `7.5562000000000005` round-trip to the same f64 they
+# came from — without it, serde_json's default float parser silently
+# loses one ULP and static response fixtures fail on parser-precise
+# values (bingx, arkham vwap, …).
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+# HMAC / SHA / MD5 / crypto primitives
+hmac = "0.12"
+sha2 = "0.10"
+sha1 = "0.10"
+md-5 = "0.10"
+# Keccak-256 (ETH hashing)
+sha3 = "0.10"
+# secp256k1 ECDSA with public-key recovery (ETH signing)
+k256 = { version = "0.13", features = ["ecdsa"] }
+# MessagePack (hyperliquid L1 action hashing)
+rmp-serde = "1"
+rmpv = "1"
+# RSA signing (jwt RS256, exchange rsa())
+rsa = { version = "0.9", features = ["sha2"] }
+# Base64
+base64 = "0.22"
+# URL encoding
+urlencoding = "2"
+form_urlencoded = "1"
+# URL parsing
+url = "2"
+# Precise decimal arithmetic (mirrors CCXT's Precise class)
+rust_decimal = { version = "1", features = ["serde-str"] }
+# Arbitrary-precision integers — used by Precise's div/mul fallback when
+# operands exceed i128 (CCXT fixtures carry full-precision float expansions
+# with 40+ significant digits; TS uses BigInt, so we must too to match).
+num-bigint = "0.4"
+num-traits = "0.2"
+# Cryptographic RNG
+rand = "0.8"
+# Hex encoding / decoding
+hex = "0.4"
+# Time utilities
+chrono = { version = "0.4", features = ["serde"] }
+# Async trait support
+async-trait = "0.1"
+# Futures utilities
+futures = "0.3"
+# Error handling
+thiserror = "1"
+# Thread-safe reference counted pointers (used for derived_describe callback)
+parking_lot = "0.12"
+# Insertion-order-preserving map. Used as Value::Map's backing store so
+# that JSON / URL-encoded payloads serialize keys in the order exchanges
+# expect (bingx/digifinex/mexc createOrders fixtures assert specific
+# orderings).
+indexmap = { version = "2", features = ["serde"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }

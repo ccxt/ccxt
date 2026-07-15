@@ -49,3 +49,7 @@ obj/
 __debug*
 *.o
 .custom_gitignore
+debug/
+*.rlib
+*.rmeta
+target/

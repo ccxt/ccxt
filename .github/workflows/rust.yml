@@ -20,3 +20,173 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
+      - uses: taiki-e/cache-cargo-install-action@v3
+        with:
+          tool: cargo-hack
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Determine modified files
+        run: ./utils/init_actions.sh
+      - name: Check tsc version
+        run: tsc --version
+      - name: Install tsx
+        run: npm install -g tsx
+      - name: export exchanges
+        run: npm run export-exchanges
+      - name: Generate implicit API
+        run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
+      - name: Transpile To Rust
+        if: env.important_modified == 'true'
+        run: tsx build/rustTranspiler.ts #&& tsx build/rustTranspiler.ts --ws
+      - name: Transpile to Rust (specific)
+        if: env.important_modified == 'false'
+        run: |
+          cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          # for exchange in $cleaned_rest_files; do
+          #   tsx build/rustTranspiler.ts -- $exchange
+          # done
+        # run : |
+        #   # cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        #   # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        #   # # echo "Cleaned files: $cleaned_rest_files"
+        #   # # tsx build/granular-go-build.ts $cleaned_rest_files
+        #   # if [ -n "$cleaned_rest_files" ]; then
+        #   #   echo "Cleaned files: $cleaned_rest_files"
+        #   #   tsx build/granular-go-build.ts $cleaned_rest_files
+        #   # else
+        #   #   echo "No rest files to process; skipping."
+        #   # fi
+        #   # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        #   # if [ -n "$cleaned_ws_files" ]; then
+        #   #   echo "Cleaned files: $cleaned_ws_files"
+        #   #   tsx build/granular-go-build.ts $cleaned_ws_files
+        #   # else
+        #   #   echo "No websocket files to process; skipping."
+        #   # fi
+        #   read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+        #   if [ "${#files[@]}" -eq 0 ]; then
+        #     echo "No files to process; skipping."
+        #     exit 0
+        #   fi
+        #   echo "Files to process: ${files[*]}"
+        #   tsx build/granular-go-build.ts "${files[@]}"
+      # - name: Install dependencies
+      #   run: cd go && go get ./ccxt && cd ..
+      - name: Build
+        run: npm run buildRust
+      # - name: Build Ws
+      #   run: npm run buildRust --ws
+      - name: Build tests
+        run: npm run buildRust --tests
+      # - name: Test GO Types
+      #   if: env.important_modified == 'true'
+      #   run: npm run test-types-go
+      - name: Run Base Tests
+        if: env.important_modified == 'true'
+        run: npm run test-base-rest-rust
+      - name: Run Base Ws Tests
+        if: env.important_modified == 'true'
+        run: npm run test-base-ws-rust
+      - name: Run Id Tests
+        if: env.important_modified == 'true'
+        run: npm run id-tests-rust
+      - name: Request tests
+        if: env.important_modified == 'true'
+        run: npm run request-rust
+      - name: Request tests (specific)
+        if: env.important_modified == 'false'
+        run: |
+          cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          for exchange in $cleaned_rest_files; do
+            npm run request-rust -- $exchange
+          done
+      - name: Response Tests
+        if: env.important_modified == 'true'
+        run: npm run response-rust
+      - name: Response tests (specific)
+        if: env.important_modified == 'false'
+        run: |
+          cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          for exchange in $cleaned_rest_files; do
+            npm run response-rust -- $exchange
+          done
+
+      # - name: Upload Go Files
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: go-files
+      #     path: go/
+      - name: Upload Rust Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-files
+          path: rust/
+      - name: Upload shared_env.txt
+        uses: actions/upload-artifact@v4
+        with:
+            name: shared_env
+            path: shared_env.txt
+
+      - name: Push Rust changes to master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.ref == 'refs/heads/master'
+        run: |
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            rm -f ./rust/
+            git add rust/
+            git commit -m "[Automated changes] Rust files" || echo "No changes to commit."
+            git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+            git config --global pull.rebase false
+            git pull --rebase --autostash origin master
+            git push
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      # - name: Download Rust Files
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: rust-files
+      #     path: rust/
+      # - uses: actions/checkout@v4
+      - name: Download Rust Binary
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-files
+          path: rust/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - name: Build tests
+        run: go build -C go ./tests/main.go
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      # - name: Install dependencies
+      #   run: go get ./go/v4
+      # - name: Build
+      #   run: go build ./go/v4
+      # - name: Build tests
+      #   run: go build ./go/tests/main.go
+      # - name: Adjust permissions
+      #   run: cd go && chmod +x main
+      - name: Build
+        run: npm run buildRust
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: ./run-tests-simul.sh --rust
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --rust "${{ env.rest_files }}" "${{ env.ws_files }}"
+
+

@@ -1235,6 +1235,7 @@ export default class derive extends Exchange {
         }
         const maxFeeString = this.numberToString (maxFee) as string;
         const amountString = this.numberToString (amount) as string;
+        const orderSideIsBuy = (orderSide === 'buy');
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1244,7 +1245,7 @@ export default class derive extends Exchange {
             this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
             this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
-            orderSide === 'buy',
+            orderSideIsBuy,
         ]), keccak, 'binary');
         let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
@@ -1421,6 +1422,7 @@ export default class derive extends Exchange {
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = this.numberToString (amount) as string;
+        const orderSideIsBuy = (orderSide === 'buy');
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1430,7 +1432,7 @@ export default class derive extends Exchange {
             this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
             this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
             subaccountId,
-            orderSide === 'buy',
+            orderSideIsBuy,
         ]), keccak, 'binary');
         let deriveWalletAddress: Str | Dict = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);
