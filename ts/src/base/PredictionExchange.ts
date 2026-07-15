@@ -537,9 +537,28 @@ export default class PredictionExchange extends BaseExchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        const result = super.setMarkets (markets, currencies);
+        // prediction market rows carry only the unified `market` handle — `symbol` is
+        // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
+        // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
+        const marketsList = this.toArray (markets);
+        const aliased = [];
+        for (let i = 0; i < marketsList.length; i++) {
+            const row = marketsList[i];
+            const copy = this.extend ({}, row);
+            copy['symbol'] = this.safeString2 (row, 'market', 'symbol');
+            aliased.push (copy);
+        }
+        super.setMarkets (aliased, currencies);
+        // strip the alias back off the stored rows — venues assemble user-visible event
+        // structures from this.markets (hyperliquid groups its outcome markets that way),
+        // so a leftover 'symbol' key would leak the deprecated field back to the caller
+        const marketKeys = Object.keys (this.markets);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const key = marketKeys[i];
+            this.markets[key] = this.omit (this.markets[key], 'symbol');
+        }
         this.populateOutcomes ();
-        return result;
+        return this.markets;
     }
 
     indexMarketOutcomes (market) {
@@ -622,9 +641,9 @@ export default class PredictionExchange extends BaseExchange {
         const marketsLength = markets.length;
         for (let i = 0; i < marketsLength; i++) {
             const m = markets[i];
-            const symbol = this.safeString (m, 'symbol');
-            if (symbol !== undefined) {
-                this.markets[symbol] = m;
+            const marketHandle = this.safeString2 (m, 'market', 'symbol');
+            if (marketHandle !== undefined) {
+                this.markets[marketHandle] = m;
             }
         }
         this.populateOutcomes ();

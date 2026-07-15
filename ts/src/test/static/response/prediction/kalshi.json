@@ -1254,7 +1254,7 @@
 					"markets": [
 						{
 							"id": "KXELONMARS-99",
-							"symbol": "KXELONMARS_99_ELON_MUSK_VISIT_MARS_AUG_1_2099",
+							"market": "KXELONMARS_99_ELON_MUSK_VISIT_MARS_AUG_1_2099",
 							"base": "USD",
 							"quote": "USD",
 							"settle": null,

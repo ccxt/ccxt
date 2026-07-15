@@ -1103,7 +1103,6 @@
 					"markets": [
 						{
 							"id": "rune-eaters-1783879202236",
-							"symbol": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
 							"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_RUNE_EATERS_1783879202236",
 							"marketType": "binary",
 							"executionModel": "clob",
@@ -1138,7 +1137,7 @@
 							"tierBased": false,
 							"feeSide": "get",
 							"precision": {
-								"amount": 0.000001,
+								"amount": 1e-06,
 								"price": 0.001
 							},
 							"limits": {
@@ -1169,7 +1168,7 @@
 									"winner": null,
 									"settleFraction": null,
 									"precision": {
-										"amount": 0.000001,
+										"amount": 1e-06,
 										"price": 0.001
 									},
 									"info": {
@@ -1190,7 +1189,7 @@
 									"winner": null,
 									"settleFraction": null,
 									"precision": {
-										"amount": 0.000001,
+										"amount": 1e-06,
 										"price": 0.001
 									},
 									"info": {
@@ -1232,7 +1231,6 @@
 						},
 						{
 							"id": "virtuspro-1783879202242",
-							"symbol": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
 							"market": "RUNE_EATERS_VS_VIRTUSPRO_1783879202232_VIRTUSPRO_1783879202242",
 							"marketType": "binary",
 							"executionModel": "clob",
@@ -1267,7 +1265,7 @@
 							"tierBased": false,
 							"feeSide": "get",
 							"precision": {
-								"amount": 0.000001,
+								"amount": 1e-06,
 								"price": 0.001
 							},
 							"limits": {
@@ -1298,7 +1296,7 @@
 									"winner": null,
 									"settleFraction": null,
 									"precision": {
-										"amount": 0.000001,
+										"amount": 1e-06,
 										"price": 0.001
 									},
 									"info": {
@@ -1319,7 +1317,7 @@
 									"winner": null,
 									"settleFraction": null,
 									"precision": {
-										"amount": 0.000001,
+										"amount": 1e-06,
 										"price": 0.001
 									},
 									"info": {

@@ -773,7 +773,6 @@ export default class polymarket extends Exchange {
             const marketResolvedOutcome = resolvedOutcome;
             result.push ({
                 'id': conditionId,
-                'symbol': marketSymbol,
                 'market': marketSymbol,
                 'marketType': marketType,
                 'executionModel': 'clob',
@@ -855,7 +854,7 @@ export default class polymarket extends Exchange {
                 const ccxtMarketsLength = ccxtMarkets.length;
                 for (let i = 0; i < ccxtMarketsLength; i++) {
                     const mkt = ccxtMarkets[i];
-                    this.markets[mkt['symbol'] as string] = mkt;
+                    this.markets[mkt['market'] as string] = mkt;
                 }
                 this.populateOutcomes ();
                 const byId = this.safeValue (this.outcomes_by_id, outcomeSymbol);
@@ -912,7 +911,7 @@ export default class polymarket extends Exchange {
                 const ccxtMarkets = this.parseEventToMarkets ({ 'markets': rawMarkets });
                 for (let i = 0; i < ccxtMarkets.length; i++) {
                     const mkt = ccxtMarkets[i];
-                    this.markets[mkt['symbol'] as string] = mkt;
+                    this.markets[mkt['market'] as string] = mkt;
                 }
                 startIndex = this.sum (startIndex, chunkSize);
             }
@@ -2398,7 +2397,7 @@ export default class polymarket extends Exchange {
             }
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
                 const m = ccxtMarkets[mi];
-                this.markets[m['symbol'] as string] = m;
+                this.markets[m['market'] as string] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
             result.push (parsedEvent);
@@ -3240,10 +3239,10 @@ export default class polymarket extends Exchange {
         if (outcomeObj !== undefined) {
             return this.safeString (outcomeObj, 'outcome');
         }
-        // safe dict/string access: a bare marketsById[tokenId] / market['symbol'] is undefined in JS
+        // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
         // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
         const market = this.safeDict (this.markets_by_id, tokenId);
-        return this.safeString (market, 'symbol');
+        return this.safeString2 (market, 'market', 'symbol');
     }
 
     parsePolyTimestamp (raw: Str): number {

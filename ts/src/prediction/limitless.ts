@@ -500,7 +500,6 @@ export default class limitless extends Exchange {
         const marketResolvedOutcome = resolvedOutcome;
         return {
             'id': slug,
-            'symbol': marketSymbol,
             'market': marketSymbol,
             'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel': 'clob',
@@ -840,7 +839,9 @@ export default class limitless extends Exchange {
         let totalVolume = 0;
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
-            const marketSymbol = this.safeString (rawMarket, 'symbol');
+            // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
+            // ('symbol' kept as a legacy fallback) — don't run it through parseMarket again
+            const marketSymbol = this.safeString2 (rawMarket, 'market', 'symbol');
             const marketOutcomes = this.safeList (rawMarket, 'outcomes');
             if (marketSymbol !== undefined && marketOutcomes !== undefined) {
                 markets.push (rawMarket);
@@ -2926,7 +2927,7 @@ export default class limitless extends Exchange {
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
             const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
-            this.markets[m['symbol'] as string] = m;
+            this.markets[m['market'] as string] = m;
             if (eventKey) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };

@@ -6,7 +6,7 @@
         "markets": [
             {
                 "id": "KXELONMARS-99",
-                "symbol": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                "market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
                 "base": "USD",
                 "quote": "USD",
                 "baseId": "KXELONMARS-99",
@@ -136,7 +136,7 @@
         "markets": [
             {
                 "id": "KXWARMING-50",
-                "symbol": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+                "market": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
                 "base": "USD",
                 "quote": "USD",
                 "baseId": "KXWARMING-50",
@@ -266,7 +266,7 @@
         "markets": [
             {
                 "id": "KXCOLONIZEMARS-50",
-                "symbol": "HUMANS_COLONIZE_MARS_2050",
+                "market": "HUMANS_COLONIZE_MARS_2050",
                 "base": "USD",
                 "quote": "USD",
                 "baseId": "KXCOLONIZEMARS-50",

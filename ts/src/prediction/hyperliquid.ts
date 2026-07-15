@@ -538,9 +538,9 @@ export default class hyperliquid extends Exchange {
                 },
             },
         ];
-        return this.safeMarketStructure ({
+        const marketRow = this.safeMarketStructure ({
             'id': outcomeId.toString (),
-            'symbol': parentSymbol,
+            'market': parentSymbol,
             'base': parentSymbol.split ('/')[0],
             'quote': quoteCurrency,
             'settle': undefined,
@@ -585,7 +585,10 @@ export default class hyperliquid extends Exchange {
                 'parsedDescription': desc,
             }),
             'created': undefined,
-        }) as Market;
+        });
+        // omit the deprecated 'symbol' key the safeMarketStructure template injects —
+        // prediction market rows carry only the unified 'market' handle
+        return this.omit (marketRow, 'symbol') as Market;
     }
 
     /**
@@ -1835,7 +1838,7 @@ export default class hyperliquid extends Exchange {
                 continue;
             }
             const info = this.safeDict (mkt as any, 'info', {});
-            const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString (mkt, 'symbol'));
+            const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString2 (mkt as any, 'market', 'symbol'));
             // Apply query filter
             if (lowerQueriesLength > 0) {
                 const description = this.safeString (info, 'description', '').toLowerCase ();

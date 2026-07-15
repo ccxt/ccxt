@@ -1420,7 +1420,7 @@ export default class myriad extends Exchange {
         return {
             'id': market['id'],
             'slug': slug,
-            'event': market['symbol'],
+            'event': market['market'],
             'title': this.safeString2 (raw, 'title', 'shortName'),
             'description': this.safeString (raw, 'description'),
             'markets': [ market ],
@@ -1539,7 +1539,7 @@ export default class myriad extends Exchange {
         const marketResolvedOutcome = resolvedOutcome;
         return {
             'id': networkId + ':' + marketId,
-            'symbol': marketSymbol,
+            'market': marketSymbol,
             'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel': marketExecutionModel,
             'base': slug,
@@ -2408,7 +2408,7 @@ export default class myriad extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
             const m = this.parseMyriadMarket (raw);
-            this.markets[m['symbol'] as string] = m;
+            this.markets[m['market'] as string] = m;
             const ev = this.parseMarketToEvent (raw, m);
             result.push (ev);
         }

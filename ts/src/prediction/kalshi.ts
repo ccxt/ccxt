@@ -358,7 +358,7 @@ export default class kalshi extends Exchange {
                 if (this.markets === undefined) {
                     this.markets = this.createSafeDictionary ();
                 }
-                this.markets[parsed['symbol']] = parsed;
+                this.markets[parsed['market']] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 this.indexMarketOutcomes (parsed);
@@ -443,7 +443,7 @@ export default class kalshi extends Exchange {
             const rawMarkets = this.safeList (response, 'markets', []) as any[];
             for (let i = 0; i < rawMarkets.length; i++) {
                 const parsed = this.parseMarket (rawMarkets[i]);
-                this.markets[parsed['symbol']] = parsed;
+                this.markets[parsed['market']] = parsed;
                 this.indexMarketOutcomes (parsed);
             }
             startIndex = this.sum (startIndex, chunkSize);
@@ -637,7 +637,7 @@ export default class kalshi extends Exchange {
         const marketResolvedOutcome = resolvedOutcome;
         return {
             'id': ticker,
-            'symbol': marketSymbol,
+            'market': marketSymbol,
             'base': 'USD',
             'quote': 'USD',
             'settle': undefined,
@@ -2204,7 +2204,7 @@ export default class kalshi extends Exchange {
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
-                this.markets[m['symbol']] = m;
+                this.markets[m['market']] = m;
             }
         }
         this.populateOutcomes ();

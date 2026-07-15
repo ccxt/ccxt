@@ -1005,11 +1005,19 @@ class testMainClass {
         const markets = exchange.safeList (event, 'markets');
         assert (markets !== undefined, exchange.id + ' event missing markets' + logText);
         const marketsLength = markets.length;
+        assert (exchange.safeString (event, 'symbol') === undefined, exchange.id + ' event must not carry the deprecated symbol key' + logText);
         for (let i = 0; i < marketsLength; i++) {
             const market = markets[i];
             assert (exchange.isDictionary (market), exchange.id + ' event market should be a dict' + logText);
+            assert (exchange.safeString (market, 'market') !== undefined, exchange.id + ' event market missing the unified market handle' + logText);
+            // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert (exchange.safeString (market, 'symbol') === undefined, exchange.id + ' event market must not carry the deprecated symbol key' + logText);
             const outcomes = exchange.safeList (market, 'outcomes');
             assert (outcomes !== undefined, exchange.id + ' event market missing outcomes' + logText);
+            const outcomesLength = outcomes.length;
+            for (let j = 0; j < outcomesLength; j++) {
+                assert (exchange.safeString (outcomes[j], 'symbol') === undefined, exchange.id + ' event outcome must not carry the deprecated symbol key' + logText);
+            }
         }
         // optional typed fields must have the right type when present
         const active = exchange.safeValue (event, 'active');
@@ -1795,7 +1803,14 @@ class testMainClass {
             for (let i = 0; i < predictionEvents.length; i++) {
                 const evMarkets = exchange.safeList (predictionEvents[i], 'markets', []);
                 for (let j = 0; j < evMarkets.length; j++) {
-                    eventMarkets.push (evMarkets[j]);
+                    const evMarket = evMarkets[j];
+                    // every market row must carry the unified market handle (PredictionMarket
+                    // declares it required) — enforce it on the fixtures so a venue that stops
+                    // setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    // on prediction structures and must be absent
+                    assert (exchange.safeString (evMarket, 'market') !== undefined, exchangeName + ' static events fixture: market row missing the unified market handle');
+                    assert (exchange.safeString (evMarket, 'symbol') === undefined, exchangeName + ' static events fixture: market row must not carry the deprecated symbol key');
+                    eventMarkets.push (evMarket);
                 }
             }
             if (eventMarkets.length > 0) {

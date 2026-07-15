@@ -20069,7 +20069,7 @@
 					"markets": [
 						{
 							"id": "2741:717",
-							"symbol": "BUBBLE_BURSTS_FIRST",
+							"market": "BUBBLE_BURSTS_FIRST",
 							"marketType": "binary",
 							"executionModel": "amm",
 							"base": "which-bubble-bursts-first",

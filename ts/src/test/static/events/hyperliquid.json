@@ -8,7 +8,7 @@
             {
                 "id": "172",
                 "lowercaseId": null,
-                "symbol": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
+                "market": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
                 "base": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
                 "quote": "USDH",
                 "settle": null,
@@ -154,7 +154,7 @@
                 {
                     "id": "172",
                     "lowercaseId": null,
-                    "symbol": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
+                    "market": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
                     "base": "2026_WORLD_CUP_CHAMPION_ALGERIA_172",
                     "quote": "USDH",
                     "settle": null,

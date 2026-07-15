@@ -6,7 +6,7 @@
         "markets": [
             {
                 "id": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
-                "symbol": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+                "market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
                 "base": "USDC",
                 "quote": "USDC",
                 "baseId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
@@ -394,7 +394,7 @@
         "markets": [
             {
                 "id": "0x4567b275e6b667a6217f5cb4f06a797d3a1eaf1d0281fb5bc8c75e2046ae7e57",
-                "symbol": "GAVIN_NEWSOM_WIN_2028_US_PRESIDENTIAL_ELECTION",
+                "market": "GAVIN_NEWSOM_WIN_2028_US_PRESIDENTIAL_ELECTION",
                 "base": "USDC",
                 "quote": "USDC",
                 "baseId": "0x4567b275e6b667a6217f5cb4f06a797d3a1eaf1d0281fb5bc8c75e2046ae7e57",
@@ -779,7 +779,7 @@
         "markets": [
             {
                 "id": "0xce9a5fa30fe74e323b4a8f15afbb0b7a41a537aa880779ddf7dee22223b2f34a",
-                "symbol": "DONALD_TRUMP_WIN_2028_US_PRESIDENTIAL_ELECTION",
+                "market": "DONALD_TRUMP_WIN_2028_US_PRESIDENTIAL_ELECTION",
                 "base": "USDC",
                 "quote": "USDC",
                 "baseId": "0xce9a5fa30fe74e323b4a8f15afbb0b7a41a537aa880779ddf7dee22223b2f34a",

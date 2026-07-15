@@ -6,7 +6,7 @@
         "markets": [
             {
                 "id": "2741:549",
-                "symbol": "POLYMARKET_KALSHI",
+                "market": "POLYMARKET_KALSHI",
                 "base": "polymarket-or-kalshi",
                 "quote": "USDC",
                 "baseId": "2741:549",
@@ -201,7 +201,7 @@
         "markets": [
             {
                 "id": "2741:449",
-                "symbol": "FEAR_GREED",
+                "market": "FEAR_GREED",
                 "base": "fear-or-greed",
                 "quote": "USDC",
                 "baseId": "2741:449",
@@ -397,7 +397,7 @@
         "markets": [
             {
                 "id": "56:730",
-                "symbol": "WORLDCUP_GROUP_D_OB",
+                "market": "WORLDCUP_GROUP_D_OB",
                 "base": "will-trkiye-win-group-d",
                 "quote": "USDC",
                 "baseId": "56:730",

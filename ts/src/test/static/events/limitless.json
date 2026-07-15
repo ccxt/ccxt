@@ -6,7 +6,7 @@
         "markets": [
             {
                 "id": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
-                "symbol": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+                "market": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
                 "base": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
                 "quote": "USDC",
                 "baseId": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
@@ -184,7 +184,7 @@
         "markets": [
             {
                 "id": "usa-and-australia-both-to-score-1779980360817",
-                "symbol": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+                "market": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
                 "base": "usa-and-australia-both-to-score-1779980360817",
                 "quote": "USDC",
                 "baseId": "usa-and-australia-both-to-score-1779980360817",
@@ -375,7 +375,7 @@
         "markets": [
             {
                 "id": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
-                "symbol": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+                "market": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
                 "base": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
                 "quote": "USDC",
                 "baseId": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
