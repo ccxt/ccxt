@@ -750,7 +750,7 @@ public partial class kalshi : PredictionExchange
      * @see https://docs.kalshi.com/api-reference/market/get-market
      * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
@@ -898,7 +898,7 @@ public partial class kalshi : PredictionExchange
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public override object parsePredictionTicker(object raw, object market = null)
     {
@@ -1036,7 +1036,7 @@ public partial class kalshi : PredictionExchange
      * @see https://docs.kalshi.com/api-reference/market/get-markets
      * @param {string[]} outcomes unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
@@ -1127,7 +1127,7 @@ public partial class kalshi : PredictionExchange
      * @param {string} outcome unified outcome or outcome id
      * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
@@ -1201,7 +1201,7 @@ public partial class kalshi : PredictionExchange
      * @param {int} timestamp timestamp in ms
      * @param {object[]} bids array of [price, size] bid levels
      * @param {object[]} asks array of [price, size] ask levels
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public virtual object sortedOrders(object outcome, object timestamp, object bids, object asks)
     {
@@ -1392,7 +1392,7 @@ public partial class kalshi : PredictionExchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
@@ -1429,7 +1429,7 @@ public partial class kalshi : PredictionExchange
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public override object parsePredictionTrade(object trade, object market = null)
     {
@@ -1499,7 +1499,7 @@ public partial class kalshi : PredictionExchange
      * @param {int} [since] the earliest fill timestamp (ms) to fetch
      * @param {int} [limit] the maximum number of fills to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1684,7 +1684,7 @@ public partial class kalshi : PredictionExchange
      * @see https://trading-api.readme.io/reference/getportfoliopositions
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
@@ -1859,7 +1859,7 @@ public partial class kalshi : PredictionExchange
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public override object parsePredictionPosition(object position, object market = null)
     {
@@ -1914,7 +1914,7 @@ public partial class kalshi : PredictionExchange
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1946,7 +1946,7 @@ public partial class kalshi : PredictionExchange
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1977,7 +1977,7 @@ public partial class kalshi : PredictionExchange
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2006,7 +2006,7 @@ public partial class kalshi : PredictionExchange
      * @param {string} id order id
      * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
@@ -2030,7 +2030,7 @@ public partial class kalshi : PredictionExchange
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public override object parsePredictionOrder(object order, object market = null)
     {
@@ -2139,7 +2139,7 @@ public partial class kalshi : PredictionExchange
      * @param {float} amount number of contracts
      * @param {float} [price] limit price in dollars (0–1 range)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2251,7 +2251,7 @@ public partial class kalshi : PredictionExchange
      * @param {float} [amount] the new number of contracts
      * @param {float} [price] the new price (0..1)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -2281,7 +2281,7 @@ public partial class kalshi : PredictionExchange
      * @param {string} id order id
      * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
@@ -2317,7 +2317,7 @@ public partial class kalshi : PredictionExchange
      * @see https://trading-api.readme.io/reference/cancelorders
      * @param {string} [outcome] unified outcome to scope the cancellation to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {

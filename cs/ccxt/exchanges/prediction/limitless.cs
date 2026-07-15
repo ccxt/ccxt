@@ -918,7 +918,7 @@ public partial class limitless : PredictionExchange
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
      * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
@@ -1011,7 +1011,7 @@ public partial class limitless : PredictionExchange
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public override object parsePredictionTicker(object ticker, object market = null)
     {
@@ -1197,7 +1197,7 @@ public partial class limitless : PredictionExchange
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
@@ -1271,7 +1271,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
@@ -1333,7 +1333,7 @@ public partial class limitless : PredictionExchange
      * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {int} [limit] not used by limitless fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
@@ -1569,7 +1569,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1624,7 +1624,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1649,7 +1649,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1673,7 +1673,7 @@ public partial class limitless : PredictionExchange
      * @param {string[]} ids list of order id
      * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> fetchOrdersByIds(object ids, object outcome = null, object parameters = null)
     {
@@ -1818,7 +1818,7 @@ public partial class limitless : PredictionExchange
      * @param {string} id the order id
      * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
@@ -1843,7 +1843,7 @@ public partial class limitless : PredictionExchange
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public override object parsePredictionOrder(object order, object market = null)
     {
@@ -2145,7 +2145,7 @@ public partial class limitless : PredictionExchange
      * @param {float} amount amount of outcome tokens
      * @param {float} [price] limit price (0–1 range)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2485,7 +2485,7 @@ public partial class limitless : PredictionExchange
      * @param {string} id order id
      * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
@@ -2559,7 +2559,7 @@ public partial class limitless : PredictionExchange
      * @param {string[]} ids order ids
      * @param {string} [outcome] unified market outcome, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
@@ -2592,7 +2592,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.slug] the market slug to cancel all orders for
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
@@ -2638,7 +2638,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2757,7 +2757,7 @@ public partial class limitless : PredictionExchange
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public override object parsePredictionTrade(object trade, object market = null)
     {
@@ -2901,7 +2901,7 @@ public partial class limitless : PredictionExchange
      * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
@@ -3054,7 +3054,7 @@ public partial class limitless : PredictionExchange
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public override object parsePredictionPosition(object position, object market = null)
     {

@@ -678,7 +678,7 @@ public partial class hyperliquid : PredictionExchange
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
      * @param {string} outcome unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTicker(object outcome, object parameters = null)
     {
@@ -716,7 +716,7 @@ public partial class hyperliquid : PredictionExchange
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
@@ -782,7 +782,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     public override object parsePredictionTicker(object raw, object market = null)
     {
@@ -856,7 +856,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} outcome unified outcome
      * @param {int} [limit] max depth levels (not used by hyperliquid but accepted)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
     {
@@ -1051,7 +1051,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
@@ -1134,7 +1134,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     public override object parsePredictionPosition(object position, object market = null)
     {
@@ -1329,7 +1329,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.slippage] slippage for market orders (default 5%)
      * @param {string} [params.clientOrderId] hex cloid
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1469,7 +1469,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] cancel by client order id
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
     {
@@ -1486,7 +1486,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string[]} ids order ids
      * @param {string} [outcome] unified outcome (required)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
@@ -1606,7 +1606,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1653,7 +1653,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [limit] max number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1716,7 +1716,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {string} [params.clientOrderId] fetch by client order id instead
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
@@ -1762,7 +1762,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     public override object parsePredictionOrder(object order, object market = null)
     {
@@ -1889,7 +1889,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [since] only return trades at or after this timestamp in ms
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
@@ -1918,7 +1918,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] wallet address
      * @param {int} [params.until] end timestamp in ms
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1970,7 +1970,7 @@ public partial class hyperliquid : PredictionExchange
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     public override object parsePredictionTrade(object trade, object market = null)
     {
