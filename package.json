@@ -62,7 +62,7 @@
     "go": "npm run transpileGO && npm run buildGO",
     "force-build//WithoutGo": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run go && npm run force-transpile-fast && npm run csharp && npm run java && npm run post-transpile && npm run update-badges",
-    "build-docs": "node jsdoc2md.js && node examples2md.js && tsx build/exchange-implicit-api.ts",
+    "build-docs": "node build/jsdoc2md.js && node examples2md.js && tsx build/exchange-implicit-api.ts",
     "fumadocs-content": "tsx build/wiki-to-fumadocs.ts",
     "fumadocs-regen": "npm run build-docs && tsx build/wiki-to-fumadocs.ts",
     "fumadocs-build": "npm run fumadocs-content && cd website && npm run build",
