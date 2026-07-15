@@ -395,6 +395,7 @@ export default class gemini extends geminiRest {
     }
 
     handleOrderBook (client: Client, message) {
+        const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
         const changes = this.safeValue (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
         const market = this.safeMarket (marketId);
