@@ -148,8 +148,7 @@ createOrder (outcome, type, side, amount, price = undefined, params = {})
 - `side` — `'buy'` or `'sell'`
 - `amount` — the number of shares
 - `price` — a probability between 0 and 1 USDC per share; required for `limit`, ignored for `market`
-- returns an **order structure** — the same shape as a crypto order in [the Manual](/docs/manual), addressed by outcome instead of symbol
-
+- returns a **[prediction order structure](#prediction-order-structure)** — addressed by outcome instead of symbol
 ```javascript
 const exchange = new ccxt.prediction.polymarket ()
 const events = await exchange.fetchEvents ({ 'query': 'Trump' })
