@@ -1648,7 +1648,7 @@ export default class gate extends Exchange {
             'swap': marketType === 'swap',
             'future': marketType === 'future',
             'option': marketType === 'option',
-            'active': status == 'trading',
+            'active': status === 'trading',
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
