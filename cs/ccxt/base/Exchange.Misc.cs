@@ -1,7 +1,7 @@
 namespace ccxt;
 
 using dict = Dictionary<string, object>;
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public object roundTimeframe(object timeframe, object timestamp, object direction = null)

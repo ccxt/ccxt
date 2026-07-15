@@ -166,6 +166,19 @@ The list above is updated frequently, new crypto markets, exchanges, bug fixes, 
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
+## Prediction Market Exchanges
+
+<!--- init prediction list -->The CCXT library currently supports the following 5 prediction market exchanges and trading APIs:
+
+|logo                                                                                 |id           |name                                         |ver                                                                                                                               |
+|-------------------------------------------------------------------------------------|-------------|---------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------:|
+| [![hyperliquid](https://hyperliquid.xyz/favicon.ico)](https://app.hyperliquid.xyz/) | hyperliquid | [Hyperliquid](https://app.hyperliquid.xyz/) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api) |
+| [![kalshi](https://kalshi.com/favicon.ico)](https://kalshi.com)                     | kalshi      | [Kalshi](https://kalshi.com)                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://trading-api.readme.io/reference/getting-started)            |
+| [![limitless](https://limitless.exchange/favicon.ico)](https://limitless.exchange)  | limitless   | [Limitless](https://limitless.exchange)     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.limitless.exchange)                                    |
+| [![myriad](https://myriad.markets/favicon.ico)](https://myriad.markets)             | myriad      | [Myriad](https://myriad.markets)            | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.myriad.markets)                                        |
+| [![polymarket](https://polymarket.com/favicon.ico)](https://polymarket.com)         | polymarket  | [Polymarket](https://polymarket.com)        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.polymarket.com)                                        |
+<!--- end prediction list -->
+
 ### Builder Code Exchanges
 
 

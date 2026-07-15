@@ -8,6 +8,15 @@ go/v4/pro/*.go linguist-generated=true
 cs/ccxt/exchanges/pro/*.cs linguist-generated=true
 java/lib/src/main/java/io/github/ccxt/exchanges/*.java linguist-generated=true
 java/tests/src/main/java/tests/exchange/*.java linguist-generated=true
+dist/** linguist-generated=true
+js/** linguist-generated=true
+php/prediction/*.php linguist-generated=true
+python/ccxt/prediction/*.py linguist-generated=true
+cs/ccxt/exchanges/prediction/**/*.cs linguist-generated=true
+cs/ccxt/wrappers/**/*.cs linguist-generated=true
+cs/tests/Generated/**/*.cs linguist-generated=true
+go/v4/prediction/*.go linguist-generated=true
+java/lib/src/main/java/io/github/ccxt/exchanges/prediction/*.java linguist-generated=true
 *.so  binary
 *.wasm binary
 *.o   binary

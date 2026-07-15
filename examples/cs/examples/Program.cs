@@ -13,6 +13,7 @@ partial class Examples
         // FetchBalance().Wait();
         // FetchPositions().Wait();
         watchTradesForSymbols().Wait();
+        // PolymarketEndToEnd().Wait();
         // new Examples().UnWatchOrders().Wait();
         // SetMarketsFromExchange().Wait();
     }

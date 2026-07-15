@@ -16,6 +16,8 @@
 
 - [GetMarketInformation](examples/go/getMarketInformation.md)
 
+- [PredictionMarkets](examples/go/predictionMarkets.md)
+
 - [SetMarketsFromExchange](examples/go/setMarketsFromExchange.md)
 
 - [SpotPerpMarkets](examples/go/spotPerpMarkets.md)

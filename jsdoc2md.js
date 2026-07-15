@@ -63,6 +63,12 @@ for (const data of templateData) {
 let proTemplateData = await Promise.all(proInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
 proTemplateData = proTemplateData.filter (x => x.length > 0)
 
+// prediction-market exchanges live in their own namespace (js/src/prediction) and
+// extend PredictionExchange; render them separately so their per-exchange docs build too
+const predictionInputFiles = findByExtensionSync('js/src/prediction', 'js')
+let predictionTemplateData = await Promise.all(predictionInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
+predictionTemplateData = predictionTemplateData.filter (x => x.length > 0)
+
 // assign pro classes to REST template data
 proTemplateData.forEach((proData) => {
   const classArray = templateData.find ((template) => template[0].id === proData[0].memberof);
@@ -93,6 +99,7 @@ console.log ('📰 rendering docs for each exchange...')
 const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
 
 const outputByExchange = await Promise.all (templateData.map (data => jsdoc2md.render ({ template, data, partial: exchangePartial, helper })))
+const predictionOutputByExchange = await Promise.all (predictionTemplateData.map (data => jsdoc2md.render ({ template, data, partial: exchangePartial, helper })))
 // Group docs by method
 const groupedByMethod = templateData.reduce((acc, arr) => {
   arr.filter(obj => obj.kind === 'function' && !obj.ignore).forEach(obj => {
@@ -166,6 +173,25 @@ outputByExchange.forEach ((output, i) => {
   exchangeLinks.push (`\t- [${name}](${fileName})`)
 })
 
+console.log ('📰 writing prediction-market exchange docs')
+const predictionFolder = outputFolder + 'exchanges/prediction/'
+if (!fs.existsSync (predictionFolder)) {
+  fs.mkdirSync (predictionFolder, { recursive: true })
+}
+const predictionLinks = []
+predictionOutputByExchange.forEach ((output, i) => {
+  const name = predictionTemplateData[i][0].name
+  const fileName = 'exchanges/prediction/' + name + '.md'
+  try {
+    fs.writeFileSync(outputFolder + fileName, output)
+  } catch (e) {
+    const error = `Error writing file ${fileName}: ${e.message}`
+    console.error(error)
+    throw error
+  }
+  predictionLinks.push (`\t- [${name}](${fileName})`)
+})
+
 
 fs.writeFileSync (outputFile, baseOutput.join ('\n---\n'))
 
@@ -184,6 +210,8 @@ const sidebar =
 - [Awesome](Awesome.md)
 - API Spec by Exchange
 ${exchangeLinks.join('\n')}
+- API Spec by Prediction Exchange
+${predictionLinks.join('\n')}
 `
 fs.writeFileSync('./wiki/_sidebar.md', sidebar);
 

@@ -4689,6 +4689,7 @@ Returns
 - [Funding History](#funding-history)
 - [Conversion](#conversion)
 - [Auto De Leverage](#auto-de-leverage)
+- [Prediction Markets](#prediction-markets)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -4700,6 +4701,12 @@ The exchanges' private APIs will usually allow the following types of interactio
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
 - the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
+
+## Prediction Markets
+
+CCXT also supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, and Hyperliquid prediction markets) through a dedicated `prediction` namespace. They implement the same unified API as regular crypto exchanges, with prices quoted between 0 and 1 USDC per outcome share, and trade **outcomes** (a market's YES/NO tokens) instead of regular symbols.
+
+See the dedicated **[Prediction Markets guide](Prediction-Markets.md)** for the namespace, the events → markets → outcomes data model, and `fetchEvents` / `fetchEvent` usage.
 
 ## Authentication
 

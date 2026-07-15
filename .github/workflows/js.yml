@@ -85,14 +85,21 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run eslint "ts/src/$exchange.ts"
+          # prediction-market exchanges live under ts/src/prediction/
+          if [ -f "ts/src/$exchange.ts" ]; then
+            npm run eslint "ts/src/$exchange.ts"
+          elif [ -f "ts/src/prediction/$exchange.ts" ]; then
+            npm run eslint "ts/src/prediction/$exchange.ts"
+          fi
         done
     - name: Lint Ws (specific)
       if: env.important_modified == 'false'
       run: |
         cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
         for exchange in $cleaned_ws_files; do
-          npm run eslint "ts/src/pro/$exchange.ts"
+          if [ -f "ts/src/pro/$exchange.ts" ]; then
+            npm run eslint "ts/src/pro/$exchange.ts"
+          fi
         done
     - name: Run Base Tests
       if: env.important_modified == 'true'
@@ -123,6 +130,12 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+    - name: Request Prediction tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-ts-prediction
+    - name: Response Prediction tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-ts-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:

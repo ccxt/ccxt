@@ -62,6 +62,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileCsSingle -- --ws $exchange
         done
+    - name: Transpile prediction to C#
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-cs
     - name: Build Project
       run: npm run buildCS
     # - name: Run request lighter tests multiple times
@@ -99,6 +102,12 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-cs -- $exchange
         done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-cs-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-cs-prediction
     - name: Diagnostics (always) response tests
       if: always()
       shell: bash

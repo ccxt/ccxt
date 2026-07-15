@@ -63,6 +63,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileJavaSingle -- --ws $exchange
         done
+    - name: Transpile prediction to Java
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-java
     - name: Build Project
       run: npm run buildJava
     - name: Run Base Tests
@@ -91,6 +94,12 @@ jobs:
         for exchange in $cleaned_rest_files; do
           ./java/gradlew -p java :tests:run --args="--responseTests $exchange"
         done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-java-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-java-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
