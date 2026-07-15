@@ -23,7 +23,7 @@ class pacifica extends \ccxt\async\pacifica {
                 'cancelOrdersWs' => true,
                 'cancelAllOrdersWs' => true,
                 'createOrderWs' => true,
-                'createOrdersWs' => true,
+                'createOrdersWs' => false,
                 'editOrderWs' => true,
                 'watchBalance' => false,
                 'watchMyTrades' => true,
