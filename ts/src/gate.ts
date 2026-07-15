@@ -1637,9 +1637,6 @@ export default class gate extends Exchange {
         const enableDecimal = this.safeBool (market, 'enable_decimal', false);
         const orderSizeMin = this.safeString (market, 'order_size_min');
         const isDecimalOrderSizeMin = (orderSizeMin !== undefined) && (orderSizeMin.indexOf ('.') >= 0);
-        if ((minAmount !== undefined) && (minAmount <= 0)) {
-            minAmount = this.parseNumber ('1');
-        }
         if ((marketType === 'swap') && enableDecimal && isDecimalOrderSizeMin && Precise.stringGt (orderSizeMin, '0')) {
             amountPrecision = this.parseNumber (orderSizeMin);
         }
