@@ -689,7 +689,7 @@ class kalshi extends kalshi$1["default"] {
      * @see https://docs.kalshi.com/api-reference/market/get-market
      * @param {string} outcome the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     async fetchTicker(outcome, params = {}) {
         await this.loadOutcome(outcome);
@@ -824,7 +824,7 @@ class kalshi extends kalshi$1["default"] {
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     parsePredictionTicker(raw, market = undefined) {
         //
@@ -956,7 +956,7 @@ class kalshi extends kalshi$1["default"] {
      * @see https://docs.kalshi.com/api-reference/market/get-markets
      * @param {string[]} outcomes unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     async fetchTickers(outcomes = undefined, params = {}) {
         if (outcomes === undefined) {
@@ -1032,7 +1032,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {string} outcome unified outcome or outcome id
      * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         await this.loadOutcome(outcome);
@@ -1098,7 +1098,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {int} timestamp timestamp in ms
      * @param {object[]} bids array of [price, size] bid levels
      * @param {object[]} asks array of [price, size] ask levels
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     sortedOrders(outcome, timestamp, bids, asks) {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
@@ -1282,7 +1282,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         await this.loadOutcome(outcome);
@@ -1311,7 +1311,7 @@ class kalshi extends kalshi$1["default"] {
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parsePredictionTrade(trade, market = undefined) {
         const id = this.safeString(trade, 'trade_id');
@@ -1375,7 +1375,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {int} [since] the earliest fill timestamp (ms) to fetch
      * @param {int} [limit] the maximum number of fills to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         if (outcome !== undefined) {
@@ -1528,7 +1528,7 @@ class kalshi extends kalshi$1["default"] {
      * @see https://trading-api.readme.io/reference/getportfoliopositions
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     async fetchPositions(outcomes = undefined, params = {}) {
         let outcomesLength = 0;
@@ -1677,7 +1677,7 @@ class kalshi extends kalshi$1["default"] {
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     parsePredictionPosition(position, market = undefined) {
         const ticker = this.safeString(position, 'ticker');
@@ -1729,7 +1729,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOpenOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         if (outcome !== undefined) {
@@ -1754,7 +1754,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         if (outcome !== undefined) {
@@ -1780,7 +1780,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum number of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchClosedOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
@@ -1804,7 +1804,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {string} id order id
      * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrder(id, outcome = undefined, params = {}) {
         // outcome is only a labelling hint here — the request needs just the id, and
@@ -1822,7 +1822,7 @@ class kalshi extends kalshi$1["default"] {
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     parsePredictionOrder(order, market = undefined) {
         const id = this.safeString(order, 'order_id');
@@ -1922,7 +1922,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {float} amount number of contracts
      * @param {float} [price] limit price in dollars (0–1 range)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder(outcome, type, side, amount, price = undefined, params = {}) {
         // kalshi has no market orders — every order is a limit order and the price is required
@@ -2018,7 +2018,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {float} [amount] the new number of contracts
      * @param {float} [price] the new price (0..1)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async editOrder(id, outcome, type, side, amount = undefined, price = undefined, params = {}) {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
@@ -2043,7 +2043,7 @@ class kalshi extends kalshi$1["default"] {
      * @param {string} id order id
      * @param {string} [outcome] unified outcome
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrder(id, outcome = undefined, params = {}) {
         let outcomeObj = undefined;
@@ -2071,7 +2071,7 @@ class kalshi extends kalshi$1["default"] {
      * @see https://trading-api.readme.io/reference/cancelorders
      * @param {string} [outcome] unified outcome to scope the cancellation to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders(outcome = undefined, params = {}) {
         if (outcome !== undefined) {
