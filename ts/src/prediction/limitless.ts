@@ -886,7 +886,7 @@ export default class limitless extends Exchange {
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
      * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
@@ -975,7 +975,7 @@ export default class limitless extends Exchange {
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
      * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
         //
@@ -1148,7 +1148,7 @@ export default class limitless extends Exchange {
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
      * @param {string[]} outcomes unified outcomes or outcome token ids — required: limitless has no endpoint returning all tickers at once, so an unscoped call is not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
@@ -1206,7 +1206,7 @@ export default class limitless extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
@@ -1263,7 +1263,7 @@ export default class limitless extends Exchange {
      * @param {string} outcome unified outcome like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
      * @param {int} [limit] not used by limitless fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
     async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
@@ -1472,7 +1472,7 @@ export default class limitless extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
@@ -1523,7 +1523,7 @@ export default class limitless extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
@@ -1545,7 +1545,7 @@ export default class limitless extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome === undefined) {
@@ -1566,7 +1566,7 @@ export default class limitless extends Exchange {
      * @param {string[]} ids list of order id
      * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrdersByIds (ids, outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
@@ -1704,7 +1704,7 @@ export default class limitless extends Exchange {
      * @param {string} id the order id
      * @param {string} [outcome] market outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
@@ -1725,7 +1725,7 @@ export default class limitless extends Exchange {
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
@@ -2012,7 +2012,7 @@ export default class limitless extends Exchange {
      * @param {float} amount amount of outcome tokens
      * @param {float} [price] limit price (0–1 range)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         const accounts = await this.loadAccounts ();
@@ -2291,7 +2291,7 @@ export default class limitless extends Exchange {
      * @param {string} id order id
      * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         if (outcome !== undefined) {
@@ -2355,7 +2355,7 @@ export default class limitless extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} [outcome] unified market outcome, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
@@ -2384,7 +2384,7 @@ export default class limitless extends Exchange {
      * @param {string} [outcome] outcome, e.g. "TRUMP_OUT:YES"
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.slug] the market slug to cancel all orders for
-     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
@@ -2420,7 +2420,7 @@ export default class limitless extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         // resolve the handle for the final filter — the caller may have passed an outcomeId
@@ -2529,7 +2529,7 @@ export default class limitless extends Exchange {
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const matchedSize = this.safeString (trade, 'matchedSize');
@@ -2663,7 +2663,7 @@ export default class limitless extends Exchange {
      * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
      * @param {string[]} [outcomes] filter by outcome ids or outcomes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         let symbolsLength = 0;
@@ -2805,7 +2805,7 @@ export default class limitless extends Exchange {
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         //
