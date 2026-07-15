@@ -24,6 +24,11 @@ public class PacificaApi extends Exchange
         return this.callAsync ("publicGetInfo", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetInfoFees (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetInfoFees", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetInfoPrices (Object... optionalArgs)
     {
         return this.callAsync ("publicGetInfoPrices", optionalArgs);
@@ -54,9 +59,19 @@ public class PacificaApi extends Exchange
         return this.callAsync ("publicGetFundingRateHistory", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetLoanPool (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetLoanPool", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccount", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetAccountLoan (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetAccountLoan", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetAccountSettings (Object... optionalArgs)
@@ -89,6 +104,26 @@ public class PacificaApi extends Exchange
         return this.callAsync ("publicGetAccountBalanceHistory", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetAccountSpotBalanceHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetAccountSpotBalanceHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetAccountSpotAssetDepositHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetAccountSpotAssetDepositHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetAccountSpotAssetWithdrawHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetAccountSpotAssetWithdrawHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetAccountSpotAssetWithdrawPending (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetAccountSpotAssetWithdrawPending", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrders", optionalArgs);
@@ -102,6 +137,26 @@ public class PacificaApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  publicGetOrdersHistoryById (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrdersHistoryById", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetSpotAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetSpotAssets", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetSpotAssetsBridgeInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetSpotAssetsBridgeInfo", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetSpotAssetsBridgeParametersSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetSpotAssetsBridgeParametersSymbol", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetLakeList (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetLakeList", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetAccountBuilderCodesApprovals (Object... optionalArgs)
@@ -124,6 +179,21 @@ public class PacificaApi extends Exchange
         return this.callAsync ("privatePostAccountWithdraw", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostAccountSettingsAutoLendDisabled (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountSettingsAutoLendDisabled", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostAccountSettingsSpot (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountSettingsSpot", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostAccountSpotAssetWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountSpotAssetWithdraw", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostAccountSubaccountCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSubaccountCreate", optionalArgs);
@@ -137,6 +207,16 @@ public class PacificaApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privatePostAccountSubaccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountSubaccountTransfer", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostAccountSubaccountSpotAssetTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountSubaccountSpotAssetTransfer", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostPositionsAddIsolatedMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostPositionsAddIsolatedMargin", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostOrdersCreate (Object... optionalArgs)
@@ -212,6 +292,66 @@ public class PacificaApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privatePostAccountApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAccountApiKeys", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeAddBlacklist (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeAddBlacklist", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeAddMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeAddMaxLeverage", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeAddWhitelist (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeAddWhitelist", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeClaimManager (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeClaimManager", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeClaimReferralCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeClaimReferralCode", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeCreate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeCreate", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeDeposit (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeDeposit", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeRemoveBlacklist (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeRemoveBlacklist", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeRemoveMaxLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeRemoveMaxLeverage", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeRemoveWhitelist (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeRemoveWhitelist", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeUpdateDepositCap (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeUpdateDepositCap", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLakeWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLakeWithdraw", optionalArgs);
     }
 
 }
