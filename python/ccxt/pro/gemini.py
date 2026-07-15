@@ -372,6 +372,7 @@ class gemini(ccxt.async_support.gemini):
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message):
+        isInitial = ('auction_events' in message) and ('trades' in message) and ('changes' in message)
         changes = self.safe_value(message, 'changes', [])
         marketId = self.safe_string_lower(message, 'symbol')
         market = self.safe_market(marketId)
@@ -379,6 +380,11 @@ class gemini(ccxt.async_support.gemini):
         messageHash = 'orderbook:' + symbol
         # orderbook = self.safe_value(self.orderbooks, symbol)
         if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        elif isInitial:
+            # handle https://github.com/ccxt/ccxt/issues/29210
+            if symbol in self.orderbooks:
+                del self.orderbooks[symbol]
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
         for i in range(0, len(changes)):
