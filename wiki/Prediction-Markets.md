@@ -2,37 +2,33 @@
 
 CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, and Hyperliquid prediction markets) through a dedicated `prediction` namespace. Prediction exchanges implement the same unified API as regular crypto exchanges, with prices quoted between 0 and 1 USDC per outcome share.
 
-> Per-exchange API references live in the **[Prediction Markets](/docs/prediction)** section, and runnable code is under **[Examples](/docs/examples)**.
+> Per-exchange API references live in the **[Prediction Markets](/docs/prediction)** section, and runnable **[prediction examples](/docs/examples/ts/prediction-markets)** walk through end-to-end trading on each venue.
 
-```javascript
-// JavaScript / TypeScript
+```javascript tab="JavaScript / TypeScript"
 const exchange = new ccxt.prediction.polymarket ()
 ```
 
-```python
-# Python (async-only — ccxt.prediction.<id> IS the async class)
+```python tab="Python"
+# async-only — ccxt.prediction.<id> IS the async class
 import ccxt.prediction
 exchange = ccxt.prediction.polymarket()
 ```
 
-```php
-// PHP (async-only, ReactPHP — \ccxt\prediction\<id> IS the async class)
+```php tab="PHP"
+// async-only, ReactPHP — \ccxt\prediction\<id> IS the async class
 $exchange = new \ccxt\prediction\polymarket();
 ```
 
-```csharp
-// C#
+```csharp tab="C#"
 var exchange = new ccxt.prediction.polymarket();
 ```
 
-```go
-// Go
+```go tab="Go"
 import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 exchange := ccxtprediction.NewPolymarket()
 ```
 
-```java
-// Java
+```java tab="Java"
 import io.github.ccxt.exchanges.prediction.Polymarket;
 Polymarket exchange = new Polymarket();
 ```
@@ -98,7 +94,7 @@ Prediction exchanges expose the same unified API as crypto exchanges. Discovery 
 
 - `watchTicker`, `watchTickers`, `watchOrderBook`, `watchTrades`, `watchOHLCV`, `watchOrders`, `watchMyTrades`, `watchPositions`
 
-The rest of this page documents `fetchEvents` and `fetchEvent`, the two entry points unique to prediction markets; the remaining methods behave like their crypto counterparts in [the Manual](/docs/manual), only addressed by outcome.
+The rest of this page documents `fetchEvents`, `fetchEvent` and `createOrder`; the remaining methods behave like their crypto counterparts in [the Manual](/docs/manual), only addressed by outcome.
 
 ## fetchEvents
 
@@ -107,23 +103,7 @@ fetchEvents (params = {})
 ```
 
 - `params` — a `fetchEventsParams` object; **must be scoped** by at least one of `query` (a search string), `queries` (a list of strings), `tags`, `eventId` or `slug` — an unscoped call throws `ArgumentsRequired` on every venue (some venues accept extra scope keys, e.g. Kalshi's `category` / `series_ticker`). Optional: `limit`, `sort` (`volume`/`liquidity`/`newest`), `status` (`active`/`inactive`/`closed`/`all`), `searchIn` (`title`/`description`/`both`). The scope is pushed to the venue's API server-side: `tags` resolve to Kalshi series, Polymarket `tag_slug` listings (one per tag), Limitless categories, and Myriad keyword searches. For an unscoped "most active markets" browse use `fetchMarkets ()` — it returns a capped, volume-ordered listing where the venue supports it
-- returns an **array of event structures** and caches the discovered events, markets and outcomes on the instance (`exchange.events`, `exchange.outcomes`)
-
-```javascript
-// event structure
-{
-    'id': '903193',                       // exchange-specific event id
-    'slug': 'will-x-happen-by-july',      // url slug of the event
-    'event': 'WILL_X_HAPPEN_JULY',        // shortened unified event handle (getEvent resolves this)
-    'title': 'Will X happen by July?',    // human-readable title
-    'markets': [ ... ],                   // a list of market structures, each with an outcomes list
-    'active': true,                       // whether the event is still tradable
-    'resolved': false,                    // whether the event has been resolved
-    'end': 1781234567890,                 // resolution deadline timestamp in ms
-    'endDatetime': '2026-07-01T00:00:00Z',
-    'info': { ... },                      // the raw exchange response
-}
-```
+- returns an **array of [event structures](#prediction-event-structure)** and caches the discovered events, markets and outcomes on the instance (`exchange.events`, `exchange.outcomes`)
 
 A typical workflow:
 
@@ -147,7 +127,7 @@ fetchEvent (id, params = {})
 ```
 
 - `id` — the identifier of a single event. Polymarket accepts the numeric event id or its slug, Kalshi the event ticker, Myriad the `networkId:marketId` market id, and Limitless the market slug or address
-- returns a single **event structure** (same shape as the entries returned by `fetchEvents`)
+- returns a single **[event structure](#prediction-event-structure)** (same shape as the entries returned by `fetchEvents`)
 
 ```javascript
 const exchange = new ccxt.prediction.polymarket ()
@@ -157,22 +137,202 @@ const event = await exchange.fetchEvent (events[0]['id'])
 
 Supported by `polymarket`, `kalshi`, `myriad` and `limitless` (check `exchange.has['fetchEvent']`); Hyperliquid has no single-event endpoint.
 
+## createOrder
+
+```javascript
+createOrder (outcome, type, side, amount, price = undefined, params = {})
+```
+
+- `outcome` — the outcome handle (e.g. `TRUMP_WINS:YES`) or its raw `outcomeId`, taken from a market's `outcomes` list; it replaces the market symbol used on crypto exchanges
+- `type` — `'limit'` or `'market'` (venue support varies — check `exchange.has['createMarketOrder']`)
+- `side` — `'buy'` or `'sell'`
+- `amount` — the number of shares
+- `price` — a probability between 0 and 1 USDC per share; required for `limit`, ignored for `market`
+- returns an **order structure** — the same shape as a crypto order in [the Manual](/docs/manual), addressed by outcome instead of symbol
+
+```javascript
+const exchange = new ccxt.prediction.polymarket ()
+const events = await exchange.fetchEvents ({ 'query': 'Trump' })
+const outcome = events[0]['markets'][0]['outcomes'][0]['outcome']
+// place a limit buy of 5 YES shares at 0.40 USDC; prices are 0..1 per share
+const order = await exchange.createOrder (outcome, 'limit', 'buy', 5, 0.40)
+```
+
+Trading needs credentials — each venue's auth (wallet + private key, API keys, …) is documented in the [per-exchange reference](/docs/prediction/polymarket). Batch with `createOrders`, amend with `editOrder`, and cancel with `cancelOrder` / `cancelAllOrders`. See the runnable [prediction examples](/docs/examples/ts/prediction-markets) for full buy → check → cancel flows.
+
+## Prediction structures
+
+Prediction trading structures are **standalone** — they do **not** extend the crypto `Ticker` / `Order` / `Position` / `Trade` / `OrderBook` types, and they have no `symbol`. Identity is the `outcome` handle (`MARKET:LABEL`) plus its raw `outcomeId`. Throughout, `price` is a probability between 0 and 1, `amount` is a number of shares, and `cost` is the collateral spent; `info` always carries the raw venue payload.
+
+### Prediction event structure
+
+```javascript
+{
+    'info': { ... },                      // the raw exchange response
+    'id': '903193',                       // raw exchange event id
+    'event': 'US_ELECTION_2024',          // unified event handle (getEvent resolves this)
+    'title': 'Will X happen by July?',    // human-readable title
+    'description': '...',
+    'slug': 'will-x-happen-by-july',      // url slug of the event
+    'category': 'Politics',
+    'tags': [ 'elections', ... ],
+    'markets': [ ... ],                   // grouped ccxt market rows, each with an outcomes list
+    'mutuallyExclusive': true,            // exactly one market in the event resolves YES
+    'active': true,                       // whether the event is still tradable
+    'resolved': false,                    // whether the event has been resolved
+    'volume': 1250000,
+    'liquidity': 84000,
+    'created': 1770000000000,
+    'createdDatetime': '2026-02-01T00:00:00Z',
+    'end': 1781234567890,                 // resolution deadline timestamp in ms
+    'endDatetime': '2026-07-01T00:00:00Z',
+    'image': 'https://...',
+    'url': 'https://...',
+}
+```
+
+### Prediction ticker structure
+
+```javascript
+{
+    'info': { ... },
+    'outcome': 'TRUMP_WIN_2024:YES',      // outcome handle — identity (there is no symbol)
+    'outcomeId': '123...',                // raw exchange / on-chain outcome id
+    'label': 'Yes',                       // short outcome name
+    'market': 'TRUMP_WIN_2024',           // parent market handle
+    'event': 'US_ELECTION_2024',
+    'timestamp': 1710000000000,
+    'datetime': '2026-07-01T00:00:00Z',
+    'last': 0.62,                         // last traded probability (0..1)
+    'bid': 0.61,
+    'bidVolume': 1200,                    // shares
+    'ask': 0.63,
+    'askVolume': 900,
+    'high': 0.66,
+    'low': 0.58,
+    'open': 0.60,
+    'close': 0.62,
+    'change': 0.02,
+    'percentage': 3.33,
+    'average': 0.61,
+    'baseVolume': 45000,                  // shares traded
+    'quoteVolume': 27000,                 // collateral traded
+    'openInterest': 15000,
+}
+```
+
+### Prediction order book structure
+
+```javascript
+{
+    'outcome': 'TRUMP_WIN_2024:YES',      // required — books are per-outcome
+    'outcomeId': '123...',
+    'market': 'TRUMP_WIN_2024',
+    'bids': [ [ 0.61, 1200 ], ... ],      // [ price (0..1), amount in shares ], best first
+    'asks': [ [ 0.63, 900 ], ... ],
+    'timestamp': 1710000000000,
+    'datetime': '2026-07-01T00:00:00Z',
+    'nonce': 123456,
+}
+```
+
+### Prediction order structure
+
+```javascript
+{
+    'info': { ... },
+    'id': '0xabc...',
+    'clientOrderId': '...',
+    'outcome': 'TRUMP_WIN_2024:YES',      // identity (there is no symbol)
+    'outcomeId': '123...',
+    'label': 'Yes',
+    'market': 'TRUMP_WIN_2024',
+    'event': 'US_ELECTION_2024',
+    'timestamp': 1710000000000,
+    'datetime': '2026-07-01T00:00:00Z',
+    'lastTradeTimestamp': 1710000005000,
+    'lastUpdateTimestamp': 1710000005000,
+    'status': 'open',                     // 'open' | 'closed' | 'canceled'
+    'type': 'limit',
+    'timeInForce': 'GTC',
+    'side': 'buy',
+    'price': 0.40,                        // limit probability (0..1)
+    'average': 0.40,                      // average fill probability
+    'amount': 5,                          // shares ordered
+    'filled': 0,
+    'remaining': 5,
+    'cost': 0,                            // collateral spent = average * filled
+    'reduceOnly': false,
+    'postOnly': false,
+    'fee': { ... },
+    'trades': [ ... ],                    // prediction trade structures
+}
+```
+
+### Prediction trade structure
+
+```javascript
+{
+    'info': { ... },
+    'id': '...',
+    'order': '0xabc...',                  // parent order id
+    'outcome': 'TRUMP_WIN_2024:YES',
+    'outcomeId': '123...',
+    'label': 'Yes',
+    'market': 'TRUMP_WIN_2024',
+    'timestamp': 1710000005000,
+    'datetime': '2026-07-01T00:00:00.000Z',
+    'type': 'limit',
+    'side': 'buy',
+    'takerOrMaker': 'taker',
+    'price': 0.40,                        // fill probability (0..1)
+    'amount': 5,                          // shares
+    'cost': 2.0,                          // collateral = price * amount
+    'fee': { ... },
+    'realizedPnl': 0,
+}
+```
+
+### Prediction position structure
+
+```javascript
+{
+    'info': { ... },
+    'id': '...',
+    'outcome': 'TRUMP_WIN_2024:YES',
+    'outcomeId': '123...',
+    'label': 'Yes',
+    'market': 'TRUMP_WIN_2024',
+    'event': 'US_ELECTION_2024',
+    'timestamp': 1710000000000,
+    'datetime': '2026-07-01T00:00:00Z',
+    'side': 'long',
+    'contracts': 10,                      // shares held
+    'contractSize': 1,
+    'notional': 6.2,                      // position value in collateral
+    'entryPrice': 0.55,                   // average entry probability (0..1)
+    'markPrice': 0.62,
+    'lastPrice': 0.62,
+    'unrealizedPnl': 0.7,
+    'realizedPnl': 0,
+    'percentage': 12.7,
+    'collateral': 5.5,
+    'resolved': false,                    // has the event resolved?
+    'won': false,                         // did this outcome win?
+    'settleFraction': undefined,          // 0..1 fractional settlement
+    'payout': undefined,                  // claimable collateral after resolution
+}
+```
+
+The discovery structures — the `PredictionEvent`'s `markets` (ccxt market rows carrying `marketType`, `executionModel`, `collateral`, …) and each market's `outcomes` (`outcome` handle, `outcomeId`, `label`, `price`, `bid`, `ask`) — are described in the [data model](#prediction-markets) above.
+
 ## The outcome cache
 
-Prediction exchanges address an **outcome** (e.g. `TRUMP_WINS:YES`, or its raw `outcomeId`) the way regular ccxt addresses a `symbol`. The outcome cache (`exchange.outcomes` / `exchange.outcomes_by_id`) is loaded automatically on first use, so you rarely touch it directly:
+Prediction exchanges address an **outcome** (e.g. `TRUMP_WINS:YES`, or its raw `outcomeId`) the way regular ccxt addresses a `symbol`. You rarely manage the cache yourself: the first outcome-addressed call (`fetchTicker`, `createOrder`, …) resolves and caches just that outcome — the analogue of `loadMarkets()` + `market(symbol)` — and later calls hit the cache with no extra request. You never need to pre-load; an unknown outcome throws `BadSymbol`.
 
-- **Auto-load** — the first outcome-addressed call (`fetchTicker`, `fetchOrderBook`, `createOrder`, …) resolves and caches just the requested outcome (a by-id fetch on Kalshi/Polymarket, the venue's search elsewhere); later calls hit the cache with no extra request. This mirrors `loadMarkets()` + `market(symbol)` without ever downloading the whole listing implicitly.
-- **`loadOutcome (outcome, reload = false)`** — resolve one outcome explicitly; `reload = true` skips the cache and refetches the outcome's metadata (status, tick size, token ids) — the per-outcome refresh knob.
-- **`loadOutcomes (outcomes = undefined, reload = false, params = {})`** — with an `outcomes` list: sync-checks the cache and resolves **only the misses**, batched where the venue has a by-id endpoint (Kalshi: one markets request per 100 tickers; Polymarket: one gamma request per 50 token ids) — a warm cache returns with zero per-outcome awaits. Without a list: warm the whole (capped) cache via the markets listing (the analogue of `loadMarkets`); `reload = true` refetches. The bulk path only runs when you call it.
-- **`hasOutcome (idOrHandle)`** — sync, cache-only membership probe; never throws, never fetches. Use it when you only need to know whether an outcome is cached (`safeOutcome` returns a stub on a miss, `outcome()` throws).
-- **`getEvent (idOrHandle)`** — read a cached event by its id, slug, or shortened handle (the `event` field). Cache-only; call `fetchEvents(...)` first.
-- **`options['loadAllOutcomes']`** — defaults to `false`: a cache miss resolves only the requested outcome. Hyperliquid sets it `true` because its entire outcome universe is a single cheap request. Flip it to `true` on any venue to pay the (capped) listing scan on the first miss instead.
+To warm the cache up front (before a burst of calls), `loadOutcomes (outcomes?)` resolves a list in batched requests, or the whole capped listing when called with no argument; `getEvent (idOrHandle)` reads back an event you already discovered with `fetchEvents`. Everything else about the cache is an implementation detail you can ignore.
 
-An unknown outcome throws `BadSymbol`; a genuinely cold cache accessed through the sync `outcome()` resolver (used inside parsers) throws `ExchangeError`. You never need to pre-load — just call the method.
-
-### All-tickers honesty — `fetchTickers` requires `outcomes`
-
-One ccxt call maps to a bounded number of venue requests. Kalshi, Polymarket, Limitless and Myriad have no endpoint returning every ticker at once, so `fetchTickers ()` without an `outcomes` list throws `ArgumentsRequired` on those venues instead of silently returning a capped subset — pass the outcome handles you actually want (Kalshi batches 100 per request, Polymarket 200 per batched request pair; Limitless costs two requests per market and Myriad one). Hyperliquid serves the whole universe in one `allMids` request, so its no-arg `fetchTickers ()` remains available. Account-scoped methods (`fetchPositions`, `fetchOrders`, `fetchMyTrades`, …) are always a single self-contained request; when the outcome cache is cold their rows are labelled with raw venue ids, and with unified handles once you've scoped a `fetchEvents` call.
+> **`fetchTickers` needs an `outcomes` list.** Kalshi, Polymarket, Limitless and Myriad have no "all tickers" endpoint, so a no-arg `fetchTickers ()` throws `ArgumentsRequired` rather than silently returning a capped subset — pass the handles you want. Hyperliquid serves its whole universe in one request, so its no-arg call works.
 
 ## CLI
 
