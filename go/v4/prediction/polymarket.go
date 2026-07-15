@@ -78,7 +78,7 @@ func (this *PolymarketCore) Describe() any {
 			"1d": "1440",
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567",
+			"logo": "https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437",
 			"api": map[string]any{
 				"gamma":  "https://gamma-api.polymarket.com",
 				"clob":   "https://clob.polymarket.com",

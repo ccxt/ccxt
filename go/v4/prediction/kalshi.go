@@ -61,7 +61,7 @@ func (this *KalshiCore) Describe() any {
 			"1d": 1440,
 		},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/16b2b75f-8702-4781-8ba8-08c9be99a5ed",
+			"logo": "https://github.com/user-attachments/assets/74fc2acb-58d0-4db0-b316-3124e7dc24db",
 			"api": map[string]any{
 				"kalshi":    "https://external-api.kalshi.com/trade-api/v2",
 				"elections": "https://api.elections.kalshi.com/v1",
