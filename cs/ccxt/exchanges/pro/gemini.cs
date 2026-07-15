@@ -416,6 +416,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
     {
+        object isInitial = isTrue(isTrue((inOp(message, "auction_events"))) && isTrue((inOp(message, "trades")))) && isTrue((inOp(message, "changes")));
         object changes = this.safeValue(message, "changes", new List<object>() {});
         object marketId = this.safeStringLower(message, "symbol");
         object market = this.safeMarket(marketId);
@@ -424,6 +425,14 @@ public partial class gemini : ccxt.gemini
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        } else if (isTrue(isInitial))
+        {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (isTrue(inOp(this.orderbooks, symbol)))
+            {
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            }
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
