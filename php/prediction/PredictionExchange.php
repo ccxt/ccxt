@@ -516,14 +516,58 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function slug_to_outcome_symbol(?string $eventSlug, string $marketSlug, string $outcome) {
         // build on slugToMarketSymbol so the $outcome handle stays consistent with the market symbol
-        // — both event-qualified or both not — otherwise a qualified market . unqualified $outcome mismatch
-        return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . strtoupper($outcome);
+        // — both event-qualified or both not — otherwise a qualified market . unqualified $outcome mismatch.
+        // the $label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
+        // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
+        // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
+        // instead of leaking raw text into the $outcome handle
+        $upper = strtoupper($outcome);
+        $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $chars = $this->string_to_chars_array($upper);
+        $label = '';
+        $pendingSep = false;
+        for ($i = 0; $i < count($chars); $i++) {
+            $ch = $chars[$i];
+            if (mb_strpos($allowed, $ch) !== false) {
+                if ($pendingSep && ($label !== '')) {
+                    $label = $label . '_';
+                }
+                $label = $label . $ch;
+                $pendingSep = false;
+            } else {
+                $pendingSep = true;
+            }
+        }
+        if ($label === '') {
+            // a $label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
+            $label = $upper;
+        }
+        return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . $label;
     }
 
     public function set_markets($markets, $currencies = null) {
-        $result = parent::set_markets($markets, $currencies);
+        // prediction market rows carry only the unified `market` handle — `symbol` is
+        // deprecated there. the base indexer keys $this->markets/$this->symbols by 'symbol',
+        // so alias the handle onto a shallow $copy per $row; the caller's rows stay symbol-free
+        $marketsList = $this->to_array($markets);
+        $aliased = array();
+        for ($i = 0; $i < count($marketsList); $i++) {
+            $row = $marketsList[$i];
+            $copy = $this->extend(array(), $row);
+            $copy['symbol'] = $this->safe_string_2($row, 'market', 'symbol');
+            $aliased[] = $copy;
+        }
+        parent::set_markets($aliased, $currencies);
+        // strip the alias back off the stored rows — venues assemble user-visible event
+        // structures from $this->markets(hyperliquid groups its outcome $markets that way),
+        // so a leftover 'symbol' $key would leak the deprecated field back to the caller
+        $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
+        for ($i = 0; $i < count($marketKeys); $i++) {
+            $key = $marketKeys[$i];
+            $this->markets[$key] = $this->omit($this->markets[$key], 'symbol');
+        }
         $this->populate_outcomes();
-        return $result;
+        return $this->markets;
     }
 
     public function index_market_outcomes($market) {
@@ -606,9 +650,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $marketsLength = count($markets);
         for ($i = 0; $i < $marketsLength; $i++) {
             $m = $markets[$i];
-            $symbol = $this->safe_string($m, 'symbol');
-            if ($symbol !== null) {
-                $this->markets[$symbol] = $m;
+            $marketHandle = $this->safe_string_2($m, 'market', 'symbol');
+            if ($marketHandle !== null) {
+                $this->markets[$marketHandle] = $m;
             }
         }
         $this->populate_outcomes();
@@ -729,7 +773,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if (mb_strpos($marketPart, '0x') === 0) {
             return null;
         }
-        // handles join $words with '_' (slug-derived) or '-' (e.g. hyperliquid's BTC-ABOVE-78213)
+        // handles join $words with '_' (slug-derived) or legacy '-' separated inputs ($normalized below)
         $normalized = str_replace('-', '_', strtolower($marketPart));
         $rawWords = explode('_', $normalized);
         $words = array();

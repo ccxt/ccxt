@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class luno extends \ccxt\async\luno {
     public function describe(): mixed {

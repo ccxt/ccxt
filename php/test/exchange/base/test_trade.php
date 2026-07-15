@@ -10,6 +10,14 @@ namespace ccxt;
 
 
 function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
+    // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+    // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $skipped_properties = $exchange->extend(array(
+            'symbol' => true,
+            'fees' => true,
+        ), $skipped_properties);
+    }
     $format = array(
         'info' => array(),
         'id' => '12345-67890:09876/54321',

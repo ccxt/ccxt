@@ -11,6 +11,8 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class onetrading extends \ccxt\async\onetrading {
     public function describe(): mixed {

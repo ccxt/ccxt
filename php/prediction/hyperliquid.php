@@ -68,7 +68,7 @@ class hyperliquid extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://hyperliquid.xyz/favicon.ico',
+                'logo' => 'https://github.com/user-attachments/assets/550769b3-d270-461e-9e02-8e8b8c0210b8',
                 'api' => array(
                     'public' => 'https://api.hyperliquid.xyz',
                     'private' => 'https://api.hyperliquid.xyz',
@@ -218,7 +218,7 @@ class hyperliquid extends Exchange {
     public function build_outcome_symbol(array $desc, float $side, float $outcomeId): string {
         /**
          * @ignore
-         * builds a human-readable outcome from a parsed description and $side, e.g. BTC-ABOVE-78213-20260503:YES for $side 0 and BTC-ABOVE-78213-20260503:NO for $side 1
+         * builds a human-readable outcome from a parsed description and $side, e.g. BTC_ABOVE_78213_20260503:YES for $side 0 and BTC_ABOVE_78213_20260503:NO for $side 1
          * @param {array} $desc parsed outcome description
          * @param {int} $side outcome $side, 0 = YES, 1 = NO
          * @param {int} $outcomeId integer outcome id
@@ -232,47 +232,18 @@ class hyperliquid extends Exchange {
         $label = ($side === 0) ? 'YES' : 'NO';
         $base = strtoupper($underlying);
         if ($targetPrice) {
-            $base = $base . '-ABOVE-' . $targetPrice;
+            $base = $base . '_ABOVE_' . $targetPrice;
         }
         if ($expiryDate) {
-            $base = $base . '-' . $expiryDate;
+            $base = $base . '_' . $expiryDate;
         }
         return $base . ':' . $label;
-    }
-
-    public function slugify_upper(string $name): string {
-        /**
-         * @ignore
-         * converts a $name into an $upper-case slug of alphanumeric $parts joined by hyphens
-         * @param {string} $name the raw $name to slugify
-         * @return {string} the $upper-case slug
-         */
-        $upper = ($name === null) ? '' : strtoupper($name);
-        $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $chars = $this->string_to_chars_array($upper);
-        $s = '';
-        for ($i = 0; $i < count($chars); $i++) {
-            $ch = $chars[$i];
-            if (mb_strpos($allowed, $ch) !== false) {
-                $s = $s . $ch;
-            } else {
-                $s = $s . '-';
-            }
-        }
-        $rawParts = explode('-', $s);
-        $parts = array();
-        for ($i = 0; $i < count($rawParts); $i++) {
-            if (strlen($rawParts[$i]) > 0) {
-                $parts[] = $rawParts[$i];
-            }
-        }
-        return implode('-', $parts);
     }
 
     public function build_outcome_parent_symbol(array $desc, float $outcomeId, $name = '', array $question = array()): string {
         /**
          * @ignore
-         * builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes or OUTCOME-9345 for non-priceBinary outcomes using the $name field
+         * builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the $name field
          * @param {array} $desc parsed outcome description
          * @param {int} $outcomeId integer outcome id
          * @param {string} [$name] outcome $name
@@ -286,10 +257,10 @@ class hyperliquid extends Exchange {
             $expiryDate = $expiry ? explode('-', $expiry)[0] : '';
             $base = strtoupper($underlying);
             if ($targetPrice) {
-                $base = $base . '-ABOVE-' . $targetPrice;
+                $base = $base . '_ABOVE_' . $targetPrice;
             }
             if ($expiryDate) {
-                $base = $base . '-' . $expiryDate;
+                $base = $base . '_' . $expiryDate;
             }
             return $base;
         }
@@ -318,25 +289,25 @@ class hyperliquid extends Exchange {
                     $index = $this->parse_to_int($indexStr);
                     if ($thresholdsLength > 0 && $index !== null) {
                         if ($index <= 0) {
-                            $bucketLabel = 'BELOW-' . $thresholds[0];
+                            $bucketLabel = 'BELOW_' . $thresholds[0];
                         } elseif ($index >= $thresholdsLength) {
                             $lastIdx = $thresholdsLength - 1;
-                            $bucketLabel = 'ABOVE-' . $thresholds[$lastIdx];
+                            $bucketLabel = 'ABOVE_' . $thresholds[$lastIdx];
                         } else {
-                            $bucketLabel = 'BETWEEN-' . $thresholds[$index - 1] . '-' . $thresholds[$index];
+                            $bucketLabel = 'BETWEEN_' . $thresholds[$index - 1] . '_' . $thresholds[$index];
                         }
-                        $base = strtoupper($questionUnderlying) . '-' . $bucketLabel;
+                        $base = strtoupper($questionUnderlying) . '_' . $bucketLabel;
                         if ($expiryDate) {
-                            $base = $base . '-' . $expiryDate;
+                            $base = $base . '_' . $expiryDate;
                         }
                         return $base;
                     }
                 }
                 $isFallbackLike = ($rawDescription === 'other') || (mb_strpos($nameLower, 'fallback') !== false) || (mb_strpos($nameLower, 'other') !== false);
                 if ($questionUnderlying && $isFallbackLike) {
-                    $base = strtoupper($questionUnderlying) . '-OTHER';
+                    $base = strtoupper($questionUnderlying) . '_OTHER';
                     if ($expiryDate) {
-                        $base = $base . '-' . $expiryDate;
+                        $base = $base . '_' . $expiryDate;
                     }
                     return $base;
                 }
@@ -344,13 +315,13 @@ class hyperliquid extends Exchange {
         }
         $questionName = $this->safe_string($question, 'name');
         if ($questionName) {
-            $questionSlug = $this->slugify_upper($questionName);
+            $questionSlug = $this->shorten_slug($questionName);
             if ($questionSlug) {
-                $outcomeSlug = $this->slugify_upper($name);
+                $outcomeSlug = $this->shorten_slug($name);
                 $genericOutcomeNames = array(
                     'RECURRING' => true,
-                    'RECURRING-FALLBACK' => true,
-                    'RECURRING-NAMED-OUTCOME' => true,
+                    'RECURRING_FALLBACK' => true,
+                    'RECURRING_NAMED_OUTCOME' => true,
                 );
                 if (is_array($genericOutcomeNames) && array_key_exists($outcomeSlug, $genericOutcomeNames)) {
                     if (mb_strpos($outcomeSlug, 'FALLBACK') !== false) {
@@ -360,16 +331,16 @@ class hyperliquid extends Exchange {
                     }
                 }
                 if ($outcomeSlug) {
-                    return $questionSlug . '-' . $outcomeSlug . '-' . (string) $outcomeId;
+                    return $questionSlug . '_' . $outcomeSlug . '_' . (string) $outcomeId;
                 }
-                return $questionSlug . '-' . (string) $outcomeId;
+                return $questionSlug . '_' . (string) $outcomeId;
             }
         }
         // Fallback => use $name slugified, or OUTCOME-<id>
         if ($name) {
-            return $this->slugify_upper($name) . '-' . (string) $outcomeId;
+            return $this->shorten_slug($name) . '_' . (string) $outcomeId;
         }
-        return 'OUTCOME-' . (string) $outcomeId;
+        return 'OUTCOME_' . (string) $outcomeId;
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
@@ -549,9 +520,9 @@ class hyperliquid extends Exchange {
                 ),
             ),
         );
-        return $this->safe_market_structure(array(
+        $marketRow = $this->safe_market_structure(array(
             'id' => (string) $outcomeId,
-            'symbol' => $parentSymbol,
+            'market' => $parentSymbol,
             'base' => explode('/', $parentSymbol)[0],
             'quote' => $quoteCurrency,
             'settle' => null,
@@ -597,6 +568,9 @@ class hyperliquid extends Exchange {
             )),
             'created' => null,
         ));
+        // omit the deprecated 'symbol' key the safeMarketStructure template injects —
+        // prediction market rows carry only the unified 'market' handle
+        return $this->omit($marketRow, 'symbol');
     }
 
     public function calculate_price_precision(float $midPx, float $szDecimals): float {
@@ -631,7 +605,7 @@ class hyperliquid extends Exchange {
              *
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
              *
-             * @param {string} $outcome unified $outcome (e.g. 'BTC-ABOVE-78213-20260503:YES')
+             * @param {string} $outcome unified $outcome (e.g. 'BTC_ABOVE_78213_20260503:YES')
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
              */
@@ -1825,7 +1799,7 @@ class hyperliquid extends Exchange {
     public function fetch_events(array $params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into $event structures. Each $event contains both the YES and NO markets.
+             * Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into $event structures. Each $event contains both the YES and NO markets.
              * @param {array} [$params] extra parameters
              * @param {string} [$params->query] a single query string to filter by ($matches description/outcome)
              * @param {string[]} [$params->queries] multiple query strings (alternative to query)
@@ -1853,14 +1827,14 @@ class hyperliquid extends Exchange {
                     continue;
                 }
                 $info = $this->safe_dict($mkt, 'info', array());
-                $parentSymbol = $this->safe_string($info, 'parentSymbol', $this->safe_string($mkt, 'symbol'));
+                $parentSymbol = $this->safe_string($info, 'parentSymbol', $this->safe_string_2($mkt, 'market', 'symbol'));
                 // Apply query filter
                 if ($lowerQueriesLength > 0) {
                     $description = strtolower($this->safe_string($info, 'description', ''));
                     $parentSymbolOrEmpty = ($parentSymbol !== null) ? $parentSymbol : '';
                     $symLower = strtolower($parentSymbolOrEmpty);
-                    // the $parentSymbol uses hyphens (BTC-ABOVE-...), so match the $haystack $word-by-$word
-                    // and require every $word of a query to appear, letting "BTC above" match BTC-ABOVE
+                    // the $parentSymbol joins $words with underscores (BTC_ABOVE_...), so match the $haystack $word-by-$word
+                    // and require every $word of a query to appear, letting "BTC above" match BTC_ABOVE
                     $haystack = $description . ' ' . $symLower;
                     $matches = false;
                     for ($qi = 0; $qi < count($lowerQueries); $qi++) {

@@ -907,11 +907,19 @@ class testMainClass {
         $markets = $exchange->safe_list($event, 'markets');
         assert($markets !== null, $exchange->id . ' event missing markets' . $log_text);
         $markets_length = count($markets);
+        assert($exchange->safe_string($event, 'symbol') === null, $exchange->id . ' event must not carry the deprecated symbol key' . $log_text);
         for ($i = 0; $i < $markets_length; $i++) {
             $market = $markets[$i];
             assert($exchange->is_dictionary($market), $exchange->id . ' event market should be a dict' . $log_text);
+            assert($exchange->safe_string($market, 'market') !== null, $exchange->id . ' event market missing the unified market handle' . $log_text);
+            // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert($exchange->safe_string($market, 'symbol') === null, $exchange->id . ' event market must not carry the deprecated symbol key' . $log_text);
             $outcomes = $exchange->safe_list($market, 'outcomes');
             assert($outcomes !== null, $exchange->id . ' event market missing outcomes' . $log_text);
+            $outcomes_length = count($outcomes);
+            for ($j = 0; $j < $outcomes_length; $j++) {
+                assert($exchange->safe_string($outcomes[$j], 'symbol') === null, $exchange->id . ' event outcome must not carry the deprecated symbol key' . $log_text);
+            }
         }
         // optional typed fields must have the right type when present
         $active = $exchange->safe_value($event, 'active');
@@ -1659,7 +1667,13 @@ class testMainClass {
             for ($i = 0; $i < count($prediction_events); $i++) {
                 $ev_markets = $exchange->safe_list($prediction_events[$i], 'markets', []);
                 for ($j = 0; $j < count($ev_markets); $j++) {
-                    $event_markets[] = $ev_markets[$j];
+                    $ev_market = $ev_markets[$j];
+                    // every market row must carry the unified market handle (PredictionMarket
+                    // setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    // on prediction structures and must be absent
+                    assert($exchange->safe_string($ev_market, 'market') !== null, $exchange_name . ' static events fixture: market row missing the unified market handle');
+                    assert($exchange->safe_string($ev_market, 'symbol') === null, $exchange_name . ' static events fixture: market row must not carry the deprecated symbol key');
+                    $event_markets[] = $ev_market;
                 }
             }
             if (count($event_markets) > 0) {

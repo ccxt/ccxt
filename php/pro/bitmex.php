@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitmex extends \ccxt\async\bitmex {
     public function describe(): mixed {

@@ -14,6 +14,8 @@ use ccxt\BadSymbol;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     public function describe(): mixed {
