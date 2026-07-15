@@ -92,7 +92,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/6bb2471e-cd45-4452-89b7-ab9275cd9567',
+                'logo': 'https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437',
                 'api': {
                     'gamma': 'https://gamma-api.polymarket.com',
                     'clob': 'https://clob.polymarket.com',

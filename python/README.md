@@ -194,9 +194,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 | [![pacifica](https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610)](https://app.pacifica.fi?referral=ccxt)     | pacifica    | [Pacifica](https://app.pacifica.fi?referral=ccxt)     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.pacifica.fi/api-documentation/api/rest-api)            | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 <!--- end list -->
 
-
 CCXT participates in builder programs with the exchanges listed above, which means that in order to support the CCXT project users pay a small fee (1 bps) on top of the exchanges' fees when using the exchanges' API through CCXT. This is optional and can be disabled by setting `exchange.options['builderFee'] = False`. For all other exchanges no additional fee is charged and in some cases you receive discounts or special conditions by using CCXT.
-
 
 ---
 
