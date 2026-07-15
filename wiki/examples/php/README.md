@@ -140,7 +140,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/php/phemex-create-order-position-with-takeprofit-stoploss.md)
 
-- [Prediction Markets](./examples/php/prediction-markets.md)
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/php/prediction)
 
 - [Proxy Usage](./examples/php/proxy-usage.md)
 

@@ -18,6 +18,7 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrders](#fetchorders)
 * [fetchOrder](#fetchorder)
+* [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchEvents](#fetchevents)
 
@@ -54,12 +55,12 @@ fetches a ticker for a single outcome market using the L2 order book snapshot
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol (e.g. 'BTC_ABOVE_78213_20260503:YES') |
+| outcome | <code>string</code> | Yes | unified outcome (e.g. 'BTC_ABOVE_78213_20260503:YES') |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hyperliquid.fetchTicker (symbol, params?)
+hyperliquid.fetchTicker (outcome, params?)
 ```
 
 
@@ -75,12 +76,12 @@ fetches all outcome market tickers using allMids then optionally enriches with l
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | filter by outcome ids or symbols |
+| outcomes | <code>Array&lt;string&gt;</code> | No | filter by outcome ids or outcomes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hyperliquid.fetchTickers (symbols?, params?)
+hyperliquid.fetchTickers (outcomes?, params?)
 ```
 
 
@@ -96,13 +97,13 @@ fetches the L2 order book for an outcome market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | limit | <code>int</code> | No | max depth levels (not used by hyperliquid but accepted) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hyperliquid.fetchOrderBook (symbol, limit?, params?)
+hyperliquid.fetchOrderBook (outcome, limit?, params?)
 ```
 
 
@@ -118,7 +119,7 @@ fetches candlestick OHLCV data for an outcome market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | timeframe | <code>string</code> | Yes | '1m', '5m', '15m', '1h', '4h', '1d', etc. |
 | since | <code>int</code> | No | timestamp in ms of earliest candle |
 | limit | <code>int</code> | No | max number of candles |
@@ -127,7 +128,7 @@ fetches candlestick OHLCV data for an outcome market
 
 
 ```javascript
-hyperliquid.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+hyperliquid.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 ```
 
 
@@ -155,21 +156,22 @@ hyperliquid.fetchBalance (params?)
 <a name="fetchPositions" id="fetchpositions"></a>
 
 ### fetchPositions{docsify-ignore}
-fetches outcome token positions from spot clearinghouse state, outcome tokens appear as spot token balances starting with '+'
+fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
 
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | filter by outcome ids or symbols |
+| outcomes | <code>Array&lt;string&gt;</code> | No | filter by outcome ids or outcomes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | wallet address |
 
 
 ```javascript
-hyperliquid.fetchPositions (symbols?, params?)
+hyperliquid.fetchPositions (outcomes?, params?)
 ```
 
 
@@ -185,7 +187,7 @@ creates a limit or market order for an outcome market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | type | <code>string</code> | Yes | 'limit' or 'market' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | quantity of outcome tokens |
@@ -200,7 +202,7 @@ creates a limit or market order for an outcome market
 
 
 ```javascript
-hyperliquid.createOrder (symbol, type, side, amount, price?, params?)
+hyperliquid.createOrder (outcome, type, side, amount, price?, params?)
 ```
 
 
@@ -217,14 +219,14 @@ cancels a single open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | unified outcome symbol |
+| outcome | <code>string</code> | No | unified outcome |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | cancel by client order id |
 | params.vaultAddress | <code>string</code> | No | optional subaccount/vault address to cancel on behalf of |
 
 
 ```javascript
-hyperliquid.cancelOrder (id, symbol?, params?)
+hyperliquid.cancelOrder (id, outcome?, params?)
 ```
 
 
@@ -241,12 +243,12 @@ cancels multiple open orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | No | unified outcome symbol (required) |
+| outcome | <code>string</code> | No | unified outcome (required) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hyperliquid.cancelOrders (ids, symbol?, params?)
+hyperliquid.cancelOrders (ids, outcome?, params?)
 ```
 
 
@@ -262,7 +264,7 @@ fetches currently open orders for the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | filter by outcome symbol |
+| outcome | <code>string</code> | No | filter by outcome |
 | since | <code>int</code> | No | only return orders updated since this timestamp in ms |
 | limit | <code>int</code> | No | max number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -271,7 +273,7 @@ fetches currently open orders for the user
 
 
 ```javascript
-hyperliquid.fetchOpenOrders (symbol?, since?, limit?, params?)
+hyperliquid.fetchOpenOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -287,7 +289,7 @@ fetches all historical orders for the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | filter by outcome symbol |
+| outcome | <code>string</code> | No | filter by outcome |
 | since | <code>int</code> | No | only return orders updated since this timestamp in ms |
 | limit | <code>int</code> | No | max number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -295,7 +297,7 @@ fetches all historical orders for the user
 
 
 ```javascript
-hyperliquid.fetchOrders (symbol?, since?, limit?, params?)
+hyperliquid.fetchOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -312,14 +314,37 @@ fetches a single order by id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | outcome symbol |
+| outcome | <code>string</code> | No | outcome |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.user | <code>string</code> | No | wallet address |
 | params.clientOrderId | <code>string</code> | No | fetch by client order id instead |
 
 
 ```javascript
-hyperliquid.fetchOrder (id, symbol?, params?)
+hyperliquid.fetchOrder (id, outcome?, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+fetches the most recent public trades for an outcome
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-coins-recent-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| outcome | <code>string</code> | Yes | unified outcome |
+| since | <code>int</code> | No | only return trades at or after this timestamp in ms |
+| limit | <code>int</code> | No | the maximum number of trades to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchTrades (outcome, since?, limit?, params?)
 ```
 
 
@@ -335,7 +360,7 @@ fetches the authenticated user's fill history
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | filter by outcome symbol |
+| outcome | <code>string</code> | No | filter by outcome |
 | since | <code>int</code> | No | start timestamp in ms |
 | limit | <code>int</code> | No | max number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -344,7 +369,7 @@ fetches the authenticated user's fill history
 
 
 ```javascript
-hyperliquid.fetchMyTrades (symbol?, since?, limit?, params?)
+hyperliquid.fetchMyTrades (outcome?, since?, limit?, params?)
 ```
 
 
@@ -360,7 +385,7 @@ Groups outcome markets by their underlying (e.g. BTC_ABOVE_78213) into event str
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters |
-| params.query | <code>string</code> | No | a single query string to filter by (matches description/symbol) |
+| params.query | <code>string</code> | No | a single query string to filter by (matches description/outcome) |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple query strings (alternative to query) |
 
 

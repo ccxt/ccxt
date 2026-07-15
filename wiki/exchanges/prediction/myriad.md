@@ -12,6 +12,7 @@
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [editOrder](#editorder)
+* [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [cancelOrders](#cancelorders)
@@ -95,13 +96,13 @@ fetch the open outcome-token positions held by a wallet (myriad settles trades o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified outcome symbols to filter by |
+| outcomes | <code>Array&lt;string&gt;</code> | No | unified outcomes to filter by |
 | params | <code>object</code> | No | extra exchange-specific parameters |
 | params.address | <code>string</code> | No | the wallet address to query, defaults to this.walletAddress |
 
 
 ```javascript
-myriad.fetchPositions (symbols?, params?)
+myriad.fetchPositions (outcomes?, params?)
 ```
 
 
@@ -117,7 +118,7 @@ fetches a trade quote — price, shares, fees and the on-chain calldata — for 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome id |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | for 'buy' the collateral value to spend; for 'sell' the number of shares to sell |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -125,7 +126,7 @@ fetches a trade quote — price, shares, fees and the on-chain calldata — for 
 
 
 ```javascript
-myriad.fetchTradeQuote (symbol, side, amount, params?)
+myriad.fetchTradeQuote (outcome, side, amount, params?)
 ```
 
 
@@ -141,7 +142,7 @@ create a trade order. Myriad has two trading models: a gasless order book (CLOB)
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome id |
 | type | <code>string</code> | Yes | 'limit' or 'market' (order book); ignored by the AMM path |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | number of outcome shares to trade (AMM 'buy' spends this as collateral value instead) |
@@ -153,7 +154,7 @@ create a trade order. Myriad has two trading models: a gasless order book (CLOB)
 
 
 ```javascript
-myriad.createOrder (symbol, type, side, amount, price?, params?)
+myriad.createOrder (outcome, type, side, amount, price?, params?)
 ```
 
 
@@ -170,7 +171,7 @@ orders are signed and submitted sequentially (not atomically)
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array&lt;object&gt;</code> | Yes | a list of order requests, each with symbol, type, side, amount, price and params |
+| orders | <code>Array&lt;object&gt;</code> | Yes | a list of order requests, each with outcome, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -193,7 +194,7 @@ batch-modify endpoint is not reliable, so the cancel and replace are submitted s
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the hash of the order to replace |
-| symbol | <code>string</code> | Yes | unified outcome symbol of the new order |
+| outcome | <code>string</code> | Yes | unified outcome of the new order |
 | type | <code>string</code> | Yes | 'limit' or 'market' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | number of outcome shares for the new order |
@@ -202,7 +203,28 @@ batch-modify endpoint is not reliable, so the cancel and replace are submitted s
 
 
 ```javascript
-myriad.editOrder (id, symbol, type, side, amount, price?, params?)
+myriad.editOrder (id, outcome, type, side, amount, price?, params?)
+```
+
+
+<a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
+
+### createMarketBuyOrderWithCost{docsify-ignore}
+buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
+
+**Kind**: instance method of [<code>myriad</code>](#myriad)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| outcome | <code>string</code> | Yes | unified outcome handle |
+| cost | <code>float</code> | Yes | the collateral (USDC) amount to spend |
+| params | <code>object</code> | No | extra exchange-specific parameters |
+
+
+```javascript
+myriad.createMarketBuyOrderWithCost (outcome, cost, params?)
 ```
 
 
@@ -219,12 +241,12 @@ cancels an open order book order by its hash (re-signs the original order to pro
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order hash returned by createOrder |
-| symbol | <code>string</code> | No | unified outcome symbol the order belongs to |
+| outcome | <code>string</code> | No | unified outcome the order belongs to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.cancelOrder (id, symbol?, params?)
+myriad.cancelOrder (id, outcome?, params?)
 ```
 
 
@@ -240,12 +262,12 @@ cancels all open order book orders for the wallet, optionally scoped to one mark
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol; when omitted cancels across all markets |
+| outcome | <code>string</code> | No | unified outcome; when omitted cancels across all markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.cancelAllOrders (symbol?, params?)
+myriad.cancelAllOrders (outcome?, params?)
 ```
 
 
@@ -262,12 +284,12 @@ cancels multiple open order book orders by hash in one request (gasless)
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | the order hashes to cancel |
-| symbol | <code>string</code> | No | not used by myriad cancelOrders |
+| outcome | <code>string</code> | No | not used by myriad cancelOrders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.cancelOrders (ids, symbol?, params?)
+myriad.cancelOrders (ids, outcome?, params?)
 ```
 
 
@@ -284,12 +306,12 @@ fetches a single order book order by its hash
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order hash |
-| symbol | <code>string</code> | No | unified outcome symbol the order belongs to |
+| outcome | <code>string</code> | No | unified outcome the order belongs to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchOrder (id, symbol?, params?)
+myriad.fetchOrder (id, outcome?, params?)
 ```
 
 
@@ -305,7 +327,7 @@ fetches order book orders for the wallet (or any trader passed via params.trader
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter by |
+| outcome | <code>string</code> | No | unified outcome to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -314,7 +336,7 @@ fetches order book orders for the wallet (or any trader passed via params.trader
 
 
 ```javascript
-myriad.fetchOrders (symbol?, since?, limit?, params?)
+myriad.fetchOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -330,14 +352,14 @@ fetches open order book orders for the wallet
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter by |
+| outcome | <code>string</code> | No | unified outcome to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchOpenOrders (symbol?, since?, limit?, params?)
+myriad.fetchOpenOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -353,14 +375,14 @@ fetches the wallet's filled order book orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter by |
+| outcome | <code>string</code> | No | unified outcome to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchClosedOrders (symbol?, since?, limit?, params?)
+myriad.fetchClosedOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -376,14 +398,14 @@ fetches the wallet's cancelled order book orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter by |
+| outcome | <code>string</code> | No | unified outcome to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchCanceledOrders (symbol?, since?, limit?, params?)
+myriad.fetchCanceledOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -401,14 +423,14 @@ fills, an upper/lower bound for market orders) — use watchTrades for live exec
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter by |
+| outcome | <code>string</code> | No | unified outcome to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchMyTrades (symbol?, since?, limit?, params?)
+myriad.fetchMyTrades (outcome?, since?, limit?, params?)
 ```
 
 
@@ -445,12 +467,12 @@ fetches the current price for a single outcome by loading the parent market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol like TRUMP_WIN:YES or an outcome id like 2741:756/0 |
+| outcome | <code>string</code> | Yes | unified outcome like TRUMP_WIN:YES or an outcome id like 2741:756/0 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchTicker (symbol, params?)
+myriad.fetchTicker (outcome, params?)
 ```
 
 
@@ -466,12 +488,12 @@ fetches the buy/sell fee rates for a market outcome
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchTradingFee (symbol, params?)
+myriad.fetchTradingFee (outcome, params?)
 ```
 
 
@@ -487,13 +509,13 @@ fetches the real order book for order-book markets, or synthesizes a one-level b
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol like TRUMP_WIN:YES or an outcome id |
+| outcome | <code>string</code> | Yes | unified outcome like TRUMP_WIN:YES or an outcome id |
 | limit | <code>int</code> | No | not used by myriad fetchOrderBook |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchOrderBook (symbol, limit?, params?)
+myriad.fetchOrderBook (outcome, limit?, params?)
 ```
 
 
@@ -509,7 +531,7 @@ fetches price history for an outcome from the price_charts bucket embedded in th
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol like TRUMP_WIN:YES or an outcome id |
+| outcome | <code>string</code> | Yes | unified outcome like TRUMP_WIN:YES or an outcome id |
 | timeframe | <code>string</code> | Yes | mapped to the closest available chart bucket (24h, 7d or 30d) |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum number of candles to return |
@@ -517,7 +539,7 @@ fetches price history for an outcome from the price_charts bucket embedded in th
 
 
 ```javascript
-myriad.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+myriad.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 ```
 
 
@@ -527,18 +549,18 @@ myriad.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 fetches tickers for multiple outcomes, grouping requested outcomes by their parent market to fetch each market only once
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
 
 **See**: https://docs.myriad.markets/builders/myriad-api-reference  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified outcome symbols, refreshes the markets listing and returns tickers for all outcomes when omitted |
+| outcomes | <code>Array&lt;string&gt;</code> | Yes | unified outcomes — required: myriad has no endpoint returning all tickers at once, so an unscoped call is not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchTickers (symbols?, params?)
+myriad.fetchTickers (outcomes, params?)
 ```
 
 
@@ -554,21 +576,21 @@ fetches recent public trades for a single outcome from the market action feed
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol like TRUMP_WIN:YES or an outcome id |
+| outcome | <code>string</code> | Yes | unified outcome like TRUMP_WIN:YES or an outcome id |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.fetchTrades (symbol, since?, limit?, params?)
+myriad.fetchTrades (outcome, since?, limit?, params?)
 ```
 
 
 <a name="fetchEvents" id="fetchevents"></a>
 
 ### fetchEvents{docsify-ignore}
-fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
+fetches prediction-market events matching the given scope (query/queries/tags/eventId — required) and caches their markets and outcomes on the instance
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of event structures
@@ -578,8 +600,10 @@ fetches prediction-market events matching the given search terms (or all open ma
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra exchange-specific parameters |
-| params.query | <code>string</code> | No | a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit) |
+| params.query | <code>string</code> | No | a single search term; an eventId does a direct lookup and tags map to server-side keyword searches |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
+| params.tags | <code>Array&lt;string&gt;</code> | No | tag slugs to scope by (searched as keywords, e.g. ['bitcoin', 'world-cup']) |
+| params.eventId | <code>string</code> | No | direct lookup by unified event id (composite networkId:marketId) |
 | params.limit | <code>int</code> | No | maximum number of markets per query, defaults to 50 |
 | params.state | <code>string</code> | No | 'open', 'closed' or 'resolved', defaults to 'open' |
 
@@ -601,13 +625,13 @@ streams the order book for an outcome over the Centrifugo websocket; the channel
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | limit | <code>int</code> | No | the maximum number of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchOrderBook (symbol, limit?, params?)
+myriad.watchOrderBook (outcome, limit?, params?)
 ```
 
 
@@ -623,14 +647,14 @@ streams public trades for an outcome over the Centrifugo websocket
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchTrades (symbol, since?, limit?, params?)
+myriad.watchTrades (outcome, since?, limit?, params?)
 ```
 
 
@@ -638,7 +662,7 @@ myriad.watchTrades (symbol, since?, limit?, params?)
 
 ### watchMyTrades{docsify-ignore}
 streams the wallet's own fills for a market over the Centrifugo trades channel (real
-execution prices, unlike the REST fetchMyTrades); requires a market symbol since the channel is per-market
+execution prices, unlike the REST fetchMyTrades); requires a market outcome since the channel is per-market
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
@@ -647,14 +671,14 @@ execution prices, unlike the REST fetchMyTrades); requires a market symbol since
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol whose market to watch |
+| outcome | <code>string</code> | Yes | unified outcome whose market to watch |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchMyTrades (symbol, since?, limit?, params?)
+myriad.watchMyTrades (outcome, since?, limit?, params?)
 ```
 
 
@@ -670,12 +694,12 @@ streams best bid/ask/last for an outcome over the Centrifugo prices channel
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchTicker (symbol, params?)
+myriad.watchTicker (outcome, params?)
 ```
 
 
@@ -685,18 +709,18 @@ myriad.watchTicker (symbol, params?)
 streams best bid/ask/last for several outcomes over the Centrifugo prices channels
 
 **Kind**: instance method of [<code>myriad</code>](#myriad)  
-**Returns**: <code>object</code> - a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by symbol
+**Returns**: <code>object</code> - a dict of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
 
 **See**: https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified outcome symbols to watch |
+| outcomes | <code>Array&lt;string&gt;</code> | Yes | unified outcomes to watch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchTickers (symbols, params?)
+myriad.watchTickers (outcomes, params?)
 ```
 
 
@@ -712,7 +736,7 @@ streams OHLCV candles for an outcome, synthesised from the live trades channel
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | timeframe | <code>string</code> | Yes | the length of each candle (e.g. '1m', '1h', '1d') |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle |
 | limit | <code>int</code> | No | the maximum number of candles to return |
@@ -720,7 +744,7 @@ streams OHLCV candles for an outcome, synthesised from the live trades channel
 
 
 ```javascript
-myriad.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+myriad.watchOHLCV (outcome, timeframe, since?, limit?, params?)
 ```
 
 
@@ -736,14 +760,14 @@ streams the wallet's order lifecycle updates over the Centrifugo orders channel
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter by |
+| outcome | <code>string</code> | No | unified outcome to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchOrders (symbol?, since?, limit?, params?)
+myriad.watchOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -759,13 +783,13 @@ streams the wallet's share-balance changes over the Centrifugo positions channel
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified outcome symbols to filter by |
+| outcomes | <code>Array&lt;string&gt;</code> | No | unified outcomes to filter by |
 | since | <code>int</code> | No | timestamp in ms of the earliest position update |
 | limit | <code>int</code> | No | the maximum number of position updates to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-myriad.watchPositions (symbols?, since?, limit?, params?)
+myriad.watchPositions (outcomes?, since?, limit?, params?)
 ```
 

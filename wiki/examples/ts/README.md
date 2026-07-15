@@ -258,22 +258,6 @@
 
 - [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/ts/prediction)
 
-- [Prediction Common Fed Event](./examples/ts/prediction-common-fed-event.md)
-
-- [Prediction Fetch Events Options](./examples/ts/prediction-fetch-events-options.md)
-
-- [Prediction Hyperliquid End To End](./examples/ts/prediction-hyperliquid-end-to-end.md)
-
-- [Prediction Limitless End To End](./examples/ts/prediction-limitless-end-to-end.md)
-
-- [Prediction Markets](./examples/ts/prediction-markets.md)
-
-- [Prediction Myriad End To End](./examples/ts/prediction-myriad-end-to-end.md)
-
-- [Prediction Polymarket End To End](./examples/ts/prediction-polymarket-end-to-end.md)
-
-- [Prediction Polymarket Spain World Cup](./examples/ts/prediction-polymarket-spain-world-cup.md)
-
 - [Proxy Round Robin](./examples/ts/proxy-round-robin.md)
 
 - [Proxy Usage](./examples/ts/proxy-usage.md)

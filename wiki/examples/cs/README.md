@@ -24,8 +24,6 @@
 
 - [MarketAndCurrency](examples/cs/MarketAndCurrency.md)
 
-- [PredictionMarkets](examples/cs/PredictionMarkets.md)
-
 - [Program](examples/cs/Program.md)
 
 - [SetMarketsFromExchange](examples/cs/SetMarketsFromExchange.md)
@@ -51,6 +49,8 @@
 - [Kraken Create And Close Position](examples/cs/kraken-create-and-close-position.md)
 
 - [Phemex Create Order Position With Takeprofit Stoploss](examples/cs/phemex-create-order-position-with-takeprofit-stoploss.md)
+
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/examples/cs/prediction)
 
 - [Proxy Usage](examples/cs/proxy-usage.md)
 

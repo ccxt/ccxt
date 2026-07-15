@@ -59,7 +59,7 @@ retrieves data on all markets for polymarket, each prediction market becomes one
 | params.query | <code>string</code> | No | a single search term used to filter the fetched events |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
 | params.status | <code>string</code> | No | 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active' |
-| params.limit | <code>int</code> | No | max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first |
+| params.limit | <code>int</code> | No | max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome) |
 
 
 ```javascript
@@ -79,41 +79,43 @@ fetches the current mid-price and best bid/ask for a single outcome token
 
 - https://docs.polymarket.com/api-reference/data/get-midpoint-price
 - https://docs.polymarket.com/api-reference/market-data/get-order-book
+- https://docs.polymarket.com/api-reference/data/get-last-trade-price
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol like TRUMP_DANCE_TODAY_997:YES or an outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome like TRUMP_DANCE_TODAY_997:YES or an outcome token id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchTicker (symbol, params?)
+polymarket.fetchTicker (outcome, params?)
 ```
 
 
 <a name="fetchTickers" id="fetchtickers"></a>
 
 ### fetchTickers{docsify-ignore}
-fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
+fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
 
 **See**
 
 - https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
 - https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+- https://docs.polymarket.com/api-reference/data/get-last-trades-prices
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified outcome symbols or outcome token ids, fetches all loaded outcomes when omitted |
+| outcomes | <code>Array&lt;string&gt;</code> | Yes | unified outcomes or outcome token ids — required: polymarket has no endpoint returning all tickers at once, so an unscoped call is not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchTickers (symbols?, params?)
+polymarket.fetchTickers (outcomes, params?)
 ```
 
 
@@ -129,13 +131,13 @@ fetches the CLOB order book for a single outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | limit | <code>int</code> | No | not used by polymarket fetchOrderBook |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchOrderBook (symbol, limit?, params?)
+polymarket.fetchOrderBook (outcome, limit?, params?)
 ```
 
 
@@ -151,7 +153,7 @@ fetches price history ticks for a single outcome token and buckets them client-s
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum number of candles to return |
@@ -159,7 +161,7 @@ fetches price history ticks for a single outcome token and buckets them client-s
 
 
 ```javascript
-polymarket.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+polymarket.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 ```
 
 
@@ -215,12 +217,12 @@ fetches the open interest of a prediction market outcome
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchOpenInterest (symbol, params?)
+polymarket.fetchOpenInterest (outcome, params?)
 ```
 
 
@@ -236,12 +238,12 @@ fetches the base fee rate for a prediction market outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchTradingFee (symbol, params?)
+polymarket.fetchTradingFee (outcome, params?)
 ```
 
 
@@ -257,14 +259,14 @@ fetches public trade history for a single outcome token from the data API
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | since | <code>int</code> | No | not used by polymarket fetchTrades |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchTrades (symbol, since?, limit?, params?)
+polymarket.fetchTrades (outcome, since?, limit?, params?)
 ```
 
 
@@ -280,14 +282,14 @@ fetches the authenticated user's trade history from the CLOB, optionally filtere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | No | unified outcome or outcome token id |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchMyTrades (symbol?, since?, limit?, params?)
+polymarket.fetchMyTrades (outcome?, since?, limit?, params?)
 ```
 
 
@@ -304,14 +306,14 @@ fetches all the trades made from a single order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | No | unified outcome symbol or outcome token id to narrow the lookup |
+| outcome | <code>string</code> | No | unified outcome or outcome token id to narrow the lookup |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchOrderTrades (id, symbol?, since?, limit?, params?)
+polymarket.fetchOrderTrades (id, outcome?, since?, limit?, params?)
 ```
 
 
@@ -348,12 +350,12 @@ fetches open outcome token positions for the wallet from the data API
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified outcome symbols to filter by |
+| outcomes | <code>Array&lt;string&gt;</code> | No | unified outcomes to filter by |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchPositions (symbols?, params?)
+polymarket.fetchPositions (outcomes?, params?)
 ```
 
 
@@ -369,12 +371,12 @@ fetches the open position for a single outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchPosition (symbol, params?)
+polymarket.fetchPosition (outcome, params?)
 ```
 
 
@@ -390,14 +392,14 @@ fetches open resting orders for the authenticated user, optionally filtered by o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | No | unified outcome or outcome token id |
 | since | <code>int</code> | No | not used by polymarket fetchOpenOrders |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchOpenOrders (symbol?, since?, limit?, params?)
+polymarket.fetchOpenOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -414,12 +416,12 @@ fetches a single order by id from the CLOB private data endpoint
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | No | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | No | unified outcome or outcome token id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.fetchOrder (id, symbol?, params?)
+polymarket.fetchOrder (id, outcome?, params?)
 ```
 
 
@@ -435,7 +437,7 @@ places a limit or market order on the CLOB for the given outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | type | <code>string</code> | Yes | 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how many outcome tokens to trade |
@@ -452,7 +454,7 @@ places a limit or market order on the CLOB for the given outcome token
 
 
 ```javascript
-polymarket.createOrder (symbol, type, side, amount, price?, params?)
+polymarket.createOrder (outcome, type, side, amount, price?, params?)
 ```
 
 
@@ -468,7 +470,7 @@ places multiple orders on the CLOB in a single batched request
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array&lt;object&gt;</code> | Yes | a list of order requests, each an object with symbol, type, side, amount, price and optional params (same params as createOrder) |
+| orders | <code>Array&lt;object&gt;</code> | Yes | a list of order requests, each an object with outcome, type, side, amount, price and optional params (same params as createOrder) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -489,13 +491,13 @@ places a market buy order sized by USDC cost (how much to spend) rather than sha
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome token id |
 | cost | <code>float</code> | Yes | the amount of USDC to spend |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint (see createOrder) |
 
 
 ```javascript
-polymarket.createMarketBuyOrderWithCost (symbol, cost, params?)
+polymarket.createMarketBuyOrderWithCost (outcome, cost, params?)
 ```
 
 
@@ -512,12 +514,12 @@ cancels a single open order by id on the CLOB
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | No | unified outcome symbol or outcome token id |
+| outcome | <code>string</code> | No | unified outcome or outcome token id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.cancelOrder (id, symbol?, params?)
+polymarket.cancelOrder (id, outcome?, params?)
 ```
 
 
@@ -534,12 +536,12 @@ cancels multiple open orders by id on the CLOB in a single request
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | the order ids to cancel |
-| symbol | <code>string</code> | No | not used by polymarket cancelOrders |
+| outcome | <code>string</code> | No | not used by polymarket cancelOrders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.cancelOrders (ids, symbol?, params?)
+polymarket.cancelOrders (ids, outcome?, params?)
 ```
 
 
@@ -559,19 +561,19 @@ cancels all open orders on the CLOB, optionally scoped to one outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol or outcome token id; when given only that outcome's orders are cancelled |
+| outcome | <code>string</code> | No | unified outcome or outcome token id; when given only that outcome's orders are cancelled |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.cancelAllOrders (symbol?, params?)
+polymarket.cancelAllOrders (outcome?, params?)
 ```
 
 
 <a name="fetchEvents" id="fetchevents"></a>
 
 ### fetchEvents{docsify-ignore}
-fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
+fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets ()
 
 **Kind**: instance method of [<code>polymarket</code>](#polymarket)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of event structures
@@ -585,9 +587,16 @@ fetches prediction-market events matching the given search terms (or all active 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra exchange-specific parameters |
-| params.query | <code>string</code> | No | a single search term; when omitted (and no queries) the most active events are returned (capped) |
+| params.query | <code>string</code> | No | a single keyword search term |
 | params.queries | <code>Array&lt;string&gt;</code> | No | multiple search terms (alternative to query) |
-| params.limit | <code>int</code> | No | when searching, page size per query (default 50); when omitted, max events to fetch (default options.fetchMarketsLimit, 1000), ordered by 24h volume |
+| params.limit | <code>int</code> | No | max number of events to return |
+| params.sort | <code>string</code> | No | 'volume' (default), 'liquidity' or 'newest' — mapped to the gamma order field |
+| params.status | <code>string</code> | No | 'active' (default), 'inactive', 'closed' or 'all' ('inactive' and 'closed' are interchangeable) |
+| params.searchIn | <code>string</code> | No | when searching, restrict the match to 'title' (default), 'description' or 'both' |
+| params.eventId | <code>string</code> | No | direct lookup by event id (short-circuits the listing/search) |
+| params.slug | <code>string</code> | No | direct lookup by event slug |
+| params.searchPageSize | <code>int</code> | No | search page size (gamma limit_per_type, default 100); lower it to shrink the download when a small limit is enough, higher to over-fetch before client-side status/title filtering |
+| params.maxSearchPages | <code>int</code> | No | max search pages to fetch when no limit is given (default 5), bounding a broad query |
 
 
 ```javascript
@@ -693,13 +702,13 @@ streams live order-book updates for a single Polymarket outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol (e.g. "ELECTION/YES:USDC") |
+| outcome | <code>string</code> | Yes | unified outcome (e.g. "TRUMP_WINS_2028:YES") or an outcome token id |
 | limit | <code>int</code> | No | optional depth limit applied after resolving |
 | params | <code>object</code> | No | extra params (currently unused) |
 
 
 ```javascript
-polymarket.watchOrderBook (symbol, limit?, params?)
+polymarket.watchOrderBook (outcome, limit?, params?)
 ```
 
 
@@ -714,14 +723,14 @@ streams live fills for a single Polymarket outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | since | <code>int</code> | No | optional unix timestamp (ms) lower bound |
 | limit | <code>int</code> | No | optional max number of trades to return |
 | params | <code>object</code> | No | extra params (unused) |
 
 
 ```javascript
-polymarket.watchTrades (symbol, since?, limit?, params?)
+polymarket.watchTrades (outcome, since?, limit?, params?)
 ```
 
 
@@ -736,12 +745,12 @@ streams a synthetic ticker derived from order-book snapshots and deltas (mid = (
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | params | <code>object</code> | No | extra params (unused) |
 
 
 ```javascript
-polymarket.watchTicker (symbol, params?)
+polymarket.watchTicker (outcome, params?)
 ```
 
 
@@ -757,14 +766,14 @@ watches the authenticated user's order updates over the CLOB user websocket chan
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter the stream to one market |
+| outcome | <code>string</code> | No | unified outcome to filter the stream to one market |
 | since | <code>int</code> | No | the earliest time in ms to return orders for |
 | limit | <code>int</code> | No | the maximum number of orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.watchOrders (symbol?, since?, limit?, params?)
+polymarket.watchOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -780,13 +789,13 @@ watches the authenticated user's trade fills over the CLOB user websocket channe
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to filter the stream to one market |
+| outcome | <code>string</code> | No | unified outcome to filter the stream to one market |
 | since | <code>int</code> | No | the earliest time in ms to return trades for |
 | limit | <code>int</code> | No | the maximum number of trades to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-polymarket.watchMyTrades (symbol?, since?, limit?, params?)
+polymarket.watchMyTrades (outcome?, since?, limit?, params?)
 ```
 

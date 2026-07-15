@@ -13,11 +13,16 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
+* [fetchMyTrades](#fetchmytrades)
 * [fetchBalance](#fetchbalance)
 * [fetchPositions](#fetchpositions)
+* [fetchSettlements](#fetchsettlements)
 * [fetchOpenOrders](#fetchopenorders)
+* [fetchOrders](#fetchorders)
+* [fetchClosedOrders](#fetchclosedorders)
 * [fetchOrder](#fetchorder)
 * [createOrder](#createorder)
+* [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchEvents](#fetchevents)
@@ -26,7 +31,7 @@
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ### fetchMarkets{docsify-ignore}
-fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
+fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -36,9 +41,9 @@ fetches all kalshi markets via cursor pagination and maps each binary market to 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.query | <code>string</code> | No | a single query string to filter markets by (matches ticker/title) |
-| params.queries | <code>Array&lt;string&gt;</code> | No | multiple query strings (alternative to query) |
-| params.limit | <code>int</code> | No | max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached |
+| params.query | <code>string</code> | No | a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned |
+| params.queries | <code>Array&lt;string&gt;</code> | No | multiple search queries (alternative to query); markets from any matching event are returned |
+| params.limit | <code>int</code> | No | for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000) |
 
 
 ```javascript
@@ -58,12 +63,12 @@ fetches the current market price and bid/ask for a single kalshi outcome
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | the unified symbol like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29 |
+| outcome | <code>string</code> | Yes | the unified outcome like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchTicker (symbol, params?)
+kalshi.fetchTicker (outcome, params?)
 ```
 
 
@@ -99,33 +104,33 @@ fetches the open interest of a prediction market outcome
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome id |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchOpenInterest (symbol, params?)
+kalshi.fetchOpenInterest (outcome, params?)
 ```
 
 
 <a name="fetchTickers" id="fetchtickers"></a>
 
 ### fetchTickers{docsify-ignore}
-fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
+fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
 
 **See**: https://docs.kalshi.com/api-reference/market/get-markets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified outcome symbols, fetches tickers for all loaded outcomes when omitted |
+| outcomes | <code>Array&lt;string&gt;</code> | Yes | unified outcomes — required: kalshi has tens of thousands of markets and no endpoint returning all tickers at once, so an unscoped call is not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchTickers (symbols?, params?)
+kalshi.fetchTickers (outcomes, params?)
 ```
 
 
@@ -141,13 +146,13 @@ fetches the order book for a single kalshi outcome
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol or outcome id |
+| outcome | <code>string</code> | Yes | unified outcome or outcome id |
 | limit | <code>int</code> | No | the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchOrderBook (symbol, limit?, params?)
+kalshi.fetchOrderBook (outcome, limit?, params?)
 ```
 
 
@@ -163,7 +168,7 @@ fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks end
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum number of candles to fetch |
@@ -171,7 +176,7 @@ fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks end
 
 
 ```javascript
-kalshi.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+kalshi.fetchOHLCV (outcome, timeframe, since?, limit?, params?)
 ```
 
 
@@ -187,14 +192,37 @@ fetches public trade history for a single kalshi market ticker
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum number of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchTrades (symbol, since?, limit?, params?)
+kalshi.fetchTrades (outcome, since?, limit?, params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch the fills (executed trades) of the authenticated kalshi user
+
+**Kind**: instance method of [<code>kalshi</code>](#kalshi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+
+**See**: https://trading-api.readme.io/reference/getfills  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| outcome | <code>string</code> | No | filter to a single unified outcome |
+| since | <code>int</code> | No | the earliest fill timestamp (ms) to fetch |
+| limit | <code>int</code> | No | the maximum number of fills to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kalshi.fetchMyTrades (outcome?, since?, limit?, params?)
 ```
 
 
@@ -230,12 +258,35 @@ fetches open market positions for the authenticated kalshi user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | filter by outcome ids or symbols |
+| outcomes | <code>Array&lt;string&gt;</code> | No | filter by outcome ids or outcomes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchPositions (symbols?, params?)
+kalshi.fetchPositions (outcomes?, params?)
+```
+
+
+<a name="fetchSettlements" id="fetchsettlements"></a>
+
+### fetchSettlements{docsify-ignore}
+fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
+
+**Kind**: instance method of [<code>kalshi</code>](#kalshi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of prediction settlement structures
+
+**See**: https://trading-api.readme.io/reference/getportfoliosettlements  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| outcome | <code>string</code> | No | filter to a single unified outcome |
+| since | <code>int</code> | No | timestamp in ms of the earliest settlement to fetch |
+| limit | <code>int</code> | No | the maximum number of settlements to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kalshi.fetchSettlements (outcome?, since?, limit?, params?)
 ```
 
 
@@ -251,14 +302,60 @@ fetches resting (open) orders for the authenticated kalshi user, optionally filt
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | filter by unified outcome symbol |
+| outcome | <code>string</code> | No | filter by unified outcome |
 | since | <code>int</code> | No | timestamp in ms of the earliest order to fetch |
 | limit | <code>int</code> | No | the maximum number of orders to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchOpenOrders (symbol?, since?, limit?, params?)
+kalshi.fetchOpenOrders (outcome?, since?, limit?, params?)
+```
+
+
+<a name="fetchOrders" id="fetchorders"></a>
+
+### fetchOrders{docsify-ignore}
+fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+
+**Kind**: instance method of [<code>kalshi</code>](#kalshi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://trading-api.readme.io/reference/getorders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| outcome | <code>string</code> | No | filter by unified outcome |
+| since | <code>int</code> | No | timestamp in ms of the earliest order to fetch |
+| limit | <code>int</code> | No | the maximum number of orders to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kalshi.fetchOrders (outcome?, since?, limit?, params?)
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches the closed (executed or canceled) orders for the authenticated kalshi user
+
+**Kind**: instance method of [<code>kalshi</code>](#kalshi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://trading-api.readme.io/reference/getorders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| outcome | <code>string</code> | No | filter by unified outcome |
+| since | <code>int</code> | No | timestamp in ms of the earliest order to fetch |
+| limit | <code>int</code> | No | the maximum number of orders to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kalshi.fetchClosedOrders (outcome?, since?, limit?, params?)
 ```
 
 
@@ -275,12 +372,12 @@ fetches a single order by id from the kalshi portfolio endpoint
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | unified outcome symbol |
+| outcome | <code>string</code> | No | unified outcome |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.fetchOrder (id, symbol?, params?)
+kalshi.fetchOrder (id, outcome?, params?)
 ```
 
 
@@ -296,7 +393,7 @@ places a limit or market order on kalshi for the given outcome token
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified outcome symbol |
+| outcome | <code>string</code> | Yes | unified outcome |
 | type | <code>string</code> | Yes | 'limit' or 'market' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | number of contracts |
@@ -305,7 +402,33 @@ places a limit or market order on kalshi for the given outcome token
 
 
 ```javascript
-kalshi.createOrder (symbol, type, side, amount, price?, params?)
+kalshi.createOrder (outcome, type, side, amount, price?, params?)
+```
+
+
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+edits a resting order by cancelling it and placing a new one with the updated terms
+
+**Kind**: instance method of [<code>kalshi</code>](#kalshi)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://trading-api.readme.io/reference/createorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the id of the order to edit |
+| outcome | <code>string</code> | Yes | unified outcome |
+| type | <code>string</code> | Yes | 'limit' (kalshi has only limit orders) |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | No | the new number of contracts |
+| price | <code>float</code> | No | the new price (0..1) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kalshi.editOrder (id, outcome, type, side, amount?, price?, params?)
 ```
 
 
@@ -322,12 +445,12 @@ cancels a single open order by id on kalshi
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | unified outcome symbol |
+| outcome | <code>string</code> | No | unified outcome |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.cancelOrder (id, symbol?, params?)
+kalshi.cancelOrder (id, outcome?, params?)
 ```
 
 
@@ -343,33 +466,35 @@ cancels all open orders on kalshi, optionally scoped to one outcome ticker
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified outcome symbol to scope the cancellation to |
+| outcome | <code>string</code> | No | unified outcome to scope the cancellation to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kalshi.cancelAllOrders (symbol?, params?)
+kalshi.cancelAllOrders (outcome?, params?)
 ```
 
 
 <a name="fetchEvents" id="fetchevents"></a>
 
 ### fetchEvents{docsify-ignore}
-fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events
+fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
 
 **Kind**: instance method of [<code>kalshi</code>](#kalshi)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of event structures
 
-**See**: https://trading-api.readme.io/reference/getevents  
+**See**: https://docs.kalshi.com/api-reference/events/get-events  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.query | <code>string</code> | No | a single query string to filter events by (matches event ticker/title) |
-| params.queries | <code>Array&lt;string&gt;</code> | No | multiple query strings (alternative to query) |
-| params.status | <code>string</code> | No | 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus |
-| params.limit | <code>int</code> | No | page size per request, defaults to 200 |
-| params.maxPages | <code>int</code> | No | maximum number of pages to scan, defaults to 5 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events) |
+| params.query | <code>string</code> | No | free-text search resolved server-side via kalshi's series search endpoint |
+| params.queries | <code>Array&lt;string&gt;</code> | No | multiple free-text searches (alternative to query, unioned) |
+| params.series_ticker | <code>string</code> | No | one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search |
+| params.tags | <code>Array&lt;string&gt;</code> | No | kalshi series tags (e.g. ['BTC']) — resolved to series via the /series listing |
+| params.category | <code>string</code> | No | a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing |
+| params.status | <code>string</code> | No | 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus |
+| params.limit | <code>int</code> | No | max number of events to return |
 
 
 ```javascript
