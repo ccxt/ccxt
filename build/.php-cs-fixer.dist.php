@@ -24,9 +24,9 @@
 
 $finder = PhpCsFixer\Finder::create()
     ->in([
-        __DIR__ . '/php',
-        __DIR__ . '/php/async',
-        __DIR__ . '/php/pro',
+        __DIR__ . '/../php',
+        __DIR__ . '/../php/async',
+        __DIR__ . '/../php/pro',
     ])
     ->depth(0)                    // only files directly in those dirs (skip test/, abstract/, base/, static_dependencies/, protobuf/)
     ->notName('/^[A-Z].*\.php$/'); // exchange ids are lowercase; exclude the Uppercase-named hand-written base/error classes (Exchange.php, Precise.php, Throttler.php, *Error.php, Client.php, OrderBook.php, ...)
