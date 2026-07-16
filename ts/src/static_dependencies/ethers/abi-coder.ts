@@ -60,10 +60,12 @@ export class AbiCoder {
 
     #getCoder(param: ParamType): Coder {
         if (param.isArray()) {
+            if (param.arrayChildren == null) { throw new Error("missing array children"); }
             return new ArrayCoder(this.#getCoder(param.arrayChildren), param.arrayLength, param.name);
         }
 
         if (param.isTuple()) {
+            if (param.components == null) { throw new Error("missing components"); }
             return new TupleCoder(param.components.map((c) => this.#getCoder(c)), param.name);
         }
 

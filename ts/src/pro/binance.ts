@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported, ExchangeError} from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, NullableDict, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -217,6 +217,9 @@ export default class binance extends binanceRest {
             const streamLimits = this.safeValue (this.options, 'streamLimits');
             const streamLimit = this.safeInteger (streamLimits, type);
             streamIndex = streamIndex + 1;
+            if (streamLimit === undefined) {
+                throw new ExchangeError (this.id + ' getStreamIndex() missing streamLimit');
+            }
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
@@ -3170,7 +3173,7 @@ export default class binance extends binanceRest {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const delta = this.safeString (message, 'd');
-            if (code in this.balance[accountType]) {
+            if ((code !== undefined) && (code in this.balance[accountType])) {
                 let previousValue = this.balance[accountType][code]['free'];
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
@@ -3436,6 +3439,9 @@ export default class binance extends binanceRest {
         }
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'returnRateLimits', false);
+        if (payload === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrderWs() could not build payload');
+        }
         payload['returnRateLimits'] = returnRateLimits;
         const message: Dict = {
             'id': messageHash,

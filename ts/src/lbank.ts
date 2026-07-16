@@ -1238,7 +1238,7 @@ export default class lbank extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances | undefined {
+    parseBalance (response): Balances {
         //
         // spotPrivatePostUserInfo
         //

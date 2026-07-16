@@ -5416,7 +5416,7 @@ export default class mexc extends Exchange {
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry | undefined> {
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -5444,7 +5444,7 @@ export default class mexc extends Exchange {
         } else if (marketType === 'swap') {
             throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
         }
-        return undefined;
+        throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
     }
 
     /**

@@ -860,11 +860,11 @@ export default class bitstamp extends Exchange {
         }
         const parts = minimumOrder.split (' ');
         const cost = parts[0];
-        if (!(base in existing)) {
+        if ((base !== undefined) && !(base in existing)) {
             const baseDecimals = this.safeInteger (market, 'base_decimals');
             this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
         }
-        if (!(quote in existing)) {
+        if ((quote !== undefined) && !(quote in existing)) {
             const counterDecimals = this.safeInteger (market, 'counter_decimals');
             this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
         }
@@ -1089,11 +1089,11 @@ export default class bitstamp extends Exchange {
         }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
-            if (marketId in this.markets_by_id) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
         }

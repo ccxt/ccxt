@@ -1269,7 +1269,7 @@ export default class woofipro extends woofiproRest {
             const key = keys[i];
             const value = balances[key];
             const code = this.safeCurrencyCode (key);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
+            const account = ((code !== undefined) && (code in this.balance)) ? this.balance[code] : this.account ();
             const total = this.safeString (value, 'holding');
             const used = this.safeString (value, 'frozen');
             account['total'] = total;

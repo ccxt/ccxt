@@ -1261,7 +1261,7 @@ export default class ndax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'ProductId');
-            if ((currencyId !== undefined) && (currencyId in this.currencies_by_id)) {
+            if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'Amount');

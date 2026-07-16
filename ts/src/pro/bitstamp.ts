@@ -206,7 +206,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -221,16 +221,13 @@ export default class bitstamp extends bitstampRest {
         //         "price": 6294.77
         //     }
         //
-        const microtimestamp = this.safeInteger (trade, 'microtimestamp');
-        if (microtimestamp === undefined) {
-            return;
-        }
+        const microtimestamp = this.safeInteger (trade, 'microtimestamp', 0);
         const id = this.safeString (trade, 'id');
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
         if (market === undefined) {
-            return;
+            market = this.safeMarket (undefined, market);
         }
         const symbol = market['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');

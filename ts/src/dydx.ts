@@ -2274,6 +2274,9 @@ export default class dydx extends Exchange {
     async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = this.safeString (params, 'methodName');
         params = this.omit (params, 'methodName');
+        if (methodName === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a methodName param');
+        }
         let userAddress: string | Dict = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress (methodName, params);

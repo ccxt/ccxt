@@ -507,7 +507,7 @@ export default class bittrade extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
     /**
@@ -1224,7 +1224,7 @@ export default class bittrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             let account: NullableDict = undefined;
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 account = result[code];
             } else {
                 account = this.account ();

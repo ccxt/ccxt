@@ -580,7 +580,7 @@ export default class kraken extends Exchange {
     }
 
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
+        return this.decimalToPrecision (fee, TRUNCATE, this.market (symbol)['precision']['amount'], this.precisionMode);
     }
 
     /**
@@ -1129,7 +1129,7 @@ export default class kraken extends Exchange {
             const marketIds: List = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                const market = this.markets[symbol];
+                const market = this.market (symbol);
                 if (market['active']) {
                     marketIds.push (market['id']);
                 }

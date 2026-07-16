@@ -1317,7 +1317,7 @@ export default class bitfinex extends bitfinexRest {
                 'ws': this.handleBalance,
                 'tu': this.handleMyTrade,
             };
-            let method = undefined;
+            let method: any = undefined;
             if (channelId === '0') {
                 method = this.safeValue (privateMethods, (name as string));
             } else {

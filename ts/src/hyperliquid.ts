@@ -653,9 +653,10 @@ export default class hyperliquid extends Exchange {
                     data['collateralTokenName'] = collateralTokenCode;
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode (name);
+                    const hip3Code = (safeCode === undefined) ? name : safeCode.replace (':', '-');
                     this.options['hip3TokensByName'][(name as string)] = {
                         'quote': collateralTokenCode,
-                        'code': safeCode.replace (':', '-'),
+                        'code': hip3Code,
                     };
                 }
                 result.push (data);
@@ -1007,6 +1008,9 @@ export default class hyperliquid extends Exchange {
         const settleId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
         const baseName = this.safeString (market, 'name');
         let base = this.safeCurrencyCode (baseName);
+        if (base === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing base currency');
+        }
         base = base.replace (':', '-'); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         const quote = this.safeCurrencyCode (quoteId);
         const baseId = this.safeString (market, 'baseId');

@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse} from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, Bool, List, NullableDict, IndexType } from './base/types.js';
@@ -2197,7 +2197,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}): Promise<Position | undefined> {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2209,7 +2209,7 @@ export default class blofin extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const position = this.safeDict (data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new NullResponse (this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition (position, market);
     }

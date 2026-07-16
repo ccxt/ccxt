@@ -1030,6 +1030,9 @@ export default class onetrading extends Exchange {
             'MONTHS': 'M',
         };
         const lowercaseUnit = this.safeString (units, unit);
+        if ((period === undefined) || (lowercaseUnit === undefined)) {
+            throw new ExchangeError (this.id + ' parseOHLCV() missing period/unit');
+        }
         const timeframe = period + lowercaseUnit;
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
@@ -1479,7 +1482,7 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        let response = undefined;
+        let response: any = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
             response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
         } else {

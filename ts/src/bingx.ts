@@ -1981,7 +1981,7 @@ export default class bingx extends Exchange {
         //         ]
         //     }
         //
-        let result: NullableDict = {};
+        let result: Dict = {};
         if (market['inverse']) {
             const data = this.safeList (response, 'data', []);
             result = this.safeDict (data, 0, {});
@@ -3410,7 +3410,7 @@ export default class bingx extends Exchange {
             response = this.parseJson (response);
         }
         const data = this.safeDict (response, 'data', {});
-        let result: NullableDict = {};
+        let result: Dict = {};
         if (market['swap']) {
             if (market['inverse']) {
                 result = response;

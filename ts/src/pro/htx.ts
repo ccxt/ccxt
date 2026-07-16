@@ -870,7 +870,7 @@ export default class htx extends htxRest {
         let market: Market = undefined;
         let messageHash: Str = undefined;
         let channel: Str = undefined;
-        let trades = undefined;
+        let trades: any = undefined;
         let subType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -930,7 +930,7 @@ export default class htx extends htxRest {
         let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString (params, 'orderType', orderType);
         params = this.omit (params, 'orderType');
-        const marketCode = (market !== undefined) ? market['lowercaseId'].toLowerCase () : undefined;
+        const marketCode = ((market !== undefined) && (market['lowercaseId'] !== undefined)) ? market['lowercaseId'].toLowerCase () : undefined;
         const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
@@ -968,7 +968,7 @@ export default class htx extends htxRest {
     getV5LinearChannelAndMessageHash (topic, market: Market = undefined, params = {}) {
         const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
         const channel = topic;
-        const messageHash = (contractCode === '*') ? topic : (topic + '.' + contractCode.toLowerCase ());
+        const messageHash = ((contractCode === undefined) || (contractCode === '*')) ? topic : (topic + '.' + contractCode.toLowerCase ());
         params = this.omit (params, 'contract_code');
         const requestParams = this.extend ({
             'contract_code': contractCode,

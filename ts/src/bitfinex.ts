@@ -566,12 +566,14 @@ export default class bitfinex extends Exchange {
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market (symbol);
+        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
     priceToPrecision (symbol, price) {
         symbol = this.safeSymbol (symbol);
-        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        const market = this.market (symbol);
+        price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).

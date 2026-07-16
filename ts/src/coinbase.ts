@@ -2028,7 +2028,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < ratesIds.length; i++) {
             const currencyId = ratesIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            if (!(code in result)) {
+            if ((code !== undefined) && !(code in result)) {
                 result[code] = this.safeCurrencyStructure ({
                     'info': {},
                     'id': currencyId,
@@ -2114,7 +2114,7 @@ export default class coinbase extends Exchange {
         if (marketType !== undefined && marketType !== 'default') {
             request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
-        let response = undefined;
+        let response: any = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'usePrivate', false);
         if (usePrivate) {
@@ -2233,7 +2233,7 @@ export default class coinbase extends Exchange {
         };
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'usePrivate', false);
-        let response = undefined;
+        let response: any = undefined;
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         } else {
@@ -2469,7 +2469,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let response = undefined;
+        let response: any = undefined;
         const isV3 = this.safeBool (params, 'v3', false);
         params = this.omit (params, [ 'v3' ]);
         let marketType: Str = undefined;
@@ -3198,7 +3198,7 @@ export default class coinbase extends Exchange {
         }
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
         const preview = this.safeBool2 (params, 'preview', 'test', false);
-        let response = undefined;
+        let response: any = undefined;
         if (preview) {
             params = this.omit (params, [ 'preview', 'test' ]);
             request = this.omit (request, 'client_order_id');
@@ -3521,7 +3521,7 @@ export default class coinbase extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const preview = this.safeBool2 (params, 'preview', 'test', false);
-        let response = undefined;
+        let response: any = undefined;
         if (preview) {
             params = this.omit (params, [ 'preview', 'test' ]);
             response = await this.v3PrivatePostBrokerageOrdersEditPreview (this.extend (request, params));
@@ -3893,7 +3893,7 @@ export default class coinbase extends Exchange {
             // 300 candles max
             request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
-        let response = undefined;
+        let response: any = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'usePrivate', false);
         if (usePrivate) {
@@ -3976,7 +3976,7 @@ export default class coinbase extends Exchange {
         } else if (since !== undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
-        let response = undefined;
+        let response: any = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'usePrivate', false);
         if (usePrivate) {
@@ -4102,7 +4102,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: any = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'usePrivate', false);
         if (usePrivate) {
@@ -4841,7 +4841,7 @@ export default class coinbase extends Exchange {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        let response = undefined;
+        let response: any = undefined;
         if (type === 'future') {
             response = await this.v3PrivateGetBrokerageCfmPositions (params);
         } else {
@@ -4876,7 +4876,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response = undefined;
+        let response: any = undefined;
         if (market['future']) {
             const productId = this.safeString (market, 'product_id');
             if (productId === undefined) {

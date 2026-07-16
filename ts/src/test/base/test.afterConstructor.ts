@@ -83,7 +83,7 @@ function helperTestInitMarket () {
             'BTC/USD': sampleMarket,
         },
     });
-    assert (exchange2.markets['BTC/USD'] !== undefined);
+    assert ((exchange2.markets !== undefined) && (exchange2.markets['BTC/USD'] !== undefined));
 }
 
 function helperTestProperties () {

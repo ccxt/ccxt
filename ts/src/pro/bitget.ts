@@ -2410,7 +2410,7 @@ export default class bitget extends bitgetRest {
                     const entry = coins[j];
                     const currencyId = this.safeString (entry, 'coin');
                     const code = this.safeCurrencyCode (currencyId);
-                    const account = (code in this.balance) ? this.balance[code] : this.account ();
+                    const account = ((code !== undefined) && (code in this.balance)) ? this.balance[code] : this.account ();
                     const borrow = this.safeString (entry, 'borrow');
                     const debts = this.safeString (entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
@@ -2424,7 +2424,7 @@ export default class bitget extends bitgetRest {
             } else {
                 const currencyId = this.safeString2 (rawBalance, 'coin', 'marginCoin');
                 const code = this.safeCurrencyCode (currencyId);
-                const account = (code in this.balance) ? this.balance[code] : this.account ();
+                const account = ((code !== undefined) && (code in this.balance)) ? this.balance[code] : this.account ();
                 const borrow = this.safeString (rawBalance, 'borrow');
                 if (borrow !== undefined) {
                     const interest = this.safeString (rawBalance, 'interest');

@@ -237,7 +237,7 @@ function assertSymbol (exchange: Exchange, skippedProperties: object, method: st
 
 function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, method: string, symbol: string) {
     const logText = logTemplate (exchange, method, {});
-    assert ((symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
+    assert ((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
 
@@ -649,7 +649,7 @@ async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(symbol in exchange.markets)) {
+            if ((exchange.markets === undefined) || !(symbol in exchange.markets)) {
                 return;
             }
             // if OHLCV supported

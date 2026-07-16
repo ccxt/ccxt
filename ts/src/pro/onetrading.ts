@@ -1335,7 +1335,11 @@ export default class onetrading extends onetradingRest {
         let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
-            marketIds = Object.keys (this.markets_by_id);
+            const marketsById = this.markets_by_id;
+            if (marketsById === undefined) {
+                return [];
+            }
+            marketIds = Object.keys (marketsById);
         } else {
             marketIds = this.marketIds (symbols);
         }

@@ -3,7 +3,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/aster.js';
-import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse} from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
@@ -1519,7 +1519,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response = undefined;
+        let response: any = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Ticker24hr (params);
         } else if (marketType === 'spot') {
@@ -1575,7 +1575,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerPrice (params);
         } else if (marketType === 'spot') {
@@ -1593,6 +1593,9 @@ export default class aster extends Exchange {
         //         ...
         //     ]
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchLastPrices() returned empty response');
+        }
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
@@ -1644,7 +1647,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let response = undefined;
+        let response: any = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerBookTicker (params);
         } else if (marketType === 'spot') {
@@ -1898,7 +1901,7 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response = undefined;
+        let response: any = undefined;
         let data: NullableList = undefined;
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance (params);
@@ -2424,7 +2427,7 @@ export default class aster extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (this.isLinear (marketType, subType)) {
             response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, params));
         } else if (marketType === 'spot') {
