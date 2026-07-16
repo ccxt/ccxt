@@ -1418,6 +1418,29 @@
         ],
         "editOrder": [
             {
+                "description": "trigger order with stoploss & takeprofit",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=2077817338468081664&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A71%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=81&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A91%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784225949298&type=TRIGGER_MARKET&signature=a686c27dc5308b021780dd243a7d86d3cafa8abc520442e3f492c86d4edca232",
+                "input": [
+                    "2077817338468081664",
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.6,
+                    0,
+                    {
+                        "triggerPrice": 81,
+                        "stopLoss": {
+                            "triggerPrice": 71
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 91
+                        }
+                    }
+                ],
+                "output": null
+            },
+            {
                 "disabled": true,
                 "description": "trigger order with stoploss & takeprofit",
                 "method": "editOrder",
