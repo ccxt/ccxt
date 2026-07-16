@@ -330,7 +330,7 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
-    async handlePortfolioAndParams (methodName: string, params = {}) {
+    async handlePortfolioAndParams (methodName: string, params = {}): Promise<[Str, Dict]> {
         let portfolio = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
         if ((portfolio !== undefined) && (portfolio !== '')) {
@@ -353,7 +353,7 @@ export default class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
     }
 
-    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}) {
+    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}): Promise<[Str, Dict]> {
         let networkId = undefined;
         [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
         if (networkId === undefined) {

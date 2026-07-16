@@ -53,7 +53,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     return result;
 }
 
-function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any [] = undefined, deep = false) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any[] | undefined = undefined, deep = false) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -444,7 +444,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
 }
 
 async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder: Order = undefined;
+    let fetchedOrder: Order | undefined = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -581,14 +581,14 @@ function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUr
     exchange.socksProxy = socksProxy;
 }
 
-function concat (a: any[] = undefined, b: any[] = undefined) {
+function concat (a: any[] | undefined = undefined, b: any[] | undefined = undefined) {
     // we use this method temporarily, because of ast-transpiler issue across langs
     if (a === undefined) {
         return b;
     } else if (b === undefined) {
         return a;
     } else {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < a.length; i++) {
             result.push (a[i]);
         }

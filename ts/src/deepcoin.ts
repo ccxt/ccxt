@@ -1803,7 +1803,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order | undefined> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1877,7 +1877,7 @@ export default class deepcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order | undefined> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

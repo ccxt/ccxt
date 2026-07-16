@@ -2534,7 +2534,7 @@ export default class gate extends Exchange {
         //    }
         //
         const result: Dict = {};
-        let withdrawFees = {};
+        let withdrawFees: Num | Dict = {};
         for (let i = 0; i < response.length; i++) {
             withdrawFees = {};
             const entry = response[i];
@@ -6495,7 +6495,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        return this.parsePositions (response || [], symbols);
     }
 
     /**
@@ -6782,7 +6782,7 @@ export default class gate extends Exchange {
         };
         let isUnifiedAccount = false;
         [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'repayCrossMargin', 'unifiedAccount');
-        let response: Dict;
+        let response: NullableDict;
         if (isUnifiedAccount) {
             request['type'] = 'repay';
             response = await this.privateUnifiedPostLoans (this.extend (request, params));

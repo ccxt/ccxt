@@ -3796,7 +3796,7 @@ export default class phemex extends Exchange {
         const networkId = this.safeString (transaction, 'chainName');
         const timestamp = this.safeIntegerN (transaction, [ 'createdAt', 'submitedAt', 'submittedAt' ]);
         let type = this.safeStringLower (transaction, 'type');
-        let feeCost = this.parseNumber (this.fromEn (this.safeString (transaction, 'feeEv'), currency['valueScale']));
+        let feeCost: Num = this.parseNumber (this.fromEn (this.safeString (transaction, 'feeEv'), currency['valueScale']));
         if (feeCost === undefined) {
             feeCost = this.safeNumber (transaction, 'feeRv');
         }
@@ -3809,7 +3809,7 @@ export default class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let amount = this.parseNumber (this.fromEn (this.safeString (transaction, 'amountEv'), currency['valueScale']));
+        let amount: Num = this.parseNumber (this.fromEn (this.safeString (transaction, 'amountEv'), currency['valueScale']));
         if (amount === undefined) {
             amount = this.safeNumber (transaction, 'amountRv');
         }
@@ -4691,7 +4691,7 @@ export default class phemex extends Exchange {
         market = this.safeMarket (marketId, market);
         const riskLimits = (market['info']['riskLimits']);
         const tiers = [];
-        let minNotional = 0;
+        let minNotional: Int = 0;
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
             const maxNotional = this.safeInteger (tier, 'limit');
@@ -4826,7 +4826,7 @@ export default class phemex extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const scaledAmmount = this.toEv (amount, currency);
         let direction: Int = undefined;
-        let transfer: TransferEntry = undefined;
+        let transfer: TransferEntry | undefined = undefined;
         if (fromId === 'spot' && toId === 'future') {
             direction = 2;
         } else if (fromId === 'future' && toId === 'spot') {

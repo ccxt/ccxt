@@ -26,6 +26,7 @@ import type {
     Bool,
     Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
+    NullableDict,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
@@ -1450,7 +1451,7 @@ export default class limitless extends Exchange {
                 bucketOrder.push (key);
             } else {
                 const candle = candles[key];
-                candle[2] = Math.max (candle[2], pPrice);
+                candle[2] = Math.max (candle[2], (pPrice === undefined) ? 0 : pPrice);
                 candle[3] = Math.min (candle[3], pPrice);
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
@@ -2772,7 +2773,7 @@ export default class limitless extends Exchange {
         return result;
     }
 
-    getPositionFromClobEntry (label: string, entry: Dict = undefined) {
+    getPositionFromClobEntry (label: string, entry: NullableDict = undefined) {
         if (entry === undefined) {
             return undefined;
         }

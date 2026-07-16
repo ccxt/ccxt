@@ -406,26 +406,26 @@ class MarketInterface(TypedDict):
     active: Bool
     type: Str
     subType: Str
-    spot: bool
-    margin: bool
+    spot: Bool
+    margin: Bool
     marginModes: MarketMarginModes
-    swap: bool
-    future: bool
-    option: bool
-    contract: bool
+    swap: Bool
+    future: Bool
+    option: Bool
+    contract: Bool
     settle: Str
     settleId: Str
     contractSize: Num
-    linear: bool
-    inverse: bool
+    linear: Bool
+    inverse: Bool
     expiry: Num
     expiryDatetime: Str
     strike: Num
     optionType: Str
     taker: Num
     maker: Num
-    percentage: bool
-    tierBased: bool
+    percentage: Bool
+    tierBased: Bool
     feeSide: Str
     precision: Precision
     limits: MarketLimits

@@ -4,7 +4,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Fee , NullableDict} from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -1112,7 +1112,7 @@ export default class backpack extends backpackRest {
         const amount = this.safeString (order, 'q');
         const cost = this.safeString (order, 'Z');
         const filled = this.safeString (order, 'l');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCurrency = this.safeString (order, 'N');
         if (feeCurrency !== undefined) {
             fee = {
@@ -1304,9 +1304,9 @@ export default class backpack extends backpackRest {
         const contracts = this.safeString (position, 'Q');
         const markPrice = this.safeString (position, 'M');
         const netQuantity = this.safeNumber (position, 'q');
-        let hedged = false;
-        let side = 'long';
-        if (netQuantity < 0) {
+        let hedged: Bool = false;
+        let side: Str = 'long';
+        if (netQuantity !== undefined && netQuantity < 0) {
             side = 'short';
         }
         if (netQuantity === undefined) {

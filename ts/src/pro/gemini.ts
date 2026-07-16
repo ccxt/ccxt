@@ -518,7 +518,7 @@ export default class gemini extends geminiRest {
         client.resolve (bidsAsksDict, messageHash);
     }
 
-    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[] = undefined, params = {}) {
+    async helperForWatchMultipleConstruct (itemHashName:string, symbols: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

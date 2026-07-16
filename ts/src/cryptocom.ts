@@ -1697,13 +1697,13 @@ export default class cryptocom extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = this.editOrderRequest (id, symbol, (amount as number), price, params);
+        const request = this.editOrderRequest (id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder (request);
         const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: string, symbol: string, amount: number, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: string, amount: Num, price: Num = undefined, params = {}) {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;

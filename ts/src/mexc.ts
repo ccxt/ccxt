@@ -5413,7 +5413,7 @@ export default class mexc extends Exchange {
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry | undefined> {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();

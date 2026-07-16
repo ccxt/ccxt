@@ -940,7 +940,7 @@ export default class woofipro extends woofiproRest {
                 if (fees !== undefined) {
                     parsed['fees'] = fees;
                 }
-                parsed['trades'] = this.safeList (order, 'trades');
+                parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }

@@ -571,7 +571,7 @@ export default class cryptocom extends cryptocomRest {
             subMessageHashes.push ('ticker.' + marketId);
             messageHashes.push ('unsubscribe:ticker:' + symbol);
         }
-        return await this.unWatchPublicMultiple ('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params);
+        return await this.unWatchPublicMultiple ('ticker', (symbols || []), messageHashes, subMessageHashes, subMessageHashes, params);
     }
 
     handleTicker (client: Client, message) {

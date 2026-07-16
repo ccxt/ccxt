@@ -549,7 +549,7 @@ export default class hibachi extends Exchange {
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side: Str = undefined;
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         let orderType: Str = undefined;
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -870,7 +870,9 @@ export default class hibachi extends Exchange {
 
     createOrderRequest (nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const feeRate = Math.max (this.safeNumber (market, 'taker', this.safeNumber (this.options, 'defaultTakerFee', 0.00045)), this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015)));
+        const takerFee = this.safeNumber (market, 'taker', this.safeNumber (this.options, 'defaultTakerFee', 0.00045));
+        const makerFee = this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015));
+        const feeRate = Math.max ((takerFee === undefined) ? 0 : takerFee, (makerFee === undefined) ? 0 : makerFee);
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -993,7 +995,9 @@ export default class hibachi extends Exchange {
 
     editOrderRequest (nonce: number, id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
+        const takerFee = this.safeNumber (market, 'taker', 0);
+        const makerFee = this.safeNumber (market, 'maker', 0);
+        const feeRate = Math.max ((takerFee === undefined) ? 0 : takerFee, (makerFee === undefined) ? 0 : makerFee);
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
@@ -1423,7 +1427,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades, market, since, limit, params);
+        return this.parseTrades (trades || [], market, since, limit, params);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1841,7 +1845,7 @@ export default class hibachi extends Exchange {
         let type: Str = undefined;
         let direction: Str = undefined;
         let amount: Num = undefined;
-        let fee: Fee = undefined;
+        let fee: NullableDict = undefined;
         let referenceId: Str = undefined;
         let referenceAccount: Str = undefined;
         let status: Str = undefined;
@@ -1997,7 +2001,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory');
-        const rows = this.arrayConcat (rowsCapitalHistory, rowsTradingHistory);
+        const rows = this.arrayConcat (rowsCapitalHistory || [], rowsTradingHistory);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 

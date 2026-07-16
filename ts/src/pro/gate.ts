@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, List, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, List, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -1138,7 +1138,7 @@ export default class gate extends gateRest {
             messageHash += ':' + symbol;
         }
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
+        const url = this.getUrlByMarketType (type || 'spot', isInverse);
         const payload = [ marketId ];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -1218,7 +1218,7 @@ export default class gate extends gateRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
+        const url = this.getUrlByMarketType (type || 'spot', isInverse);
         const requiresUid = (type !== 'spot');
         const channelType = this.getSupportedMapping (type, {
             'spot': 'spot',
@@ -1350,7 +1350,7 @@ export default class gate extends gateRest {
             market = this.getMarketFromSymbols (symbols);
         }
         let type = undefined;
-        let query: Dict = undefined;
+        let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
             type = 'swap';
@@ -1368,7 +1368,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
+        const url = this.getUrlByMarketType (type || 'spot', isInverse);
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1527,7 +1527,7 @@ export default class gate extends gateRest {
             symbol = market['symbol'];
         }
         let type = undefined;
-        let query: Dict = undefined;
+        let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
             'spot': 'spot',
@@ -1546,7 +1546,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
+        const url = this.getUrlByMarketType (type || 'spot', isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
@@ -1671,7 +1671,7 @@ export default class gate extends gateRest {
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
-        let query: Dict = undefined;
+        let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         const typeId = this.getSupportedMapping (type, {
             'future': 'futures',
@@ -1681,7 +1681,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type, isInverse);
+        const url = this.getUrlByMarketType (type || 'spot', isInverse);
         const payload = [];
         let messageHash = '';
         if (this.isEmpty (symbols)) {

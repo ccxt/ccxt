@@ -1038,7 +1038,7 @@ export default class deribit extends Exchange {
         };
         let summaries: List = [];
         if ('summaries' in balance) {
-            summaries = this.safeList (balance, 'summaries');
+            summaries = this.safeList (balance, 'summaries', []);
         } else {
             summaries = [ balance ];
         }

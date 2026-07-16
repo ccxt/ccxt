@@ -1899,7 +1899,7 @@ export default class exmo extends Exchange {
             //
         }
         const trades = this.safeList (response, 'trades');
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades || [], market, since, limit);
     }
 
     /**

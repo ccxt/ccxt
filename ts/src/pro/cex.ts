@@ -857,7 +857,7 @@ export default class cex extends cexRest {
         }
         market = this.safeMarket (symbol, market);
         const time = this.safeInteger (order, 'time', this.milliseconds ());
-        let timestamp = time;
+        let timestamp: Int = time;
         if (isTransaction) {
             timestamp = this.parse8601 (time);
         }

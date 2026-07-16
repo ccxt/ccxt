@@ -6998,8 +6998,8 @@ export default class htx extends Exchange {
         let toAccountId = this.convertTypeToAccount (toAccount);
         const toCross = toAccountId === 'cross';
         const fromCross = fromAccountId === 'cross';
-        const toIsolated = this.inArray (toAccountId, this.ids);
-        const fromIsolated = this.inArray (fromAccountId, this.ids);
+        const toIsolated = ((this.ids !== undefined) && this.inArray (toAccountId, this.ids));
+        const fromIsolated = ((this.ids !== undefined) && this.inArray (fromAccountId, this.ids));
         const fromSpot = fromAccountId === 'pro';
         const toSpot = toAccountId === 'pro';
         if (fromSpot && toSpot) {

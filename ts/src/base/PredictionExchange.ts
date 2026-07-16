@@ -82,10 +82,10 @@ export default class PredictionExchange extends BaseExchange {
     }
 
     isPrediction (): boolean {
-        return this.safeBool (this.has, 'prediction', false);
+        return this.safeBool (this.has, 'prediction', false) === true;
     }
 
-    parseSearchQueries (params = {}): Strings {
+    parseSearchQueries (params = {}): string[] {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         const singleQuery = this.safeString (params, 'query');
         if (singleQuery !== undefined) {
@@ -122,7 +122,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new ArgumentsRequired (this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }
 
-    applyEventFetchParams (events: any[], params = {}, queries: string[] = undefined): any[] {
+    applyEventFetchParams (events: any[], params = {}, queries: Strings = undefined): any[] {
         // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
         // so exchanges whose API can't filter natively still support them consistently.
         // every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -206,7 +206,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    filterEventsBySearchIn (events: any[], queries: string[], searchIn: Str = undefined): any[] {
+    filterEventsBySearchIn (events: any[], queries: Strings, searchIn: Str = undefined): any[] {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         let queriesLength = 0;
@@ -242,7 +242,7 @@ export default class PredictionExchange extends BaseExchange {
         return result;
     }
 
-    filterEventsByTags (events: any[], tags: string[] = undefined): any[] {
+    filterEventsByTags (events: any[], tags: Strings = undefined): any[] {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
         let tagsLength = 0;
@@ -1462,7 +1462,7 @@ export default class PredictionExchange extends BaseExchange {
         return result as PredictionPosition;
     }
 
-    safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict = undefined): PredictionOrderBook {
+    safePredictionOrderBook (orderbook: Dict, outcomeObj: Dict | undefined = undefined): PredictionOrderBook {
         // normalize a parsed order book to the prediction shape: replace the unified
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
@@ -1577,7 +1577,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
-    filterByOutcomesSinceLimit (array, outcomes: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomesSinceLimit (array, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }

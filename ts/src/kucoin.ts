@@ -6837,7 +6837,7 @@ export default class kucoin extends Exchange {
         } else {
             trades = this.safeList (data, 'items', []);
         }
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades || [], market, since, limit);
     }
 
     /**
