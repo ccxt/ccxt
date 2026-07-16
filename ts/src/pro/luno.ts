@@ -240,7 +240,7 @@ export default class luno extends lunoRest {
 
     parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
-        const result = [];
+        const result: number[][] = [];
         for (let i = 0; i < bidasks.length; i++) {
             result.push (this.customParseBidAsk (bidasks[i], priceKey, amountKey, thirdKey));
         }

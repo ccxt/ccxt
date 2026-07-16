@@ -3228,12 +3228,12 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        let orders = [];
+        let orders: Dict[] = [];
         const resultDict = this.safeDict (response, 'result');
         if (resultDict !== undefined) {
             orders = this.safeList (resultDict, 'items', []);
         } else {
-            orders = this.safeList (response, 'result');
+            orders = this.safeList (response, 'result') || [];
         }
         return this.parseOrders (orders, market, since, limit);
     }

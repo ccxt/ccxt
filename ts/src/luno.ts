@@ -522,7 +522,7 @@ export default class luno extends Exchange {
         //         ]
         //     }
         //
-        const result = [];
+        const result: any[] = [];
         const markets = this.safeValue (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -596,7 +596,7 @@ export default class luno extends Exchange {
     async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
         const wallets = this.safeValue (response, 'balance', []);
-        const result = [];
+        const result: Account[] = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
             const accountId = this.safeString (account, 'account_id');
@@ -605,7 +605,7 @@ export default class luno extends Exchange {
             result.push ({
                 'id': accountId,
                 'type': undefined,
-                'currency': code,
+                'code': code,
                 'info': account,
             });
         }

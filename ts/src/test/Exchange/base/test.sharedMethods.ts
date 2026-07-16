@@ -588,7 +588,7 @@ function concat (a: any[] = undefined, b: any[] = undefined) {
     } else if (b === undefined) {
         return a;
     } else {
-        const result = [];
+        const result: object[] = [];
         for (let i = 0; i < a.length; i++) {
             result.push (a[i]);
         }

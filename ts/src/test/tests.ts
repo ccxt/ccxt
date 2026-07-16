@@ -895,7 +895,7 @@ class testMainClass {
                 // series filter) is a real bug that only surfaces if the path is actually asserted.
                 // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
                 // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
-                const scopesToTest = [];
+                const scopesToTest: Dict[] = [];
                 if (eventId !== undefined) {
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                     // since eventId is reassigned above. every venue must refetch an event by its own id
@@ -1713,7 +1713,7 @@ class testMainClass {
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
-        let predictionEvents = undefined;
+        let predictionEvents: Dict[] = undefined;
         if (this.predictionTests) {
             predictionEvents = this.loadEventsFromFile (exchangeName);
         }
@@ -1799,7 +1799,7 @@ class testMainClass {
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (predictionEvents !== undefined) {
-            const eventMarkets = [];
+            const eventMarkets: Dict[] = [];
             for (let i = 0; i < predictionEvents.length; i++) {
                 const evMarkets = exchange.safeList (predictionEvents[i], 'markets', []);
                 for (let j = 0; j < evMarkets.length; j++) {

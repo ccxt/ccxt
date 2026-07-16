@@ -777,7 +777,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, method, reqParams = [], params = {}) {
+    async watchPublic (messageHash, method, reqParams: (string | number | boolean | undefined)[] = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request: Dict = {
@@ -847,7 +847,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchPrivate (messageHash, method, reqParams = [], params = {}) {
+    async watchPrivate (messageHash, method, reqParams: (string | number | boolean | undefined)[] = [], params = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];

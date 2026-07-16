@@ -1424,7 +1424,7 @@ export default class htx extends htxRest {
         }
         const avgPrice = this.safeString (order, 'trade_avg_price');
         const rawTrades = this.safeValue (order, 'trade');
-        let typeSideParts = [];
+        let typeSideParts: string[] = [];
         let type = undefined;
         if (typeSide !== undefined) {
             if (typeSide.indexOf ('-') >= 0) {
@@ -1693,7 +1693,7 @@ export default class htx extends htxRest {
             }
             return;
         }
-        const newPositions = [];
+        const newPositions: Position[] = [];
         const positionsByMarginMode = {};
         const timestamp = this.safeInteger (message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
@@ -2726,7 +2726,7 @@ export default class htx extends htxRest {
             takerOrMaker = this.safeStringLower (trade, 'role');
         }
         let type: Str = undefined;
-        let orderTypeParts = [];
+        let orderTypeParts: string[] = [];
         if (orderType !== undefined) {
             orderTypeParts = orderType.split ('-');
             type = this.safeString (orderTypeParts, 1, orderType);

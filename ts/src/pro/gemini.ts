@@ -530,8 +530,8 @@ export default class gemini extends geminiRest {
         if (!firstMarket['spot'] && !firstMarket['linear']) {
             throw new NotSupported (this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
-        const messageHashes = [];
-        const marketIds = [];
+        const messageHashes: string[] = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const messageHash = itemHashName + ':' + symbol;
@@ -896,9 +896,9 @@ export default class gemini extends geminiRest {
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
             const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
-            const orderBookItems = [];
-            const bidaskItems = [];
-            const collectedEventsOfTrades = [];
+            const orderBookItems: Dict[] = [];
+            const bidaskItems: Dict[] = [];
+            const collectedEventsOfTrades: Dict[] = [];
             const eventsLength = events.length;
             for (let i = 0; i < events.length; i++) {
                 const event = events[i];

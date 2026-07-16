@@ -295,7 +295,7 @@ export default class hyperliquid extends Exchange {
                 const nameLower = name.toLowerCase ();
                 if (questionUnderlying && thresholdsRaw && indexStr !== undefined) {
                     const thresholdParts = thresholdsRaw.split (',');
-                    const thresholds = [];
+                    const thresholds: string[] = [];
                     for (let i = 0; i < thresholdParts.length; i++) {
                         const trimmed = thresholdParts[i].trim ();
                         if (trimmed.length > 0) {
@@ -420,7 +420,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        const markets = [];
+        const markets: Market[] = [];
         if (this.outcomes === undefined) {
             this.outcomes = {};
         }
@@ -808,8 +808,8 @@ export default class hyperliquid extends Exchange {
         const levels = this.safeList (response, 'levels', []);
         const rawBids = this.safeList (levels, 0, []);
         const rawAsks = this.safeList (levels, 1, []);
-        const bids = [];
-        const asks = [];
+        const bids: Num[][] = [];
+        const asks: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
             const entry = rawBids[i];
             bids.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
@@ -1003,7 +1003,7 @@ export default class hyperliquid extends Exchange {
         const midsResponse = results[1];
         const balances = this.safeList (response, 'balances', []);
         const mids = this.safeDict (midsResponse, 'mids', midsResponse);
-        const positions = [];
+        const positions: PredictionPosition[] = [];
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i, {});
             const coin = this.safeString (balance, 'coin', '');
@@ -1359,8 +1359,8 @@ export default class hyperliquid extends Exchange {
         const nonce = this.milliseconds ();
         const clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const cancelReq = [];
-        const cancelAction = { 'type': 'cancel', 'cancels': [] };
+        const cancelReq: Dict[] = [];
+        const cancelAction: Dict = { 'type': 'cancel', 'cancels': [] };
         if (clientOrderId !== undefined) {
             const cloids = Array.isArray (clientOrderId) ? clientOrderId : [ clientOrderId ];
             cancelAction['type'] = 'cancelByCloid';
@@ -1399,7 +1399,7 @@ export default class hyperliquid extends Exchange {
                 requestIds = [ clientOrderId ];
             }
         }
-        const orders = [];
+        const orders: PredictionOrder[] = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
             const error = this.safeString (status, 'error');
@@ -1448,7 +1448,7 @@ export default class hyperliquid extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
-        const ordersWithStatus = [];
+        const ordersWithStatus: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
@@ -1826,7 +1826,7 @@ export default class hyperliquid extends Exchange {
         const marketValues = this.toArray (marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
-        const lowerQueries = [];
+        const lowerQueries: string[] = [];
         for (let i = 0; i < queries.length; i++) {
             const queryString = queries[i] as string;
             lowerQueries.push (queryString.toLowerCase ());
@@ -1879,7 +1879,7 @@ export default class hyperliquid extends Exchange {
             parentMarkets.push (mkt);
             groupMap[parentSymbol] = parentMarkets;
         }
-        const events = [];
+        const events: Dict[] = [];
         const groupKeys = Object.keys (groupMap);
         for (let gi = 0; gi < groupKeys.length; gi++) {
             const key = groupKeys[gi];

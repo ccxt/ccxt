@@ -671,7 +671,7 @@ export default class bigone extends Exchange {
         //    ]
         //
         const markets = this.safeList (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseAsset = this.safeDict (market, 'base_asset', {});
@@ -1107,7 +1107,7 @@ export default class bigone extends Exchange {
 
     parseContractBidsAsks (bidsAsks) {
         const bidsAsksKeys = Object.keys (bidsAsks);
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
             const price = bidsAsksKeys[i];
             const amount = bidsAsks[price];
@@ -1748,7 +1748,7 @@ export default class bigone extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const cancelled = this.safeList (data, 'cancelled', []);
         const failed = this.safeList (data, 'failed', []);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelled.length; i++) {
             const orderId = cancelled[i];
             result.push (this.safeOrder ({

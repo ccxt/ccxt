@@ -256,7 +256,7 @@ export default class limitless extends Exchange {
             const totalMarketsCount = this.safeInteger (firstPageResponse, 'totalMarketsCount');
             const firstData = this.safeList (firstPageResponse, 'data', []);
             allRaw = this.arrayConcat (allRaw, firstData);
-            const promises = [];
+            const promises: Promise<Dict>[] = [];
             const cappedPages = Math.ceil (maxMarkets / pageSize);
             const knownTotal = (totalMarketsCount !== undefined) ? totalMarketsCount : 0;
             const allPages = Math.ceil (knownTotal / pageSize);
@@ -584,7 +584,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} raw single-market rows only
      */
     expandGroupRows (rawRows: any[]): any[] {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < rawRows.length; i++) {
             const raw = rawRows[i];
             const rowType = this.safeString (raw, 'marketType');
@@ -833,7 +833,7 @@ export default class limitless extends Exchange {
         const groupId = this.safeString (event, 'address', this.safeString (event, 'groupId', this.safeString (event, 'slug')));
         const endDate = this.safeString (event, 'deadline', this.safeString (event, 'expiresAt'));
         const title = this.safeString (event, 'title', groupId);
-        const markets = [];
+        const markets: Dict[] = [];
         const rawMarkets = this.safeList (event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
         let totalVolume = 0;
@@ -1415,7 +1415,7 @@ export default class limitless extends Exchange {
         }
         // the endpoint returns raw price points, not candles - bucket them into
         // timeframe-aligned candles (single points would carry unaligned timestamps)
-        const pseudoTrades = [];
+        const pseudoTrades: Dict[] = [];
         for (let i = 0; i < history.length; i++) {
             const point = history[i];
             const pointPrice = this.safeNumber (point, 'price');
@@ -1438,7 +1438,7 @@ export default class limitless extends Exchange {
         const sorted = this.sortBy (pseudoTrades, 'timestamp');
         const ms = this.parseTimeframe (timeframe) * 1000;
         const candles: Dict = {};
-        const bucketOrder = [];
+        const bucketOrder: string[] = [];
         for (let i = 0; i < sorted.length; i++) {
             const point = sorted[i];
             const pTs = this.safeInteger (point, 'timestamp');
@@ -1456,7 +1456,7 @@ export default class limitless extends Exchange {
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }
         }
-        const result = [];
+        const result: OHLCV[] = [];
         for (let i = 0; i < bucketOrder.length; i++) {
             result.push (candles[bucketOrder[i]]);
         }
@@ -1685,7 +1685,7 @@ export default class limitless extends Exchange {
         //     }
         //
         const results = this.safeList (response, 'results', []);
-        const found = [];
+        const found: Dict[] = [];
         for (let i = 0; i < results.length; i++) {
             const item = this.safeDict (results, i, {});
             const itemStatus = this.safeString (item, 'status');
@@ -2229,7 +2229,7 @@ export default class limitless extends Exchange {
         rHex = this.padHexToEven (rHex);
         sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');
-        const signedFields = [];
+        const signedFields: string[] = [];
         for (let i = 0; i < fields.length; i++) {
             signedFields.push (fields[i]);
         }
@@ -3021,11 +3021,11 @@ export default class limitless extends Exchange {
     async fetchRawMarketsByTags (tags: string[], params = {}): Promise<any[]> {
         const categoriesResponse = await this.limitlessPublicGetCategories ();
         const categories = (categoriesResponse !== undefined) ? categoriesResponse : [];
-        const wanted = [];
+        const wanted: string[] = [];
         for (let i = 0; i < tags.length; i++) {
             wanted.push (tags[i].toLowerCase ());
         }
-        const categoryIds = [];
+        const categoryIds: string[] = [];
         const categoriesLength = categories.length;
         for (let i = 0; i < categoriesLength; i++) {
             const category = categories[i];

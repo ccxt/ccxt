@@ -66,7 +66,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         let market: Market = undefined;
         let messageHash = messageHashStart;
-        const productIds = [];
+        const productIds: string[] = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash += ':' + market['id'];
@@ -88,14 +88,14 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+    async subscribeMultiple (name, symbols: string[] = [], messageHashStart: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const productIds = [];
+        const messageHashes: string[] = [];
+        const productIds: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market (symbol);
@@ -341,7 +341,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const marketId = marketIds[i];
             messageHashes.push (name + ':' + marketId);

@@ -957,7 +957,7 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const nonce = this.nonce ();
-        const requestOrders = [];
+        const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -978,7 +978,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -1053,7 +1053,7 @@ export default class hibachi extends Exchange {
             await this.loadMarkets ();
         }
         const nonce = this.nonce ();
-        const requestOrders = [];
+        const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const id = this.safeString (rawOrder, 'id');
@@ -1075,7 +1075,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -1136,7 +1136,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        const orders = [];
+        const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const orderRequest = this.cancelOrderRequest (ids[i]);
             orderRequest['action'] = 'cancel';
@@ -1150,7 +1150,7 @@ export default class hibachi extends Exchange {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        const ret = [];
+        const ret: Order[] = [];
         const responseOrders = this.safeList (response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
@@ -2170,7 +2170,7 @@ export default class hibachi extends Exchange {
     }
 
     parseSettlements (settlements, market = undefined) {
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }
@@ -2371,7 +2371,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const data = this.safeList (response, 'data', []);
-        const rates = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeIntegerProduct (entry, 'fundingTimestamp', 1000);

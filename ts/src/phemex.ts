@@ -1033,7 +1033,7 @@ export default class phemex extends Exchange {
         //                     "symbol":"BTCUSDT",
         //                     "steps":"2000K",
         //                     "riskLimits":[
-        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+        //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
         //                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
         //                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
         //                     ]
@@ -1098,7 +1098,7 @@ export default class phemex extends Exchange {
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
         const currenciesByCode = this.indexBy (currencies, 'currency');
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
             const type = this.safeStringLower (market, 'type');
@@ -1215,7 +1215,7 @@ export default class phemex extends Exchange {
         const sides = [ bidsKey, asksKey ];
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
-            const orders = [];
+            const orders: Num[][] = [];
             const bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
@@ -3971,7 +3971,7 @@ export default class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const positions = this.safeValue (data, 'positions', []);
-        const result = [];
+        const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             result.push (this.parsePosition (position));
@@ -4273,7 +4273,7 @@ export default class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeValue (data, 'rows', []);
-        const result = [];
+        const result: FundingHistory[] = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.safeInteger (entry, 'createTime');
@@ -4690,7 +4690,7 @@ export default class phemex extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const riskLimits = (market['info']['riskLimits']);
-        const tiers = [];
+        const tiers: LeverageTier[] = [];
         let minNotional = 0;
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
@@ -4702,7 +4702,7 @@ export default class phemex extends Exchange {
                 'currency': market['settle'],
                 'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeString (tier, 'maintenanceMargin'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': undefined,
                 'info': tier,
             });
@@ -5082,7 +5082,7 @@ export default class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const rates = this.safeValue (data, 'rows');
-        const result = [];
+        const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
             const timestamp = this.safeInteger (item, 'fundingTime');
@@ -5684,7 +5684,7 @@ export default class phemex extends Exchange {
         }
         const data = this.safeValue (response, 'data', {});
         const ranks = this.safeValue (data, 'positions', []);
-        const result = [];
+        const result: ADL[] = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = ranks[i];
             result.push (this.parseADLRank (rank));

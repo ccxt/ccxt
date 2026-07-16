@@ -827,7 +827,7 @@ export default class gate extends gateRest {
         const channel = messageType + '.' + channelName;
         const isWatchTickers = callerMethodName.indexOf ('watchTicker') >= 0;
         const prefix = isWatchTickers ? 'ticker' : 'bidask';
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push (prefix + ':' + symbol);
@@ -848,7 +848,7 @@ export default class gate extends gateRest {
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
         const result = this.safeValue (message, 'result');
-        let results = [];
+        let results: Dict[] = [];
         if (Array.isArray (result)) {
             results = this.safeList (message, 'result', []);
         } else {
@@ -913,7 +913,7 @@ export default class gate extends gateRest {
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.trades';
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('trades:' + symbol);
@@ -945,8 +945,8 @@ export default class gate extends gateRest {
         const market = this.market (symbols[0]);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.trades';
-        const subMessageHashes = [];
-        const messageHashes = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             subMessageHashes.push ('trades:' + symbol);
@@ -1682,7 +1682,7 @@ export default class gate extends gateRest {
         [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
-        const payload = [];
+        const payload: Str[] = [];
         let messageHash = '';
         if (this.isEmpty (symbols)) {
             if (typeId !== 'futures' && !isInverse) {
@@ -1751,7 +1751,7 @@ export default class gate extends gateRest {
         //    }
         //
         const rawLiquidations = this.safeList (message, 'result', []);
-        const newLiquidations = [];
+        const newLiquidations: Liquidation[] = [];
         if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
             this.liquidations = new ArrayCache (limit);

@@ -283,7 +283,7 @@ export default class pacifica extends pacificaRest {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -706,7 +706,7 @@ export default class pacifica extends pacificaRest {
         //     ],
         // }
         //
-        const parsedTickers = [];
+        const parsedTickers: Ticker[] = [];
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
