@@ -24,7 +24,7 @@ import type {
     Strings, PredictionOrderRequest,
     Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
     PredictionEvent, Balances, fetchEventsParams,
-    PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Bool } from '../base/types.js';
+    PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Bool, NullableDict } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../base/errors.js';
 
@@ -2129,7 +2129,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomes = this.safeList (response, 'outcomes', []) as any[];
-        let selectedOutcome: Dict = undefined;
+        let selectedOutcome: NullableDict = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const oc = outcomes[i];
             const currentId = this.safeString (oc, 'id', this.safeString (oc, 'outcomeId'));

@@ -388,7 +388,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    async fetchRawEventsBySearch (queries: any[], params = {}): Promise<any[]> {
+    async fetchRawEventsBySearch (queries: string[], params = {}): Promise<any[]> {
         const resultLimit = this.safeInteger (params, 'limit');
         // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
         // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
@@ -2132,7 +2132,7 @@ export default class polymarket extends Exchange {
         return await this.createOrder (outcome, 'market', 'buy', cost, undefined, request);
     }
 
-    polymarketOrderRawAmounts (side: string, size: number, price: number, tickSize: string, cost: Num = undefined): Dict {
+    polymarketOrderRawAmounts (side: string, size: Num, price: Num, tickSize: string, cost: Num = undefined): Dict {
         const configs: Dict = {
             '0.1': { 'price': 1, 'size': 2, 'amount': 3 },
             '0.01': { 'price': 2, 'size': 2, 'amount': 4 },
@@ -2830,6 +2830,9 @@ export default class polymarket extends Exchange {
             creds = await this.deriveApiKey (params);
         } catch (e) {
             creds = await this.createApiKey (params);
+        }
+        if (creds === undefined) {
+            throw new ExchangeError (this.id + ' createOrDeriveApiKey() returned no credentials');
         }
         return creds;
     }

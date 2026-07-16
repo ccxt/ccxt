@@ -2663,7 +2663,7 @@ export default class derive extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    handleDeriveSubaccountId (methodName: string, params: Dict) {
+    handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
         let derivesubAccountId: Str = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {

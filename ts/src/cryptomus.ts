@@ -611,7 +611,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data || [], market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

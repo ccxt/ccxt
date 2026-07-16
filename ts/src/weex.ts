@@ -1027,7 +1027,7 @@ export default class weex extends Exchange {
                 isInverse = true;
             }
         } else {
-            active = this.safeBool (market, 'enableTrade');
+            active = this.safeBool (market, 'enableTrade', false) === true;
         }
         let amountPrecision = this.safeNumber (market, 'stepSize');
         let pricePrecision = this.safeNumber (market, 'tickSize');
@@ -1526,7 +1526,7 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response || [], market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -3113,7 +3113,7 @@ export default class weex extends Exchange {
             //
             response = await this.contractPrivateGetCapiV3UserTrades (this.extend (request, params));
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response || [], market, since, limit);
     }
 
     /**

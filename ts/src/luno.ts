@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -688,7 +688,7 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (limit !== undefined && limit <= 100) {
             response = await this.publicGetOrderbookTop (this.extend (request, params));
         } else {
@@ -742,7 +742,7 @@ export default class luno extends Exchange {
         const baseFee = this.safeNumber (order, 'fee_base');
         const filled = this.safeString (order, 'base');
         const cost = this.safeString (order, 'counter');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
@@ -1269,7 +1269,7 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }

@@ -8425,7 +8425,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks | undefined> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

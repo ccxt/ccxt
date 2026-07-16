@@ -3596,7 +3596,7 @@ export default class binance extends Exchange {
             const feesType = linear ? 'linear' : 'inverse';
             fees = this.safeDict (this.fees, feesType, {}) as any;
         }
-        let active = (status === 'TRADING');
+        let active: Bool = (status === 'TRADING');
         if (spot) {
             const permissions = this.safeList (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
@@ -3621,7 +3621,7 @@ export default class binance extends Exchange {
                 'isolated': true,
             };
         }
-        let unifiedType: MarketType = undefined;
+        let unifiedType: MarketType | undefined = undefined;
         if (spot) {
             unifiedType = 'spot';
         } else if (swap) {
@@ -5391,7 +5391,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response || [], market, since, limit);
     }
 
     /**
@@ -5410,7 +5410,7 @@ export default class binance extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5510,7 +5510,7 @@ export default class binance extends Exchange {
         }
         request['type'] = uppercaseType;
         const validOrderTypes = this.safeList (market['info'], 'orderTypes');
-        if (!this.inArray (uppercaseType, validOrderTypes)) {
+        if (!this.inArray (uppercaseType, validOrderTypes || [])) {
             if (initialUppercaseType !== uppercaseType) {
                 throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             } else {
@@ -5652,7 +5652,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6797,7 +6797,7 @@ export default class binance extends Exchange {
             }
         } else {
             const validOrderTypes = this.safeList (market['info'], 'orderTypes');
-            if (!this.inArray (uppercaseType, validOrderTypes)) {
+            if (!this.inArray (uppercaseType, validOrderTypes || [])) {
                 if (initialUppercaseType !== uppercaseType) {
                     throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
                 } else {
@@ -8334,7 +8334,7 @@ export default class binance extends Exchange {
             if ((currentTimestamp - startTime) >= oneWeek) {
                 if ((endTime === undefined) && this.safeBool (market, 'linear')) {
                     endTime = this.sum (startTime, oneWeek);
-                    endTime = Math.min (endTime, currentTimestamp);
+                    endTime = Math.min ((endTime === undefined) ? 0 : endTime, (currentTimestamp === undefined) ? 0 : currentTimestamp);
                 }
             }
         }
@@ -8512,7 +8512,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response || [], market, since, limit);
     }
 
     /**
@@ -8778,7 +8778,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response || [], currency, since, limit);
     }
 
     /**
@@ -8916,7 +8916,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
         }
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response || [], currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type: Str = undefined) {
@@ -9957,7 +9957,7 @@ export default class binance extends Exchange {
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    async fetchTradingFees (params = {}): Promise<TradingFees | undefined> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -10536,7 +10536,7 @@ export default class binance extends Exchange {
         const maintenanceMarginString = this.safeString (position, 'maintMargin');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         const entryPriceString = this.safeString (position, 'entryPrice');
-        let entryPrice = this.parseNumber (entryPriceString);
+        let entryPrice: Num = this.parseNumber (entryPriceString);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         const notional = this.parseNumber (notionalStringAbs);
@@ -13735,7 +13735,7 @@ export default class binance extends Exchange {
         //     ]
         //
         const liquidations = this.safeList (response, 'rows', response);
-        return this.parseLiquidations (liquidations, market, since, limit);
+        return this.parseLiquidations (liquidations || [], market, since, limit);
     }
 
     parseLiquidation (liquidation, market: Market = undefined) {
@@ -14989,7 +14989,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseADLRanks (response, symbols);
+        return this.parseADLRanks (response || [], symbols);
     }
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {

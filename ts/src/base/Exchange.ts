@@ -171,13 +171,13 @@ const dynamicImport = async (moduleName: string) => await import (/* webpackIgno
 // ----------------------------------------------------------------------------
 //
 let protobufMexc = undefined;
-let encodeAsAny = undefined;
-let AuthInfo = undefined;
-let Tx = undefined;
-let TxBody = undefined;
-let TxRaw = undefined;
-let SignDoc = undefined;
-let SignMode = undefined;
+let encodeAsAny: ((msg: any) => any) | undefined = undefined;
+let AuthInfo: any = undefined;
+let Tx: any = undefined;
+let TxBody: any = undefined;
+let TxRaw: any = undefined;
+let SignDoc: any = undefined;
+let SignMode: any = undefined;
 // onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
 // lastIndex on the global regex) - profiled neutral vs a function-local literal
 // (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
@@ -257,7 +257,7 @@ export class BaseExchange {
     AbortError: any;
     FetchError: any;
     // native fetch client state (see loadFetchImplementation)
-    fetchImplementationLoading: Promise<any> = undefined;
+    fetchImplementationLoading?: Promise<any>;
     fetchIsNative: boolean = false;
     undiciModule: any = undefined;
     zlibModule: any = undefined;  // node:zlib, for transparent response decompression on the undici.request path
@@ -270,15 +270,15 @@ export class BaseExchange {
     timeout: number = 10000;  // milliseconds
     verbose: boolean = false;
 
-    apiKey: string;
-    secret: string;
-    uid: string;
-    login: string;
-    password: string;
-    privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string;  // a wallet address "0x"-prefixed hexstring
-    token: string;  // reserved for HTTP auth in some cases
-    twofa: string;
+    apiKey!: string;
+    secret!: string;
+    uid!: string;
+    login!: string;
+    password!: string;
+    privateKey!: string;  // a "0x"-prefixed hexstring private key for a wallet
+    walletAddress!: string;  // a wallet address "0x"-prefixed hexstring
+    token!: string;  // reserved for HTTP auth in some cases
+    twofa!: string;
     accountId!: string;
 
     balance: any = {};
@@ -318,10 +318,10 @@ export class BaseExchange {
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response: Str = undefined;
+    last_http_response: string | undefined = undefined;
     last_json_response: any = undefined;
-    last_response_headers!: Dictionary<string> | undefined;
-    last_request_headers!: Dictionary<string> | undefined;
+    last_response_headers: Dictionary<string> | undefined = undefined;
+    last_request_headers: Dictionary<string> | undefined = undefined;
     last_request_body: any = undefined;
     last_request_url: Str = undefined;
     last_request_path: Str = undefined;
@@ -389,9 +389,9 @@ export class BaseExchange {
     ids: Strings = undefined;
     currencies: Currencies = {};
 
-    baseCurrencies!: Dictionary<CurrencyInterface> | undefined;
-    quoteCurrencies!: Dictionary<CurrencyInterface> | undefined;
-    currencies_by_id!: Dictionary<CurrencyInterface> | undefined;
+    baseCurrencies: Dictionary<CurrencyInterface> | undefined = undefined;
+    quoteCurrencies: Dictionary<CurrencyInterface> | undefined = undefined;
+    currencies_by_id: Dictionary<CurrencyInterface> | undefined = undefined;
     codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
@@ -424,7 +424,7 @@ export class BaseExchange {
     socksProxyAgentModuleChecked: boolean = false;
     proxyDictionaries: Dictionary<any> = {};  // proxyUrl -> undici dispatcher (native fetch path) or node-style agent (legacy fetchImplementation / ws paths), distinguished by the 'dispatch' method
     proxyDictionariesMaxSize: number = 8;  // FIFO cap - an undici dispatcher entry holds ~23KB of eagerly-allocated pool state, so rotating-proxy setups would otherwise grow the cache without bound; evicted undici dispatchers are closed gracefully, evicted legacy agents are just dropped (they may still back live ws connections)
-    proxiesModulesLoading: Promise<any> = undefined;
+    proxiesModulesLoading?: Promise<any>;
     alias: boolean = false;
 
     // WS/PRO options
@@ -2058,12 +2058,13 @@ export class BaseExchange {
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
+        const pairId = this.safeInteger (params, 'pairId', 0);
         const tx_builder = new zklink.ContractBuilder (
             accountId,
             0,
             slotId,
             nonce,
-            this.safeInteger (params, 'pairId'),
+            (pairId === undefined) ? 0 : pairId,
             Precise.stringMul (this.safeString (params, 'size'), '1e18'),
             Precise.stringMul (this.safeString (params, 'price'), '1e18'),
             this.safeString (params, 'direction') === 'BUY',
@@ -2090,16 +2091,21 @@ export class BaseExchange {
             const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
             nonce = Precise.stringMod (formattedNonce, formattedUint32);
         }
+        const zkAccountId = this.safeNumber (params, 'zkAccountId', 0);
+        const subAccountId = this.safeNumber (params, 'subAccountId', 0);
+        const receiverSubAccountId = this.safeNumber (params, 'receiverSubAccountId', 0);
+        const tokenId = this.safeNumber (params, 'tokenId', 0);
+        const timestampSeconds = this.safeNumber (params, 'timestampSeconds', 0);
         const tx_builder = new zklink.TransferBuilder (
-            this.safeNumber (params, 'zkAccountId', 0),
+            (zkAccountId === undefined) ? 0 : zkAccountId,
             this.safeString (params, 'receiverAddress'),
-            this.safeNumber (params, 'subAccountId', 0),
-            this.safeNumber (params, 'receiverSubAccountId', 0),
-            this.safeNumber (params, 'tokenId', 0),
+            (subAccountId === undefined) ? 0 : subAccountId,
+            (receiverSubAccountId === undefined) ? 0 : receiverSubAccountId,
+            (tokenId === undefined) ? 0 : tokenId,
             this.safeString (params, 'fee', '0'),
             this.safeString (params, 'amount', '0'),
             this.parseToInt (nonce),
-            this.safeNumber (params, 'timestampSeconds', 0)
+            (timestampSeconds === undefined) ? 0 : timestampSeconds
         );
         const contractor = zklink.newTransfer (tx_builder);
         // const signer = ZkLinkSigner.ethSig(seed);
@@ -2146,7 +2152,8 @@ export class BaseExchange {
         sequence,
         publicKey
     ): string {
-        if (!encodeAsAny) {
+        const encode = encodeAsAny;
+        if (encode === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         if ((Tx === undefined) || (TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined)) {
@@ -2156,7 +2163,7 @@ export class BaseExchange {
             throw new Error ('Public key cannot be undefined');
         }
         const messages = [ message ];
-        const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
+        const encodedMessages = messages.map ((msg) => encode (msg));
         const tx = Tx.fromPartial ({
             'body': TxBody.fromPartial ({
                 'messages': encodedMessages,
@@ -2166,7 +2173,7 @@ export class BaseExchange {
                 'fee': {},
                 'signerInfos': [
                     {
-                        'publicKey': encodeAsAny ({
+                        'publicKey': encode ({
                             'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                             'value': publicKey,
                         }),
@@ -2188,7 +2195,8 @@ export class BaseExchange {
         authenticators,
         fee: any = undefined
     ): [ string, Dict ] {
-        if (!encodeAsAny) {
+        const encode = encodeAsAny;
+        if (encode === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         if ((TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined) || (SignDoc === undefined)) {
@@ -2206,9 +2214,9 @@ export class BaseExchange {
                 'gasLimit': 1000000,
             };
         }
-        const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
+        const encodedMessages = messages.map ((msg) => encode (msg));
         const nonCriticalExtensionOptions = [
-            encodeAsAny ({
+            encode ({
                 'typeUrl': '/dydxprotocol.accountplus.TxExtension',
                 'value': {
                     'selectedAuthenticators': authenticators ?? [],
@@ -2225,7 +2233,7 @@ export class BaseExchange {
             'fee': fee,
             'signerInfos': [
                 {
-                    'publicKey': encodeAsAny ({
+                    'publicKey': encode ({
                         'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                         'value': account.pub_key,
                     }),
@@ -2245,7 +2253,7 @@ export class BaseExchange {
     }
 
     encodeDydxTxRaw (signDoc: Dict, signature: string): string {
-        if (!encodeAsAny) {
+        if (encodeAsAny === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         if (TxRaw === undefined) {
@@ -2989,7 +2997,7 @@ export class BaseExchange {
         this.positions = undefined;
     }
 
-    safeBoolN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: boolean = undefined): boolean | undefined {
+    safeBoolN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -3003,7 +3011,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeBool2 (dictionaryOrList, key1: MaybeIndexType, key2: MaybeIndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool2 (dictionaryOrList, key1: MaybeIndexType, key2: MaybeIndexType, defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -3021,7 +3029,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeBool (dictionaryOrList, key: MaybeIndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool (dictionaryOrList, key: MaybeIndexType, defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -4312,7 +4320,7 @@ export class BaseExchange {
         }, currency);
     }
 
-    safeMarketStructure (market: Dict = undefined): MarketInterface {
+    safeMarketStructure (market: NullableDict = undefined): Market {
         const cleanStructure = {
             'id': undefined,
             'lowercaseId': undefined,
@@ -4396,7 +4404,7 @@ export class BaseExchange {
             }
             return result;
         }
-        return cleanStructure;
+        return this.extend (cleanStructure);
     }
 
     setMarkets (markets, currencies: Currencies = undefined) {
@@ -5654,7 +5662,7 @@ export class BaseExchange {
         };
     }
 
-    prioritizedNetworkAliases (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
+    prioritizedNetworkAliases (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false): Strings {
         /**
          * @method
          * @name Exchange#prioritizedNetworkAliases
@@ -5718,7 +5726,9 @@ export class BaseExchange {
         }
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        const [ preferredChain, alternativeChain ] = this.prioritizedNetworkAliases (networkCode, currencyCode, false);
+        const chainPair = this.prioritizedNetworkAliases (networkCode, currencyCode, false);
+        const preferredChain = (chainPair === undefined) ? networkCode : chainPair[0];
+        const alternativeChain = (chainPair === undefined) ? networkCode : chainPair[1];
         const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
         if (networkId !== undefined) {
             return networkId;
@@ -5754,7 +5764,12 @@ export class BaseExchange {
         }
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        const [ preferredChain, alternativeChain ] = this.prioritizedNetworkAliases (networkCode, currencyCode, true);
+        const chainPair = this.prioritizedNetworkAliases (networkCode, currencyCode, true);
+        if (chainPair === undefined) {
+            return networkCode;
+        }
+        const preferredChain = chainPair[0];
+        const alternativeChain = chainPair[1];
         // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
         // it disambiguates them — trust the direct id→code inversion instead of guessing
         if (currencyCode === undefined) {
@@ -5884,7 +5899,7 @@ export class BaseExchange {
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if (contract && (noSymbols || this.inArray (symbol, symbols))) {
+                if (contract && (noSymbols || ((symbols !== undefined) && this.inArray (symbol, symbols)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -5896,7 +5911,7 @@ export class BaseExchange {
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if (contract && (noSymbols || this.inArray (symbol, symbols))) {
+                if (contract && (noSymbols || ((symbols !== undefined) && this.inArray (symbol, symbols)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -5946,7 +5961,7 @@ export class BaseExchange {
         return position as Position;
     }
 
-    parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
+    parsePositions (positions: any[], symbols: Strings = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result: Position[] = [];
@@ -5964,7 +5979,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
     }
 
-    parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
+    parseADLRanks (ranks: any[], symbols: Strings = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
         ranks = this.toArray (ranks);
         const result: ADL[] = [];
@@ -6258,7 +6273,7 @@ export class BaseExchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
         let retryDelay = 0;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', retryDelay);
-        let fetchData: Dict = undefined;
+        let fetchData: NullableDict = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
             if (fetchDataCacheEnabled) {
@@ -6340,8 +6355,8 @@ export class BaseExchange {
             const trade = trades[i];
             const ts = trade['timestamp'];
             const price = trade['price'];
-            if (ts === undefined) {
-                throw new ExchangeError (this.id + ' buildOHLCVC() missing ts');
+            if ((ts === undefined) || (price === undefined)) {
+                continue;
             }
             if (ts < since) {
                 continue;
@@ -6476,7 +6491,7 @@ export class BaseExchange {
         return this.safeMarketStructure ({ 'symbol': marketId, 'marketId': marketId });
     }
 
-    marketOrNull (symbol: Str = undefined): MarketInterface {
+    marketOrNull (symbol: Str = undefined): Market {
         if (symbol === undefined) {
             return undefined;
         }
@@ -7097,7 +7112,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
-    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: Dict = undefined): boolean {
+    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: NullableDict = undefined): boolean {
         const leverageSuffixes = [
             '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
             'UP', 'DOWN', // exchange-specific (e.g. BLVT)
@@ -7322,12 +7337,12 @@ export class BaseExchange {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
-    filterBySymbolsSinceLimit (array, symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolsSinceLimit (array, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'symbol', symbols, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    parseLastPrices (pricesData, symbols: string[] = undefined, params = {}): LastPrices {
+    parseLastPrices (pricesData, symbols: Strings = undefined, params = {}): LastPrices {
         //
         // the value of tickers is either a dict or a list
         //
@@ -8254,7 +8269,9 @@ export class BaseExchange {
                 if (responseLength === 0) {
                     break;
                 }
-                result = this.arrayConcat (result, response);
+                if (response !== undefined) {
+                    result = this.arrayConcat (result, response);
+                }
                 const last = this.safeDict (response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
@@ -8493,7 +8510,7 @@ export class BaseExchange {
         return optionStructures;
     }
 
-    parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
+    parseMarginModes (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): MarginModes {
         const marginModeStructures = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
@@ -8513,7 +8530,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
     }
 
-    parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
+    parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): Leverages {
         const leverageStructures = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap

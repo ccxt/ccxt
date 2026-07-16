@@ -20,7 +20,7 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
-        let response: OHLCV[] = undefined;
+        let response: any = undefined;
         let success = true;
         try {
             response = await exchange.watchOHLCV (symbol, chosenTimeframeKey, since, limit);

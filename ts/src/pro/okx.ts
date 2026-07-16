@@ -1818,7 +1818,7 @@ export default class okx extends okxRest {
             'instType': 'ANY',
         };
         const channel = 'positions';
-        let newPositions = undefined;
+        let newPositions: Position[] | undefined = undefined;
         if (symbols === undefined) {
             const arg: Dict = {
                 'channel': 'positions',
@@ -1835,7 +1835,7 @@ export default class okx extends okxRest {
             newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
         }
         if (this.newUpdates) {
-            return newPositions;
+            return (newPositions === undefined) ? [] : newPositions;
         }
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }

@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import { Exchange } from '../../ccxt.js';
-import type { Bool, Dict, List, Str, Strings, Currencies, NullableDict } from '../base/types.js';
+import type { Bool, Currencies, Dict, List, NullableDict, Str, Strings } from '../base/types.js';
 
 import {
     // errors
@@ -1718,7 +1718,7 @@ class testMainClass {
             predictionEvents = this.loadEventsFromFile (exchangeName);
         }
         let markets = undefined;
-        let currencies: Currencies = undefined;
+        let currencies: Currencies | undefined = undefined;
         if (predictionEvents === undefined) {
             markets = this.loadMarketsFromFile (exchangeName);
             currencies = this.loadCurrenciesFromFile (exchangeName);
@@ -1795,7 +1795,9 @@ class testMainClass {
             options['secret'] = "";
         }
         const exchange = initExchange (exchangeName, options);
-        exchange.currencies = currencies;
+        if (currencies !== undefined) {
+            exchange.currencies = currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (predictionEvents !== undefined) {

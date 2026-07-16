@@ -961,7 +961,7 @@ export default class cex extends Exchange {
         [ accountName, params ] = this.handleParamString (params, 'account', ''); // default is empty string
         let method: Str = undefined;
         [ method, params ] = this.handleParamString (params, 'method', 'privatePostGetMyWalletBalance');
-        let accountBalance: Dict = undefined;
+        let accountBalance: NullableDict = undefined;
         if (method === 'privatePostGetMyAccountStatusV3') {
             const response = await this.privatePostGetMyAccountStatusV3 (params);
             //
@@ -1640,7 +1640,7 @@ export default class cex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        let transfer: Dict = undefined;
+        let transfer: NullableDict = undefined;
         if (toAccount !== '' && fromAccount !== '') {
             transfer = await this.transferBetweenSubAccounts (code, amount, fromAccount, toAccount, params);
         } else {
@@ -1668,7 +1668,7 @@ export default class cex extends Exchange {
             'accountId': targetAccount,
             'clientTxId': guid,
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (fromMain) {
             response = await this.privatePostDoDepositFundsFromWallet (this.extend (request, params));
         } else {

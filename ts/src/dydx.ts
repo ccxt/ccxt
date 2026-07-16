@@ -853,7 +853,7 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    handlePublicAddress (methodName: string, params: Dict) {
+    handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
         let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
@@ -1445,7 +1445,9 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
-        const orderId = this.createOrderIdFromParts (this.getWalletAddress (), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        const walletAddress = this.getWalletAddress ();
+        const clobPairId = this.safeInteger (marketInfo, 'clobPairId', 0);
+        const orderId = this.createOrderIdFromParts (walletAddress, (subaccountId === undefined) ? 0 : subaccountId, (clientOrderId === undefined) ? 0 : clientOrderId, (orderFlag === undefined) ? 0 : orderFlag, (clobPairId === undefined) ? 0 : clobPairId);
         return [ orderId, this.extend (signingPayload, params) ];
     }
 
@@ -1475,7 +1477,11 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const info = this.safeDict (result, 'response');
-        return this.safeInteger (info, 'last_block_height');
+        const height = this.safeInteger (info, 'last_block_height');
+        if (height === undefined) {
+            throw new ExchangeError (this.id + ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return height;
     }
 
     /**

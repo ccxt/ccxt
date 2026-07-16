@@ -507,7 +507,7 @@ export default class mudrex extends Exchange {
         }
         const priceStep = this.safeString (asset, 'price_step', '0.01');
         const qtyStep = this.safeString (asset, 'quantity_step', '0.001');
-        return {
+        return this.safeMarketStructure ({
             'id': ms,
             'lowercaseId': undefined,
             'symbol': symbol,
@@ -554,7 +554,7 @@ export default class mudrex extends Exchange {
             },
             'info': asset,
             'created': undefined,
-        } as Market;
+        });
     }
 
     /**

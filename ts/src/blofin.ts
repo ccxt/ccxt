@@ -2197,7 +2197,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+    async fetchPosition (symbol: string, params = {}): Promise<Position | undefined> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

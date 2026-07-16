@@ -1215,7 +1215,7 @@ export default class backpack extends Exchange {
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response || [], market, since, limit);
     }
 
     /**
@@ -1304,7 +1304,7 @@ export default class backpack extends Exchange {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
         const orderId = this.safeString (trade, 'orderId');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         let timestamp = this.safeInteger (trade, 'timestamp');
         if (feeAmount !== undefined) {
@@ -1621,7 +1621,7 @@ export default class backpack extends Exchange {
         const tag = this.safeString (transaction, 'platformMemo');
         const feeCost = this.safeNumber (transaction, 'fee');
         const internal = this.safeBool (transaction, 'isInternal', false);
-        let fee: Fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -2227,7 +2227,7 @@ export default class backpack extends Exchange {
         const entryPrice = this.safeString (position, 'entryPrice');
         const markPrice = this.safeString (position, 'markPrice');
         const netCost = this.safeString (position, 'netCost');
-        let hedged = false;
+        let hedged: Bool = false;
         let side: Str = 'long';
         if (Precise.stringLt (netCost, '0')) {
             side = 'short';

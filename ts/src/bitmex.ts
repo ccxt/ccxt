@@ -593,7 +593,7 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
-        const marketExists = this.inArray (symbol, this.symbols);
+        const marketExists = ((this.symbols !== undefined) && this.inArray (symbol, this.symbols));
         if (!marketExists) {
             return this.parseNumber (rawQuantity);
         }
@@ -809,7 +809,7 @@ export default class bitmex extends Exchange {
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        let type: MarketType = undefined;
+        let type: MarketType | undefined = undefined;
         let swap = false;
         let spot = false;
         let future = false;
@@ -1394,7 +1394,7 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let fee: Fee = undefined;
+        let fee: NullableDict = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
@@ -1889,7 +1889,7 @@ export default class bitmex extends Exchange {
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');
@@ -2000,7 +2000,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false);
+            isInverse = this.safeBool (market, 'inverse', false) === true;
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -3160,7 +3160,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let response = undefined;
+        let response: NullableDict = undefined;
         response = await this.publicGetStats (this.extend (request, params));
         //
         //    [

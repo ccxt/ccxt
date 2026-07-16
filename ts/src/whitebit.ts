@@ -3703,7 +3703,7 @@ export default class whitebit extends Exchange {
         //    }
         //
         const records = this.safeList (response, 'records');
-        return this.parseTransactions (records, currency, since, limit);
+        return this.parseTransactions (records || [], currency, since, limit);
     }
 
     /**

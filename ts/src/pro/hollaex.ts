@@ -102,6 +102,9 @@ export default class hollaex extends hollaexRest {
         const channel = this.safeString (message, 'topic');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         const data = this.safeValue (message, 'data');
         const timestamp = this.safeString (data, 'timestamp');
         const timestampMs = this.parse8601 (timestamp);

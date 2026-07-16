@@ -295,11 +295,13 @@ export default class ndax extends ndaxRest {
                 const length = stored.length;
                 if (length && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
+                    const high = (parsed[1] === undefined) ? previous[1] : ((previous[1] === undefined) ? parsed[1] : Math.max (parsed[1], previous[1]));
+                    const low = (parsed[2] === undefined) ? previous[2] : ((previous[2] === undefined) ? parsed[2] : Math.min (parsed[2], previous[2]));
                     stored[length - 1] = [
                         parsed[0],
                         previous[1],
-                        Math.max (parsed[1], previous[1]),
-                        Math.min (parsed[2], previous[2]),
+                        high,
+                        low,
                         parsed[4],
                         this.sum (parsed[5], previous[5]),
                     ];
@@ -431,13 +433,13 @@ export default class ndax extends ndaxRest {
                 timestamp = this.safeInteger (bidask, 2);
             } else {
                 const newTimestamp = this.safeInteger (bidask, 2);
-                timestamp = Math.max (timestamp, newTimestamp);
+                timestamp = Math.max ((timestamp === undefined) ? 0 : timestamp, (newTimestamp === undefined) ? 0 : newTimestamp);
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger (bidask, 0);
             } else {
                 const newNonce = this.safeInteger (bidask, 0);
-                nonce = Math.max (nonce, newNonce);
+                nonce = Math.max ((nonce === undefined) ? 0 : nonce, (newNonce === undefined) ? 0 : newNonce);
             }
             // 0 new, 1 update, 2 remove
             const type = this.safeInteger (bidask, 3);

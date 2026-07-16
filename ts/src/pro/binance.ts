@@ -3428,7 +3428,7 @@ export default class binance extends binanceRest {
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const isSwap = (marketType === 'future' || marketType === 'delivery');
-        let payload: Dict = undefined;
+        let payload: NullableDict = undefined;
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest (id, symbol, type, side, amount, price, params);
         } else if (isSwap) {
@@ -4768,7 +4768,7 @@ export default class binance extends binanceRest {
         const code = this.safeInteger (error, 'code');
         const msg = this.safeString (error, 'msg');
         try {
-            this.handleErrors (code, msg, client.url, '', {}, this.json (error), error, {}, {});
+            this.handleErrors ((code === undefined) ? 0 : code, msg, client.url, '', {}, this.json (error), error, {}, {});
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash

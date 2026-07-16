@@ -6,6 +6,7 @@ import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+;
 import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, Fee, CurrencyInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -1219,7 +1220,7 @@ export default class bitstamp extends Exchange {
         if (costString !== undefined) {
             costString = Precise.stringAbs (costString);
         }
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
@@ -1640,7 +1641,7 @@ export default class bitstamp extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId' ]);
         }
-        let response = undefined;
+        let response: NullableDict = undefined;
         const capitalizedSide = this.capitalize (side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
@@ -1752,7 +1753,7 @@ export default class bitstamp extends Exchange {
         }
         let market: Market = undefined;
         const request: Dict = {};
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -2631,7 +2632,7 @@ export default class bitstamp extends Exchange {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (fromAccount === 'main') {
             request['subAccount'] = toAccount;
             response = await this.privatePostTransferFromMain (this.extend (request, params));

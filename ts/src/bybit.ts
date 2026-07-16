@@ -8910,7 +8910,7 @@ export default class bybit extends Exchange {
             const tier = info[i];
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId);
-            let minNotional = this.parseNumber ('0');
+            let minNotional: Num = this.parseNumber ('0');
             if (i !== 0) {
                 minNotional = this.safeNumber (info[i - 1], 'riskLimitValue');
             }
@@ -9293,7 +9293,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const rawPositions = this.safeList (result, 'list');
-        const positions = this.parsePositions (rawPositions, symbols, params);
+        const positions = this.parsePositions (rawPositions || [], symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 

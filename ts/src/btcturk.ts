@@ -6,7 +6,7 @@ import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, Fee } from './base/types.js';;
 
 //  ---------------------------------------------------------------------------
 
@@ -591,7 +591,7 @@ export default class btcturk extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString2 (trade, 'side', 'orderType');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         const feeAmountString = this.safeString (trade, 'fee');
         if (feeAmountString !== undefined) {
             const feeCurrency = this.safeString (trade, 'denominatorSymbol');
@@ -659,7 +659,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data || [], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1050,7 +1050,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data || [], market, since, limit);
     }
 
     nonce () {

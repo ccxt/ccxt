@@ -4526,7 +4526,7 @@ export default class coinex extends Exchange {
     parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         const tiers: List = [];
         const brackets = this.safeList (info, 'level', []) as List;
-        let minNotional = 0;
+        let minNotional: Num = 0;
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'market');

@@ -9,7 +9,7 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response: Order[] = undefined;
+        let response: any = undefined;
         let success = true;
         try {
             response = await exchange.watchOrders (symbol);

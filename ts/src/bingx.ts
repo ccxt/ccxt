@@ -3410,7 +3410,7 @@ export default class bingx extends Exchange {
             response = this.parseJson (response);
         }
         const data = this.safeDict (response, 'data', {});
-        let result: Dict = {};
+        let result: NullableDict = {};
         if (market['swap']) {
             if (market['inverse']) {
                 result = response;
@@ -6994,7 +6994,7 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
-            let parsedParams: Dict = undefined;
+            let parsedParams: NullableDict = undefined;
             let encodeRequest: Str = undefined;
             if (isJsonContentType) {
                 encodeRequest = this.customEncode (params);

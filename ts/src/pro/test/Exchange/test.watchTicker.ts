@@ -10,7 +10,7 @@ async function testWatchTicker (exchange: Exchange, skippedProperties: object, s
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response: Ticker = undefined;
+        let response: any = undefined;
         let success = true;
         try {
             response = await exchange.watchTicker (symbol);

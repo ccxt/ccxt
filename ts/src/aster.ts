@@ -1575,7 +1575,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerPrice (params);
         } else if (marketType === 'spot') {
@@ -2424,7 +2424,7 @@ export default class aster extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (this.isLinear (marketType, subType)) {
             response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, params));
         } else if (marketType === 'spot') {
@@ -3725,7 +3725,7 @@ export default class aster extends Exchange {
         const maintenanceMarginString = this.safeString (position, 'maintMargin');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         const entryPriceString = this.safeString (position, 'entryPrice');
-        let entryPrice = this.parseNumber (entryPriceString);
+        let entryPrice: Num = this.parseNumber (entryPriceString);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         const notional = this.parseNumber (notionalStringAbs);
