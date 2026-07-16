@@ -954,7 +954,7 @@ export default class hyperliquid extends Exchange {
             const account = this.account ();
             account['total'] = total;
             account['used'] = used;
-            result[coin] = account;
+            this.storeByKey (result, coin, account);
         }
         return this.safeBalance (result);
     }
@@ -1870,14 +1870,14 @@ export default class hyperliquid extends Exchange {
                 }
             }
             if (!(parentSymbol in groupMap)) {
-                groupMap[parentSymbol] = [];
+                this.storeByKey (groupMap, parentSymbol, []);
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = groupMap[parentSymbol] as any[];
+            const parentMarkets = this.safeValue (groupMap, parentSymbol);
             parentMarkets.push (mkt);
-            groupMap[parentSymbol] = parentMarkets;
+            this.storeByKey (groupMap, parentSymbol, parentMarkets);
         }
         const events = [];
         const groupKeys = Object.keys (groupMap);

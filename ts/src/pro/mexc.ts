@@ -350,7 +350,7 @@ export default class mexc extends mexcRest {
                 ticker = this.parseTicker (entry);
             }
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            this.storeByKey (this.tickers, symbol, ticker);
             result.push (ticker);
             const messageHash = 'ticker:' + symbol;
             client.resolve (ticker, messageHash);
@@ -685,11 +685,13 @@ export default class mexc extends mexcRest {
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
@@ -1688,7 +1690,7 @@ export default class mexc extends mexcRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.storeByKey (this.fundingRates, symbol, fundingRate);
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
@@ -1971,7 +1973,7 @@ export default class mexc extends mexcRest {
                 if (splitHashes.length > 4) {
                     symbol += ':' + this.safeString (splitHashes, 3);
                 }
-                if (symbol in this.ohlcvs) {
+                if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
                     delete this.ohlcvs[symbol];
                 }
             } else if (messageHash.indexOf ('orderbook') >= 0) {
@@ -2149,7 +2151,7 @@ export default class mexc extends mexcRest {
             'push.funding.rate': this.handleFundingRate,
         };
         if (channel in methods) {
-            const method = methods[channel];
+            const method = this.safeValue (methods, channel);
             method.call (this, client, message);
         }
     }

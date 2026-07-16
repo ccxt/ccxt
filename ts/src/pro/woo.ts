@@ -231,14 +231,16 @@ export default class woo extends wooRest {
                     }
                 } catch (e) {
                     delete this.orderbooks[symbol];
-                    delete client.subscriptions[topic];
+                    if (topic !== undefined) {
+                        delete client.subscriptions[topic];
+                    }
                     client.reject (e, topic);
                 }
             }
         } else {
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-                const subscription = client.subscriptions[topic];
+                const subscription = this.safeValue (client.subscriptions, topic);
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
@@ -255,9 +257,11 @@ export default class woo extends wooRest {
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            if (symbol !== undefined) {
+                delete this.orderbooks[symbol];
+            }
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.storeByKey (this.orderbooks, symbol, this.orderBook ({}, limit));
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -273,7 +277,7 @@ export default class woo extends wooRest {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.safeValue (this.orderbooks, symbol);
             orderbook.reset (snapshot);
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
@@ -285,10 +289,12 @@ export default class woo extends wooRest {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
             }
-            this.orderbooks[symbol] = orderbook;
+            this.storeByKey (this.orderbooks, symbol, orderbook);
             client.resolve (orderbook, messageHash);
         } catch (e) {
-            delete client.subscriptions[messageHash];
+            if (messageHash !== undefined) {
+                delete client.subscriptions[messageHash];
+            }
             client.reject (e, messageHash);
         }
     }
@@ -590,8 +596,8 @@ export default class woo extends wooRest {
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
-            this.bidsasks[symbol] = parsedTicker;
-            result[symbol] = parsedTicker;
+            this.storeByKey (this.bidsasks, symbol, parsedTicker);
+            this.storeByKey (result, symbol, parsedTicker);
         }
         client.resolve (result, topic);
     }
@@ -707,11 +713,13 @@ export default class woo extends wooRest {
             this.safeFloat (data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         stored.append (parsed);
         client.resolve (stored, topic);
@@ -1495,7 +1503,7 @@ export default class woo extends wooRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.storeByKey (this.fundingRates, symbol, fundingRate);
         const messageHash = this.safeString (message, 'topic');
         client.resolve (fundingRate, messageHash);
     }

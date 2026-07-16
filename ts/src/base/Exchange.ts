@@ -43,7 +43,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, MaybeIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, NullableList } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -163,7 +163,7 @@ const {
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, MaybeIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 //
 const dynamicImport = async (moduleName: string) => await import (/* webpackIgnore: true */ moduleName);
@@ -2967,7 +2967,7 @@ export class BaseExchange {
         this.positions = undefined;
     }
 
-    safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
+    safeBoolN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -2981,7 +2981,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeBool2 (dictionaryOrList, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool2 (dictionaryOrList, key1: MaybeIndexType, key2: MaybeIndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -2999,7 +2999,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeBool (dictionaryOrList, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool (dictionaryOrList, key: MaybeIndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -3013,9 +3013,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
+    safeDictN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDictN (dictionaryOrList, keys: MaybeIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDictN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -3032,9 +3032,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDict (dictionaryOrList, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict (dictionaryOrList, key: IndexType, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
+    safeDict (dictionaryOrList, key: MaybeIndexType, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict (dictionaryOrList, key: MaybeIndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict (dictionaryOrList, key: MaybeIndexType, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -3051,9 +3051,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionaryOrList, key1: MaybeIndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict2 (dictionaryOrList, key1: MaybeIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict2 (dictionaryOrList, key1: MaybeIndexType, key2: string, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -3071,9 +3071,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[]): any[];
-    safeListN (dictionaryOrList, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
-    safeListN (dictionaryOrList, keys: IndexType[], defaultValue: NullableList = undefined): any[] | undefined {
+    safeListN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: any[]): any[];
+    safeListN (dictionaryOrList, keys: MaybeIndexType[], defaultValue?: any[]): any[] | undefined;
+    safeListN (dictionaryOrList, keys: MaybeIndexType[], defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -3094,9 +3094,9 @@ export class BaseExchange {
         return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
-    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: any[]): any[];
-    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
-    safeList2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: NullableList = undefined): any[] | undefined {
+    safeList2 (dictionaryOrList, key1: MaybeIndexType, key2: string, defaultValue: any[]): any[];
+    safeList2 (dictionaryOrList, key1: MaybeIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
+    safeList2 (dictionaryOrList, key1: MaybeIndexType, key2: string, defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -3114,9 +3114,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeList (dictionaryOrList, key: IndexType, defaultValue: any[]): any[];
-    safeList (dictionaryOrList, key: IndexType, defaultValue?: any[]): any[] | undefined;
-    safeList (dictionaryOrList, key: IndexType, defaultValue: NullableList = undefined): any[] | undefined {
+    safeList (dictionaryOrList, key: MaybeIndexType, defaultValue: any[]): any[];
+    safeList (dictionaryOrList, key: MaybeIndexType, defaultValue?: any[]): any[] | undefined;
+    safeList (dictionaryOrList, key: MaybeIndexType, defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -3131,6 +3131,19 @@ export class BaseExchange {
             return value;
         }
         return defaultValue;
+    }
+
+
+    storeByKey (dict, key: MaybeIndexType, value) {
+        /**
+         * @ignore
+         * @method
+         * @description store value under key if key is defined (no-op on undefined)
+         */
+        const k = key;
+        if (k !== undefined) {
+            dict[k] = value;
+        }
     }
 
     handleDeltas (orderbook, deltas) {
@@ -3836,13 +3849,13 @@ export class BaseExchange {
         return !this.valueIsDefined (value) || value === '';
     }
 
-    safeNumberOmitZero (obj: object, key: IndexType, defaultValue: Num = undefined): Num {
+    safeNumberOmitZero (obj: object, key: MaybeIndexType, defaultValue: Num = undefined): Num {
         const value = this.safeString (obj, key);
         const final = this.parseNumber (this.omitZero (value));
         return (final === undefined) ? defaultValue : final;
     }
 
-    safeIntegerOmitZero (obj: object, key: IndexType, defaultValue: Int = undefined): Int {
+    safeIntegerOmitZero (obj: object, key: MaybeIndexType, defaultValue: Int = undefined): Int {
         const timestamp = this.safeInteger (obj, key, defaultValue);
         if (timestamp === undefined || timestamp === 0) {
             return undefined;
@@ -5722,7 +5735,7 @@ export class BaseExchange {
         return chosenNetworkId;
     }
 
-    safeNumber2 (dictionary: object, key1: IndexType, key2: IndexType, d = undefined) {
+    safeNumber2 (dictionary: object, key1: MaybeIndexType, key2: MaybeIndexType, d = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
     }
@@ -7042,12 +7055,12 @@ export class BaseExchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj, key: IndexType, defaultNumber: Num = undefined): Num {
+    safeNumber (obj, key: MaybeIndexType, defaultNumber: Num = undefined): Num {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (obj: object, arr: IndexType[], defaultNumber: Num = undefined): Num {
+    safeNumberN (obj: object, arr: MaybeIndexType[], defaultNumber: Num = undefined): Num {
         const value = this.safeStringN (obj, arr);
         return this.parseNumber (value, defaultNumber);
     }
@@ -7309,7 +7322,7 @@ export class BaseExchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const parsed = this.parseFundingRate (entry);
-            fundingRates[parsed['symbol']] = parsed;
+            this.storeByKey (fundingRates, parsed['symbol'], parsed);
         }
         return this.filterByArray (fundingRates, 'symbol', symbols);
     }
@@ -7483,7 +7496,7 @@ export class BaseExchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const parsed = this.parseOpenInterest (entry);
-            result[parsed['symbol']] = parsed;
+            this.storeByKey (result, parsed['symbol'], parsed);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }

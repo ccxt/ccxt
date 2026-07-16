@@ -6,6 +6,8 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
+// nullable dict/list key for safe* lookups (undefined short-circuits in prop)
+export type MaybeIndexType = IndexType | undefined;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';

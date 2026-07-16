@@ -910,7 +910,7 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            this.storeByKey (result, symbol, ticker);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }

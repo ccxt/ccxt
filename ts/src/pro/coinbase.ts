@@ -465,7 +465,7 @@ export default class coinbase extends coinbaseRest {
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
                 const symbol = result['symbol'];
-                this.tickers[symbol] = result;
+                this.storeByKey (this.tickers, symbol, result);
                 newTickers.push (result);
                 const messageHash = channel + '::' + symbol;
                 client.resolve (result, messageHash);
@@ -867,7 +867,7 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
-            const orderbookSide = orderbook[side];
+            const orderbookSide = this.safeValue (orderbook, side);
             orderbookSide.store (price, amount);
         }
     }

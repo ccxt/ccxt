@@ -354,7 +354,7 @@ export default class woofipro extends woofiproRest {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            this.tickers[ticker['symbol']] = ticker;
+            this.storeByKey (this.tickers, ticker['symbol'], ticker);
             result.push (ticker);
         }
         client.resolve (result, topic);
@@ -447,13 +447,15 @@ export default class woofipro extends woofiproRest {
             this.safeNumber (data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe];
+        const ohlcvCache = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         ohlcvCache.append (parsed);
         client.resolve (ohlcvCache, topic);
     }

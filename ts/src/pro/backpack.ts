@@ -123,8 +123,8 @@ export default class backpack extends backpackRest {
                 const splitHashes = messageHash.split (':');
                 const symbol = this.safeString (splitHashes, 2);
                 const timeframe = this.safeString (splitHashes, 3);
-                if (symbol in this.ohlcvs) {
-                    if (timeframe in this.ohlcvs[symbol]) {
+                if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
+                    if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
                 }
@@ -569,12 +569,14 @@ export default class backpack extends backpackRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const parsed = this.parseWsOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + symbol + ':' + timeframe;

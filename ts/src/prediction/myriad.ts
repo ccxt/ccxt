@@ -2618,7 +2618,7 @@ export default class myriad extends Exchange {
         const future = this.watch (url, messageHash, subscribeMsg, channel);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve (this.orderbooks[sym], messageHash);
+            client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
         const orderbook = await future;
         return orderbook.limit ();
@@ -3116,7 +3116,7 @@ export default class myriad extends Exchange {
             const balances = this.safeDict (this.options, 'positionBalances', {});
             const prior = this.safeString (balances, posId, '0');
             const updated = Precise.stringAdd (prior, deltaShares);
-            balances[posId] = updated;
+            this.storeByKey (balances, posId, updated);
             this.options['positionBalances'] = balances;
             contracts = this.parseNumber (updated);
         }

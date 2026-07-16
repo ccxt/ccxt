@@ -516,7 +516,7 @@ export default class gate extends gateRest {
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.storeByKey (this.orderbooks, symbol, this.orderBook ({}, limit));
     }
 
     handleNewSpotOrderBook (client: Client, message) {
@@ -863,9 +863,9 @@ export default class gate extends gateRest {
             const parsedItem = this.parseTicker (rawTicker, market);
             const symbol = parsedItem['symbol'];
             if (isTicker) {
-                this.tickers[symbol] = parsedItem;
+                this.storeByKey (this.tickers, symbol, parsedItem);
             } else {
-                this.bidsasks[symbol] = parsedItem;
+                this.storeByKey (this.bidsasks, symbol, parsedItem);
             }
             const messageHash = objectName + ':' + symbol;
             client.resolve (parsedItem, messageHash);
@@ -997,7 +997,7 @@ export default class gate extends gateRest {
             if (cachedTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 cachedTrades = new ArrayCache (limit);
-                this.trades[symbol] = cachedTrades;
+                this.storeByKey (this.trades, symbol, cachedTrades);
             }
             cachedTrades.append (trade);
             const hash = 'trades:' + symbol;
@@ -1077,11 +1077,13 @@ export default class gate extends gateRest {
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV (ohlcv);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                if (symbol !== undefined && timeframe !== undefined) {
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
             }
             stored.append (parsed);
             marketIds[symbol] = timeframe;
@@ -1187,7 +1189,7 @@ export default class gate extends gateRest {
             const trade = parsed[i];
             cachedTrades.append (trade);
             const symbol = trade['symbol'];
-            marketIds[symbol] = true;
+            this.storeByKey (marketIds, symbol, true);
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1381,7 +1383,7 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[type], symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.safeValue (this.positions, type), symbols, since, limit, true);
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
@@ -1624,7 +1626,7 @@ export default class gate extends gateRest {
             stored.append (parsed);
             const symbol = parsed['symbol'];
             const market = this.market (symbol);
-            marketIds[market['id']] = true;
+            this.storeByKey (marketIds, market['id'], true);
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1929,7 +1931,9 @@ export default class gate extends gateRest {
             method.call (this, client, message, subscription);
         }
         if (id in client.subscriptions) {
-            delete client.subscriptions[id];
+            if (id !== undefined) {
+                delete client.subscriptions[id];
+            }
         }
     }
 

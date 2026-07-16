@@ -494,7 +494,7 @@ export default class phemex extends phemexRest {
             const messageHash = 'kline:' + timeframe + ':' + symbol;
             const ohlcvs = this.parseOHLCVs (candles, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -955,7 +955,7 @@ export default class phemex extends phemexRest {
             if (type === undefined) {
                 type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
             }
-            marketIds[symbol] = true;
+            this.storeByKey (marketIds, symbol, true);
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1497,8 +1497,10 @@ export default class phemex extends phemexRest {
         // }
         const id = this.safeString (message, 'id');
         if (id in client.subscriptions) {
-            const method = client.subscriptions[id];
-            delete client.subscriptions[id];
+            const method = this.safeValue (client.subscriptions, id);
+            if (id !== undefined) {
+                delete client.subscriptions[id];
+            }
             if (method !== true) {
                 method.call (this, client, message);
                 return;

@@ -943,7 +943,7 @@ export default class xt extends xtRest {
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);

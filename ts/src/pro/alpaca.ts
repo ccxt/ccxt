@@ -104,8 +104,8 @@ export default class alpaca extends alpacaRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve (this.tickers[symbol], messageHash);
+        this.storeByKey (this.tickers, symbol, ticker);
+        client.resolve (this.safeValue (this.tickers, symbol), messageHash);
     }
 
     parseTicker (ticker, market = undefined): Ticker {

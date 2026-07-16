@@ -1096,7 +1096,7 @@ export default class digifinex extends Exchange {
             }, tickers[i]);
             const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            this.storeByKey (result, symbol, ticker);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }

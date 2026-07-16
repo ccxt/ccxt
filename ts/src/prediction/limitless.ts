@@ -1164,13 +1164,13 @@ export default class limitless extends Exchange {
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
             if (!(slug in outcomesBySlug)) {
-                outcomesBySlug[slug] = [];
+                this.storeByKey (outcomesBySlug, slug, []);
                 slugs.push (slug);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesBySlug[slug];
+            const grouped = this.safeValue (outcomesBySlug, slug);
             grouped.push (outcomeObj);
-            outcomesBySlug[slug] = grouped;
+            this.storeByKey (outcomesBySlug, slug, grouped);
         }
         const promises: any[] = [];
         for (let i = 0; i < slugs.length; i++) {

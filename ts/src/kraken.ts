@@ -683,7 +683,7 @@ export default class kraken extends Exchange {
             const spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
             if (spot && (base in cachedCurrencies)) {
-                const currency = cachedCurrencies[base];
+                const currency = this.safeValue (cachedCurrencies, base);
                 const currencyPrecision = this.safeNumber (currency, 'precision');
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision > precisionAmount) {
@@ -871,7 +871,7 @@ export default class kraken extends Exchange {
             if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
                 code = this.safeCurrencyCode (altName);
                 // also, add map in commonCurrencies:
-                this.commonCurrencies[id] = code;
+                this.storeByKey (this.commonCurrencies, id, code);
             } else {
                 code = this.safeCurrencyCode (id);
             }
@@ -1152,7 +1152,7 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = response['result'][market['id']];
+        const ticker = this.safeValue (response['result'], market['id']);
         return this.parseTicker (ticker, market);
     }
 
@@ -1585,7 +1585,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = response['result'];
-        const trades = result[id];
+        const trades = this.safeValue (result, id);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1613,7 +1613,7 @@ export default class kraken extends Exchange {
             const account = this.account ();
             account['used'] = this.safeString (balance, 'hold_trade');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

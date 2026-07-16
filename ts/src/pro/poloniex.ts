@@ -619,12 +619,14 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                if (symbol !== undefined && timeframe !== undefined) {
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
             }
             stored.append (parsed);
             client.resolve (stored, messageHash);
@@ -663,7 +665,7 @@ export default class poloniex extends poloniexRest {
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache (tradesLimit);
-                    this.trades[symbol] = tradesArray;
+                    this.storeByKey (this.trades, symbol, tradesArray);
                 }
                 tradesArray.append (trade);
                 client.resolve (tradesArray, messageHash);
@@ -1028,8 +1030,8 @@ export default class poloniex extends poloniexRest {
             if (marketId !== undefined) {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-                newTickers[symbol] = ticker;
+                this.storeByKey (this.tickers, symbol, ticker);
+                this.storeByKey (newTickers, symbol, ticker);
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');

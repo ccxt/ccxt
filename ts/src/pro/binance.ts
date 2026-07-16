@@ -220,7 +220,7 @@ export default class binance extends binanceRest {
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
-            this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+            this.storeByKey (this.options['streamBySubscriptionsHash'], subscriptionHash, stream);
             const subscriptionsByStreams = this.safeValue (this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
                 this.options['numSubscriptionsByStream'] = this.createSafeDictionary ();
@@ -929,7 +929,7 @@ export default class binance extends binanceRest {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
-            const orderbook = this.orderbooks[symbol];
+            const orderbook = this.safeValue (this.orderbooks, symbol);
             orderbook.reset (snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
@@ -959,7 +959,7 @@ export default class binance extends binanceRest {
                     }
                 }
             }
-            this.orderbooks[symbol] = orderbook;
+            this.storeByKey (this.orderbooks, symbol, orderbook);
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];
@@ -1736,11 +1736,13 @@ export default class binance extends binanceRest {
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][unifiedTimeframe] = stored;
+            if (symbol !== undefined && unifiedTimeframe !== undefined) {
+                this.ohlcvs[symbol][unifiedTimeframe] = stored;
+            }
         }
         stored.append (parsed);
         const resolveData = [ symbol, unifiedTimeframe, stored ];
@@ -2425,11 +2427,11 @@ export default class binance extends binanceRest {
             }
             const parsedTicker = this.parseWsTicker (ticker, marketType);
             const symbol = parsedTicker['symbol'];
-            newTickers[symbol] = parsedTicker;
+            this.storeByKey (newTickers, symbol, parsedTicker);
             if (isBidAsk) {
-                this.bidsasks[symbol] = parsedTicker;
+                this.storeByKey (this.bidsasks, symbol, parsedTicker);
             } else {
-                this.tickers[symbol] = parsedTicker;
+                this.storeByKey (this.tickers, symbol, parsedTicker);
             }
             const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
             resolvedMessageHashes.push (messageHash);

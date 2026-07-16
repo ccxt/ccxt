@@ -973,7 +973,7 @@ export default class deribit extends Exchange {
                 if (parsedMarketValue) {
                     continue;
                 }
-                parsedMarkets[symbol] = true;
+                this.storeByKey (parsedMarkets, symbol, true);
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
                 result.push ({
@@ -1431,7 +1431,7 @@ export default class deribit extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            this.storeByKey (tickers, symbol, ticker);
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
