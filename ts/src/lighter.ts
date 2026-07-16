@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -1296,7 +1296,7 @@ export default class lighter extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'asset_id');
         const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'symbol'));
         const decimals = this.safeString (rawCurrency, 'decimals');
@@ -3077,7 +3077,7 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an marginMode parameter');
         }
         let leverage: Int = undefined;
-        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 'leverage');
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage');
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an leverage parameter');
         }

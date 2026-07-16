@@ -6,7 +6,7 @@ import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict, CurrencyInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -525,7 +525,7 @@ export default class digifinex extends Exchange {
         return this.parseCurrencies (values);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const networkEntries = rawCurrency as Dict[];
         const firstEntry = this.safeDict (networkEntries, 0, {}); // it must have at least one entry
         const id = this.safeString (firstEntry, 'currency');
@@ -766,6 +766,9 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market');
+            if (id === undefined) {
+                throw new ExchangeError (this.id + ' fetchMarketsV1() missing id');
+            }
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1360,6 +1363,9 @@ export default class digifinex extends Exchange {
                 side = 'buy';
             }
         } else {
+            if (side === undefined) {
+                throw new ExchangeError (this.id + ' parseTrade() returned no side');
+            }
             const parts = side.split ('_');
             side = this.safeString (parts, 0);
             type = this.safeString (parts, 1);
@@ -1605,6 +1611,9 @@ export default class digifinex extends Exchange {
                             request['end_time'] = endByUntil;
                         }
                     } else {
+                        if (limit === undefined) {
+                            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a limit argument');
+                        }
                         request['end_time'] = this.sum (startTime, limit * duration);
                     }
                 }
@@ -3950,6 +3959,9 @@ export default class digifinex extends Exchange {
         const request: Dict = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
+            if (currency === undefined) {
+                throw new ExchangeError (this.id + ' fetchTransfers() could not resolve currency');
+            }
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {

@@ -848,6 +848,9 @@ export default class hyperliquid extends Exchange {
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
             startTime = this.sum (until, startOffset);
+            if (startTime === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing startTime');
+            }
             if (startTime < 0) {
                 startTime = 0;
             }
@@ -1826,6 +1829,9 @@ export default class hyperliquid extends Exchange {
         const marketValues = this.toArray (marketsDict);
         // Group markets by parentSymbol
         const groupMap = {};
+        if (queries === undefined) {
+            throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+        }
         const lowerQueries: string[] = [];
         for (let i = 0; i < queries.length; i++) {
             const queryString = queries[i] as string;
@@ -1868,6 +1874,9 @@ export default class hyperliquid extends Exchange {
                 if (!matches) {
                     continue;
                 }
+            }
+            if (parentSymbol === undefined) {
+                throw new ExchangeError (this.id + ' fetchEvents() missing parentSymbol');
             }
             if (!(parentSymbol in groupMap)) {
                 this.storeByKey (groupMap, parentSymbol, []);
@@ -1966,6 +1975,9 @@ export default class hyperliquid extends Exchange {
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
         let decimals = 4;
+        if (prec === undefined) {
+            throw new ExchangeError (this.id + ' amountToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
@@ -1976,6 +1988,9 @@ export default class hyperliquid extends Exchange {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
+        if (prec === undefined) {
+            throw new ExchangeError (this.id + ' priceToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }

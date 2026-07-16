@@ -678,6 +678,9 @@ export default class pacifica extends Exchange {
         let maxLeverage: Int = undefined;
         let crossMargin: Bool = undefined;
         let isolatedMargin: Bool = undefined;
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         if (isSpot) {
             const idParts = id.split ('-');
             quoteId = this.safeString (idParts, 1, quoteId);

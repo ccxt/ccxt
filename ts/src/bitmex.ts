@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Fee, Bool, List, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, CurrencyInterface, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Fee, Bool, List, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -471,7 +471,7 @@ export default class bitmex extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const asset = this.safeString (currency, 'asset');
         const code = this.safeCurrencyCode (asset);
         const id = this.safeString (currency, 'currency');
@@ -2418,6 +2418,9 @@ export default class bitmex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const request: Dict = {
             'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
         };
@@ -2854,6 +2857,9 @@ export default class bitmex extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         if (symbol in this.currencies) {
             const code = this.currency (symbol);
             request['symbol'] = code['id'];
@@ -3742,6 +3748,9 @@ export default class bitmex extends Exchange {
                 'api-key': this.apiKey,
             };
             expires = this.sum (this.seconds (), expires);
+            if (expires === undefined) {
+                throw new ExchangeError (this.id + ' sign() missing expires');
+            }
             const stringExpires = expires.toString ();
             auth += stringExpires;
             headers['api-expires'] = stringExpires;

@@ -505,6 +505,9 @@ export default class dydx extends Exchange {
         //
         const quoteId = 'USDC';
         const marketId = this.safeString (market, 'ticker');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('-');
         const baseName = this.safeString (parts, 0);
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -1317,6 +1320,9 @@ export default class dydx extends Exchange {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase ();
         let subaccountId = 0;
         [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
@@ -1390,6 +1396,9 @@ export default class dydx extends Exchange {
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
+                if (latestBlockHeight === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing latestBlockHeight');
+                }
                 goodTillBlock = latestBlockHeight + 20;
             }
         } else {
@@ -1866,6 +1875,9 @@ export default class dydx extends Exchange {
         }
         const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);
+        if (feeAmount === undefined) {
+            throw new ExchangeError (this.id + ' estimateTxFee() missing feeAmount');
+        }
         if (feeAmount.indexOf ('.') >= 0) {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }

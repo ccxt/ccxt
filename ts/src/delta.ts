@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Greeks, Int, Market, MarketInterface, MarketType, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, MarketType, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -575,7 +575,7 @@ export default class delta extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const numericId = this.safeInteger (rawCurrency, 'id');
         const code = this.safeCurrencyCode (id);
@@ -1643,6 +1643,9 @@ export default class delta extends Exchange {
         if (since === undefined) {
             const end = untilIsDefined ? until : this.seconds ();
             request['end'] = end;
+            if (end === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
+            }
             request['start'] = end - limit * duration;
         } else {
             const start = this.parseToInt (since / 1000);

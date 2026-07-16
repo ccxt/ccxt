@@ -6,7 +6,7 @@ import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, Fee } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, Fee, CurrencyInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -842,15 +842,21 @@ export default class bitstamp extends Exchange {
         return finalResult;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const market = rawCurrency;
         const existing = this.safeDict (this.options, '_temp_currencies_result', {});
         const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const description = this.safeString (market, 'description');
+        if (description === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing description');
+        }
         const [ baseDescription, quoteDescription ] = description.split (' / ');
         const minimumOrder = this.safeString (market, 'minimum_order_value');
+        if (minimumOrder === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing minimumOrder');
+        }
         const parts = minimumOrder.split (' ');
         const cost = parts[0];
         if (!(base in existing)) {
@@ -900,6 +906,9 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        if (microtimestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrderBook() missing microtimestamp');
+        }
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
@@ -2645,6 +2654,9 @@ export default class bitstamp extends Exchange {
         //    { status: 'ok' }
         //
         const status = this.safeString (transfer, 'status');
+        if (currency === undefined) {
+            throw new ExchangeError (this.id + ' parseTransfer() could not resolve currency');
+        }
         const result: Dict = {
             'info': transfer,
             'id': undefined,

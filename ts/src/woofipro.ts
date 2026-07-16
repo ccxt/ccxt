@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -541,6 +541,9 @@ export default class woofipro extends Exchange {
         //   }
         //
         const marketId = this.safeString (market, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('_');
         const marketType = 'swap';
         const baseId = this.safeString (parts, 1);
@@ -695,12 +698,15 @@ export default class woofipro extends Exchange {
         for (let i = 0; i < tokenRows.length; i++) {
             const token = tokenRows[i];
             const parsed = this.parseCurrency ({ '_token': token, '_indexedChains': indexedChains });
+            if (parsed === undefined) {
+                throw new ExchangeError (this.id + ' fetchCurrencies() could not resolve parsed');
+            }
             result[parsed['code']] = parsed;
         }
         return result;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const token = this.safeDict (rawCurrency, '_token', {});
         const currencyId = this.safeString (token, 'token');
         const networks = this.safeList (token, 'chain_details', []);
@@ -1236,8 +1242,9 @@ export default class woofipro extends Exchange {
         const maker = this.safeString (data, 'futures_maker_fee_rate');
         const taker = this.safeString (data, 'futures_taker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1524,6 +1531,9 @@ export default class woofipro extends Exchange {
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
         const request: Dict = {
@@ -1779,7 +1789,10 @@ export default class woofipro extends Exchange {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
-        let response = undefined;
+        let response: Dict = undefined;
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
+        }
         if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {

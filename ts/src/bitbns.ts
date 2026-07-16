@@ -687,6 +687,9 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString (params, 'target_rate');
         const trailRate = this.safeString (params, 'trail_rate');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],

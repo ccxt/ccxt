@@ -6,7 +6,7 @@ import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -682,10 +682,16 @@ export default class kraken extends Exchange {
             let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals')));
             const spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if (base === undefined) {
+                throw new ExchangeError (this.id + ' method() missing base');
+            }
             if (spot && (base in cachedCurrencies)) {
                 const currency = this.safeValue (cachedCurrencies, base);
                 const currencyPrecision = this.safeNumber (currency, 'precision');
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (currencyPrecision === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing currencyPrecision');
+                }
                 if (currencyPrecision > precisionAmount) {
                     precisionAmount = currencyPrecision;
                 }
@@ -847,7 +853,7 @@ export default class kraken extends Exchange {
         return this.parseCurrencies (enhancedArray);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         // todo: will need to rethink the fees
         // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
         // to add support for multiple withdrawal/deposit methods and
@@ -860,6 +866,9 @@ export default class kraken extends Exchange {
         const id = this.safeString (rawCurrency, '_coin_id');
         let code = this.safeCurrencyCode (id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing id');
+        }
         if (id.indexOf ('.') < 0) {
             const altName = this.safeString (rawCurrency, 'altname');
             // handle cases like below:
@@ -868,6 +877,9 @@ export default class kraken extends Exchange {
             // ---------------
             // XXBT  |  XBT
             // ZUSD  |  USD
+            if (id === undefined) {
+                throw new ExchangeError (this.id + ' parseCurrency() missing id');
+            }
             if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
                 code = this.safeCurrencyCode (altName);
                 // also, add map in commonCurrencies:
@@ -875,6 +887,9 @@ export default class kraken extends Exchange {
             } else {
                 code = this.safeCurrencyCode (id);
             }
+        }
+        if (code === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() missing code');
         }
         const isFiat = code.indexOf ('.HOLD') >= 0;
         rawCurrency = this.omit (rawCurrency, '_coin_id');
@@ -1213,6 +1228,9 @@ export default class kraken extends Exchange {
         }
         if (since !== undefined) {
             const scaledSince = this.parseToInt (since / 1000);
+            if (parsedTimeframe === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing parsedTimeframe');
+            }
             const timeFrameInSeconds = parsedTimeframe * 60;
             request['since'] = this.numberToString (scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
@@ -2728,11 +2746,17 @@ export default class kraken extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         if (timeout > 86400000) {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
         }
         const request: Dict = {
             'timeout': (timeout > 0) ? (this.parseToInt (timeout / 1000)) : 0,
@@ -3329,6 +3353,9 @@ export default class kraken extends Exchange {
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
                     const entry = this.safeString (depositMethods[i], 'method');
+                    if (entry === undefined) {
+                        throw new ExchangeError (this.id + ' fetchDepositAddress() missing entry');
+                    }
                     if (entry.indexOf (network) >= 0) {
                         depositMethod = entry;
                         break;

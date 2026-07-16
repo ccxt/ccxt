@@ -6,7 +6,7 @@ import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, NullResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType, List, NullableDict, NullableList, SubType } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, MarketType, List, NullableDict, NullableList, SubType, CurrencyInterface } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -3026,15 +3026,24 @@ export default class binance extends Exchange {
         const result = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             const parsed = this.parseCurrency (responseCurrencies[i]);
+            if (parsed === undefined) {
+                throw new ExchangeError (this.id + ' parseCurrenciesCustom() could not resolve parsed');
+            }
             const code = parsed['code'];
+            if (parsed === undefined) {
+                throw new ExchangeError (this.id + ' parseCurrenciesCustom() could not resolve parsed');
+            }
             const marginEntry = this.safeDict (marginablesById, parsed['id']);
+            if (parsed === undefined) {
+                throw new ExchangeError (this.id + ' parseCurrenciesCustom() could not resolve parsed');
+            }
             parsed['margin'] = this.safeBool (marginEntry, 'isBorrowable');
             result[code] = parsed;
         }
         return result;
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         //
         //    {
         //        "coin": "LINK",
@@ -3530,6 +3539,9 @@ export default class binance extends Exchange {
         let option = false;
         const underlying = this.safeString (market, 'underlying');
         const id = this.safeString (market, 'symbol');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         const optionParts = id.split ('-');
         const optionBase = this.safeString (optionParts, 0);
         const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -4842,6 +4854,9 @@ export default class binance extends Exchange {
             'limit': limit,
         };
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' fetchOHLCV() missing marketId');
+        }
         if (price === 'index') {
             const parts = marketId.split ('_');
             const pair = this.safeString (parts, 0);
@@ -5454,6 +5469,9 @@ export default class binance extends Exchange {
          */
         const market = this.market (symbol);
         const clientOrderId = this.safeStringN (params, [ 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ]);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editSpotOrderRequest() requires a side argument');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -5571,6 +5589,9 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new NotSupported (this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editContractOrder() requires a side argument');
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -6644,6 +6665,9 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ]);
@@ -8641,7 +8665,7 @@ export default class binance extends Exchange {
         params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
-        if (fiatOnly || (code in legalMoney)) {
+        if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
                 currency = this.currency (code);
             }
@@ -8718,6 +8742,9 @@ export default class binance extends Exchange {
             //     }
             //   ]
         }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' method() returned empty response');
+        }
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
@@ -8759,7 +8786,7 @@ export default class binance extends Exchange {
         }
         let response: NullableList = undefined;
         let currency: Currency = undefined;
-        if (fiatOnly || (code in legalMoney)) {
+        if (fiatOnly || ((code !== undefined) && (code in legalMoney))) {
             if (code !== undefined) {
                 currency = this.currency (code);
             }
@@ -8852,6 +8879,9 @@ export default class binance extends Exchange {
             //         "transferType": 0
             //       }
             //     ]
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' method() returned empty response');
         }
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'withdrawal';
@@ -9978,6 +10008,9 @@ export default class binance extends Exchange {
             //    ]
             //
             const result: Dict = {};
+            if (response === undefined) {
+                throw new NullResponse (this.id + ' method() returned empty response');
+            }
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee (response[i]);
                 const symbol = fee['symbol'];
@@ -10122,6 +10155,9 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetPremiumIndex (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate() supports linear and inverse contracts only');
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchFundingRate() returned empty response');
         }
         if (market['inverse']) {
             response = response[0];
@@ -10455,6 +10491,9 @@ export default class binance extends Exchange {
         let initialMarginPercentageString: Str = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
+            if (leverage === undefined) {
+                throw new ExchangeError (this.id + ' method() missing leverage');
+            }
             const rational = this.isRoundNumber (1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (initialMarginPercentageString, '1e-8'), '1', 8);
@@ -10878,6 +10917,9 @@ export default class binance extends Exchange {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             this.options['leverageBrackets'] = this.createSafeDictionary ();
+            if (response === undefined) {
+                throw new NullResponse (this.id + ' loadLeverageBrackets() returned empty response');
+            }
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
@@ -11524,6 +11566,9 @@ export default class binance extends Exchange {
         //     ]
         //
         const result: List = [];
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' method() returned empty response');
+        }
         for (let i = 0; i < response.length; i++) {
             const rawPosition = response[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
@@ -12152,6 +12197,9 @@ export default class binance extends Exchange {
         let response = undefined;
         if (type === 'option') {
             this.checkRequiredArgument ('fetchLedger', code, 'code');
+            if (currency === undefined) {
+                throw new ExchangeError (this.id + ' fetchLedger() could not resolve currency');
+            }
             request['currency'] = currency['id'];
             response = await this.eapiPrivateGetBill (this.extend (request, params));
         } else if (this.isLinear (type, subType)) {
@@ -13872,6 +13920,9 @@ export default class binance extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const symbol = this.safeString (market, 'symbol');
+            if (market === undefined) {
+                throw new ExchangeError (this.id + ' fetchTradingLimits() could not resolve market');
+            }
             if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
                 this.storeByKey (tradingLimits, symbol, market['limits']['amount']);
             }
@@ -14054,6 +14105,9 @@ export default class binance extends Exchange {
             return fetchMarginModesResponse[symbol];
         } else {
             throw new BadRequest (this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchMarginMode() returned empty response');
         }
         return this.parseMarginMode (response[0], market);
     }

@@ -6,7 +6,7 @@ import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -535,7 +535,7 @@ export default class backpack extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (currencyId);
         const networks = this.safeList (rawCurrency, 'tokens', []);
@@ -938,6 +938,9 @@ export default class backpack extends Exchange {
         //     }
         //
         const microseconds = this.safeInteger (response, 'timestamp');
+        if (microseconds === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrderBook() missing microseconds');
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
@@ -1349,6 +1352,9 @@ export default class backpack extends Exchange {
         //     }
         //
         const status = this.safeString (response, 'status');
+        if (status === undefined) {
+            throw new ExchangeError (this.id + ' fetchStatus() missing status');
+        }
         return {
             'status': status.toLowerCase (),
             'updated': undefined,

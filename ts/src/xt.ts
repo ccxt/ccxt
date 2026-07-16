@@ -5181,8 +5181,14 @@ export default class xt extends Exchange {
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
+                if (body === undefined) {
+                    throw new NullResponse (this.id + ' sign() returned empty body');
+                }
                 if (payload.indexOf ('future') > -1) {
                     body['clientMedia'] = id;
+                if (body === undefined) {
+                    throw new NullResponse (this.id + ' sign() returned empty body');
+                }
                 } else {
                     body['media'] = id;
                 }

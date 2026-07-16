@@ -784,6 +784,9 @@ export class BaseExchange {
                 this.cacheProxyDictionary (httpsProxy, new this.httpsProxyAgentModule.HttpsProxyAgent (httpsProxy));
             }
             chosenAgent = this.proxyDictionaries[httpsProxy];
+            if (chosenAgent === undefined) {
+                throw new ExchangeError (this.id + ' setProxyAgents() missing chosenAgent');
+            }
             chosenAgent.keepAlive = true;
         } else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
@@ -2137,6 +2140,9 @@ export class BaseExchange {
         if (!encodeAsAny) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
+        if ((Tx === undefined) || (TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined)) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
         if (!publicKey) {
             throw new Error ('Public key cannot be undefined');
         }
@@ -2174,6 +2180,9 @@ export class BaseExchange {
         fee: any = undefined
     ): [ string, Dict ] {
         if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if ((TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined) || (SignDoc === undefined)) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         if (!account.pub_key) {
@@ -2228,6 +2237,9 @@ export class BaseExchange {
 
     encodeDydxTxRaw (signDoc: Dict, signature: string): string {
         if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (TxRaw === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         return '0x' + this.binaryToBase16 (TxRaw.encode (TxRaw.fromPartial ({
@@ -3596,7 +3608,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         throw new NotSupported (this.id + ' parseCurrency() is not supported yet');
     }
 
@@ -3854,6 +3866,9 @@ export class BaseExchange {
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
+        if (stringVersion === undefined) {
+            throw new ExchangeError (this.id + ' parseToNumeric() missing stringVersion');
+        }
         if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
@@ -4655,7 +4670,13 @@ export class BaseExchange {
             }
         }
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            let reducedFees = fees;
+            if (this.reduceFees) {
+                reducedFees = this.reduceFeesByCurrency (fees);
+            }
+            if (reducedFees === undefined) {
+                reducedFees = [];
+            }
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -5006,7 +5027,13 @@ export class BaseExchange {
                 fees = [ fee ];
             }
             // 'fees' were set, so reparse them
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            let reducedFees = fees;
+            if (this.reduceFees) {
+                reducedFees = this.reduceFeesByCurrency (fees);
+            }
+            if (reducedFees === undefined) {
+                reducedFees = [];
+            }
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
@@ -5394,9 +5421,15 @@ export class BaseExchange {
                 }
             }
             let content = response;
+            if (content === undefined) {
+                throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
+            }
             if (startRegex !== undefined) {
                 const splitted_by_start = content.split (startRegex);
                 content = splitted_by_start[1]; // we need second part after start
+            }
+            if (content === undefined) {
+                throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
             }
             if (endRegex !== undefined) {
                 const splitted_by_end = content.split (endRegex);
@@ -5770,6 +5803,9 @@ export class BaseExchange {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
+                if (defaultNetworkId === undefined) {
+                    throw new ExchangeError (this.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
+                }
                 if (defaultNetworkId in indexedNetworkEntries) {
                     return defaultNetworkId;
                 }
@@ -5852,8 +5888,9 @@ export class BaseExchange {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 const response = await this.fetchTradingLimits (symbols);
-                for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
+                const symbolsArray = this.requireValue (symbols, 'loadTradingLimits() requires a symbols argument');
+                for (let i = 0; i < symbolsArray.length; i++) {
+                    const symbol = symbolsArray[i];
                     this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
@@ -6187,10 +6224,10 @@ export class BaseExchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
-        let retries: Int = undefined;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay: Int = undefined;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
+        let retries = 0;
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
+        let retryDelay = 0;
+        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', retryDelay);
         let fetchData: Dict = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
@@ -6273,8 +6310,14 @@ export class BaseExchange {
             const trade = trades[i];
             const ts = trade['timestamp'];
             const price = trade['price'];
+            if (ts === undefined) {
+                throw new ExchangeError (this.id + ' buildOHLCVC() missing ts');
+            }
             if (ts < since) {
                 continue;
+            }
+            if (ts === undefined) {
+                throw new ExchangeError (this.id + ' buildOHLCVC() missing ts');
             }
             const openingTime = Math.floor (ts / ms) * ms; // shift to the edge of m/h/d (but not M)
             if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
@@ -6282,6 +6325,9 @@ export class BaseExchange {
             }
             const ohlcv_length = ohlcvs.length;
             const candle = ohlcv_length - 1;
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' buildOHLCVC() requires a price argument');
+            }
             if (skipZeroPrices && !(price > 0) && !(price < 0)) {
                 continue;
             }
@@ -6530,6 +6576,23 @@ export class BaseExchange {
         return rate;
     }
 
+    requireValue <T>(value: T | undefined, message: Str = undefined): T {
+        if (value === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + ((message !== undefined) ? message : 'value is required'));
+        }
+        return value;
+    }
+
+    requireSymbols (): string[] {
+        const symbols = this.symbols;
+        if (symbols === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        return symbols;
+    }
+
+    handleOptionAndParams <T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];
+    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue?: any): [any, Dict];
     handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue: any = undefined): [any, Dict] {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
@@ -6556,7 +6619,9 @@ export class BaseExchange {
         return [ value, params ];
     }
 
-    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [any, Dict] {
+    handleOptionAndParams2 <T>(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: T): [T, Dict];
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [any, Dict];
+    handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined): [any, Dict] {
         let value = undefined;
         [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1);
         if (value !== undefined) {
@@ -6954,7 +7019,7 @@ export class BaseExchange {
         return this.safeString (this.commonCurrencies, code, code);
     }
 
-    currency (code: string) {
+    currency (code: string): CurrencyInterface {
         const keys = Object.keys (this.currencies);
         const numCurrencies = keys.length;
         if (numCurrencies === 0) {
@@ -7174,6 +7239,9 @@ export class BaseExchange {
     async loadTimeDifference (params = {}) {
         const serverTime = await this.fetchTime (params);
         const after = this.milliseconds ();
+        if (serverTime === undefined) {
+            throw new ExchangeError (this.id + ' loadTimeDifference() missing serverTime');
+        }
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
     }
@@ -7937,11 +8005,11 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
-        let maxCalls: Int = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries: Int = undefined;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
-        let paginationDirection: Str = undefined;
+        let maxCalls = 10;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        let maxRetries = 3;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
+        let paginationDirection = undefined;
         [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
         let removeRepeatedOption = removeRepeated;
@@ -7982,6 +8050,9 @@ export class BaseExchange {
                     result = this.arrayConcat (result, response);
                     const firstElement = this.safeValue (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
+                    if (paginationTimestamp === undefined) {
+                        break;
+                    }
                     if ((since !== undefined) && (paginationTimestamp <= since)) {
                         break;
                     }
@@ -8002,8 +8073,13 @@ export class BaseExchange {
                     errors = 0;
                     result = this.arrayConcat (result, response);
                     const last = this.safeValue (response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger (last, 'timestamp', 0) + 1;
-                    if ((until !== undefined) && (paginationTimestamp >= until)) {
+                    const lastTimestamp = this.safeInteger (last, 'timestamp', 0);
+                    if (lastTimestamp === undefined) {
+                        break;
+                    }
+                    const nextPaginationTimestamp = lastTimestamp + 1;
+                    paginationTimestamp = nextPaginationTimestamp;
+                    if ((until !== undefined) && (nextPaginationTimestamp >= until)) {
                         break;
                     }
                 }
@@ -8024,8 +8100,8 @@ export class BaseExchange {
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
-        let maxRetries: Int = undefined;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let maxRetries = 3;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
         let errors = 0;
         while (errors <= maxRetries) {
             try {
@@ -8048,12 +8124,13 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls: Int = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        let maxCalls = 10;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
         const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
+        maxEntriesPerRequest = this.requireValue (maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         const step = time * maxEntriesPerRequest;
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
@@ -8063,6 +8140,9 @@ export class BaseExchange {
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
+            }
             const requiredCalls = Math.ceil ((until - since) / step);
             if (requiredCalls > maxCalls) {
                 throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString () + ' required calls is ' + requiredCalls.toString ());
@@ -8089,10 +8169,10 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls: Int = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries: Int = undefined;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let maxCalls = 10;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        let maxRetries = 3;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let cursorValue: Int = undefined;
         let i = 0;
@@ -8119,6 +8199,9 @@ export class BaseExchange {
                     response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 }
                 errors = 0;
+                if (response === undefined) {
+                    throw new NullResponse (this.id + ' fetchPaginatedCallCursor() returned empty response');
+                }
                 const responseLength = response.length;
                 if (this.verbose) {
                     const cursorString = (cursorValue === undefined) ? '' : cursorValue;
@@ -8147,6 +8230,9 @@ export class BaseExchange {
                     break;
                 }
                 const lastTimestamp = this.safeInteger (last, 'timestamp');
+                if (since === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a since argument');
+                }
                 if (lastTimestamp !== undefined && lastTimestamp < since) {
                     break;
                 }
@@ -8164,10 +8250,10 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
-        let maxCalls: Int = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
-        let maxRetries: Int = undefined;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let maxCalls = 10;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
+        let maxRetries = 3;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', maxRetries);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let i = 0;
         let errors = 0;
@@ -8242,6 +8328,9 @@ export class BaseExchange {
                 const timestamp = this.safeString (entry, 'timestamp');
                 const side = this.safeString (entry, 'side');
                 // unique trade identifier
+                if (timestamp === undefined) {
+                    throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
+                }
                 id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
             }
             if (id !== undefined && !(id in uniqueResult)) {
@@ -8424,6 +8513,9 @@ export class BaseExchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency (code);
+            if (currency === undefined) {
+                throw new ExchangeError (this.id + ' parseConversions() could not resolve currency');
+            }
             code = currency['code'];
         }
         if (code === undefined) {
@@ -8675,6 +8767,12 @@ export class BaseExchange {
                 const symbolAndTimeFrame = symbolsAndTimeframes[i];
                 const symbol = this.safeString (symbolAndTimeFrame, 0);
                 const timeframe = this.safeString (symbolAndTimeFrame, 1);
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cleanCache() requires a symbol argument');
+                }
+                if (timeframe === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cleanCache() requires a timeframe argument');
+                }
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
                     if (timeframe in this.ohlcvs[symbol as string]) {
                         delete this.ohlcvs[symbol as string][timeframe as string];

@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Bool, Currency, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Bool, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -521,6 +521,9 @@ export default class deribit extends Exchange {
             settle = base;
         }
         let splitBase = base;
+        if (base === undefined) {
+            throw new ExchangeError (this.id + ' createExpiredOptionMarket() missing base');
+        }
         if (base.indexOf ('_') > -1) {
             const splitSymbol = base.split ('_');
             splitBase = this.safeString (splitSymbol, 0);
@@ -647,7 +650,7 @@ export default class deribit extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         return this.safeCurrencyStructure ({
@@ -936,8 +939,17 @@ export default class deribit extends Exchange {
                 const settle = this.safeCurrencyCode (settleId);
                 const settlementPeriod = this.safeValue (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
+                if (kind === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing kind');
+                }
                 const future = !swap && (kind.indexOf ('future') >= 0);
+                if (kind === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing kind');
+                }
                 const option = (kind.indexOf ('option') >= 0);
+                if (kind === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing kind');
+                }
                 const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike: Num = undefined;
@@ -1767,8 +1779,9 @@ export default class deribit extends Exchange {
             }
         }
         const parsedFees: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
             let fee: Dict = {
                 'info': market,
@@ -3304,6 +3317,9 @@ export default class deribit extends Exchange {
         }
         if ('isDeribitPaginationCall' in params) {
             params = this.omit (params, 'isDeribitPaginationCall');
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a limit argument');
+            }
             const maxUntil = this.sum (since, limit * duration);
             request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
         }

@@ -6,7 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currencies, Currency, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -786,7 +786,7 @@ export default class grvt extends Exchange {
         return this.parseCurrencies (responseResult);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         //
         //            {
         //                "id": "4",
@@ -3167,6 +3167,9 @@ export default class grvt extends Exchange {
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
+            if (currencyObj === undefined) {
+                throw new ExchangeError (this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'fromSubAccount': request['from_sub_account_id'],
@@ -3179,6 +3182,9 @@ export default class grvt extends Exchange {
             };
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
+            if (currencyObj === undefined) {
+                throw new ExchangeError (this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
