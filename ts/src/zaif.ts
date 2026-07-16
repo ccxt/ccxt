@@ -603,7 +603,7 @@ export default class zaif extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict (response, 'return');
+        const data = this.safeDict (response, 'return', {});
         return this.parseOrder (data);
     }
 
@@ -774,7 +774,7 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const returnData = this.safeDict (result, 'return');
+        const returnData = this.safeDict (result, 'return', {});
         return this.parseTransaction (returnData, currency);
     }
 

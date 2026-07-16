@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/weex.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
@@ -2011,6 +2011,9 @@ export default class weex extends Exchange {
         //         "transactTime": 1775608924724
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder (response, market);
     }
 
@@ -2070,11 +2073,14 @@ export default class weex extends Exchange {
         const market = this.market (symbol);
         const request = this.createContractOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString (request, 'triggerPrice');
-        let response: NullableDict = undefined;
+        let response: Dict | undefined = undefined;
         if (triggerPrice !== undefined) {
             response = await this.contractPrivatePostCapiV3AlgoOrder (request);
         } else {
             response = await this.contractPrivatePostCapiV3Order (request);
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' createOrder() returned empty response');
         }
         return this.parseOrder (response, market);
     }
@@ -2253,6 +2259,9 @@ export default class weex extends Exchange {
         } else {
             response = await this.contractPrivateDeleteCapiV3Order (this.extend (request, params));
         }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         const order = this.parseOrder (response, market);
         order['status'] = 'canceled';
         return order;
@@ -2417,6 +2426,9 @@ export default class weex extends Exchange {
             response = await this.privateGetApiV3Order (this.extend (request, params));
         } else {
             response = await this.contractPrivateGetCapiV3Order (this.extend (request, params));
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder (response, market);
     }
