@@ -181,7 +181,7 @@ foreach ($ids as $id) {
 // Kalshi, Limitless, Myriad, Hyperliquid). Requires ccxt >= 4.5.66.
 const exchange = new ccxt.prediction.polymarket ();
 
-// 1) search events by keyword (fetchEvents must be scoped by a query)
+// 1) search events by keyword (fetchEvents must be scoped — by query, queries, tags, eventId or slug)
 const events = await exchange.fetchEvents ({ query: 'Bitcoin', limit: 5 });
 console.log (\`found \${events.length} events for "Bitcoin"\`);
 
@@ -221,7 +221,7 @@ for (const candidate of outcomes) {
 // Kalshi, Limitless, Myriad, Hyperliquid). Requires ccxt >= 4.5.66.
 const exchange = new ccxt.prediction.polymarket ();
 
-// 1) search events by keyword (fetchEvents must be scoped by a query)
+// 1) search events by keyword (fetchEvents must be scoped — by query, queries, tags, eventId or slug)
 const events = await exchange.fetchEvents ({ query: 'Bitcoin', limit: 5 });
 console.log (\`found \${events.length} events for "Bitcoin"\`);
 
@@ -260,7 +260,7 @@ import ccxt.prediction  # prediction markets are async-only in Python (ccxt >= 4
 
 async def main():
     exchange = ccxt.prediction.polymarket()
-    # 1) search events by keyword (fetch_events must be scoped by a query)
+    # 1) search events by keyword (fetch_events must be scoped — by query, queries, tags, eventId or slug)
     events = await exchange.fetch_events({'query': 'Bitcoin', 'limit': 5})
     print(f'found {len(events)} events for "Bitcoin"')
     # 2) collect the outcome tokens of still-open markets (resolved ones have no book)
