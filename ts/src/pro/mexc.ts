@@ -192,6 +192,9 @@ export default class mexc extends mexcRest {
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
         } else {
+            if (rawTicker === undefined) {
+                return;
+            }
             ticker = this.parseTicker (rawTicker, market);
         }
         this.tickers[symbol] = ticker;
@@ -1157,6 +1160,9 @@ export default class mexc extends mexcRest {
         if (market['spot']) {
             trade = this.parseWsTrade (data, market);
         } else {
+            if (data === undefined) {
+                return;
+            }
             trade = this.parseTrade (data, market);
         }
         let trades = this.myTrades;
@@ -1380,6 +1386,9 @@ export default class mexc extends mexcRest {
                 parsed['lastTradeTimestamp'] = sendTime;
             }
         } else {
+            if (data === undefined) {
+                return;
+            }
             parsed = this.parseOrder (data, market);
         }
         let orders = this.orders;

@@ -2589,7 +2589,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const tickers = this.safeList (result, 'list', []);
-        const rawTicker = this.safeDict (tickers, 0);
+        const rawTicker = this.safeDict (tickers, 0, {});
         return this.parseTicker (rawTicker, market);
     }
 

@@ -5690,6 +5690,9 @@ export default class htx extends Exchange {
             } else {
                 result = this.safeDict (response, 'data', {});
             }
+            if (result === undefined) {
+                throw new NullResponse (this.id + ' parseOrder() returned empty response');
+            }
             return this.extend (this.parseOrder (result, market), {
                 'type': type,
                 'side': side,
@@ -5704,6 +5707,9 @@ export default class htx extends Exchange {
             result = this.safeValue (data, 'tp_order', {});
         } else {
             result = this.safeValue (response, 'data', {});
+        }
+        if (result === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder (result, market) as Order;
     }
@@ -6035,6 +6041,9 @@ export default class htx extends Exchange {
             }
         } else {
             result = response;
+        }
+        if (result === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.extend (this.parseOrder (result, market), {
             'id': id,
@@ -7052,6 +7061,9 @@ export default class htx extends Exchange {
         //        "print-log": true
         //    }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseTransfer() returned empty response');
+        }
         return this.parseTransfer (response, currency);
     }
 
@@ -9867,6 +9879,9 @@ export default class htx extends Exchange {
         if (market['linear']) {
             const data = this.safeDict (response, 'data', {});
             return this.parseOrder (data, market);
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder (response, market);
     }

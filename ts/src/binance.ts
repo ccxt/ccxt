@@ -4419,7 +4419,7 @@ export default class binance extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (market['option']) {
             response = await this.eapiPublicGetTicker (this.extend (request, params));
         } else if (market['linear']) {
@@ -4438,6 +4438,9 @@ export default class binance extends Exchange {
         if (Array.isArray (response)) {
             const firstTicker = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker (response, market);
     }
@@ -4676,7 +4679,7 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
         } else if (this.isInverse (type, subType)) {
@@ -4686,6 +4689,9 @@ export default class binance extends Exchange {
         }
         if (Array.isArray (response)) {
             return this.parseTicker (this.safeDict (response, 0, {}), market);
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchMarkPrice() returned empty response');
         }
         return this.parseTicker (response, market);
     }
@@ -5426,7 +5432,7 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'newOrderResponse');
+        const data = this.safeDict (response, 'newOrderResponse', {});
         return this.parseOrder (data, market);
     }
 
@@ -5650,6 +5656,9 @@ export default class binance extends Exchange {
         //         "updateTime": 1684300587845
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder (response, market);
     }
 
@@ -6615,6 +6624,9 @@ export default class binance extends Exchange {
                 response = await this.privatePostOrder (request);
             }
         }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder (response, market);
     }
 
@@ -7102,6 +7114,9 @@ export default class binance extends Exchange {
             }
         } else {
             response = await this.privateGetOrder (this.extend (request, params));
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder (response, market);
     }
@@ -7705,6 +7720,9 @@ export default class binance extends Exchange {
         //         "priceProtect": false
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder (response, market);
     }
 
@@ -7909,6 +7927,9 @@ export default class binance extends Exchange {
             }
         } else {
             response = await this.privateDeleteOrder (this.extend (request, params));
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder (response, market);
     }
@@ -9855,6 +9876,9 @@ export default class binance extends Exchange {
         let data: NullableDict = response;
         if (Array.isArray (data)) {
             data = this.safeDict (data, 0, {});
+        }
+        if (data === undefined) {
+            throw new NullResponse (this.id + ' parseTradingFee() returned empty response');
         }
         return this.parseTradingFee (data, market);
     }
@@ -12612,6 +12636,9 @@ export default class binance extends Exchange {
         //         "type": 1
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseMarginModification() returned empty response');
+        }
         return this.extend (this.parseMarginModification (response, market), {
             'code': code,
         });
@@ -14204,6 +14231,9 @@ export default class binance extends Exchange {
         //        ...
         //    ]
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseMarginModifications() returned empty response');
+        }
         const modifications = this.parseMarginModifications (response);
         return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
@@ -14303,6 +14333,9 @@ export default class binance extends Exchange {
         //
         const fromCurrency = this.currency (fromCode);
         const toCurrency = this.currency (toCode);
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseConversion() returned empty response');
+        }
         return this.parseConversion (response, fromCurrency, toCurrency);
     }
 
@@ -14352,6 +14385,9 @@ export default class binance extends Exchange {
         }
         const fromCurrency = this.currency (fromCode);
         const toCurrency = this.currency (toCode);
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseConversion() returned empty response');
+        }
         return this.parseConversion (response, fromCurrency, toCurrency);
     }
 
@@ -14431,6 +14467,9 @@ export default class binance extends Exchange {
         }
         if (toCurrencyId !== undefined) {
             toCurrency = this.currency (toCurrencyId);
+        }
+        if (data === undefined) {
+            throw new NullResponse (this.id + ' parseConversion() returned empty response');
         }
         return this.parseConversion (data, fromCurrency, toCurrency);
     }
@@ -14805,6 +14844,9 @@ export default class binance extends Exchange {
             //
         } else {
             throw new BadRequest (this.id + ' fetchADLRank() supports linear subTypes only');
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' parseADLRank() returned empty response');
         }
         return this.parseADLRank (response, market);
     }

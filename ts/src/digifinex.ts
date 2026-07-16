@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/digifinex.js';
-import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Bool, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
@@ -1174,11 +1174,14 @@ export default class digifinex extends Exchange {
         const tickers = this.safeValue (response, 'ticker', []);
         const data = this.safeValue (response, 'data', {});
         const firstTicker = this.safeValue (tickers, 0, {});
-        let result = undefined;
+        let result: Dict | undefined = undefined;
         if (market['swap']) {
             result = data;
         } else {
             result = this.extend ({ 'date': date }, firstTicker);
+        }
+        if (result === undefined) {
+            throw new NullResponse (this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker (result, market);
     }
@@ -1698,6 +1701,9 @@ export default class digifinex extends Exchange {
         //         "data": "1590873693003714560"
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' createOrder() returned empty response');
+        }
         const order = this.parseOrder (response, market);
         order['symbol'] = market['symbol'];
         order['type'] = type;
@@ -3121,6 +3127,9 @@ export default class digifinex extends Exchange {
             //     }
             //
             response = await this.privateSpotPostTransfer (this.extend (request, params));
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' transfer() returned empty response');
         }
         return this.parseTransfer (response, currency);
     }

@@ -876,7 +876,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict (entry, i);
+            const data = this.safeDict (entry, i, {});
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }

@@ -2782,7 +2782,7 @@ export default class limitless extends Exchange {
             return undefined;
         }
         const positions = this.safeDict (entry, 'positions');
-        const position = this.safeDict (positions, label);
+        const position = this.safeDict (positions, label, {});
         const rawMarket = this.safeDict (entry, 'market');
         const slug = this.safeString (rawMarket, 'slug');
         const outcomeObj = this.getOutcomeBySlugAndLabel (slug, label);

@@ -1302,7 +1302,7 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
-        const order = this.safeDict (response, 'data');
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order);
     }
 

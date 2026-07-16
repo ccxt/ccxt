@@ -1363,7 +1363,7 @@ export default class cex extends Exchange {
         //             "rejectCode": 405,
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
