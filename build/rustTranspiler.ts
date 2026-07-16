@@ -4380,6 +4380,13 @@ class RustTranspilerBuilder {
             'fetch_open_interest', 'fetch_open_interests',
             'fetch_deposit_withdraw_fee', 'fetch_deposit_withdraw_fees',
             'fetch_market_leverage_tiers',
+            // Prediction tier: the PredictionExchange base calls these on the
+            // concrete venue (loadEvents/getOutcome → fetchEvents, loadOutcomes
+            // → fetchOutcomes, …). Without a dispatch preamble the base runs its
+            // own `NotSupported` stub instead of the venue override (only matters
+            // for the prediction base — Exchange.ts has no such methods, and the
+            // preamble is injected on base method defs only, never on venues).
+            'fetch_events', 'fetch_event', 'fetch_outcome', 'fetch_outcomes',
         ]);
     }
 

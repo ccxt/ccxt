@@ -484,8 +484,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1104: bool = true;
-            while { if !__for_first_1104 { i = add(&i, &Value::Int(1)); } __for_first_1104 = false; is_less_than(&i, &get_array_length(&parts)) } {
+            let mut __for_first_411: bool = true;
+            while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &get_array_length(&parts)) } {
             let mut part: Value = get_value(&parts, &i);
             let mut part: Value = get_value(&parts, &i);
             let mut colonIndex: Value = get_index_of(&part, &Value::Str(":".to_string()));
@@ -578,8 +578,8 @@ impl HyperliquidCore {
                     let mut thresholds: Value = Value::List(vec![]);
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_1105: bool = true;
-                        while { if !__for_first_1105 { i = add(&i, &Value::Int(1)); } __for_first_1105 = false; is_less_than(&i, &get_array_length(&thresholdParts)) } {
+                        let mut __for_first_412: bool = true;
+                        while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &get_array_length(&thresholdParts)) } {
                         let mut trimmed: Value = trim(&get_value(&thresholdParts, &i));
                         if is_greater_than(&get_array_length(&trimmed), &Value::Int(0)) {
                             append_to_array(&mut thresholds, trimmed.clone());
@@ -706,8 +706,8 @@ impl HyperliquidCore {
         });
         {
                         let mut qi: Value = Value::Int(0);
-            let mut __for_first_1107: bool = true;
-            while { if !__for_first_1107 { qi = add(&qi, &Value::Int(1)); } __for_first_1107 = false; is_less_than(&qi, &get_array_length(&questionsList)) } {
+            let mut __for_first_414: bool = true;
+            while { if !__for_first_414 { qi = add(&qi, &Value::Int(1)); } __for_first_414 = false; is_less_than(&qi, &get_array_length(&questionsList)) } {
             let mut question: Value = self.safe_dict(questionsList.clone(), qi.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -720,8 +720,8 @@ impl HyperliquidCore {
             let mut namedOutcomes: Value = self.safe_list_k(question.clone(), "namedOutcomes", &[Value::List(vec![])]);
             {
                                 let mut ni: Value = Value::Int(0);
-                let mut __for_first_1106: bool = true;
-                while { if !__for_first_1106 { ni = add(&ni, &Value::Int(1)); } __for_first_1106 = false; is_less_than(&ni, &get_array_length(&namedOutcomes)) } {
+                let mut __for_first_413: bool = true;
+                while { if !__for_first_413 { ni = add(&ni, &Value::Int(1)); } __for_first_413 = false; is_less_than(&ni, &get_array_length(&namedOutcomes)) } {
                 let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone(), ni.clone(), &[]);
                 if !is_equal(&namedOutcomeId, &Value::Null) {
                     let mut namedKey: Value = to_string_val(&namedOutcomeId);
@@ -746,8 +746,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { i = add(&i, &Value::Int(1)); } __for_first_1109 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
             let mut outcomeInfo: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -763,8 +763,8 @@ impl HyperliquidCore {
             let mut marketOutcomes: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
             {
                                 let mut oi: Value = Value::Int(0);
-                let mut __for_first_1108: bool = true;
-                while { if !__for_first_1108 { oi = add(&oi, &Value::Int(1)); } __for_first_1108 = false; is_less_than(&oi, &get_array_length(&marketOutcomes)) } {
+                let mut __for_first_415: bool = true;
+                while { if !__for_first_415 { oi = add(&oi, &Value::Int(1)); } __for_first_415 = false; is_less_than(&oi, &get_array_length(&marketOutcomes)) } {
                 let mut outcome: Value = self.safe_dict(marketOutcomes.clone(), oi.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -993,8 +993,8 @@ impl HyperliquidCore {
         let mut zeroCount: Value = subtract(&pricePrecisionDecimals, &Value::Int(1));
         {
                         let mut zi: Value = Value::Int(0);
-            let mut __for_first_1110: bool = true;
-            while { if !__for_first_1110 { zi = add(&zi, &Value::Int(1)); } __for_first_1110 = false; is_less_than(&zi, &zeroCount) } {
+            let mut __for_first_417: bool = true;
+            while { if !__for_first_417 { zi = add(&zi, &Value::Int(1)); } __for_first_417 = false; is_less_than(&zi, &zeroCount) } {
             zeros = add(&zeros, &Value::Str("0".to_string()));
         }
         }
@@ -1081,8 +1081,8 @@ impl HyperliquidCore {
             self.load_outcomes(&[outcomes.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1111: bool = true;
-                while { if !__for_first_1111 { i = add(&i, &Value::Int(1)); } __for_first_1111 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                let mut __for_first_418: bool = true;
+                while { if !__for_first_418 { i = add(&i, &Value::Int(1)); } __for_first_418 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1115,8 +1115,8 @@ impl HyperliquidCore {
         let mut outcomeHandles: Value = object_keys(&outcomesMap);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1112: bool = true;
-            while { if !__for_first_1112 { i = add(&i, &Value::Int(1)); } __for_first_1112 = false; is_less_than(&i, &get_array_length(&outcomeHandles)) } {
+            let mut __for_first_419: bool = true;
+            while { if !__for_first_419 { i = add(&i, &Value::Int(1)); } __for_first_419 = false; is_less_than(&i, &get_array_length(&outcomeHandles)) } {
             let mut outcomeHandle: Value = get_value(&outcomeHandles, &i);
             let mut outcomeHandle: Value = get_value(&outcomeHandles, &i);
             if !is_equal(&outcomes, &Value::Null) && !is_true(&(Value::Bool(in_op(&requestedOutcomeSymbols, &outcomeHandle)))) {
@@ -1284,8 +1284,8 @@ impl HyperliquidCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1113: bool = true;
-            while { if !__for_first_1113 { i = add(&i, &Value::Int(1)); } __for_first_1113 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_420: bool = true;
+            while { if !__for_first_420 { i = add(&i, &Value::Int(1)); } __for_first_420 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut entry: Value = get_value(&rawBids, &i);
             let mut entry: Value = get_value(&rawBids, &i);
             append_to_array(&mut bids, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
@@ -1293,8 +1293,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1114: bool = true;
-            while { if !__for_first_1114 { i = add(&i, &Value::Int(1)); } __for_first_1114 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_421: bool = true;
+            while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut entry: Value = get_value(&rawAsks, &i);
             let mut entry: Value = get_value(&rawAsks, &i);
             append_to_array(&mut asks, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
@@ -1429,8 +1429,8 @@ impl HyperliquidCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1115: bool = true;
-            while { if !__for_first_1115 { i = add(&i, &Value::Int(1)); } __for_first_1115 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_422: bool = true;
+            while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut coin: Value = self.safe_string_k(balance.clone(), "coin", &[]);
@@ -1473,8 +1473,8 @@ impl HyperliquidCore {
             self.load_outcomes(&[outcomes.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1116: bool = true;
-                while { if !__for_first_1116 { i = add(&i, &Value::Int(1)); } __for_first_1116 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                let mut __for_first_423: bool = true;
+                while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1511,8 +1511,8 @@ impl HyperliquidCore {
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1117: bool = true;
-            while { if !__for_first_1117 { i = add(&i, &Value::Int(1)); } __for_first_1117 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1623,8 +1623,8 @@ impl HyperliquidCore {
         if !is_equal(&normalizedHint, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1118: bool = true;
-                while { if !__for_first_1118 { i = add(&i, &Value::Int(1)); } __for_first_1118 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+                let mut __for_first_425: bool = true;
+                while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
                 let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1639,8 +1639,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1119: bool = true;
-            while { if !__for_first_1119 { i = add(&i, &Value::Int(1)); } __for_first_1119 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
             let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1703,8 +1703,8 @@ impl HyperliquidCore {
         let mut isNumericInput: Value = Value::Bool(is_greater_than(&inputCharsLength, &Value::Int(0)));
         {
                         let mut di: Value = Value::Int(0);
-            let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { di = add(&di, &Value::Int(1)); } __for_first_1120 = false; is_less_than(&di, &get_array_length(&inputChars)) } {
+            let mut __for_first_427: bool = true;
+            while { if !__for_first_427 { di = add(&di, &Value::Int(1)); } __for_first_427 = false; is_less_than(&di, &get_array_length(&inputChars)) } {
             if is_less_than(&get_index_of(&digitChars, &get_value(&inputChars, &di)), &Value::Int(0)) {
                 isNumericInput = Value::Bool(false);
                 break;
@@ -1721,8 +1721,8 @@ impl HyperliquidCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1121: bool = true;
-            while { if !__for_first_1121 { i = add(&i, &Value::Int(1)); } __for_first_1121 = false; is_less_than(&i, &get_array_length(&candidates)) } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&candidates)) } {
             let mut key: Value = get_value(&candidates, &i);
             let mut key: Value = get_value(&candidates, &i);
             if is_true(&Value::Bool(in_op(&self.outcomes, &key))) {
@@ -1991,8 +1991,8 @@ impl HyperliquidCore {
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1122: bool = true;
-                while { if !__for_first_1122 { i = add(&i, &Value::Int(1)); } __for_first_1122 = false; is_less_than(&i, &get_array_length(&cloids)) } {
+                let mut __for_first_429: bool = true;
+                while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&cloids)) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), assetId.clone());
@@ -2005,8 +2005,8 @@ impl HyperliquidCore {
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancel".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1123: bool = true;
-                while { if !__for_first_1123 { i = add(&i, &Value::Int(1)); } __for_first_1123 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_430: bool = true;
+                while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), assetId.clone());
@@ -2047,8 +2047,8 @@ impl HyperliquidCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1124: bool = true;
-            while { if !__for_first_1124 { i = add(&i, &Value::Int(1)); } __for_first_1124 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_431: bool = true;
+            while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut status: Value = get_value(&statuses, &i);
             let mut status: Value = get_value(&statuses, &i);
             let mut error: Value = self.safe_string_k(status.clone(), "error", &[]);
@@ -2118,8 +2118,8 @@ impl HyperliquidCore {
         let mut ordersWithStatus: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1125: bool = true;
-            while { if !__for_first_1125 { i = add(&i, &Value::Int(1)); } __for_first_1125 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_432: bool = true;
+            while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             append_to_array(&mut ordersWithStatus, self.extend(order.clone(), &[Value::Map({
@@ -2178,8 +2178,8 @@ impl HyperliquidCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1126: bool = true;
-            while { if !__for_first_1126 { i = add(&i, &Value::Int(1)); } __for_first_1126 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_433: bool = true;
+            while { if !__for_first_433 { i = add(&i, &Value::Int(1)); } __for_first_433 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut raw: Value = get_value(&response, &i);
             let mut raw: Value = get_value(&response, &i);
             let mut entry: Value = self.safe_dict_k(raw.clone(), "order", &[]);
@@ -2605,8 +2605,8 @@ impl HyperliquidCore {
         let mut lowerQueries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i = add(&i, &Value::Int(1)); } __for_first_1127 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_434: bool = true;
+            while { if !__for_first_434 { i = add(&i, &Value::Int(1)); } __for_first_434 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut queryString: Value = get_value(&queries, &i);
             let mut queryString: Value = get_value(&queries, &i);
             append_to_array(&mut lowerQueries, to_lower(&queryString));
@@ -2615,8 +2615,8 @@ impl HyperliquidCore {
         let mut lowerQueriesLength: Value = get_array_length(&lowerQueries);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { i = add(&i, &Value::Int(1)); } __for_first_1130 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+            let mut __for_first_437: bool = true;
+            while { if !__for_first_437 { i = add(&i, &Value::Int(1)); } __for_first_437 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
             let mut mkt: Value = get_value(&marketValues, &i);
             let mut mkt: Value = get_value(&marketValues, &i);
             if !is_true(&self.safe_bool_k(mkt.clone(), "prediction", &[Value::Bool(false)])) {
@@ -2638,15 +2638,15 @@ impl HyperliquidCore {
                 let mut matches: Value = Value::Bool(false);
                 {
                                         let mut qi: Value = Value::Int(0);
-                    let mut __for_first_1129: bool = true;
-                    while { if !__for_first_1129 { qi = add(&qi, &Value::Int(1)); } __for_first_1129 = false; is_less_than(&qi, &get_array_length(&lowerQueries)) } {
+                    let mut __for_first_436: bool = true;
+                    while { if !__for_first_436 { qi = add(&qi, &Value::Int(1)); } __for_first_436 = false; is_less_than(&qi, &get_array_length(&lowerQueries)) } {
                     let mut words: Value = split(&get_value(&lowerQueries, &qi), &Value::Str(" ".to_string()));
                     let mut wordsLength: Value = get_array_length(&words);
                     let mut allWords: Value = Value::Bool(true);
                     {
                                                 let mut wi: Value = Value::Int(0);
-                        let mut __for_first_1128: bool = true;
-                        while { if !__for_first_1128 { wi = add(&wi, &Value::Int(1)); } __for_first_1128 = false; is_less_than(&wi, &wordsLength) } {
+                        let mut __for_first_435: bool = true;
+                        while { if !__for_first_435 { wi = add(&wi, &Value::Int(1)); } __for_first_435 = false; is_less_than(&wi, &wordsLength) } {
                         let mut word: Value = get_value(&words, &wi);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if is_true(&(!is_equal(&word, &Value::Str("".to_string())))) && is_true(&(is_less_than(&get_index_of(&haystack, &word), &Value::Int(0)))) {
@@ -2680,8 +2680,8 @@ impl HyperliquidCore {
         let mut groupKeys: Value = object_keys(&groupMap);
         {
                         let mut gi: Value = Value::Int(0);
-            let mut __for_first_1131: bool = true;
-            while { if !__for_first_1131 { gi = add(&gi, &Value::Int(1)); } __for_first_1131 = false; is_less_than(&gi, &get_array_length(&groupKeys)) } {
+            let mut __for_first_438: bool = true;
+            while { if !__for_first_438 { gi = add(&gi, &Value::Int(1)); } __for_first_438 = false; is_less_than(&gi, &get_array_length(&groupKeys)) } {
             let mut key: Value = get_value(&groupKeys, &gi);
             let mut groupMarkets: Value = get_value(&groupMap, &key);
             let mut event: Value = self.parse_event(Value::Map({
@@ -3023,8 +3023,8 @@ impl HyperliquidCore {
         let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1132: bool = true;
-            while { if !__for_first_1132 { i = add(&i, &Value::Int(1)); } __for_first_1132 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut __for_first_439: bool = true;
+            while { if !__for_first_439 { i = add(&i, &Value::Int(1)); } __for_first_439 = false; is_less_than(&i, &get_array_length(&statuses)) } {
             let mut message: Value = self.safe_string_k(get_value(&statuses, &i), "error", &[]);
             if !is_equal(&message, &Value::Null) {
                 let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);

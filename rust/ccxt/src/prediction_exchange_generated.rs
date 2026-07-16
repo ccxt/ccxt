@@ -355,6 +355,11 @@ impl PredictionExchange {
 }
 
     pub async fn fetch_events(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_events", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -365,6 +370,11 @@ impl PredictionExchange {
 }
 
     pub async fn fetch_event(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_event", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -911,6 +921,11 @@ impl PredictionExchange {
  * @returns {object} the outcome cache
  */
     pub async fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_outcomes", vec![outcomeSymbols.clone()]).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_200: bool = true;
@@ -1025,6 +1040,11 @@ impl PredictionExchange {
 }
 
     pub async fn fetch_outcome(&mut self, mut outcomeSymbol: Value) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_outcome", vec![outcomeSymbol.clone()]).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         // fetch just one outcome on demand — never through a bulk listing download. the base has
         // no generic by-id endpoint, so it derives a search query from the handle and resolves it
         // through the venue's own scoped fetchEvents (which caches everything it finds), then
