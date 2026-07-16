@@ -178,7 +178,7 @@ export default class bitrue extends bitrueRest {
                 if (updateUsed) {
                     account['used'] = used;
                 }
-                this.balance[code] = account;
+                this.storeByKey (this.balance, code, account);
             }
         }
         this.balance = this.safeBalance (this.balance);

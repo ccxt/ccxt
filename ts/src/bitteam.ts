@@ -2193,11 +2193,13 @@ export default class bitteam extends Exchange {
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
             const currencyCode = this.safeCurrencyCode (rawCurrencyId.toLowerCase ());
-            balance[currencyCode] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            if (currencyCode !== undefined) {
+                balance[currencyCode] = {
+                    'free': free,
+                    'used': used,
+                    'total': total,
+                };
+            }
         }
         return this.safeBalance (balance);
     }

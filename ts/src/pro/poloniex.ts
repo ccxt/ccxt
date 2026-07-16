@@ -1208,7 +1208,7 @@ export default class poloniex extends poloniexRest {
             const newAccount = this.account ();
             newAccount['free'] = this.safeString (balance, 'available');
             newAccount['used'] = this.safeString (balance, 'hold');
-            result[code] = newAccount;
+            this.storeByKey (result, code, newAccount);
         }
         return this.safeBalance (result);
     }

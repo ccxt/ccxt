@@ -1068,7 +1068,7 @@ export default class lighter extends lighterRest {
                 const account = this.account ();
                 account['used'] = this.safeString (asset, 'locked_balance');
                 account['total'] = this.safeString (asset, 'balance');
-                balance[code] = account;
+                this.storeByKey (balance, code, account);
             }
         } else {
             const stats = this.safeDict (message, 'stats', {});

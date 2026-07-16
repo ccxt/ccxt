@@ -309,7 +309,9 @@ export default class bitmart extends bitmartRest {
                     const code = this.safeCurrencyCode (currencyId);
                     account['free'] = this.safeString (rawBalance, 'av_bal');
                     account['used'] = this.safeString (rawBalance, 'fz_bal');
-                    this.balance[type][code] = account;
+                    if ((type !== undefined) && (code !== undefined)) {
+                        this.balance[type][code] = account;
+                    }
                 }
             }
         } else {
@@ -318,7 +320,9 @@ export default class bitmart extends bitmartRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'available_balance');
             account['used'] = this.safeString (data, 'frozen_balance');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         const messageHash = 'balance:' + type;

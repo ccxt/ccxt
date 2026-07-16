@@ -2410,7 +2410,7 @@ export default class bitget extends bitgetRest {
                     const entry = coins[j];
                     const currencyId = this.safeString (entry, 'coin');
                     const code = this.safeCurrencyCode (currencyId);
-                    const account = (code in this.balance) ? this.balance[code] : this.account ();
+                    const account = ((code !== undefined) && (code in this.balance)) ? this.balance[code] : this.account ();
                     const borrow = this.safeString (entry, 'borrow');
                     const debts = this.safeString (entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
@@ -2419,12 +2419,12 @@ export default class bitget extends bitgetRest {
                     account['free'] = this.safeString (entry, 'available');
                     account['used'] = this.safeString (entry, 'locked');
                     account['total'] = this.safeString (entry, 'balance');
-                    this.balance[code] = account;
+                    this.storeByKey (this.balance, code, account);
                 }
             } else {
                 const currencyId = this.safeString2 (rawBalance, 'coin', 'marginCoin');
                 const code = this.safeCurrencyCode (currencyId);
-                const account = (code in this.balance) ? this.balance[code] : this.account ();
+                const account = ((code !== undefined) && (code in this.balance)) ? this.balance[code] : this.account ();
                 const borrow = this.safeString (rawBalance, 'borrow');
                 if (borrow !== undefined) {
                     const interest = this.safeString (rawBalance, 'interest');
@@ -2434,7 +2434,7 @@ export default class bitget extends bitgetRest {
                 account['free'] = this.safeString (rawBalance, freeQuery);
                 account['total'] = this.safeString (rawBalance, 'equity');
                 account['used'] = this.safeString (rawBalance, 'frozen');
-                this.balance[code] = account;
+                this.storeByKey (this.balance, code, account);
             }
         }
         this.balance = this.safeBalance (this.balance);

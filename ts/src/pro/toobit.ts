@@ -780,7 +780,9 @@ export default class toobit extends toobitRest {
             account['info'] = balance;
             account['used'] = this.safeString (balance, 'l');
             account['free'] = this.safeString (balance, 'f');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');

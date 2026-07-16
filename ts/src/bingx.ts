@@ -2609,7 +2609,7 @@ export default class bingx extends Exchange {
                 account['free'] = this.safeString2 (balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString (balance, 'usedMargin');
                 account['total'] = this.safeString (balance, 'maxWithdrawAmount');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         } else {
             for (let i = 0; i < spotBalances.length; i++) {
@@ -2619,7 +2619,7 @@ export default class bingx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         return this.safeBalance (result);

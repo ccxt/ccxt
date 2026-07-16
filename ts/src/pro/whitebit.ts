@@ -769,7 +769,7 @@ export default class whitebit extends whitebitRest {
         const account = this.account ();
         account['free'] = this.safeString (rawBalance, 'available');
         account['used'] = this.safeString (rawBalance, 'freeze');
-        this.balance[code] = account;
+        this.storeByKey (this.balance, code, account);
         this.balance = this.safeBalance (this.balance);
         let messageHash = 'wallet:';
         if (method.indexOf ('Spot') >= 0) {

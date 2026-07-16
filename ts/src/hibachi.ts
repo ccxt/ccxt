@@ -411,7 +411,7 @@ export default class hibachi extends Exchange {
             'info': {},
         };
         const code = this.safeCurrencyCode ('USDT');
-        result[code] = this.safeCurrencyStructure ({
+        this.storeByKey (result, code, this.safeCurrencyStructure ({
             'id': 'USDT',
             'name': 'USDT',
             'type': 'fiat',
@@ -433,7 +433,7 @@ export default class hibachi extends Exchange {
                 },
             },
             'info': {},
-        });
+        }));
         return result;
     }
 
@@ -446,7 +446,7 @@ export default class hibachi extends Exchange {
         const account = this.account ();
         account['total'] = this.safeString (response, 'balance');
         account['free'] = this.safeString (response, 'maximalWithdraw');
-        result[code] = account;
+        this.storeByKey (result, code, account);
         return this.safeBalance (result);
     }
 

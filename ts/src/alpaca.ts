@@ -1940,7 +1940,7 @@ export default class alpaca extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         account['free'] = this.safeString (response, 'cash');
         account['total'] = this.safeString (response, 'equity');
-        result[code] = account;
+        this.storeByKey (result, code, account);
         return this.safeBalance (result);
     }
 

@@ -686,7 +686,7 @@ export default class upbit extends upbitRest {
             const account = this.account ();
             account['free'] = available;
             account['used'] = frozen;
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
             this.balance = this.safeBalance (this.balance);
         }
         const messageHash = this.safeString (message, 'type');

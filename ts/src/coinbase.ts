@@ -1992,10 +1992,14 @@ export default class coinbase extends Exchange {
             const id = this.safeString2 (currency, 'id', 'code');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            this.options['networks'][code] = (name as string).toLowerCase ();
-            this.options['networksById'][code] = (name as string).toLowerCase ();
+            if (code !== undefined) {
+                this.options['networks'][code] = (name as string).toLowerCase ();
+            }
+            if (code !== undefined) {
+                this.options['networksById'][code] = (name as string).toLowerCase ();
+            }
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure ({
+            this.storeByKey (result, code, this.safeCurrencyStructure ({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -2017,10 +2021,10 @@ export default class coinbase extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            }));
             if (assetId !== undefined) {
                 const lowerCaseName = (name as string).toLowerCase ();
-                networks[code] = lowerCaseName;
+                this.storeByKey (networks, code, lowerCaseName);
                 networksById[lowerCaseName] = code;
             }
         }
@@ -2028,14 +2032,14 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < ratesIds.length; i++) {
             const currencyId = ratesIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            if (!(code in result)) {
-                result[code] = this.safeCurrencyStructure ({
+            if ((code === undefined) || !(code in result)) {
+                this.storeByKey (result, code, this.safeCurrencyStructure ({
                     'info': {},
                     'id': currencyId,
                     'code': code,
                     'type': 'crypto',
                     'networks': {}, // todo
-                });
+                }));
             }
         }
         this.options['networks'] = this.extend (networks, this.options['networks']);
@@ -2422,7 +2426,7 @@ export default class coinbase extends Exchange {
                         account['free'] = Precise.stringAdd (account['free'], total);
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
-                    result[code] = account;
+                    this.storeByKey (result, code, account);
                 }
             } else if (this.inArray (type, v3Accounts)) {
                 const available = this.safeDict (balance, 'available_balance');
@@ -2444,7 +2448,7 @@ export default class coinbase extends Exchange {
                         account['used'] = Precise.stringAdd (account['used'], used);
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
-                    result[code] = account;
+                    this.storeByKey (result, code, account);
                 }
             }
         }

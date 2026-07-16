@@ -514,7 +514,9 @@ export default class hyperliquid extends Exchange {
                     nameWithoutU = nameWithoutU + parts[j];
                 }
                 const baseCode = this.safeCurrencyCode (nameWithoutU);
-                this.options['spotCurrencyMapping'][code] = baseCode;
+                if (code !== undefined) {
+                    this.options['spotCurrencyMapping'][code] = baseCode;
+                }
             }
         }
         return result;
@@ -1177,7 +1179,7 @@ export default class hyperliquid extends Exchange {
                 const used = this.safeString (balance, 'hold');
                 account['total'] = total;
                 account['used'] = used;
-                spotBalances[code] = account;
+                this.storeByKey (spotBalances, code, account);
             }
             return this.safeBalance (spotBalances);
         }

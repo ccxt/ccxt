@@ -1387,7 +1387,7 @@ export default class grvt extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = availableBalance; // todo: revise after API team clarification
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

@@ -2526,7 +2526,7 @@ export default class woo extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['free'] = this.safeString (balance, 'availableBalance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -4319,34 +4319,36 @@ export default class woo extends Exchange {
             const entry = data[i];
             const id = this.safeString (entry, 'token');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.safeNumber (entry, 'tick'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.safeNumber (entry, 'tick'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp (entry, 'createdTime'),
-            };
+                    'created': this.safeTimestamp (entry, 'createdTime'),
+                };
+            }
         }
         return result;
     }

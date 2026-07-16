@@ -754,7 +754,7 @@ export default class lbank extends lbankRest {
         account['free'] = this.safeString (data, 'free');
         account['used'] = this.safeString (data, 'freeze');
         account['total'] = this.safeString (data, 'asset');
-        this.balance[code] = account;
+        this.storeByKey (this.balance, code, account);
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }

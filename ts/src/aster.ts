@@ -1942,7 +1942,7 @@ export default class aster extends Exchange {
             account['free'] = this.safeString2 (balance, 'free', 'availableBalance');
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -3673,10 +3673,12 @@ export default class aster extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const crossWalletBalance = this.safeString (entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString (entry, 'crossUnPnl');
-            balances[code] = {
-                'crossMargin': Precise.stringAdd (crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            };
+            if (code !== undefined) {
+                balances[code] = {
+                    'crossMargin': Precise.stringAdd (crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                };
+            }
         }
         const result: List = [];
         for (let i = 0; i < positions.length; i++) {

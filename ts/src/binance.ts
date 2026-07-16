@@ -3769,7 +3769,7 @@ export default class binance extends Exchange {
                     const totalWalletBalance = this.safeString (entry, 'totalWalletBalance');
                     account['total'] = Precise.stringAdd (totalUsed, totalWalletBalance);
                 }
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         } else if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
@@ -3786,7 +3786,7 @@ export default class binance extends Exchange {
                     const interest = this.safeString (balance, 'interest');
                     account['debt'] = Precise.stringAdd (debt, interest);
                 }
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         } else if (isolated) {
             const assets = this.safeList (response, 'assets', []);
@@ -3799,8 +3799,8 @@ export default class binance extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult: Dict = {};
-                subResult[baseCode] = this.parseBalanceHelper (base);
-                subResult[quoteCode] = this.parseBalanceHelper (quote);
+                this.storeByKey (subResult, baseCode, this.parseBalanceHelper (base));
+                this.storeByKey (subResult, quoteCode, this.parseBalanceHelper (quote));
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
@@ -3813,7 +3813,7 @@ export default class binance extends Exchange {
                 const usedAndTotal = this.safeString (entry, 'amount');
                 account['total'] = usedAndTotal;
                 account['used'] = usedAndTotal;
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         } else if (type === 'funding') {
             for (let i = 0; i < response.length; i++) {
@@ -3826,7 +3826,7 @@ export default class binance extends Exchange {
                 const withdrawing = this.safeString (entry, 'withdrawing');
                 const locked = this.safeString (entry, 'locked');
                 account['used'] = Precise.stringAdd (frozen, Precise.stringAdd (locked, withdrawing));
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         } else {
             let balances = response;
@@ -3841,7 +3841,7 @@ export default class binance extends Exchange {
                 account['free'] = this.safeString (balance, 'availableBalance');
                 account['used'] = this.safeString (balance, 'initialMargin');
                 account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         result['timestamp'] = timestamp;
@@ -9654,13 +9654,15 @@ export default class binance extends Exchange {
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const networkList = this.safeList (entry, 'networkList', []);
-            withdrawFees[code] = {};
+            this.storeByKey (withdrawFees, code, {});
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'network');
                 const networkCode = this.safeCurrencyCode (networkId);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
-                withdrawFees[code][networkCode] = fee;
+                if ((code !== undefined) && (networkCode !== undefined)) {
+                    withdrawFees[code][networkCode] = fee;
+                }
             }
         }
         return {
@@ -10397,10 +10399,12 @@ export default class binance extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const crossWalletBalance = this.safeString (entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString (entry, 'crossUnPnl');
-            balances[code] = {
-                'crossMargin': Precise.stringAdd (crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            };
+            if (code !== undefined) {
+                balances[code] = {
+                    'crossMargin': Precise.stringAdd (crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                };
+            }
         }
         const result: List = [];
         for (let i = 0; i < positions.length; i++) {
@@ -14351,34 +14355,36 @@ export default class binance extends Exchange {
             const entry = response[i];
             const id = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'fraction'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'fraction'))),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }

@@ -447,7 +447,7 @@ export default class indodax extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (free, currencyId);
             account['used'] = this.safeString (used, currencyId);
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -1453,13 +1453,15 @@ export default class indodax extends Exchange {
                     }
                 }
                 const finalNetwork = network; // java req
-                result[code] = {
-                    'info': {},
-                    'currency': code,
-                    'network': finalNetwork,
-                    'address': address,
-                    'tag': undefined,
-                } as DepositAddress;
+                if (code !== undefined) {
+                    result[code] = {
+                        'info': {},
+                        'currency': code,
+                        'network': finalNetwork,
+                        'address': address,
+                        'tag': undefined,
+                    } as DepositAddress;
+                }
             }
         }
         return result as DepositAddress[];

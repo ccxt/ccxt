@@ -1713,7 +1713,7 @@ export default class coinbaseinternational extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (rawBalance, 'quantity');
             account['used'] = this.safeString (rawBalance, 'hold');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

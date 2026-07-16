@@ -1878,7 +1878,7 @@ export default class weex extends Exchange {
             account['free'] = this.safeString2 (entry, 'availableBalance', 'free');
             account['used'] = this.safeString2 (entry, 'frozen', 'locked');
             account['total'] = this.safeString (entry, 'balance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

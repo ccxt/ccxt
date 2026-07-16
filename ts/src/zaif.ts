@@ -347,7 +347,7 @@ export default class zaif extends Exchange {
                     account['total'] = this.safeString (deposit, currencyId);
                 }
             }
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

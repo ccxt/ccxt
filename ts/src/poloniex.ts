@@ -2429,7 +2429,7 @@ export default class poloniex extends Exchange {
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'avail');
                 account['used'] = this.safeString (balance, 'im');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             return this.safeBalance (result);
         }
@@ -2444,7 +2444,7 @@ export default class poloniex extends Exchange {
                 const newAccount = this.account ();
                 newAccount['free'] = this.safeString (balance, 'available');
                 newAccount['used'] = this.safeString (balance, 'hold');
-                result[code] = newAccount;
+                this.storeByKey (result, code, newAccount);
             }
         }
         return this.safeBalance (result);
@@ -3040,7 +3040,7 @@ export default class poloniex extends Exchange {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
-            if ((codes === undefined) || (this.inArray (code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');

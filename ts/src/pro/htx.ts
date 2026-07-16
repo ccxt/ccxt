@@ -2025,7 +2025,7 @@ export default class htx extends htxRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'available');
             account['total'] = this.safeString (data, 'balance');
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
             this.balance = this.safeBalance (this.balance);
             client.resolve (this.balance, channel);
         } else {
@@ -2097,7 +2097,7 @@ export default class htx extends htxRest {
                 const unifiedAccount = this.account ();
                 unifiedAccount['free'] = this.safeString (first, 'withdraw_available');
                 unifiedAccount['used'] = marginFrozen;
-                this.balance[code] = unifiedAccount;
+                this.storeByKey (this.balance, code, unifiedAccount);
                 this.balance = this.safeBalance (this.balance);
                 client.resolve (this.balance, 'accounts_unify');
             } else if (subType === 'linear') {
@@ -2137,7 +2137,7 @@ export default class htx extends htxRest {
                         account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
                         const currencyId = this.safeString2 (isolatedBalance, 'margin_asset', 'symbol');
                         const code = this.safeCurrencyCode (currencyId);
-                        this.balance[code] = account;
+                        this.storeByKey (this.balance, code, account);
                         this.balance = this.safeBalance (this.balance);
                     }
                 }
@@ -2150,7 +2150,7 @@ export default class htx extends htxRest {
                     const account = this.account ();
                     account['free'] = this.safeString (balance, 'margin_available');
                     account['used'] = this.safeString (balance, 'margin_frozen');
-                    this.balance[code] = account;
+                    this.storeByKey (this.balance, code, account);
                     this.balance = this.safeBalance (this.balance);
                 }
             }

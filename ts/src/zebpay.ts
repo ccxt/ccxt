@@ -1760,7 +1760,7 @@ export default class zebpay extends Exchange {
             account['used'] = this.safeString (entry, 'used');
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

@@ -1291,7 +1291,7 @@ export default class bitmart extends Exchange {
                     },
                 };
             }
-            result[currencyCode] = entry;
+            this.storeByKey (result, currencyCode, entry);
         }
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
@@ -2387,8 +2387,8 @@ export default class bitmart extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult: Dict = {};
-                subResult[baseCode] = this.parseBalanceHelper (base);
-                subResult[quoteCode] = this.parseBalanceHelper (quote);
+                this.storeByKey (subResult, baseCode, this.parseBalanceHelper (base));
+                this.storeByKey (subResult, quoteCode, this.parseBalanceHelper (quote));
                 result[symbol] = this.safeBalance (subResult);
             }
             return result;
@@ -2401,7 +2401,7 @@ export default class bitmart extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString2 (balance, 'available', 'available_balance');
                 account['used'] = this.safeStringN (balance, [ 'unAvailable', 'frozen', 'frozen_balance' ]);
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             return this.safeBalance (result);
         }

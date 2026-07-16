@@ -992,7 +992,7 @@ export default class bydfi extends bydfiRest {
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'wb');
                 account['used'] = this.safeString (balance, 'tfm');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             const parsedBalance = this.safeBalance (result);
             this.balance = this.extend (this.balance, parsedBalance);

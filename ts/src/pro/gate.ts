@@ -1334,7 +1334,7 @@ export default class gate extends gateRest {
             account['used'] = this.safeString (rawBalance, 'freeze');
             account['free'] = this.safeString (rawBalance, 'available');
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
         }
         const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
@@ -2182,7 +2182,7 @@ export default class gate extends gateRest {
 
     getUrlByMarketType (type: Str, isInverse = false) {
         const api = this.urls['api'];
-        const url = api[type];
+        const url = this.safeValue (api, type);
         if ((type === 'swap') || (type === 'future')) {
             return isInverse ? url['btc'] : url['usdt'];
         } else {

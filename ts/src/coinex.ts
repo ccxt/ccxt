@@ -1749,7 +1749,7 @@ export default class coinex extends Exchange {
             const baseDebt = this.safeString (loan, 'base_ccy');
             const baseInterest = this.safeString (interest, 'base_ccy');
             baseAccount['debt'] = Precise.stringAdd (baseDebt, baseInterest);
-            result[baseCurrencyCode] = baseAccount;
+            this.storeByKey (result, baseCurrencyCode, baseAccount);
         }
         return this.safeBalance (result);
     }
@@ -1781,7 +1781,7 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -1816,7 +1816,7 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -1848,7 +1848,7 @@ export default class coinex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -5865,7 +5865,7 @@ export default class coinex extends Exchange {
             }
             const code = this.safeCurrencyCode (currencyId);
             if (codes === undefined || this.inArray (code, codes)) {
-                result[code] = this.parseDepositWithdrawFee (item);
+                this.storeByKey (result, code, this.parseDepositWithdrawFee (item));
             }
         }
         return result;

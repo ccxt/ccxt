@@ -674,7 +674,7 @@ export default class bitso extends Exchange {
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'total');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -1634,14 +1634,16 @@ export default class bitso extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeNumber (depositFee, 'fee'),
-                'withdraw': undefined,
-                'info': {
-                    'deposit': depositFee,
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeNumber (depositFee, 'fee'),
                     'withdraw': undefined,
-                },
-            };
+                    'info': {
+                        'deposit': depositFee,
+                        'withdraw': undefined,
+                    },
+                };
+            }
         }
         const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
         const currencyIds = Object.keys (withdrawalFees);
@@ -1651,14 +1653,16 @@ export default class bitso extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeValue (result[code], 'deposit'),
-                'withdraw': this.safeNumber (withdrawalFees, currencyId),
-                'info': {
-                    'deposit': this.safeValue (result[code]['info'], 'deposit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeValue (this.safeValue (result, code), 'deposit'),
                     'withdraw': this.safeNumber (withdrawalFees, currencyId),
-                },
-            };
+                    'info': {
+                        'deposit': this.safeValue (this.safeValue (this.safeValue (result, code), 'info'), 'deposit'),
+                        'withdraw': this.safeNumber (withdrawalFees, currencyId),
+                    },
+                };
+            }
         }
         return result;
     }
@@ -1773,25 +1777,27 @@ export default class bitso extends Exchange {
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (code in codes)) {
-                result[code] = {
-                    'deposit': {
-                        'fee': this.safeNumber (entry, 'fee'),
-                        'percentage': !this.safeValue (entry, 'is_fixed'),
-                    },
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'networks': {},
-                    'info': entry,
-                };
+                if (code !== undefined) {
+                    result[code] = {
+                        'deposit': {
+                            'fee': this.safeNumber (entry, 'fee'),
+                            'percentage': !this.safeValue (entry, 'is_fixed'),
+                        },
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'networks': {},
+                        'info': entry,
+                    };
+                }
             }
         }
         const withdrawalKeys = Object.keys (withdrawalResponse);
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            if ((codes === undefined) || (code in codes)) {
+            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
                 const resultValue = this.safeValue (result, code);
                 if (resultValue === undefined) {

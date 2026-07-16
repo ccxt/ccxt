@@ -862,7 +862,7 @@ export default class digifinex extends Exchange {
             account['free'] = free;
             account['used'] = Precise.stringSub (total, free);
             account['total'] = total;
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
@@ -3373,7 +3373,7 @@ export default class digifinex extends Exchange {
             const currency = this.safeString (item, codeKey);
             const code = this.safeCurrencyCode (currency);
             const borrowRate = this.parseBorrowRate (item);
-            result[code] = borrowRate;
+            this.storeByKey (result, code, borrowRate);
         }
         return result as any;
     }
@@ -4247,7 +4247,7 @@ export default class digifinex extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if ((codes === undefined) || (this.inArray (code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});

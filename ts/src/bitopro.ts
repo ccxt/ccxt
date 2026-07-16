@@ -1007,7 +1007,7 @@ export default class bitopro extends Exchange {
                 'free': available,
                 'total': amount,
             };
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

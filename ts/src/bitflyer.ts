@@ -418,7 +418,7 @@ export default class bitflyer extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'amount');
             account['free'] = this.safeString (balance, 'available');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

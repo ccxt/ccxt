@@ -1389,7 +1389,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 const code = this.safeCurrencyCode (key);
                 const newAccount = this.account ();
                 newAccount['total'] = this.safeString (holding, key);
-                holdingResult[code] = newAccount;
+                this.storeByKey (holdingResult, code, newAccount);
             }
             this.balance['cash'] = holdingResult;
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
@@ -1413,7 +1413,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['used'] = this.safeString (future, 'initial_margin');
                 newAccount['total'] = this.safeString (future, 'balance');
                 futuresResult[symbol] = {};
-                futuresResult[symbol][code] = newAccount;
+                if ((symbol !== undefined) && (code !== undefined)) {
+                    futuresResult[symbol][code] = newAccount;
+                }
             }
             this.balance['margin'] = futuresResult;
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
@@ -1435,7 +1437,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 newAccount['free'] = this.safeString (flexFuture, 'available');
                 newAccount['used'] = this.safeString (flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString (flexFuture, 'quantity');
-                flexFuturesResult[code] = newAccount;
+                this.storeByKey (flexFuturesResult, code, newAccount);
             }
             this.balance['flex'] = flexFuturesResult;
             this.balance['flex'] = this.safeBalance (this.balance['flex']);

@@ -1430,7 +1430,7 @@ export default class bigone extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
             account['used'] = this.safeString (balance, 'locked_balance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

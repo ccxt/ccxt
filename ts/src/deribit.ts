@@ -1062,7 +1062,7 @@ export default class deribit extends Exchange {
             account['free'] = this.safeString (data, 'available_funds');
             account['used'] = this.safeString (data, 'maintenance_margin');
             account['total'] = this.safeString (data, 'equity');
-            result[currencyCode] = account;
+            this.storeByKey (result, currencyCode, account);
         }
         return this.safeBalance (result);
     }

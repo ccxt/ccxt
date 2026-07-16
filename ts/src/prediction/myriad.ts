@@ -2494,7 +2494,9 @@ export default class myriad extends Exchange {
         const options = this.options['requestId'];
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        if (url !== undefined) {
+            this.options['requestId'][url] = newValue;
+        }
         return newValue;
     }
 

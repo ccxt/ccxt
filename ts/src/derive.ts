@@ -2509,7 +2509,7 @@ export default class derive extends Exchange {
                     const amount = this.safeString (balance, 'amount');
                     account['total'] = Precise.stringAdd (account['total'], amount);
                 }
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         return this.safeBalance (result);

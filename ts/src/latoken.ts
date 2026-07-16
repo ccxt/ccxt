@@ -616,7 +616,7 @@ export default class latoken extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'blocked');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601 (maxTimestamp);

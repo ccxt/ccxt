@@ -948,7 +948,7 @@ export default class xt extends Exchange {
             } else {
                 type = 'other';
             }
-            result[code] = this.safeCurrencyStructure ({
+            this.storeByKey (result, code, this.safeCurrencyStructure ({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
@@ -974,7 +974,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            }));
         }
         return result;
     }
@@ -2410,7 +2410,7 @@ export default class xt extends Exchange {
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }
