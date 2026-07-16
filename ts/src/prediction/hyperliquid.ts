@@ -472,8 +472,8 @@ export default class hyperliquid extends Exchange {
         const noOutcomeSymbol = parentSymbol + ':NO';
         // Parse expiry from description
         const expiry = this.safeString (desc, 'expiry');
-        let expiryMs = undefined;
-        let expiryDatetime = undefined;
+        let expiryMs: Int = undefined;
+        let expiryDatetime: Str = undefined;
         if (expiry) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split ('-');
@@ -1047,13 +1047,13 @@ export default class hyperliquid extends Exchange {
         const totalStr = this.safeString (position, 'total');
         const total = this.parseNumber (totalStr);
         const entryNtlStr = this.safeString (position, 'entryNtl');
-        let entryPrice = undefined;
+        let entryPrice: Num = undefined;
         if ((entryNtlStr !== undefined) && (totalStr !== undefined) && !Precise.stringEq (totalStr, '0')) {
             entryPrice = this.parseNumber (Precise.stringDiv (entryNtlStr, totalStr));
         }
         const markPxStr = this.safeString (position, 'markPx');
-        let notional = undefined;        // current position value = size * mark price
-        let unrealizedPnl = undefined;   // value - entry notional
+        let notional: Num = undefined;        // current position value = size * mark price
+        let unrealizedPnl: Num = undefined;   // value - entry notional
         if ((markPxStr !== undefined) && (totalStr !== undefined)) {
             const notionalStr = Precise.stringMul (totalStr, markPxStr);
             notional = this.parseNumber (notionalStr);
@@ -1257,7 +1257,7 @@ export default class hyperliquid extends Exchange {
         if (clientOrderId !== undefined) {
             orderObj['c'] = clientOrderId;
         }
-        let vaultAddress = undefined;
+        let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const orderAction = {
@@ -1374,7 +1374,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        let vaultAddress = undefined;
+        let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
@@ -1589,7 +1589,7 @@ export default class hyperliquid extends Exchange {
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
         const totalAmount = this.safeString (entry, 'origSz');
         const remaining = this.safeString (entry, 'sz');
-        let filled = undefined;
+        let filled: Str = undefined;
         if ((remaining !== undefined) && (totalAmount !== undefined)) {
             filled = Precise.stringSub (totalAmount, remaining);
         }
@@ -1778,11 +1778,11 @@ export default class hyperliquid extends Exchange {
         const fee = this.safeNumber (trade, 'fee');
         const feeCurrency = this.safeString (trade, 'feeToken', 'USDC');
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
-        let feeObject = undefined;
+        let feeObject: Dict = undefined;
         if (fee !== undefined) {
             feeObject = { 'cost': fee, 'currency': feeCurrency };
         }
-        let cost = undefined;
+        let cost: Num = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (price, amount));
         }
@@ -1911,8 +1911,8 @@ export default class hyperliquid extends Exchange {
         const underlying = this.safeString (desc, 'underlying');
         const targetPrice = this.safeString (desc, 'targetPrice');
         const expiryRaw = this.safeString (desc, 'expiry');
-        let expiryMs = undefined;
-        let expiryDatetime = undefined;
+        let expiryMs: Int = undefined;
+        let expiryDatetime: Str = undefined;
         if (expiryRaw) {
             const parts = expiryRaw.split ('-');
             const partsLength = parts.length;
@@ -2063,7 +2063,7 @@ export default class hyperliquid extends Exchange {
     }
 
     handlePublicAddress (methodName: string, params: Dict): any {
-        let userAux = undefined;
+        let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);

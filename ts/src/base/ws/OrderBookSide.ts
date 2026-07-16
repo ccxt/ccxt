@@ -34,7 +34,7 @@ interface IOrderBookSide<T> extends Array<T> {
 }
 
 class OrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas = [], depth = undefined) {
+    constructor (deltas = [], depth: number | undefined = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {

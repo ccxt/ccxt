@@ -9,7 +9,7 @@ async function testWatchPosition (exchange: Exchange, skippedProperties: object,
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response: Position | undefined = undefined;
+        let response: Position = undefined;
         let success = true;
         try {
             response = await exchange.watchPosition (symbol);

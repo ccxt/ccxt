@@ -173,7 +173,7 @@ export default class kucoin extends kucoinRest {
         return requestId;
     }
 
-    async subscribe (url, messageHash, subscriptionHash, params = {}, subscription = undefined) {
+    async subscribe (url, messageHash, subscriptionHash, params = {}, subscription: Dict = undefined) {
         const requestId = this.requestId ().toString ();
         const request: Dict = {
             'id': requestId,
@@ -481,7 +481,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async subscribePublicMultipleUta (messageHashes, channel, symbols, params = {}, subscription = undefined) {
+    async subscribePublicMultipleUta (messageHashes, channel, symbols, params = {}, subscription: Dict = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
         const urlType = (market as Dict)['contract'] ? 'futures' : 'spot';

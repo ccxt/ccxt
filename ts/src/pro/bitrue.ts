@@ -254,7 +254,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "e": "ORDER",

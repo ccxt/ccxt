@@ -305,7 +305,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker: Dict, market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "sequence": 1,
@@ -591,7 +591,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //       "sequence": 0,

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Fee, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -312,7 +312,7 @@ export default class coincheck extends Exchange {
         //
         const exchangeStatuses = this.safeList (response, 'exchange_status', []);
         let status = 'ok';
-        let updated = undefined;
+        let updated: Int = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {
             const exchangeStatus = exchangeStatuses[i];
             const rawStatus = this.safeString (exchangeStatus, 'status');

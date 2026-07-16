@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1356,7 +1356,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook, messageHash, market = undefined) {
+    handleOrderBookMessage (client: Client, message, orderbook, messageHash, market: Market = undefined) {
         //
         //     {
         //         "asks": [
@@ -1387,7 +1387,7 @@ export default class okx extends okxRest {
         const seqId = this.safeInteger (message, 'seqId');
         const prevSeqId = this.safeInteger (message, 'prevSeqId');
         const nonce = orderbook['nonce'];
-        let error = undefined;
+        let error: InvalidNonce = undefined;
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
         }
@@ -1695,7 +1695,7 @@ export default class okx extends okxRest {
         client.resolve (this.balance, channel);
     }
 
-    orderToTrade (order, market = undefined) {
+    orderToTrade (order, market: Market = undefined) {
         const info = this.safeValue (order, 'info', {});
         const timestamp = this.safeInteger (info, 'fillTime');
         const feeMarketId = this.safeString (info, 'fillFeeCcy');

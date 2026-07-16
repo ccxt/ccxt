@@ -468,7 +468,7 @@ export default class exmo extends exmoRest {
         const messageHash = 'myTrades:' + type;
         const event = this.safeString (message, 'event');
         let rawTrades: List = [];
-        let myTrades = undefined;
+        let myTrades: ArrayCache = undefined;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             myTrades = new ArrayCacheBySymbolById (limit);

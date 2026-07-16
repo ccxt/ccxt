@@ -1772,7 +1772,7 @@ export default class bitmex extends Exchange {
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
-        let useOpenTimestamp = undefined;
+        let useOpenTimestamp: Bool = undefined;
         [ useOpenTimestamp, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
@@ -3147,7 +3147,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response = undefined;
         response = await this.publicGetStats (this.extend (request, params));
         //
         //    [
@@ -3613,7 +3613,7 @@ export default class bitmex extends Exchange {
         return this.parseSettlements (response, market, since, limit);
     }
 
-    parseSettlements (settlements, market = undefined, since = undefined, limit = undefined) {
+    parseSettlements (settlements, market: Market = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -3623,7 +3623,7 @@ export default class bitmex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market = undefined) {
+    parseSettlement (settlement, market: Market = undefined) {
         //
         //    {
         //        timestamp: '2025-03-28T12:00:00.000Z',

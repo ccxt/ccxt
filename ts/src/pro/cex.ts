@@ -185,7 +185,7 @@ export default class cex extends cexRest {
         this.handleTradesInner (client, message);
     }
 
-    parseWsOldTrade (trade, market = undefined) {
+    parseWsOldTrade (trade, market: Market = undefined) {
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
@@ -381,7 +381,7 @@ export default class cex extends cexRest {
         }
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //  public
         //    {
@@ -612,7 +612,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //     {
         //         "d": "order:59091012956:a:BTC",
@@ -795,7 +795,7 @@ export default class cex extends cexRest {
         client.resolve (storedOrders, messageHash);
     }
 
-    parseWsOrderUpdate (order, market = undefined) {
+    parseWsOrderUpdate (order, market: Market = undefined) {
         //
         //      {
         //          "id": "150714937",

@@ -2146,7 +2146,7 @@ export default class hibachi extends Exchange {
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
-    parseSettlement (settlement, market = undefined) {
+    parseSettlement (settlement, market: Market = undefined) {
         //
         //     {
         //         "direction": "Long",
@@ -2169,7 +2169,7 @@ export default class hibachi extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market = undefined) {
+    parseSettlements (settlements, market: Market = undefined) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));

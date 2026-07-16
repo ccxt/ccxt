@@ -1805,7 +1805,7 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': signature,
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         try {
             response = await this.privatePostExchange (request);
             return response;
@@ -4877,7 +4877,7 @@ export default class hyperliquid extends Exchange {
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
-        let userAux = undefined;
+        let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);

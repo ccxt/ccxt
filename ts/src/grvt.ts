@@ -1789,7 +1789,7 @@ export default class grvt extends Exchange {
             'transfer_metadata': null,
         };
         request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
-        let response: NullableDict = undefined;
+        let response = undefined;
         try {
             response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         } catch (error) {
@@ -2010,7 +2010,7 @@ export default class grvt extends Exchange {
         const isMarketOrder = (type === 'market');
         const subAccountId = this.getSubAccountId (params);
         const isReduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const orderRequest = {
+        const orderRequest: Dict = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [ orderLeg ],
@@ -2540,7 +2540,7 @@ export default class grvt extends Exchange {
         return this.parseLeverages (results, symbols);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         //
         // fetchMarginModes
         //
@@ -3162,7 +3162,7 @@ export default class grvt extends Exchange {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
+    createSignedRequest (request: any, structureType: string, currencyObj: Dict = undefined, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');

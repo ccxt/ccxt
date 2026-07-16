@@ -6,7 +6,7 @@ import Exchange from './abstract/bitstamp.js';
 import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, Fee } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1523,7 +1523,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactionFees (response);
     }
 
-    parseTransactionFees (response, codes = undefined) {
+    parseTransactionFees (response, codes: Strings = undefined) {
         const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
@@ -1552,7 +1552,7 @@ export default class bitstamp extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1571,7 +1571,7 @@ export default class bitstamp extends Exchange {
         return this.parseDepositWithdrawFees (responseByCurrencyId, codes);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
@@ -1629,7 +1629,7 @@ export default class bitstamp extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId' ]);
         }
-        let response: Dict = undefined;
+        let response = undefined;
         const capitalizedSide = this.capitalize (side);
         if (type === 'market') {
             if (capitalizedSide === 'Buy') {
@@ -1741,7 +1741,7 @@ export default class bitstamp extends Exchange {
         }
         let market: Market = undefined;
         const request: Dict = {};
-        let response: Dict = undefined;
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -2134,7 +2134,7 @@ export default class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
-        let fee = {
+        let fee: NullableDict = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2620,7 +2620,7 @@ export default class bitstamp extends Exchange {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
             'currency': currency['id'].toUpperCase (),
         };
-        let response: Dict = undefined;
+        let response = undefined;
         if (fromAccount === 'main') {
             request['subAccount'] = toAccount;
             response = await this.privatePostTransferFromMain (this.extend (request, params));
@@ -2640,12 +2640,12 @@ export default class bitstamp extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    { status: 'ok' }
         //
         const status = this.safeString (transfer, 'status');
-        return {
+        const result: Dict = {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
@@ -2656,6 +2656,7 @@ export default class bitstamp extends Exchange {
             'toAccount': undefined,
             'status': this.parseTransferStatus (status),
         };
+        return result;
     }
 
     parseTransferStatus (status: Str): Str {

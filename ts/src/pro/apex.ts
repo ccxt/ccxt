@@ -576,7 +576,7 @@ export default class apex extends apexRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "start": 1670363160000,

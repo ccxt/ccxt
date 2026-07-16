@@ -6,6 +6,7 @@ import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool, Market, NullableList } from '../base/types.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -105,7 +106,7 @@ export default class hollaex extends hollaexRest {
         const timestamp = this.safeString (data, 'timestamp');
         const timestampMs = this.parse8601 (timestamp);
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
-        let orderbook = undefined;
+        let orderbook: Ob | undefined = undefined;
         if (!(symbol in this.orderbooks)) {
             orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
@@ -207,7 +208,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription = undefined) {
+    handleMyTrades (client: Client, message, subscription: Dict = undefined) {
         //
         // {
         //     "topic":"usertrade",
@@ -292,7 +293,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription = undefined) {
+    handleOrder (client: Client, message, subscription: Dict = undefined) {
         //
         //     {
         //         "topic": "order",

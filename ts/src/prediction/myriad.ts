@@ -24,8 +24,7 @@ import type {
     Strings, PredictionOrderRequest,
     Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
     PredictionEvent, Balances, fetchEventsParams,
-    PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
-} from '../base/types.js';
+    PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Bool } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded } from '../base/errors.js';
 
@@ -1006,7 +1005,7 @@ export default class myriad extends Exchange {
             const networkId = this.safeString2 (order, 'networkId', 'network_id', this.safeString (this.options, 'defaultNetworkId', '56'));
             const marketId = this.safeString (inner, 'marketId');
             const outcomeId = this.safeString (inner, 'outcomeId');
-            let composite = undefined;
+            let composite: Str = undefined;
             if ((networkId !== undefined) && (marketId !== undefined) && (outcomeId !== undefined)) {
                 composite = networkId + ':' + marketId + '/' + outcomeId;
             }
@@ -1069,7 +1068,7 @@ export default class myriad extends Exchange {
         const response = await this.myriadPublicDeleteOrdersHash (request);
         const status = this.safeString (response, 'status', 'canceled');
         const wrapper = this.extend (fetched, { 'status': status, 'networkId': networkId });
-        let market = undefined;
+        let market: Market = undefined;
         if (outcome !== undefined) {
             market = await this.loadOutcome (outcome);
         }
@@ -1164,7 +1163,7 @@ export default class myriad extends Exchange {
      */
     async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         const response = await this.myriadPublicGetOrdersHash (this.extend ({ 'hash': id }, params));
-        let market = undefined;
+        let market: Market = undefined;
         if (outcome !== undefined) {
             market = await this.loadOutcome (outcome);
         }
@@ -1194,7 +1193,7 @@ export default class myriad extends Exchange {
                 request['trader'] = this.walletAddress;
             }
         }
-        let outcomeSymbol = undefined;
+        let outcomeSymbol: Str = undefined;
         if (outcome !== undefined) {
             const outcomeObj = await this.loadOutcome (outcome);
             outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
@@ -1294,7 +1293,7 @@ export default class myriad extends Exchange {
         const orderType = this.safeString (order, 'type');
         // the REST filled-order response carries the order's limit price (= the fill price for limit
         // orders, but only the protective bound for market orders), so omit the price for market orders
-        let price = undefined;
+        let price: Num = undefined;
         if (orderType !== 'market') {
             price = this.safeNumber (order, 'price');
         }
@@ -1464,7 +1463,7 @@ export default class myriad extends Exchange {
         const voided = this.safeBool (raw, 'voided', false);
         const hasResolution = (resolvedOutcomeId !== '-1') && (resolvedOutcomeId !== undefined) && (resolvedOutcomeId !== '');
         const marketResolved = hasResolution || voided;
-        let resolvedOutcome = undefined;
+        let resolvedOutcome: Str = undefined;
         const volume24h = this.safeNumber (raw, 'volume24h');
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
         // globally unique, so do NOT fall back to networkId — that would prefix every handle.
@@ -1489,8 +1488,8 @@ export default class myriad extends Exchange {
             const price = this.safeNumber (outcome, 'price');
             const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, slug, outcomeLabel);
             const outcomeCompositeId = networkId + ':' + marketId + '/' + outcomeId;
-            let winnerRaw = undefined;
-            let settleFractionRaw = undefined;
+            let winnerRaw: Bool = undefined;
+            let settleFractionRaw: Num = undefined;
             if (hasResolution) {
                 winnerRaw = (outcomeId === resolvedOutcomeId);
                 settleFractionRaw = winnerRaw ? 1 : 0;
@@ -1811,8 +1810,8 @@ export default class myriad extends Exchange {
         //
         const outcomeId = market ? this.safeString (market['info'], 'outcomeId') : undefined;
         const outcomes = this.safeList (raw, 'outcomes', []) as any[];
-        let price = undefined;
-        let change = undefined;
+        let price: Num = undefined;
+        let change: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = outcomes[i];
             if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
@@ -1824,8 +1823,8 @@ export default class myriad extends Exchange {
         const now = this.milliseconds ();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
-        let previousClose = undefined;
-        let percentage = undefined;
+        let previousClose: Num = undefined;
+        let percentage: Num = undefined;
         if ((price !== undefined) && (change !== undefined)) {
             previousClose = price - change;
             if (previousClose !== 0) {
@@ -1972,7 +1971,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomes = this.safeList (response, 'outcomes', []) as any[];
-        let price = undefined;
+        let price: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = outcomes[i];
             if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
@@ -1982,8 +1981,8 @@ export default class myriad extends Exchange {
         }
         const timestamp = this.milliseconds ();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
-        let bid = undefined;
-        let ask = undefined;
+        let bid: Num = undefined;
+        let ask: Num = undefined;
         if (price !== undefined) {
             if (price > 0.001) {
                 bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
@@ -2126,7 +2125,7 @@ export default class myriad extends Exchange {
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
-        let chart = undefined;
+        let chart: Dict = undefined;
         const chartsList = this.safeList (selectedOutcome, 'price_charts');
         if (chartsList !== undefined) {
             for (let i = 0; i < chartsList.length; i++) {
@@ -2336,7 +2335,7 @@ export default class myriad extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const amountStr = this.safeString (trade, 'shares');
         const costStr = this.safeString (trade, 'value');
-        let priceStr = undefined;
+        let priceStr: Str = undefined;
         if ((amountStr !== undefined) && (costStr !== undefined) && !Precise.stringEq (amountStr, '0')) {
             priceStr = Precise.stringDiv (costStr, amountStr);
         }
@@ -2514,7 +2513,7 @@ export default class myriad extends Exchange {
         return await client.future ('centrifugoConnected');
     }
 
-    async pong (client, message = undefined) {
+    async pong (client, message: any = undefined) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send ('{}');
     }
@@ -3109,8 +3108,8 @@ export default class myriad extends Exchange {
             deltaStr = deltaStr.slice (1);
         }
         const deltaShares = Precise.stringDiv (deltaStr, '1000000000000000000');
-        let contracts = undefined;
-        let posId = undefined;
+        let contracts: Num = undefined;
+        let posId: Str = undefined;
         if ((networkId !== undefined) && (marketId !== undefined) && (outcomeId !== undefined)) {
             posId = networkId + ':' + marketId + '/' + outcomeId;
             const balances = this.safeDict (this.options, 'positionBalances', {});

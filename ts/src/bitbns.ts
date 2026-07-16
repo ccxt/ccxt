@@ -750,7 +750,7 @@ export default class bitbns extends Exchange {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         };
-        let response: Dict = undefined;
+        let response = undefined;
         const tail = isTrigger ? 'StopLossOrder' : 'Order';
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;

@@ -5,7 +5,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -363,7 +363,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         //
         //        {
         //            instrument: 'PF_LTCUSD',
@@ -566,7 +566,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "feed": "trade",
@@ -619,7 +619,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -895,7 +895,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         // update
         //
@@ -1045,7 +1045,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1486,7 +1486,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market = undefined) {
+    parseWsMyTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "instrument": "FI_XBTUSD_200925",
@@ -1531,7 +1531,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: any = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

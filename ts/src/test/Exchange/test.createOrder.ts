@@ -72,7 +72,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
 
 // ----------------------------------------------------------------------------
 
-async function tcoCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSell, predefinedAmount = undefined) {
+async function tcoCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSell, predefinedAmount: Num = undefined) {
     try {
         const symbol = market['symbol'];
         const minimunPrices = exchange.safeDict (market['limits'], 'price', {});
@@ -116,7 +116,7 @@ async function tcoCreateUnfillableOrder (exchange, market, logPrefix, skippedPro
 }
 
 
-async function tcoCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSellString, predefinedAmount = undefined) {
+async function tcoCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSellString, predefinedAmount: Num = undefined) {
     try {
         const isSwapFuture = market['swap'] || market['future'];
         const isBuy = (buyOrSellString === 'buy');
@@ -242,7 +242,7 @@ function tcoMininumCost (exchange, market) {
     return costMin;
 }
 
-function tcoGetMinimumAmountForLimitPrice (exchange, market, price, predefinedAmount = undefined) {
+function tcoGetMinimumAmountForLimitPrice (exchange, market, price, predefinedAmount: Num = undefined) {
     // this method calculates the minimum realistic order amount:
     // at first it checks the "minimum hardcap limit" (i.e. 7 DOGE), however, if exchange also has "minimum cost" limits,
     // then we need to calculate the amount using cost, because of price is volatile, today's 7 DOGE cost could be 1$

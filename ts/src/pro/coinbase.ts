@@ -66,7 +66,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, isPrivate: boolean, symbol = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -109,7 +109,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol = undefined) {
+    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -474,7 +474,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         //
         //     {
         //         "type": "ticker",
@@ -809,7 +809,7 @@ export default class coinbase extends coinbaseRest {
         client.resolve (this.orders, 'user');
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "order_id": "XXX",

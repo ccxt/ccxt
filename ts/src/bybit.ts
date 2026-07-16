@@ -1719,8 +1719,8 @@ export default class bybit extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const list = this.safeList (result, 'list', []);
         let status = 'ok';
-        let eta = undefined;
-        let url = undefined;
+        let eta: Int = undefined;
+        let url: Str = undefined;
         for (let i = 0; i < list.length; i++) {
             const event = list[i];
             const state = this.safeString (event, 'state');
@@ -2062,7 +2062,7 @@ export default class bybit extends Exchange {
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
         const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
-        let response: NullableDict = undefined;
+        let response: Dict = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (params);
         } else {
@@ -2183,7 +2183,7 @@ export default class bybit extends Exchange {
             } else if (future) {
                 type = 'future';
             }
-            let expiry = undefined;
+            let expiry: Str | number = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
                 expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
@@ -4168,7 +4168,7 @@ export default class bybit extends Exchange {
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
         }
-        let method: Str = undefined;
+        let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
         let response: Dict;
         if (method === 'privatePostV5PositionTradingStop') {
@@ -4246,7 +4246,7 @@ export default class bybit extends Exchange {
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
         }
-        let method: Str = undefined;
+        let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
         const endpointIsTradingStop = method === 'privatePostV5PositionTradingStop';
         if ((price === undefined) && (lowerCaseType === 'limit') && !endpointIsTradingStop) {
@@ -6620,7 +6620,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         let type: Str = undefined;
         [ type, params ] = this.getBybitType ('fetchPosition', market, params);
         request['category'] = type;
@@ -8832,7 +8832,7 @@ export default class bybit extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         //
         //  [
         //      {
@@ -9892,7 +9892,7 @@ export default class bybit extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marginType = this.safeString (marginMode, 'marginMode');
         return {
             'info': marginMode,

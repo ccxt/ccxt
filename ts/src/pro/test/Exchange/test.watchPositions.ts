@@ -3,13 +3,14 @@ import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
+import type { NullableDict, Position } from '../../../base/types.js';
 
 async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: Position[] = undefined;
         let success = true;
         try {
             response = await exchange.watchPositions ([ symbol ]);
@@ -33,7 +34,7 @@ async function testWatchPositions (exchange: Exchange, skippedProperties: object
         //
         // Test with specific symbol
         //
-        let positionsForSymbols = undefined;
+        let positionsForSymbols: NullableDict = undefined;
         let success2 = true;
         try {
             positionsForSymbols = await exchange.watchPositions ([ symbol ]);

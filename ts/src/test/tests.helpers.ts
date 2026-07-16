@@ -137,7 +137,7 @@ function exitScript (code = 0) {
     process.exit (code);
 }
 
-function getExchangeProp (exchange, prop, defaultValue = undefined) {
+function getExchangeProp (exchange, prop, defaultValue: any = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
 }
 
@@ -198,7 +198,7 @@ async function getTestFiles (properties, ws = false) {
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
-    exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
+    exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => mockResponse;
     return exchange;
 }
 

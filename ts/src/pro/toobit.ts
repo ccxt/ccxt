@@ -382,7 +382,7 @@ export default class toobit extends toobitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //             {
         //                 t: 1757251200000,
@@ -509,7 +509,7 @@ export default class toobit extends toobitRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market: Market = undefined) {
         return this.parseTicker (ticker, market);
     }
 
@@ -864,7 +864,7 @@ export default class toobit extends toobitRest {
         client.resolve (orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -972,7 +972,7 @@ export default class toobit extends toobitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade, market = undefined) {
+    parseMyTrade (trade, market: Market = undefined) {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
         return this.safeTrade ({
@@ -1125,7 +1125,7 @@ export default class toobit extends toobitRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position, market = undefined) {
+    parseWsPosition (position, market: Market = undefined) {
         const marketId = this.safeString (position, 's');
         return this.safePosition ({
             'info': position,

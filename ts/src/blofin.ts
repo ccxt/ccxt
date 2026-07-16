@@ -898,7 +898,7 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }

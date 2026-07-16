@@ -354,7 +354,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}) {
-        let networkId = undefined;
+        let networkId: Str = undefined;
         [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
         if (networkId === undefined) {
             await this.loadCurrencyNetworks (currencyCode);
@@ -530,7 +530,7 @@ export default class coinbaseinternational extends Exchange {
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
@@ -794,7 +794,7 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
@@ -804,7 +804,7 @@ export default class coinbaseinternational extends Exchange {
         if (method === 'v1PrivatePostTransfersAddress') {
             const currency = this.currency (code);
             request['asset'] = currency['id'];
-            let networkId: Str = undefined;
+            let networkId: Str | Dict = undefined;
             [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
@@ -974,7 +974,7 @@ export default class coinbaseinternational extends Exchange {
         }
         let paginate: Bool = undefined;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
@@ -2135,7 +2135,7 @@ export default class coinbaseinternational extends Exchange {
         [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
@@ -2220,7 +2220,7 @@ export default class coinbaseinternational extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = undefined;
+        let maxEntriesPerRequest: Int = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
@@ -2318,9 +2318,9 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('withdraw', params);
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
-        let networkId: Str = undefined;
+        let networkId: Str | Dict = undefined;
         [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
         const request: Dict = {
             'portfolio': portfolio,

@@ -813,7 +813,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    {
         //        "t": 1626860340000,             // Message timestamp
