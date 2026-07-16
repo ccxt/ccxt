@@ -324,7 +324,7 @@ function close($exchange) {
     if (IS_SYNCHRONOUS) {
         return $func();
     } else {
-        return Async\async ($func)();
+        return \React\Async\async ($func)();
     }
 }
 
