@@ -388,31 +388,33 @@ export default class foxbit extends Exchange {
             const networkDepositInfo = this.safeDict (network, 'deposit_info');
             const isWithdrawEnabled = this.safeString (networkWithdrawInfo, 'status') === 'ENABLED';
             const isDepositEnabled = this.safeString (networkDepositInfo, 'status') === 'ENABLED';
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString (network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': true,
-                'precision': precision,
-                'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString (network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': true,
+                    'precision': precision,
+                    'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (depositInfo, 'min_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (withdrawInfo, 'min_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (depositInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (withdrawInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -1960,7 +1962,7 @@ export default class foxbit extends Exchange {
             'INTERNAL_TRANSFERING': 'transfer',
             'OTHERS': 'transaction',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined) {

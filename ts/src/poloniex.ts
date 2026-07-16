@@ -1214,27 +1214,29 @@ export default class poloniex extends Exchange {
             const chain = chains[j];
             const chainId = this.safeString (chain, 'blockchain');
             const networkCode = this.networkIdToCode (chainId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': undefined,
-                'code': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber (chain, 'withdrawFee'),
-                'deposit': this.safeBool (chain, 'depositEnable'),
-                'withdraw': this.safeBool (chain, 'withdrawalEnable'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'decimals'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': undefined,
+                    'code': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'deposit': this.safeBool (chain, 'depositEnable'),
+                    'withdraw': this.safeBool (chain, 'withdrawalEnable'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'decimals'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -2702,7 +2704,7 @@ export default class poloniex extends Exchange {
         }
         let exchangeNetworkId: Str = undefined;
         networkCode = this.networkIdToCode (networkCode, code);
-        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         } else {
@@ -3050,16 +3052,18 @@ export default class poloniex extends Exchange {
                         const networkInfo = this.safeValue (response, networkId);
                         const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
-                        networkObject[networkCode] = {
-                            'withdraw': {
-                                'fee': withdrawFee,
-                                'percentage': (withdrawFee !== undefined) ? false : undefined,
-                            },
-                            'deposit': {
-                                'fee': undefined,
-                                'percentage': undefined,
-                            },
-                        };
+                        if (networkCode !== undefined) {
+                            networkObject[networkCode] = {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                                },
+                                'deposit': {
+                                    'fee': undefined,
+                                    'percentage': undefined,
+                                },
+                            };
+                        }
                         depositWithdrawFees[code]['networks'] = this.extend (depositWithdrawFees[code]['networks'], networkObject);
                     }
                 }
@@ -3085,10 +3089,12 @@ export default class poloniex extends Exchange {
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
         const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-        depositWithdrawFee['networks'][networkCode] = {
-            'withdraw': withdrawResult,
-            'deposit': depositResult,
-        };
+        if (networkCode !== undefined) {
+            depositWithdrawFee['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': depositResult,
+            };
+        }
         return depositWithdrawFee;
     }
 

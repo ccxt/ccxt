@@ -585,26 +585,28 @@ export default class delta extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'network');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString (chain, 'name'),
-                'info': chain,
-                'active': this.safeString (chain, 'status') === 'enabled',
-                'deposit': this.safeString (chain, 'deposit_status') === 'enabled',
-                'withdraw': this.safeString (chain, 'withdrawal_status') === 'enabled',
-                'fee': this.safeNumber (chain, 'base_withdrawal_fee'),
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (chain, 'min_deposit_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString (chain, 'name'),
+                    'info': chain,
+                    'active': this.safeString (chain, 'status') === 'enabled',
+                    'deposit': this.safeString (chain, 'deposit_status') === 'enabled',
+                    'withdraw': this.safeString (chain, 'withdrawal_status') === 'enabled',
+                    'fee': this.safeNumber (chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'min_withdrawal_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -2098,7 +2100,7 @@ export default class delta extends Exchange {
             // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = parseInt (this.amountToPrecision (symbol, amount));
+            request['size'] = parseInt (this.amountToPrecision (symbol, amount) || '0');
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
@@ -2513,7 +2515,7 @@ export default class delta extends Exchange {
             'commission_rebate': 'rebate',
             // 'promo_credit': 'promo_credit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

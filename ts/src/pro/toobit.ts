@@ -778,7 +778,7 @@ export default class toobit extends toobitRest {
     async loadBalanceSnapshot (client, messageHash, marketType) {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
-        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

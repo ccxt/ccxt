@@ -1653,7 +1653,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    async fetchTradingLimitsById (id: string, params = {}) {
+    async fetchTradingLimitsById (id: Str, params = {}) {
         const request: Dict = {
             'symbol': id,
         };
@@ -3444,26 +3444,28 @@ export default class htx extends Exchange {
             this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
             this.options['networkNamesByChainIds'][uniqueChainId] = title;
             const networkCode = this.networkIdToCode (uniqueChainId, code);
-            networks[networkCode] = {
-                'info': chainEntry,
-                'id': uniqueChainId,
-                'network': networkCode,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (chainEntry, 'minDepositAmt'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': uniqueChainId,
+                    'network': networkCode,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chainEntry, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
-                        'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
-                'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
-                'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
-            };
+                    'active': undefined,
+                    'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': rawCurrency,
@@ -5209,7 +5211,13 @@ export default class htx extends Exchange {
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5314,7 +5322,13 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -6874,7 +6888,7 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
+        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode) || '0');
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
@@ -6892,9 +6906,9 @@ export default class htx extends Exchange {
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
             const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat (amountSubtractedString);
-            request['fee'] = parseFloat (feeString);
-            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
+            const amountSubtracted = parseFloat (amountSubtractedString || '0');
+            request['fee'] = parseFloat (feeString || '0');
+            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode) || '0');
         }
         request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
@@ -6990,7 +7004,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
-            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            'amount': parseFloat (this.currencyToPrecision (code, amount) || '0'),
         };
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
@@ -7800,7 +7814,7 @@ export default class htx extends Exchange {
                 }
             }
             const finalHostname = hostname; // java req
-            url = this.implodeParams (this.urls['api'][type], {
+            url = this.implodeParams (this.urls['api'][type as string], {
                 'hostname': finalHostname,
             }) + url;
         }
@@ -8528,7 +8542,7 @@ export default class htx extends Exchange {
             'other-types': 'transfer',
             'rebate': 'rebate',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -9521,13 +9535,15 @@ export default class htx extends Exchange {
                     'percentage': true,
                 };
             }
-            result['networks'][networkCode] = {
-                'withdraw': withdrawResult,
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
             result = this.assignDefaultDepositWithdrawFees (result, currency);
         }
         return result;

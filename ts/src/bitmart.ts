@@ -941,7 +941,7 @@ export default class bitmart extends Exchange {
         if (type === 'swap') {
             type = 'contract';
         }
-        const service = this.safeDict (servicesByType, type as string);
+        const service = this.safeDict (servicesByType, type);
         let status: Str = undefined;
         let eta: Int = undefined;
         if (service !== undefined) {
@@ -1270,25 +1270,27 @@ export default class bitmart extends Exchange {
             const networkCode = this.networkIdToCode (networkId, currencyCode);
             const withdraw = this.safeBool (currency, 'withdraw_enabled');
             const deposit = this.safeBool (currency, 'deposit_enabled');
-            entry['networks'][networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'code': networkCode,
-                'withdraw': withdraw,
-                'deposit': deposit,
-                'active': withdraw && deposit,
-                'fee': this.safeNumber (currency, 'withdraw_fee'),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'withdraw_minsize'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                entry['networks'][networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'code': networkCode,
+                    'withdraw': withdraw,
+                    'deposit': deposit,
+                    'active': withdraw && deposit,
+                    'fee': this.safeNumber (currency, 'withdraw_fee'),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (currency, 'withdraw_minsize'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
             result[currencyCode] = entry;
         }
         const keys = Object.keys (result);
@@ -2766,7 +2768,7 @@ export default class bitmart extends Exchange {
                 '4': 'closed', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2923,7 +2925,7 @@ export default class bitmart extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            let orderRequest = this.createSpotOrderRequest (marketId as string, type as string, side, amount, price, orderParams);
+            let orderRequest = this.createSpotOrderRequest (marketId as string, type, side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
             ordersRequests.push (orderRequest);
         }
@@ -2960,7 +2962,7 @@ export default class bitmart extends Exchange {
         return parsedOrders;
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createSwapOrderRequest (symbol: Str, type: Str, side: Str, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
@@ -3005,7 +3007,7 @@ export default class bitmart extends Exchange {
             'symbol': market['id'],
         };
         if (amount !== undefined) {
-            request['size'] = parseInt (this.amountToPrecision (symbol, amount) as string);
+            request['size'] = parseInt ((this.amountToPrecision (symbol, amount) || '0'));
         }
         const timeInForce = this.safeString (params, 'timeInForce');
         const mode = this.safeInteger (params, 'mode'); // only for swap
@@ -3108,7 +3110,13 @@ export default class bitmart extends Exchange {
         return this.extend (request, params);
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @name bitmart#createSpotOrderRequest
@@ -4615,7 +4623,7 @@ export default class bitmart extends Exchange {
             'contract_to_spot': 'spot',
             'spot_to_contract': 'swap',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransferFromAccount (type) {
@@ -4623,7 +4631,7 @@ export default class bitmart extends Exchange {
             'contract_to_spot': 'swap',
             'spot_to_contract': 'spot',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -5583,7 +5591,7 @@ export default class bitmart extends Exchange {
             'Transfer': 'transfer',
             'Liquidation Clearance': 'settlement',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     fetchTransactionsRequest (flowType: Int = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

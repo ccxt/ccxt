@@ -339,7 +339,7 @@ export default class bitso extends Exchange {
             'trade': 'trade',
             'fee': 'fee',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

@@ -1459,7 +1459,7 @@ export default class okx extends Exchange {
 
     convertToInstrumentType (type) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, type, type);
+        return this.safeString (exchangeTypes, (type as string), type);
     }
 
     createExpiredOptionMarket (symbol: string) {
@@ -2069,22 +2069,24 @@ export default class okx extends Exchange {
             const parts = this.arraySlice (idParts, 1);
             const chainPart = parts.join ('-');
             const networkCode = this.networkIdToCode (chainPart, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool (chain, 'canDep'),
-                'withdraw': this.safeBool (chain, 'canWd'),
-                'fee': this.safeNumber (chain, 'fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'minWd'),
-                        'max': this.safeNumber (chain, 'maxWd'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'canDep'),
+                    'withdraw': this.safeBool (chain, 'canWd'),
+                    'fee': this.safeNumber (chain, 'fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
+                        },
                     },
-                },
-                'info': chain,
-            };
+                    'info': chain,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': chains,
@@ -3123,7 +3125,13 @@ export default class okx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, this.extend (req, params));
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
@@ -3247,7 +3255,7 @@ export default class okx extends Exchange {
                     // quote_ccy: sz refers to units of quote currency
                     let createMarketBuyOrderRequiresPrice = true;
                     [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    let notional = this.safeNumber2 (params, 'cost', 'sz');
+                    let notional: Num = this.safeNumber2 (params, 'cost', 'sz');
                     params = this.omit (params, [ 'cost', 'sz' ]);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
@@ -3397,7 +3405,7 @@ export default class okx extends Exchange {
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
-                let tpOrdPxReq = '-1';
+                let tpOrdPxReq: Str = '-1';
                 if (tpOrdPx !== undefined) {
                     tpOrdPxReq = this.priceToPrecision (symbol, tpOrdPx);
                 }
@@ -3406,7 +3414,7 @@ export default class okx extends Exchange {
             }
             if (stopLossPrice !== undefined) {
                 request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
-                let slOrdPxReq = '-1';
+                let slOrdPxReq: Str = '-1';
                 if (slOrdPx !== undefined) {
                     slOrdPxReq = this.priceToPrecision (symbol, slOrdPx);
                 }
@@ -5240,7 +5248,7 @@ export default class okx extends Exchange {
             '10': 'trade', // clawback
             '11': 'trade', // system token conversion
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -5483,7 +5491,7 @@ export default class okx extends Exchange {
             return result as DepositAddress;
         }
         const codeNetwork = this.networkIdToCode (code, code);
-        if (codeNetwork in response) {
+        if ((codeNetwork !== undefined) && (codeNetwork in response)) {
             return response[codeNetwork];
         }
         // if the network is not specified, return the first address
@@ -5531,7 +5539,8 @@ export default class okx extends Exchange {
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
-            const targetNetwork = this.safeDict (currency['networks'], this.networkIdToCode (network, currency['code']), {});
+            const networkCodeResolved = this.networkIdToCode (network, currency['code']);
+            const targetNetwork = (networkCodeResolved === undefined) ? {} : this.safeDict (currency['networks'], networkCodeResolved, {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
@@ -8243,10 +8252,12 @@ export default class okx extends Exchange {
                     'percentage': undefined,
                 };
                 const networkCode = this.networkIdToCode (networkId, code);
-                depositWithdrawFees[code]['networks'][networkCode] = {
-                    'withdraw': withdrawResult,
-                    'deposit': depositResult,
-                };
+                if (networkCode !== undefined) {
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                }
             }
         }
         const depositWithdrawCodes = Object.keys (depositWithdrawFees);

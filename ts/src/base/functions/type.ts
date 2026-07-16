@@ -68,21 +68,25 @@ function safeString (o: implicitReturnType, k: IndexType, $default?: string): St
     return isStringCoercible (x) ? String (x) : $default;
 }
 
-const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
+function safeStringLower (o: implicitReturnType, k: IndexType, $default: string): string;
+function safeStringLower (o: implicitReturnType, k: IndexType, $default?: string): Str;
+function safeStringLower (o: implicitReturnType, k: IndexType, $default?: string): Str {
     const x = prop (o, k);
     if (isStringCoercible (x)) {
         return String (x).toLowerCase ();
     }
     return $default;
-};
+}
 
-const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
+function safeStringUpper (o: implicitReturnType, k: IndexType, $default: string): string;
+function safeStringUpper (o: implicitReturnType, k: IndexType, $default?: string): Str;
+function safeStringUpper (o: implicitReturnType, k: IndexType, $default?: string): Str {
     const x = prop (o, k)
     if (isStringCoercible (x)) {
         return String (x).toUpperCase ();
     }
     return $default;
-};
+}
 /*  .............................................   */
 
 const safeFloat2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: number): Num => {
@@ -119,21 +123,25 @@ function safeString2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $defa
     return isStringCoercible (x) ? String (x) : $default;
 }
 
-const safeStringLower2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str => {
+function safeStringLower2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default: string): string;
+function safeStringLower2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str;
+function safeStringLower2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str {
     const x = prop2 (o, k1, k2);
     if (isStringCoercible (x)) {
         return String (x).toLowerCase ();
     }
     return $default;
-};
+}
 
-const safeStringUpper2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str => {
+function safeStringUpper2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default: string): string;
+function safeStringUpper2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str;
+function safeStringUpper2 (o: implicitReturnType, k1: IndexType, k2: IndexType, $default?: string): Str {
     const x = prop2 (o, k1, k2);
     if (isStringCoercible (x)) {
         return String (x).toUpperCase ();
     }
     return $default;
-};
+}
 
 const safeFloatN = (o: implicitReturnType, k: (IndexType)[], $default?: number): Num => {
     const n = asFloat (getValueFromKeysInArray (o, k));
@@ -178,21 +186,25 @@ function safeStringN (o: implicitReturnType, k: (IndexType)[], $default?: string
     return isStringCoercible (x) ? String (x) : $default;
 }
 
-const safeStringLowerN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
+function safeStringLowerN (o: implicitReturnType, k: (IndexType)[], $default: string): string;
+function safeStringLowerN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str;
+function safeStringLowerN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str {
     const x = getValueFromKeysInArray (o, k);
     if (isStringCoercible (x)) {
         return String (x).toLowerCase ();
     }
     return $default;
-};
+}
 
-const safeStringUpperN = (o: implicitReturnType, k: (IndexType)[], $default?: string): Str => {
+function safeStringUpperN (o: implicitReturnType, k: (IndexType)[], $default: string): string;
+function safeStringUpperN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str;
+function safeStringUpperN (o: implicitReturnType, k: (IndexType)[], $default?: string): Str {
     const x = getValueFromKeysInArray (o, k);
     if (isStringCoercible (x)) {
         return String (x).toUpperCase ();
     }
     return $default;
-};
+}
 
 export {
     isNumber

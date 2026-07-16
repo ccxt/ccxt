@@ -895,17 +895,19 @@ export default class bingx extends Exchange {
                 },
             };
             const precision = this.parseNumber (this.parsePrecision (this.safeString (rawNetwork, 'withdrawPrecision')));
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': network,
-                'network': networkCode,
-                'fee': this.safeNumber (rawNetwork, 'withdrawFee'),
-                'active': undefined,
-                'deposit': this.safeBool (rawNetwork, 'depositEnable'),
-                'withdraw': this.safeBool (rawNetwork, 'withdrawEnable'),
-                'precision': precision,
-                'limits': limits,
-            };
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': network,
+                    'network': networkCode,
+                    'fee': this.safeNumber (rawNetwork, 'withdrawFee'),
+                    'active': undefined,
+                    'deposit': this.safeBool (rawNetwork, 'depositEnable'),
+                    'withdraw': this.safeBool (rawNetwork, 'withdrawEnable'),
+                    'precision': precision,
+                    'limits': limits,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': rawCurrency,
@@ -1051,7 +1053,7 @@ export default class bingx extends Exchange {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const fees = this.safeDict (this.fees, type, {});
+        const fees = this.safeDict (this.fees, (type as string), {});
         const contractSize = (swap) ? this.parseNumber ('1') : undefined;
         let isActive = false;
         if ((this.safeString (market, 'apiStateOpen') === 'true') && (this.safeString (market, 'apiStateClose') === 'true')) {
@@ -3045,7 +3047,13 @@ export default class bingx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3553,7 +3561,7 @@ export default class bingx extends Exchange {
             'take_profit_market': 'market',
             'stop': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -3854,7 +3862,7 @@ export default class bingx extends Exchange {
         const timestamp = this.safeIntegerN (order, [ 'time', 'transactTime', 'E', 'createdTime' ]);
         const lastTradeTimestamp = this.safeInteger2 (order, 'updateTime', 'T');
         const statusId = this.safeStringUpperN (order, [ 'status', 'X', 'orderStatus' ]);
-        let feeCurrencyCode = this.safeString2 (order, 'feeAsset', 'N');
+        let feeCurrencyCode: Str = this.safeString2 (order, 'feeAsset', 'N');
         const feeCost = this.safeStringN (order, [ 'fee', 'commission', 'n' ]);
         if ((feeCurrencyCode === undefined)) {
             if (market['spot']) {
@@ -5571,7 +5579,7 @@ export default class bingx extends Exchange {
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
         let code = this.safeCurrencyCode (currencyId, currency);
-        if ((code !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
+        if ((code !== undefined) && (network !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
             if (network !== undefined) {
                 code = code.replace (network, '');
             }
@@ -5606,7 +5614,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: string) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -6952,7 +6960,7 @@ export default class bingx extends Exchange {
         let version = section[1];
         let access = section[2];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
-        let url = this.implodeHostname (this.urls['api'][type]);
+        let url = this.implodeHostname (this.urls['api'][type as string]);
         if (isSandbox && url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }

@@ -2854,7 +2854,10 @@ export default class binance extends Exchange {
         } as MarketInterface;
     }
 
-    market (symbol: string): MarketInterface {
+    market (symbol: Str): MarketInterface {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' market() requires a symbol argument');
+        }
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
@@ -3157,7 +3160,9 @@ export default class binance extends Exchange {
             const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
             const depositEnable = this.safeBool (networkItem, 'depositEnable');
             const withdrawEnable = this.safeBool (networkItem, 'withdrawEnable');
-            fees[networkCode] = withdrawFee;
+            if (networkCode !== undefined) {
+                fees[networkCode] = withdrawFee;
+            }
             const isDefault = this.safeBool (networkItem, 'isDefault');
             if (isDefault || (fee === undefined)) {
                 fee = withdrawFee;
@@ -3171,26 +3176,28 @@ export default class binance extends Exchange {
             if (withdrawPrecision === undefined && isFiat) {
                 withdrawPrecision = this.safeString (this.options, 'defaultFiatWithdrawPrecision');
             }
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': depositEnable,
-                'withdraw': withdrawEnable,
-                'fee': withdrawFee,
-                'precision': this.parseNumber (withdrawPrecision),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkItem, 'withdrawMin'),
-                        'max': this.safeNumber (networkItem, 'withdrawMax'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': depositEnable,
+                    'withdraw': withdrawEnable,
+                    'fee': withdrawFee,
+                    'precision': this.parseNumber (withdrawPrecision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkItem, 'withdrawMin'),
+                            'max': this.safeNumber (networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (networkItem, 'depositDust'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (networkItem, 'depositDust'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         let type: Str = undefined;
         if (isETF) {
@@ -3893,11 +3900,16 @@ export default class binance extends Exchange {
             if (paramSymbols !== undefined) {
                 let symbols = '';
                 if (Array.isArray (paramSymbols)) {
-                    symbols = this.marketId (paramSymbols[0]);
+                    const mid = this.marketId (paramSymbols[0]);
+                    if (mid !== undefined) {
+                        symbols = mid;
+                    }
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const symbol = paramSymbols[i];
                         const id = this.marketId (symbol);
-                        symbols += ',' + id;
+                        if (id !== undefined) {
+                            symbols += ',' + id;
+                        }
                     }
                 } else {
                     symbols = paramSymbols;
@@ -5430,7 +5442,13 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    editSpotOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -5486,7 +5504,7 @@ export default class binance extends Exchange {
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
-        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], (type as string), 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
@@ -5557,7 +5575,13 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    editContractOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    editContractOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         if ((price === undefined) && !('priceMatch' in params)) {
             // moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
             throw new ArgumentsRequired (this.id + ' editOrder() and editOrderWs() require a price argument for swap orders');
@@ -5809,7 +5833,7 @@ export default class binance extends Exchange {
                 'trailing_stop_market': 'market',
             };
         }
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -6618,7 +6642,13 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -6779,7 +6809,7 @@ export default class binance extends Exchange {
         }
         // handle newOrderRespType response type
         if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
-            request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], (type as string), 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // swap, futures and options
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
@@ -8874,7 +8904,7 @@ export default class binance extends Exchange {
                 'Refund Failed': 'failed',
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 
@@ -8945,7 +8975,7 @@ export default class binance extends Exchange {
         //
         const id = this.safeString2 (transaction, 'id', 'orderNo');
         const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        let tag: Str = this.safeString (transaction, 'addressTag'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
@@ -9457,7 +9487,7 @@ export default class binance extends Exchange {
         // deposit-address endpoint provides only network url (not network ID/CODE)
         // so we should map the url to network (their data is inside currencies)
         const networkCode = this.getNetworkCodeByNetworkUrl (code, url);
-        let tag = this.safeString (response, 'tag', '');
+        let tag: Str = this.safeString (response, 'tag', '');
         if (tag.length === 0) {
             tag = undefined;
         }
@@ -9704,16 +9734,18 @@ export default class binance extends Exchange {
                     'percentage': undefined,
                 };
             }
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': withdrawFee,
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': withdrawFee,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -12246,7 +12278,7 @@ export default class binance extends Exchange {
             'REFERRAL_KICKBACK': 'referral',
             'COMMISSION': 'commission',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     getNetworkCodeByNetworkUrl (currencyCode: string, depositUrl: Str = undefined): Str {
@@ -12263,7 +12295,8 @@ export default class binance extends Exchange {
             const info = this.safeDict (networks[currentNetworkCode], 'info', {});
             const siteUrl = this.safeString (info, 'contractAddressUrl');
             // check if url matches the field's value
-            if (siteUrl !== undefined && depositUrl.startsWith (this.getBaseDomainFromUrl (siteUrl))) {
+            const baseDomain = this.getBaseDomainFromUrl (siteUrl);
+            if (siteUrl !== undefined && baseDomain !== undefined && depositUrl.startsWith (baseDomain)) {
                 networkCode = currentNetworkCode;
             }
         }

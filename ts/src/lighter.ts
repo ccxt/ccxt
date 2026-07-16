@@ -715,7 +715,13 @@ export default class lighter extends Exchange {
         this.options['chainId'] = enable ? 300 : 304;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): any[] {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): any[] {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -799,7 +805,7 @@ export default class lighter extends Exchange {
         const priceStr = this.priceToPrecision (symbol, price);
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
-        let triggerPriceStr = '0'; // default is 0
+        let triggerPriceStr: Str = '0'; // default is 0
         const defaultClientOrderId = this.randNumber (9); // c# only support int32 2147483647.
         const clientOrderId = this.safeInteger2 (params, 'client_order_index', 'clientOrderId', defaultClientOrderId);
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'client_order_index', 'clientOrderId' ]);
@@ -1010,7 +1016,7 @@ export default class lighter extends Exchange {
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         let amountStr: Str = undefined;
         const priceStr = this.priceToPrecision (symbol, price);
-        let triggerPriceStr = '0'; // default is 0
+        let triggerPriceStr: Str = '0'; // default is 0
         if (triggerPrice !== undefined) {
             amountStr = this.numberToString (amount);
             triggerPriceStr = this.priceToPrecision (symbol, triggerPrice);
@@ -2419,7 +2425,7 @@ export default class lighter extends Exchange {
             'twap-sub': 'twap',
             'liquidation': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrderTypeInteger (typeInteger) {

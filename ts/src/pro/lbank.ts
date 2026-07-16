@@ -942,7 +942,7 @@ export default class lbank extends lbankRest {
             'orderUpdate': this.handleOrders,
             'assetUpdate': this.handleBalance,
         };
-        const handler = this.safeValue (handlers, type as string);
+        const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
             handler.call (this, client, message);
         }

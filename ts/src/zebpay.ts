@@ -403,26 +403,28 @@ export default class zebpay extends Exchange {
             if (minNetworkDepositString !== undefined) {
                 minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin (minNetworkDepositString, minDepositString);
             }
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': depositAllowed && withdrawAllowed,
-                'deposit': depositAllowed,
-                'withdraw': withdrawAllowed,
-                'fee': this.parseNumber (withdrawFeeString),
-                'precision': precision,
-                'limits': {
-                    'withdraw': {
-                        'min': this.parseNumber (minNetworkWithdrawString),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed && withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.parseNumber (withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.parseNumber (minNetworkWithdrawString),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (minNetworkDepositString),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.parseNumber (minNetworkDepositString),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'info': rawCurrency,

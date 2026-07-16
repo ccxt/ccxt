@@ -772,7 +772,9 @@ export default class coinex extends Exchange {
                 },
                 'info': chain,
             };
-            networks[networkCode] = network;
+            if (networkCode !== undefined) {
+                networks[networkCode] = network;
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -2115,7 +2117,7 @@ export default class coinex extends Exchange {
         const marketType = (orderType === 'swap') ? 'swap' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const feeCurrencyId = this.safeString (order, 'fee_ccy');
-        let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        let feeCurrency: Str = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
             feeCurrency = market['quote'];
         }
@@ -2183,7 +2185,13 @@ export default class coinex extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
@@ -3083,7 +3091,9 @@ export default class coinex extends Exchange {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            orderSymbols.push (marketId);
+            if (marketId !== undefined) {
+                orderSymbols.push (marketId);
+            }
             const id = this.safeString (rawOrder, 'id');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
@@ -5916,16 +5926,18 @@ export default class coinex extends Exchange {
                     const currencyId = this.safeString (asset, 'ccy');
                     const feeCode = this.safeCurrencyCode (currencyId, currency);
                     const networkCode = this.networkIdToCode (networkId, feeCode);
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': this.safeNumber (entry, 'withdrawal_fee'),
-                            'percentage': false,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    if (networkCode !== undefined) {
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': this.safeNumber (entry, 'withdrawal_fee'),
+                                'percentage': false,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                    }
                 }
             }
         }

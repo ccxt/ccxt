@@ -1179,7 +1179,7 @@ export default class bingx extends bingxRest {
 
     async loadBalanceSnapshot (client, messageHash, type, subType) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

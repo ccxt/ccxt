@@ -1045,7 +1045,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'instrument_name': market['id'],
         };

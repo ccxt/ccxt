@@ -866,27 +866,29 @@ export default class weex extends Exchange {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'network');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool (chain, 'depositEnable'),
-                'withdraw': this.safeBool (chain, 'withdrawEnable'),
-                'fee': this.safeNumber (chain, 'withdrawFee'),
-                'precision': this.safeNumber (chain, 'withdrawIntegerMultiple'),
-                'isDefault': this.safeBool (chain, 'isDefault', false),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'depositEnable'),
+                    'withdraw': this.safeBool (chain, 'withdrawEnable'),
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': this.safeNumber (chain, 'withdrawIntegerMultiple'),
+                    'isDefault': this.safeBool (chain, 'isDefault', false),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'depositDust'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (chain, 'depositDust'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         const networkKeys = Object.keys (networks);
         const networksLength = networkKeys.length;
@@ -2014,7 +2016,13 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2079,7 +2087,13 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2944,7 +2958,7 @@ export default class weex extends Exchange {
             'TAKE_PROFIT_MARKET': 'market',
             'STOP_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
@@ -3248,7 +3262,7 @@ export default class weex extends Exchange {
             'position_close_long': 'trade',
             'position_close_short': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**

@@ -1353,7 +1353,7 @@ export default class onetrading extends Exchange {
         const types: Dict = {
             'booked': 'limit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTimeInForce (timeInForce: Str) {

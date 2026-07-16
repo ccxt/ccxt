@@ -380,7 +380,7 @@ export default class btcmarkets extends Exchange {
             'Withdraw': 'withdrawal',
             'Deposit': 'deposit',
         };
-        return this.safeString (statuses, type, type);
+        return this.safeString (statuses, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1139,7 +1139,7 @@ export default class btcmarkets extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rateCost)),
+            'cost': parseFloat (this.feeToPrecision (symbol, rateCost) || '0'),
         };
     }
 

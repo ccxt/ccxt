@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee, NullableDict } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
-import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -818,7 +818,13 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price: Num = undefined) {
+    orderMessage (market, nonce: number, feeRate: number, type: Str, side: Str, amount: number, price: Num = undefined) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;
@@ -868,7 +874,13 @@ export default class hibachi extends Exchange {
         return message;
     }
 
-    createOrderRequest (nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (nonce: number, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const feeRate = Math.max (this.safeNumber (market, 'taker', this.safeNumber (this.options, 'defaultTakerFee', 0.00045)), this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015)));
         let sideInternal = '';
@@ -877,7 +889,7 @@ export default class hibachi extends Exchange {
         } else if (side === 'buy') {
             sideInternal = 'BID';
         }
-        let priceInternal = '';
+        let priceInternal: Str = '';
         if (price) {
             priceInternal = this.priceToPrecision (symbol, price);
         }
@@ -991,7 +1003,13 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    editOrderRequest (nonce: number, id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (nonce: number, id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
@@ -1461,7 +1479,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1822,7 +1840,7 @@ export default class hibachi extends Exchange {
             'transfer-in': 'transfer',
             'transfer-out': 'transfer',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransactionStatus (status) {

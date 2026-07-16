@@ -1211,7 +1211,7 @@ export default class hyperliquid extends Exchange {
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-        const marketSymbol = this.safeString (outcomeObj, 'market');
+        const marketSymbol: Str = this.safeString (outcomeObj, 'market');
         const market = this.market (marketSymbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const nonce = this.milliseconds ();
@@ -1234,7 +1234,7 @@ export default class hyperliquid extends Exchange {
             }
             throw new ArgumentsRequired (this.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
         }
-        let px: string;
+        let px: Str = undefined;
         if (isMarket) {
             const priceStr = this.numberToString (price);
             px = isBuy ? Precise.stringMul (priceStr, Precise.stringAdd ('1', slippage)) : Precise.stringMul (priceStr, Precise.stringSub ('1', slippage));
@@ -1242,7 +1242,10 @@ export default class hyperliquid extends Exchange {
         } else {
             px = this.priceToPrecision (marketSymbol, price);
         }
-        const sz = this.amountToPrecision (marketSymbol, amount);
+        if (px === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() could not determine price');
+        }
+        const sz: Str = this.amountToPrecision (marketSymbol, amount);
         const orderType = {
             'limit': { 'tif': tif },
         };
@@ -1583,7 +1586,7 @@ export default class hyperliquid extends Exchange {
         const status = this.parseOrderStatus (this.safeString2 (order, 'ccxtStatus', 'status'));
         const coin = this.safeString (entry, 'coin');
         const outcomeObj = this.safeOutcome (coin, market as any);
-        const marketSymbol = this.safeString (outcomeObj, 'outcome');
+        const marketSymbol: Str = this.safeString (outcomeObj, 'outcome');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
         const sideRaw = this.safeString (entry, 'side');
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
@@ -1771,7 +1774,7 @@ export default class hyperliquid extends Exchange {
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
         const outcomeObj = this.safeOutcome (coin, market as any);
-        const marketSymbol = this.safeString (outcomeObj, 'outcome');
+        const marketSymbol: Str = this.safeString (outcomeObj, 'outcome');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
         const rawSide = this.safeString (trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';

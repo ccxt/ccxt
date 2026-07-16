@@ -1243,7 +1243,7 @@ export default class kraken extends Exchange {
             'transfer': 'transfer',
             'margin': 'margin',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

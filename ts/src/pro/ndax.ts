@@ -62,7 +62,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
         };
         const request: Dict = {
@@ -135,7 +135,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
         };
         const request: Dict = {
@@ -222,7 +222,7 @@ export default class ndax extends ndaxRest {
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
@@ -356,7 +356,7 @@ export default class ndax extends ndaxRest {
         limit = (limit === undefined) ? 100 : limit;
         const payload: Dict = {
             'OMSId': omsId,
-            'InstrumentId': parseInt (market['id']), // conditionally optional
+            'InstrumentId': parseInt (market['id'] || '0'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit, // default 100
         };

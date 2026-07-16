@@ -427,26 +427,28 @@ export default class cryptomus extends Exchange {
             }
             const networkId = this.safeString (networkEntry, 'network_code');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'min_withdraw'),
-                        'max': this.safeNumber (networkEntry, 'max_withdraw'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkEntry, 'min_withdraw'),
+                            'max': this.safeNumber (networkEntry, 'max_withdraw'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (networkEntry, 'min_deposit'),
+                            'max': this.safeNumber (networkEntry, 'max_deposit'),
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (networkEntry, 'min_deposit'),
-                        'max': this.safeNumber (networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool (networkEntry, 'can_deposit'),
-                'withdraw': this.safeBool (networkEntry, 'can_withdraw'),
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool (networkEntry, 'can_deposit'),
+                    'withdraw': this.safeBool (networkEntry, 'can_withdraw'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,

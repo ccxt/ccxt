@@ -498,26 +498,28 @@ export default class bitmex extends Exchange {
             if (isWithdrawEnabled) {
                 withdrawEnabled = true;
             }
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': active,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': withdrawalFee,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': withdrawalFee,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         const currencyEnabled = this.safeValue (currency, 'enabled');
         const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
@@ -800,8 +802,8 @@ export default class bitmex extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
-        let baseId = this.safeString (market, 'underlying');
-        let quoteId = this.safeString (market, 'quoteCurrency');
+        let baseId: Str = this.safeString (market, 'underlying');
+        let quoteId: Str = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settlCurrency');
         const settle = this.safeCurrencyCode (settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
@@ -872,6 +874,9 @@ export default class bitmex extends Exchange {
             isInverse = undefined;
             isQuanto = undefined;
             linear = undefined;
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseMarket() requires a symbol');
         }
         return {
             'id': id,
@@ -1327,7 +1332,7 @@ export default class bitmex extends Exchange {
             'AffiliatePayout': 'referral',
             'SpotTrade': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -3074,10 +3079,12 @@ export default class bitmex extends Exchange {
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
                 const withdrawalFeeId = this.safeString (network, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeId, precision));
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': withdrawalFee, 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': withdrawalFee, 'percentage': false },
+                    };
+                }
                 if (networksLength === 1) {
                     result['withdraw']['fee'] = withdrawalFee;
                     result['withdraw']['percentage'] = false;

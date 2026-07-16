@@ -2625,7 +2625,7 @@ export default class coinbase extends Exchange {
             'pro_deposit': 'transaction', // crypto withdrawal (from coinbase to coinbasepro)
             'pro_withdrawal': 'transaction', // crypto deposit (to coinbase from coinbasepro)
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

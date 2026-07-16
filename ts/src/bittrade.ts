@@ -452,7 +452,7 @@ export default class bittrade extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id: string, params = {}) {
+    async fetchTradingLimitsById (id: Str, params = {}) {
         const request: Dict = {
             'symbol': id,
         };

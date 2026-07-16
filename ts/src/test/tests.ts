@@ -1890,7 +1890,7 @@ class testMainClass {
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testRequestStatically (exchange, method, result, type as string, skipKeys);
+                await this.testRequestStatically (exchange, method, result, type, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
                 // exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));

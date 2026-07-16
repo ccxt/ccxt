@@ -103,13 +103,13 @@ export default class weex extends weexRest {
         };
         subscription = this.extend (subscription, { 'id': id });
         const type = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][type] + '/public';
+        const url = this.urls['api']['ws'][type as string] + '/public';
         return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
     }
 
     async subscribePrivate (messageHash, subscribeHash, channel, isContract = false, params = {}, subscription = {}) {
         const type = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][type] + '/private';
+        const url = this.urls['api']['ws'][type as string] + '/private';
         this.authenticate (url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
@@ -1597,7 +1597,7 @@ export default class weex extends weexRest {
             'type': type,
         };
         const response = await this.fetchBalance (params);
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, (type as string), {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

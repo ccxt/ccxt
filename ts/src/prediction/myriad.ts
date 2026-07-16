@@ -540,8 +540,8 @@ export default class myriad extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        let rHex = this.safeString (signature, 'r');
-        let sHex = this.safeString (signature, 's');
+        let rHex: Str = this.safeString (signature, 'r');
+        let sHex: Str = this.safeString (signature, 's');
         if ((rHex.length % 2) !== 0) {
             rHex = '0' + rHex;
         }
@@ -648,7 +648,7 @@ export default class myriad extends Exchange {
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         const sideStr = (side === undefined) ? undefined : (side as string).toLowerCase ();
-        const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
+        const typeStr = (type === undefined) ? 'limit' : type.toLowerCase ();
         if (this.safeString (parsed, 'side') === undefined) {
             parsed['side'] = sideStr;
         }
@@ -692,7 +692,7 @@ export default class myriad extends Exchange {
         const marketId = this.safeString (info, 'marketId');
         const outcomeId = this.safeInteger (info, 'outcomeId', 0);
         const trader = this.ethGetAddressFromPrivateKey (this.privateKey);
-        const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
+        const typeStr = (type === undefined) ? 'limit' : type.toLowerCase ();
         const sideStr = (side as string).toLowerCase ();
         const sideInt = (sideStr === 'buy') ? 0 : 1;
         const isMarket = (typeStr === 'market');
@@ -2463,7 +2463,7 @@ export default class myriad extends Exchange {
         }) as any;
     }
 
-    requestId (url: string): number {
+    requestId (url: Str): number {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary ();
@@ -2492,7 +2492,7 @@ export default class myriad extends Exchange {
         return this.safeString (outcomeObj, 'outcome');
     }
 
-    async connectCentrifugo (url: string): Promise<any> {
+    async connectCentrifugo (url: Str): Promise<any> {
         // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.

@@ -25,8 +25,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Bool,
     Account, fetchEventsParams,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
-} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Fee} from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
@@ -1865,7 +1864,7 @@ export default class limitless extends Exchange {
         }
         let rawStatus = this.safeString (rawOrder, 'status');
         const execution = this.safeDict (data, 'execution');
-        let fee = undefined;
+        let fee: Fee = undefined;
         let filled = undefined;
         let cost = undefined;
         if (execution !== undefined) {
@@ -1873,14 +1872,14 @@ export default class limitless extends Exchange {
             const totals = this.safeDict (execution, 'totalsRaw');
             cost = this.safeString (totals, 'usdGross');
             filled = this.safeString (totals, 'contractsGross');
-            let feeCurrency = 'USDC';
+            let feeCurrency: Str = 'USDC';
             let feeCost = this.safeString (totals, 'usdFee');
             if (side === 'buy') {
                 feeCurrency = outcomeSymbol;
                 feeCost = this.safeString (totals, 'contractsFee');
             }
             fee = {
-                'cost': this.applyScale (feeCost),
+                'cost': this.parseNumber (this.applyScale (feeCost)),
                 'currency': feeCurrency,
             };
         }
@@ -2224,8 +2223,8 @@ export default class limitless extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        let rHex = this.safeString (signature, 'r');
-        let sHex = this.safeString (signature, 's');
+        let rHex: Str = this.safeString (signature, 'r');
+        let sHex: Str = this.safeString (signature, 's');
         rHex = this.padHexToEven (rHex);
         sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');

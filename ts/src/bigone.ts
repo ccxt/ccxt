@@ -545,27 +545,29 @@ export default class bigone extends Exchange {
             const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
             const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
             const precision = this.parsePrecision (this.safeString2 (chain, 'withdrawal_scale', 'scale'));
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.parseNumber (withdrawalFee),
-                'precision': this.parseNumber (precision),
-                'limits': {
-                    'deposit': {
-                        'min': minDepositAmount,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.parseNumber (withdrawalFee),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': minWithdrawalAmount,
-                        'max': undefined,
-                    },
-                },
-                'info': chain,
-            };
+                    'info': chain,
+                };
+            }
         }
         const chainLength = chains.length;
         let type: Str = undefined;
@@ -1464,14 +1466,14 @@ export default class bigone extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseType (type: string) {
+    parseType (type: Str) {
         const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
             'LIMIT': 'limit',
             'MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

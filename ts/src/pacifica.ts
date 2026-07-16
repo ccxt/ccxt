@@ -701,7 +701,7 @@ export default class pacifica extends Exchange {
         if (isSwap) {
             symbol = symbol + ':' + settle;
         }
-        const fees = this.safeDict (this.fees, type, {});
+        const fees = this.safeDict (this.fees, (type as string), {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecision = this.safeNumber (market, 'lot_size');
@@ -1520,7 +1520,13 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): [Dict, Str] {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): [Dict, Str] {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1996,7 +2002,10 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
 
-    editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
         }
@@ -2483,7 +2492,7 @@ export default class pacifica extends Exchange {
         return this.safeString (tifMap, tif, undefined);
     }
 
-    mapSide (sideRaw: string) {
+    mapSide (sideRaw: Str) {
         const sideMap: Dict = {
             'sell': 'ask',
             'buy': 'bid',
@@ -2491,7 +2500,7 @@ export default class pacifica extends Exchange {
         return this.safeString (sideMap, sideRaw, sideRaw);
     }
 
-    parseOrderType (status: string) {
+    parseOrderType (status: Str) {
         const statuses: Dict = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -3098,7 +3107,7 @@ export default class pacifica extends Exchange {
             'airdrop': 'airdrop',
             'payout': 'payout',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**

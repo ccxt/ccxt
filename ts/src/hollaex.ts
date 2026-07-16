@@ -510,22 +510,24 @@ export default class hollaex extends Exchange {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict (rawNetworks, networkId);
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': this.safeBool (networkEntry, 'active'),
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber (networkEntry, 'value'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': this.safeBool (networkEntry, 'active'),
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber (networkEntry, 'value'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -1994,6 +1996,9 @@ export default class hollaex extends Exchange {
                 const currencyId = this.safeString (value, 'symbol');
                 const currencyCode = this.safeCurrencyCode (currencyId);
                 const networkCode = this.networkIdToCode (key, currencyCode);
+                if (networkCode === undefined) {
+                    throw new ArgumentsRequired (this.id + ' requires a networkCode argument');
+                }
                 const networkCodeUpper = networkCode.toUpperCase (); // default to the upper case network code
                 const withdrawalFee = this.safeNumber (value, 'value');
                 result['networks'][networkCodeUpper] = {

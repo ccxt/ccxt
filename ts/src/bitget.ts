@@ -2560,6 +2560,9 @@ export default class bitget extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'chain');
             let network = this.networkIdToCode (networkId, code);
+            if (network === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a network argument');
+            }
             network = network.toUpperCase ();
             const withdrawable = (this.safeString (chain, 'withdrawable') === 'true');
             const rechargeable = (this.safeString (chain, 'rechargeable') === 'true');
@@ -5231,7 +5234,13 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createUtaOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createUtaOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
@@ -5351,7 +5360,13 @@ export default class bitget extends Exchange {
         return this.extend (request, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
@@ -5607,7 +5622,7 @@ export default class bitget extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createUtaOrderRequest (marketId as string, type as string, side, amount, price, orderParams);
+            const orderRequest = this.createUtaOrderRequest (marketId as string, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol as string);
@@ -5681,7 +5696,7 @@ export default class bitget extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest (marketId as string, type as string, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol as string);
@@ -7695,7 +7710,7 @@ export default class bitget extends Exchange {
             'buy': 'trade',
             'sell': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -9671,10 +9686,12 @@ export default class bitget extends Exchange {
             const networkId = this.safeString (chain, 'chain');
             const currencyCode = this.safeString (currency, 'code');
             const networkCode = this.networkIdToCode (networkId, currencyCode);
-            result['networks'][networkCode] = {
-                'deposit': { 'fee': undefined, 'percentage': undefined },
-                'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+                };
+            }
             if (chainsLength === 1) {
                 result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
                 result['withdraw']['percentage'] = false;

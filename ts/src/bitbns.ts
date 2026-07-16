@@ -1151,7 +1151,7 @@ export default class bitbns extends Exchange {
                 '6': 'ok', // Completed
             },
         };
-        const statuses = this.safeDict (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, (type as string), {});
         return this.safeString (statuses, status, status);
     }
 

@@ -68,7 +68,7 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKeyHeaders (key: string = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
+    setupApiKeyHeaders (key: Str = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
         const headers = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
@@ -1409,7 +1409,7 @@ export default class pacifica extends pacificaRest {
         return this.uuid (); // uuid v4
     }
 
-    wrapAsPostAction (operationType: string, request: Dict): Dict {
+    wrapAsPostAction (operationType: Str, request: Dict): Dict {
         if (operationType === undefined) {
             throw new ArgumentsRequired (this.id + 'postAction() requires a "operationType" argument!');
         }

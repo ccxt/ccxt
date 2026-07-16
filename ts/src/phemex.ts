@@ -2103,7 +2103,7 @@ export default class phemex extends Exchange {
         const balance = this.safeValue (data, 'account', {});
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const currency = this.currency (code as string);
+        const currency = this.currency (code);
         const valueScale = this.safeInteger (currency, 'valueScale', 8);
         const account = this.account ();
         const accountBalanceEv = this.safeString2 (balance, 'accountBalanceEv', 'accountBalanceRv');
@@ -2329,7 +2329,7 @@ export default class phemex extends Exchange {
             'Limit': 'limit',
             'Market': 'market',
         };
-        return this.safeString (types, type as string, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTimeInForce (timeInForce: Str) {
@@ -3856,7 +3856,7 @@ export default class phemex extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         let subType: Str = undefined;
-        let code = this.safeString2 (params, 'currency', 'code', 'USDT');
+        let code: Str = this.safeString2 (params, 'currency', 'code', 'USDT');
         params = this.omit (params, [ 'currency', 'code' ]);
         let settle: Str = undefined;
         let market: Market = undefined;
@@ -5498,7 +5498,7 @@ export default class phemex extends Exchange {
         }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         let subType: Str = undefined;
-        let code = this.safeString2 (params, 'currency', 'code', 'USDT');
+        let code: Str = this.safeString2 (params, 'currency', 'code', 'USDT');
         params = this.omit (params, [ 'currency', 'code' ]);
         let settle: Str = undefined;
         let market: Market = undefined;

@@ -665,18 +665,20 @@ export default class exmo extends Exchange {
             }
             const network = this.safeValue (result['networks'], networkCode);
             if (network === undefined) {
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
-            result['networks'][networkCode][type] = {
+            result['networks'][networkCode][type as string] = {
                 'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
                 'percentage': percentage,
             };
@@ -762,26 +764,28 @@ export default class exmo extends Exchange {
                 const replaceChar = ')'; // transpiler trick
                 networkId = networkId.replace (replaceChar, '');
                 const networkCode = this.networkIdToCode (networkId, code);
-                if (!(networkCode in networks)) {
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
+                if ((networkCode === undefined) || !(networkCode in networks)) {
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': undefined,
+                            'withdraw': undefined,
+                            'fee': undefined,
+                            'limits': {
+                                'withdraw': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                        'info': [], // set as array, because of multiple network sub-entries
-                    };
+                            'info': [], // set as array, because of multiple network sub-entries
+                        };
+                    }
                 }
                 const typeInner = this.safeString (provider, 'type');
                 const minValue = this.safeString (provider, 'min');
@@ -800,7 +804,9 @@ export default class exmo extends Exchange {
                 const info = this.safeList (networkEntry, 'info', []);
                 info.push (provider);
                 networkEntry['info'] = info;
-                networks[networkCode] = networkEntry;
+                if (networkCode !== undefined) {
+                    networks[networkCode] = networkEntry;
+                }
             }
         }
         return this.safeCurrencyStructure ({

@@ -310,7 +310,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeDict (message, 'data', {});
         const coin = this.safeString (entry, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market ((marketId as string));
+        const market = this.market (marketId);
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
         const data: Dict = {
@@ -686,7 +686,7 @@ export default class hyperliquid extends hyperliquidRest {
         const first = this.safeDict (entry, 0, {});
         const coin = this.safeString (first, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market ((marketId as string));
+        const market = this.market (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

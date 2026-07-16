@@ -1053,7 +1053,7 @@ export default class lighter extends lighterRest {
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
         }
-        const balance = this.safeDict (this.balance, type, {});
+        const balance = this.safeDict (this.balance, (type as string), {});
         if (type === 'spot') {
             const assets = this.safeDict (message, 'assets', {});
             const assetIds = Object.keys (assets);

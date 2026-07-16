@@ -1957,7 +1957,7 @@ export default class gate extends Exchange {
     }
 
     getSettlementCurrencies (type, method) {
-        const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const options = this.safeValue (this.options, (type as string), {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
@@ -2030,26 +2030,28 @@ export default class gate extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'name');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': !this.safeBool (chain, 'deposit_disabled'),
-                'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
-                'fee': undefined,
-                'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': !this.safeBool (chain, 'deposit_disabled'),
+                    'withdraw': !this.safeBool (chain, 'withdraw_disabled'),
+                    'fee': undefined,
+                    'precision': this.parseNumber ('0.0001'), // temporary safe default, because no value provided from API,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -2149,7 +2151,7 @@ export default class gate extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
-            market = this.market (firstSymbol as string);
+            market = this.market (firstSymbol);
         }
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
@@ -2551,7 +2553,9 @@ export default class gate extends Exchange {
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
                     const networkCode = this.networkIdToCode (networkId, code);
-                    withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
+                    if (networkCode !== undefined) {
+                        withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
+                    }
                 }
             }
             result[code as string] = {
@@ -2637,16 +2641,18 @@ export default class gate extends Exchange {
                 const currencyId = this.safeString (fee, 'currency');
                 const code = this.safeCurrencyCode (currencyId, currency);
                 const networkCode = this.networkIdToCode (chainKey, code);
-                result['networks'][networkCode] = {
-                    'withdraw': {
-                        'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
-                        'percentage': false,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
+                            'percentage': false,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
+                }
             }
         }
         return result;
@@ -4009,10 +4015,10 @@ export default class gate extends Exchange {
         const feeAmount = this.safeString (trade, 'fee');
         const gtFee = this.omitZero (this.safeString (trade, 'gt_fee') as string);
         const pointFee = this.omitZero (this.safeString (trade, 'point_fee') as string);
-        const fees = [];
+        const fees: Dict[] = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            let feeCurrencyCode: Str = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
                 feeCurrencyCode = this.safeString (market, 'settle');
             }
@@ -4203,7 +4209,7 @@ export default class gate extends Exchange {
             'd': 'deposit',
             'w': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -4484,7 +4490,7 @@ export default class gate extends Exchange {
                 throw new NotSupported (this.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
             }
             extendedParams['textIsRequired'] = true; // the exchange requires a text parameter for each order here
-            const orderRequest = this.createOrderRequest (marketId as string, type as OrderType, side as OrderSide, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId, type as OrderType, side as OrderSide, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -4522,7 +4528,13 @@ export default class gate extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const contract = market['contract'];
         const trigger = this.safeValue (params, 'trigger');
@@ -4799,7 +4811,7 @@ export default class gate extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    editOrderRequest (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('editOrder', market, params);
@@ -7072,7 +7084,7 @@ export default class gate extends Exchange {
         if ((type === 'subAccounts') || (type === 'withdrawals')) {
             entirePath = endPart;
         }
-        let url = this.urls['api'][authentication][type];
+        let url = this.urls['api'][authentication][type as string];
         if (url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
         }
@@ -7791,7 +7803,7 @@ export default class gate extends Exchange {
             'pnl': 'trade',
             'dnw': 'deposit/withdraw',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**

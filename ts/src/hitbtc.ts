@@ -1125,7 +1125,7 @@ export default class hitbtc extends Exchange {
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const account = (type === undefined) ? undefined : this.safeString (accountsByType, type, type);
+        const account = (type === undefined) ? undefined : this.safeString (accountsByType, (type as string), type);
         let response: Dict;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (params);
@@ -1541,7 +1541,7 @@ export default class hitbtc extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2444,7 +2444,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');

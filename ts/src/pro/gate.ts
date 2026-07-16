@@ -825,6 +825,9 @@ export default class gate extends gateRest {
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
+        if (callerMethodName === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a callerMethodName argument');
+        }
         const isWatchTickers = callerMethodName.indexOf ('watchTicker') >= 0;
         const prefix = isWatchTickers ? 'ticker' : 'bidask';
         const messageHashes = [];
@@ -1117,7 +1120,7 @@ export default class gate extends gateRest {
         }
         let subType: Str = undefined;
         let type = undefined;
-        let marketId = '!' + 'all';
+        let marketId: Str = '!' + 'all';
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1541,7 +1544,10 @@ export default class gate extends gateRest {
         let payload = [ '!' + 'all' ];
         if (symbol !== undefined) {
             messageHash += ':' + market['id'];
-            payload = [ market['id'] ];
+            const mid = market['id'];
+                if (mid !== undefined) {
+                    payload = [ mid ];
+                }
         }
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
