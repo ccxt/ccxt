@@ -17,6 +17,9 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\TICK_SIZE;
+
 class bittrade extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(

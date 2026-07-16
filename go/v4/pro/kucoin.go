@@ -2749,7 +2749,7 @@ func (this *KucoinCore) HandleOrder(client any, message any) {
 	//
 	//    {
 	//        "createdAt": 1692745706437,
-	//        "error": "ccxt.Balance insufficient!",       // not always there
+	//        "error": "Balance insufficient!",       // not always there
 	//        "orderId": "vs86kp757vlda6ni003qs70v",
 	//        "orderPrice": "0.26",
 	//        "orderType": "stop",
@@ -4170,7 +4170,7 @@ func (this *KucoinCore) HandleErrorMessage(client any, message any) any {
 	//     {
 	//         "id": "1",
 	//         "result": false,
-	//         "reason": "missing `symbol` for topic: ccxt.Position"
+	//         "reason": "missing `symbol` for topic: Position"
 	//     }
 	//
 	var data any = this.SafeString2(message, "data", "reason", "")

@@ -30,7 +30,7 @@ partial class Examples
     // start exchanges and fetch OHLCV loop
     async public Task initializeExchange(string exchangeName, object config)
     {
-        var ex = Exchange.DynamicallyCreateInstance("ccxt.pro." + exchangeName, config);
+        var ex = (Exchange)Exchange.DynamicallyCreateInstance("ccxt.pro." + exchangeName, config);
         var promises = new List<Task<List<Position>>>() { };
         (promises).Add(watchPositionsContinuously(ex));
         await Task.WhenAll(promises);

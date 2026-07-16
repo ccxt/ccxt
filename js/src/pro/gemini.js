@@ -388,6 +388,7 @@ export default class gemini extends geminiRest {
         return orderbook.limit();
     }
     handleOrderBook(client, message) {
+        const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
         const changes = this.safeValue(message, 'changes', []);
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
@@ -395,6 +396,13 @@ export default class gemini extends geminiRest {
         const messageHash = 'orderbook:' + symbol;
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
+        }
+        else if (isInitial) {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];

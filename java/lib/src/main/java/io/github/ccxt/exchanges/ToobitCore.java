@@ -52,6 +52,7 @@ public class ToobitCore extends ToobitApi
                 put( "fetchBorrowRatesPerSymbol", false );
                 put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
+                put( "fetchClosedOrders", true );
                 put( "fetchCurrencies", true );
                 put( "fetchDepositAddress", true );
                 put( "fetchDeposits", true );
@@ -63,6 +64,7 @@ public class ToobitCore extends ToobitApi
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchLastPrices", true );
                 put( "fetchLedger", true );
+                put( "fetchLeverage", true );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", true );
                 put( "fetchMyTrades", true );
@@ -73,14 +75,17 @@ public class ToobitCore extends ToobitApi
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
+                put( "fetchPositions", true );
                 put( "fetchStatus", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
+                put( "fetchTradingFees", true );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
+                put( "setLeverage", true );
                 put( "setMarginMode", true );
                 put( "transfer", true );
                 put( "withdraw", true );
@@ -92,7 +97,7 @@ public class ToobitCore extends ToobitApi
                     put( "private", "https://api.toobit.com" );
                 }} );
                 put( "www", "https://www.toobit.com/" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://toobit-docs.github.io/apidocs/spot/v1/en/", "https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/")) );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://api-docs.toobit.com/")) );
                 put( "referral", new java.util.HashMap<String, Object>() {{
                     put( "url", "https://www.toobit.com/en-US/r?i=IFFPy0" );
                     put( "discount", 0.1 );
@@ -110,15 +115,19 @@ public class ToobitCore extends ToobitApi
                         put( "quote/v1/trades", 1 );
                         put( "quote/v1/klines", 1 );
                         put( "quote/v1/index/klines", 1 );
+                        put( "quote/v1/indexPriceComponents", 1 );
                         put( "quote/v1/markPrice/klines", 1 );
-                        put( "quote/v1/markPrice", 1 );
+                        put( "quote/v1/markPrice", 10 );
                         put( "quote/v1/index", 1 );
                         put( "quote/v1/ticker/24hr", 40 );
                         put( "quote/v1/contract/ticker/24hr", 40 );
                         put( "quote/v1/ticker/price", 1 );
+                        put( "quote/v1/contract/ticker/price", 1 );
                         put( "quote/v1/ticker/bookTicker", 1 );
+                        put( "quote/v1/contract/ticker/bookTicker", 1 );
                         put( "api/v1/futures/fundingRate", 1 );
                         put( "api/v1/futures/historyFundingRate", 1 );
+                        put( "api/v1/futures/riskLimits", 1 );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
@@ -136,14 +145,31 @@ public class ToobitCore extends ToobitApi
                         put( "api/v1/account/withdrawOrders", 5 );
                         put( "api/v1/account/deposit/address", 1 );
                         put( "api/v1/subAccount", 5 );
+                        put( "api/v1/account/subAccount", 5 );
+                        put( "api/v1/subAccount/list", 5 );
                         put( "api/v1/futures/accountLeverage", 1 );
                         put( "api/v1/futures/order", Helpers.multiply(1, 1.67) );
                         put( "api/v1/futures/positions", Helpers.multiply(5, 1.67) );
+                        put( "api/v1/futures/historyPositions", 5 );
                         put( "api/v1/futures/balance", 5 );
                         put( "api/v1/futures/userTrades", Helpers.multiply(5, 1.67) );
                         put( "api/v1/futures/balanceFlow", 5 );
                         put( "api/v1/futures/commissionRate", 5 );
                         put( "api/v1/futures/todayPnl", 5 );
+                        put( "api/v1/account/download/detail", 10 );
+                        put( "api/v1/agent/inviteUserList", 1 );
+                        put( "api/v1/agent/commissionDataList", 1 );
+                        put( "api/v1/agent/commissionDataInfo", 1 );
+                        put( "api/v1/agent/inviteRelationCheck", 1 );
+                        put( "api/v1/agent/depositDetailList", 1 );
+                        put( "api/v1/agent/querySubAgentData", 1 );
+                        put( "api/v1/agent/spotOrdersList", 1 );
+                        put( "api/v1/agent/futuresOrdersList", 1 );
+                        put( "api/v1/agent/futuresPositionsList", 1 );
+                        put( "api/v1/agent/invite-commission-detail", 1 );
+                        put( "api/v1/agent/user/export", 1 );
+                        put( "api/v1/agent/export-list", 1 );
+                        put( "api/v1/agent/export-url", 1 );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "api/v1/spot/orderTest", Helpers.multiply(1, 1.67) );
@@ -157,6 +183,11 @@ public class ToobitCore extends ToobitApi
                         put( "api/v1/futures/batchOrders", Helpers.multiply(2, 1.67) );
                         put( "api/v1/futures/position/trading-stop", Helpers.multiply(3, 1.67) );
                         put( "api/v1/futures/positionMargin", 1 );
+                        put( "api/v1/futures/order/update", Helpers.multiply(2, 1.67) );
+                        put( "api/v1/futures/autoAddMargin", 1 );
+                        put( "api/v1/futures/flashClose", 1 );
+                        put( "api/v1/futures/reversePosition", 5 );
+                        put( "api/v1/account/download/apply", 1000 );
                         put( "api/v1/userDataStream", 1 );
                         put( "api/v1/listenKey", 1 );
                     }} );
@@ -164,12 +195,14 @@ public class ToobitCore extends ToobitApi
                         put( "api/v1/spot/order", Helpers.multiply(1, 1.67) );
                         put( "api/v1/futures/order", Helpers.multiply(1, 1.67) );
                         put( "api/v1/spot/openOrders", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/batchOrders", Helpers.multiply(5, 1.67) );
+                        put( "api/v1/futures/batchOrders", Helpers.multiply(3, 1.67) );
                         put( "api/v1/spot/cancelOrderByIds", Helpers.multiply(5, 1.67) );
-                        put( "api/v1/futures/cancelOrderByIds", Helpers.multiply(5, 1.67) );
+                        put( "api/v1/futures/cancelOrderByIds", Helpers.multiply(3, 1.67) );
+                        put( "api/v1/userDataStream", 1 );
                         put( "api/v1/listenKey", 1 );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
+                        put( "api/v1/userDataStream", 1 );
                         put( "api/v1/listenKey", 1 );
                     }} );
                 }} );
@@ -198,6 +231,7 @@ public class ToobitCore extends ToobitApi
                     put( "-1002", PermissionDenied.class );
                     put( "-1003", RateLimitExceeded.class );
                     put( "-1004", BadRequest.class );
+                    put( "-1005", PermissionDenied.class );
                     put( "-1006", OperationFailed.class );
                     put( "-1007", OperationFailed.class );
                     put( "-1014", OperationFailed.class );
@@ -206,6 +240,8 @@ public class ToobitCore extends ToobitApi
                     put( "-1020", OperationRejected.class );
                     put( "-1021", OperationRejected.class );
                     put( "-1022", OperationRejected.class );
+                    put( "-1023", PermissionDenied.class );
+                    put( "-1031", OperationRejected.class );
                     put( "-1100", BadRequest.class );
                     put( "-1101", BadRequest.class );
                     put( "-1102", BadRequest.class );
@@ -213,6 +249,7 @@ public class ToobitCore extends ToobitApi
                     put( "-1104", BadRequest.class );
                     put( "-1105", BadRequest.class );
                     put( "-1106", BadRequest.class );
+                    put( "-1107", PermissionDenied.class );
                     put( "-1111", BadRequest.class );
                     put( "-1112", OperationRejected.class );
                     put( "-1114", BadRequest.class );
@@ -222,11 +259,13 @@ public class ToobitCore extends ToobitApi
                     put( "-1118", InvalidOrder.class );
                     put( "-1119", InvalidOrder.class );
                     put( "-1120", BadRequest.class );
-                    put( "-1121", BadRequest.class );
+                    put( "-1121", BadSymbol.class );
                     put( "-1125", OperationRejected.class );
                     put( "-1127", OperationRejected.class );
                     put( "-1128", BadRequest.class );
+                    put( "-1129", BadRequest.class );
                     put( "-1130", BadRequest.class );
+                    put( "-1131", InsufficientFunds.class );
                     put( "-1132", OperationRejected.class );
                     put( "-1133", OperationRejected.class );
                     put( "-1134", OperationRejected.class );
@@ -238,11 +277,28 @@ public class ToobitCore extends ToobitApi
                     put( "-1140", OperationRejected.class );
                     put( "-1141", InvalidOrder.class );
                     put( "-1142", InvalidOrder.class );
-                    put( "-1143", InvalidOrder.class );
+                    put( "-1143", OrderNotFound.class );
                     put( "-1144", OperationRejected.class );
                     put( "-1145", OperationRejected.class );
                     put( "-1146", OperationFailed.class );
                     put( "-1147", OperationFailed.class );
+                    put( "-1148", InvalidOrder.class );
+                    put( "-1149", OperationFailed.class );
+                    put( "-1150", OperationFailed.class );
+                    put( "-1151", OperationRejected.class );
+                    put( "-1153", PermissionDenied.class );
+                    put( "-1156", InvalidOrder.class );
+                    put( "-1157", OperationRejected.class );
+                    put( "-1158", InvalidOrder.class );
+                    put( "-1161", OperationRejected.class );
+                    put( "-1164", OperationRejected.class );
+                    put( "-1165", BadRequest.class );
+                    put( "-1166", BadRequest.class );
+                    put( "-1170", OperationRejected.class );
+                    put( "-1171", ExchangeError.class );
+                    put( "-1172", OperationFailed.class );
+                    put( "-1181", PermissionDenied.class );
+                    put( "-1182", PermissionDenied.class );
                     put( "-1193", OperationRejected.class );
                     put( "-1194", OperationRejected.class );
                     put( "-1195", OperationRejected.class );
@@ -254,14 +310,53 @@ public class ToobitCore extends ToobitApi
                     put( "-1201", OperationRejected.class );
                     put( "-1202", OperationRejected.class );
                     put( "-1203", OperationRejected.class );
+                    put( "-1204", PermissionDenied.class );
+                    put( "-1205", BadRequest.class );
                     put( "-1206", OperationRejected.class );
+                    put( "-1207", InvalidOrder.class );
+                    put( "-1208", InvalidOrder.class );
+                    put( "-1209", InvalidOrder.class );
+                    put( "-1210", InvalidOrder.class );
+                    put( "-1211", InvalidOrder.class );
+                    put( "-1212", InvalidOrder.class );
+                    put( "-1213", BadSymbol.class );
+                    put( "-1214", PermissionDenied.class );
+                    put( "-1215", PermissionDenied.class );
+                    put( "-1216", OperationRejected.class );
+                    put( "-1217", InvalidOrder.class );
+                    put( "-1300", BadRequest.class );
+                    put( "-1400", BadRequest.class );
+                    put( "-1401", PermissionDenied.class );
+                    put( "-1402", OperationFailed.class );
+                    put( "-1403", OperationFailed.class );
+                    put( "-1404", ExchangeError.class );
+                    put( "-1405", ExchangeError.class );
+                    put( "-1406", OperationRejected.class );
+                    put( "-1407", OperationRejected.class );
+                    put( "-1408", InsufficientFunds.class );
+                    put( "-1409", OperationRejected.class );
+                    put( "-1410", InsufficientFunds.class );
+                    put( "-1411", OperationRejected.class );
+                    put( "-1412", OperationRejected.class );
+                    put( "-1413", BadRequest.class );
+                    put( "-1414", BadRequest.class );
+                    put( "-1415", BadRequest.class );
+                    put( "-1416", InsufficientFunds.class );
+                    put( "-1417", OperationRejected.class );
                     put( "-2010", OperationFailed.class );
                     put( "-2011", OperationFailed.class );
-                    put( "-2013", InvalidOrder.class );
+                    put( "-2013", OrderNotFound.class );
                     put( "-2014", PermissionDenied.class );
                     put( "-2015", PermissionDenied.class );
                     put( "-2016", BadRequest.class );
+                    put( "-2017", PermissionDenied.class );
+                    put( "-2018", PermissionDenied.class );
+                    put( "-3000", BadRequest.class );
+                    put( "-3001", OperationRejected.class );
+                    put( "-3002", InvalidOrder.class );
                     put( "-3050", ExchangeError.class );
+                    put( "-3051", OperationRejected.class );
+                    put( "-3052", BadRequest.class );
                     put( "-3101", OperationRejected.class );
                     put( "-3102", OperationRejected.class );
                     put( "-3103", BadRequest.class );
@@ -281,6 +376,38 @@ public class ToobitCore extends ToobitApi
                     put( "-3129", BadRequest.class );
                     put( "-3130", OperationRejected.class );
                     put( "-3131", NotSupported.class );
+                    put( "-3132", InvalidOrder.class );
+                    put( "-3133", InvalidOrder.class );
+                    put( "-3136", OperationRejected.class );
+                    put( "-3137", OperationRejected.class );
+                    put( "-3138", OperationRejected.class );
+                    put( "-3139", OperationRejected.class );
+                    put( "-3140", OperationRejected.class );
+                    put( "-3141", InvalidOrder.class );
+                    put( "-3142", InvalidOrder.class );
+                    put( "-3143", InvalidOrder.class );
+                    put( "-3144", InvalidOrder.class );
+                    put( "-3145", InvalidOrder.class );
+                    put( "-3147", OperationRejected.class );
+                    put( "-3148", InvalidOrder.class );
+                    put( "-3149", InvalidOrder.class );
+                    put( "-3150", NotSupported.class );
+                    put( "-3151", NotSupported.class );
+                    put( "-3152", BadRequest.class );
+                    put( "-3153", BadRequest.class );
+                    put( "-32045", ExchangeError.class );
+                    put( "-32090", OperationRejected.class );
+                    put( "-32093", OperationRejected.class );
+                    put( "-120041", PermissionDenied.class );
+                    put( "-120047", ExchangeError.class );
+                    put( "-120055", OperationRejected.class );
+                    put( "-120067", ExchangeError.class );
+                    put( "-120072", BadRequest.class );
+                    put( "-120073", OperationRejected.class );
+                    put( "-120078", BadRequest.class );
+                    put( "-120510", BadRequest.class );
+                    put( "-120511", BadRequest.class );
+                    put( "-120512", BadRequest.class );
                 }} );
                 put( "broad", new java.util.HashMap<String, Object>() {{
                     put( "Unknown order sent", OrderNotFound.class );
@@ -448,7 +575,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -473,6 +600,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -691,8 +819,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchMarkets
      * @description retrieves data on all markets for toobit
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -938,8 +1066,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#order-book
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1002,8 +1130,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchTrades
      * @description get a list of the most recent trades for a particular symbol
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
@@ -1166,8 +1294,10 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1237,8 +1367,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1339,7 +1469,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1401,7 +1531,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1478,7 +1608,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
@@ -1552,7 +1682,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1627,9 +1757,9 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
-     * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
@@ -1684,8 +1814,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#createOrder
      * @description create a trade order
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2035,8 +2165,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#cancelOrder
      * @description cancels an open order
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2091,8 +2221,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
      * @param {string} symbol unified symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2143,8 +2273,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#cancelOrders
      * @description cancel multiple orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2196,8 +2326,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2267,8 +2397,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2320,7 +2450,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2379,7 +2509,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2444,8 +2574,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -2505,7 +2635,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount 'spot', 'swap'
@@ -2571,8 +2701,8 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+     * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2694,7 +2824,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -2771,7 +2901,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposit structures to retrieve
@@ -2796,7 +2926,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
@@ -2971,7 +3101,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -3033,12 +3163,13 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#withdraw
      * @description make a withdrawal
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+     * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> withdraw(Object code, Object amount, Object address, Object... optionalArgs)
@@ -3093,7 +3224,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3138,7 +3269,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#setLeverage
      * @description set the level of leverage for a market
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3177,7 +3308,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3232,7 +3363,7 @@ public class ToobitCore extends ToobitApi
      * @method
      * @name toobit#fetchPositions
      * @description fetch all open positions
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
+     * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

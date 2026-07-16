@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class hollaex extends \ccxt\async\hollaex {
     public function describe(): mixed {

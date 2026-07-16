@@ -25,16 +25,28 @@ else
     IMPORTANT_MODIFIED="false"
 fi
 
+# prediction-market sources/fixtures live outside the regular ts/src/*.ts + ts/src/pro/*.ts globs,
+# so flag them separately to drive the per-language prediction transpile + test CI steps
+if [[ "$IMPORTANT_MODIFIED" == "true" ]] || echo "$diff" | grep -qE 'ts/src/prediction/|ts/src/pro/prediction/|ts/src/test/static/(request|response)/prediction/'; then
+    PREDICTION_MODIFIED="true"
+else
+    PREDICTION_MODIFIED="false"
+fi
+
 # echo "$diff_without_statics"
 
 if [ "$IMPORTANT_MODIFIED" == "true" ]; then
-  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
+  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
   exit
 fi
 
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
+# prediction-market exchanges live under ts/src/prediction/ (rest) and ts/src/pro/prediction/
+# (ws) — the rest/ws patterns above can't match them because the extra path segment blocks it
+prediction_pattern='ts\/src\/prediction\/([A-Za-z0-9_-]+)\.ts'
+prediction_ws_pattern='ts\/src\/pro\/prediction\/([A-Za-z0-9_-]+)\.ts'
 pattern_static_request='ts\/src\/test\/static\/request\/([A-Za-z0-9_-]+)\.json'
 pattern_static_response='ts\/src\/test\/static\/response\/([A-Za-z0-9_-]+)\.json'
 
@@ -59,7 +71,17 @@ WS_EXCHANGES=()
 # done
 
 for file in "${y[@]}"; do
-  if [[ "$file" =~ $rest_pattern ]]; then
+  if [[ "$file" =~ $prediction_ws_pattern ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    if [[ ! " ${WS_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      WS_EXCHANGES+=("$modified_exchange")
+    fi
+  elif [[ "$file" =~ $prediction_pattern ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      REST_EXCHANGES+=("$modified_exchange")
+    fi
+  elif [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
       REST_EXCHANGES+=("$modified_exchange")
@@ -103,4 +125,4 @@ else
   ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
 fi
 
-echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"
+echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"

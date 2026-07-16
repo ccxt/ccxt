@@ -11,6 +11,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class mexc extends \ccxt\async\mexc {
     public function describe(): mixed {
@@ -89,13 +92,11 @@ class mexc extends \ccxt\async\mexc {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-$symbol-book-ticker-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/individual-$symbol-book-ticker-streams // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker // swap
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->miniTicker] set to true for using the miniTicker endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             if ($this->markets === null) {
@@ -207,13 +208,10 @@ class mexc extends \ccxt\async\mexc {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/tickers
              *
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->miniTicker] set to true for using the $miniTicker endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             if ($this->markets === null) {
@@ -426,7 +424,7 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/individual-symbol-book-$ticker-streams
              *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
@@ -577,7 +575,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/k-line-streams // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/k-line-data // swap
              *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -774,8 +773,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/diffdepth-stream // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth // swap
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -981,8 +980,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams#trade-streams
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-$market-streams/trade-streams // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/deal // swap
              *
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -1096,8 +1095,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/fill-details // swap
              *
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
@@ -1277,15 +1276,15 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-$orders
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-$orders
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-$orders // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/order // swap
              *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
+             * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'swap'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($this->markets === null) {
@@ -1567,7 +1566,8 @@ class mexc extends \ccxt\async\mexc {
         return Async\async(function () use ($params) {
             /**
              *
-             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
+             * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update // spot
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/assets // swap
              *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1650,7 +1650,7 @@ class mexc extends \ccxt\async\mexc {
             /**
              * watch the current funding rate
              *
-             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1674,7 +1674,7 @@ class mexc extends \ccxt\async\mexc {
             /**
              * unWatches the current funding rate for a $symbol
              *
-             * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+             * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
              *
              * @param {string} $symbol unified $symbol of the $market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

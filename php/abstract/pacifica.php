@@ -10,6 +10,9 @@ abstract class pacifica extends \ccxt\Exchange {
     public function public_get_info($params = array()) {
         return $this->request('info', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_info_fees($params = array()) {
+        return $this->request('info/fees', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_info_prices($params = array()) {
         return $this->request('info/prices', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -28,8 +31,14 @@ abstract class pacifica extends \ccxt\Exchange {
     public function public_get_funding_rate_history($params = array()) {
         return $this->request('funding_rate/history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_loan_pool($params = array()) {
+        return $this->request('loan_pool', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_account($params = array()) {
         return $this->request('account', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_account_loan($params = array()) {
+        return $this->request('account/loan', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_account_settings($params = array()) {
         return $this->request('account/settings', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -49,6 +58,18 @@ abstract class pacifica extends \ccxt\Exchange {
     public function public_get_account_balance_history($params = array()) {
         return $this->request('account/balance/history', 'public', 'GET', $params, null, null, array("cost" => 12));
     }
+    public function public_get_account_spot_balance_history($params = array()) {
+        return $this->request('account/spot_balance/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_account_spot_asset_deposit_history($params = array()) {
+        return $this->request('account/spot_asset/deposit/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_account_spot_asset_withdraw_history($params = array()) {
+        return $this->request('account/spot_asset/withdraw/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_account_spot_asset_withdraw_pending($params = array()) {
+        return $this->request('account/spot_asset/withdraw/pending', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_orders($params = array()) {
         return $this->request('orders', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -57,6 +78,18 @@ abstract class pacifica extends \ccxt\Exchange {
     }
     public function public_get_orders_history_by_id($params = array()) {
         return $this->request('orders/history_by_id', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_spot_assets($params = array()) {
+        return $this->request('spot_assets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_spot_assets_bridge_info($params = array()) {
+        return $this->request('spot_assets/bridge/info', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_spot_assets_bridge_parameters_symbol($params = array()) {
+        return $this->request('spot_assets/bridge/parameters/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_lake_list($params = array()) {
+        return $this->request('lake/list', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_account_builder_codes_approvals($params = array()) {
         return $this->request('account/builder_codes/approvals', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -70,6 +103,15 @@ abstract class pacifica extends \ccxt\Exchange {
     public function private_post_account_withdraw($params = array()) {
         return $this->request('account/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_account_settings_auto_lend_disabled($params = array()) {
+        return $this->request('account/settings/auto_lend_disabled', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_settings_spot($params = array()) {
+        return $this->request('account/settings/spot', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_spot_asset_withdraw($params = array()) {
+        return $this->request('account/spot_asset/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_account_subaccount_create($params = array()) {
         return $this->request('account/subaccount/create', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -78,6 +120,12 @@ abstract class pacifica extends \ccxt\Exchange {
     }
     public function private_post_account_subaccount_transfer($params = array()) {
         return $this->request('account/subaccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_subaccount_spot_asset_transfer($params = array()) {
+        return $this->request('account/subaccount/spot_asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_positions_add_isolated_margin($params = array()) {
+        return $this->request('positions/add_isolated_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_orders_create($params = array()) {
         return $this->request('orders/create', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -124,8 +172,47 @@ abstract class pacifica extends \ccxt\Exchange {
     public function private_post_account_api_keys($params = array()) {
         return $this->request('account/api_keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_lake_add_blacklist($params = array()) {
+        return $this->request('lake/add_blacklist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_add_max_leverage($params = array()) {
+        return $this->request('lake/add_max_leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_add_whitelist($params = array()) {
+        return $this->request('lake/add_whitelist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_claim_manager($params = array()) {
+        return $this->request('lake/claim_manager', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_claim_referral_code($params = array()) {
+        return $this->request('lake/claim_referral_code', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_create($params = array()) {
+        return $this->request('lake/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_deposit($params = array()) {
+        return $this->request('lake/deposit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_remove_blacklist($params = array()) {
+        return $this->request('lake/remove_blacklist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_remove_max_leverage($params = array()) {
+        return $this->request('lake/remove_max_leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_remove_whitelist($params = array()) {
+        return $this->request('lake/remove_whitelist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_update_deposit_cap($params = array()) {
+        return $this->request('lake/update_deposit_cap', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lake_withdraw($params = array()) {
+        return $this->request('lake/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetInfo($params = array()) {
         return $this->request('info', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetInfoFees($params = array()) {
+        return $this->request('info/fees', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetInfoPrices($params = array()) {
         return $this->request('info/prices', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -145,8 +232,14 @@ abstract class pacifica extends \ccxt\Exchange {
     public function publicGetFundingRateHistory($params = array()) {
         return $this->request('funding_rate/history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetLoanPool($params = array()) {
+        return $this->request('loan_pool', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetAccount($params = array()) {
         return $this->request('account', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetAccountLoan($params = array()) {
+        return $this->request('account/loan', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetAccountSettings($params = array()) {
         return $this->request('account/settings', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -166,6 +259,18 @@ abstract class pacifica extends \ccxt\Exchange {
     public function publicGetAccountBalanceHistory($params = array()) {
         return $this->request('account/balance/history', 'public', 'GET', $params, null, null, array("cost" => 12));
     }
+    public function publicGetAccountSpotBalanceHistory($params = array()) {
+        return $this->request('account/spot_balance/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetAccountSpotAssetDepositHistory($params = array()) {
+        return $this->request('account/spot_asset/deposit/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetAccountSpotAssetWithdrawHistory($params = array()) {
+        return $this->request('account/spot_asset/withdraw/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetAccountSpotAssetWithdrawPending($params = array()) {
+        return $this->request('account/spot_asset/withdraw/pending', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetOrders($params = array()) {
         return $this->request('orders', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -174,6 +279,18 @@ abstract class pacifica extends \ccxt\Exchange {
     }
     public function publicGetOrdersHistoryById($params = array()) {
         return $this->request('orders/history_by_id', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetSpotAssets($params = array()) {
+        return $this->request('spot_assets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetSpotAssetsBridgeInfo($params = array()) {
+        return $this->request('spot_assets/bridge/info', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetSpotAssetsBridgeParametersSymbol($params = array()) {
+        return $this->request('spot_assets/bridge/parameters/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetLakeList($params = array()) {
+        return $this->request('lake/list', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetAccountBuilderCodesApprovals($params = array()) {
         return $this->request('account/builder_codes/approvals', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -187,6 +304,15 @@ abstract class pacifica extends \ccxt\Exchange {
     public function privatePostAccountWithdraw($params = array()) {
         return $this->request('account/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostAccountSettingsAutoLendDisabled($params = array()) {
+        return $this->request('account/settings/auto_lend_disabled', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountSettingsSpot($params = array()) {
+        return $this->request('account/settings/spot', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountSpotAssetWithdraw($params = array()) {
+        return $this->request('account/spot_asset/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostAccountSubaccountCreate($params = array()) {
         return $this->request('account/subaccount/create', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -195,6 +321,12 @@ abstract class pacifica extends \ccxt\Exchange {
     }
     public function privatePostAccountSubaccountTransfer($params = array()) {
         return $this->request('account/subaccount/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountSubaccountSpotAssetTransfer($params = array()) {
+        return $this->request('account/subaccount/spot_asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPositionsAddIsolatedMargin($params = array()) {
+        return $this->request('positions/add_isolated_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOrdersCreate($params = array()) {
         return $this->request('orders/create', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -240,5 +372,41 @@ abstract class pacifica extends \ccxt\Exchange {
     }
     public function privatePostAccountApiKeys($params = array()) {
         return $this->request('account/api_keys', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeAddBlacklist($params = array()) {
+        return $this->request('lake/add_blacklist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeAddMaxLeverage($params = array()) {
+        return $this->request('lake/add_max_leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeAddWhitelist($params = array()) {
+        return $this->request('lake/add_whitelist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeClaimManager($params = array()) {
+        return $this->request('lake/claim_manager', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeClaimReferralCode($params = array()) {
+        return $this->request('lake/claim_referral_code', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeCreate($params = array()) {
+        return $this->request('lake/create', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeDeposit($params = array()) {
+        return $this->request('lake/deposit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeRemoveBlacklist($params = array()) {
+        return $this->request('lake/remove_blacklist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeRemoveMaxLeverage($params = array()) {
+        return $this->request('lake/remove_max_leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeRemoveWhitelist($params = array()) {
+        return $this->request('lake/remove_whitelist', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeUpdateDepositCap($params = array()) {
+        return $this->request('lake/update_deposit_cap', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLakeWithdraw($params = array()) {
+        return $this->request('lake/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

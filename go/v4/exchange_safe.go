@@ -356,7 +356,7 @@ func SafeStringN(obj any, keys []any, defaultValue any) any {
 	}
 }
 
-func (this *Exchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -577,7 +577,7 @@ func SafeBool(obj any, key any, defaultValue any) any {
 
 // private wrappers
 
-func (this *Exchange) SafeString(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeString(obj any, key any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -585,7 +585,7 @@ func (this *Exchange) SafeString(obj any, key any, defaultValue ...any) any {
 	return SafeString(obj, key, defVal)
 }
 
-func (this *Exchange) SafeStringUpper(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringUpper(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString(obj, key)
 	if res != nil {
@@ -597,7 +597,7 @@ func (this *Exchange) SafeStringUpper(obj any, key any, defaultValue ...any) any
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeStringLower(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringLower(obj any, key any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString(obj, key)
 	if res != "" && res != nil {
@@ -609,7 +609,7 @@ func (this *Exchange) SafeStringLower(obj any, key any, defaultValue ...any) any
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString2(obj, key, key2)
 	if res != "" && res != nil {
@@ -621,7 +621,7 @@ func (this *Exchange) SafeStringLower2(obj any, key any, key2 any, defaultValue 
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.SafeString2(obj, key, key2)
 	if res != "" && res != nil {
@@ -633,7 +633,7 @@ func (this *Exchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue 
 	return nil // check this return type
 }
 
-func (this *Exchange) SafeString2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeString2(obj any, key any, key2 any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -641,7 +641,7 @@ func (this *Exchange) SafeString2(obj any, key any, key2 any, defaultValue ...an
 	return SafeString2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) SafeStringN(obj any, keys2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringN(obj any, keys2 any, defaultValue ...any) any {
 	keys := keys2.([]any)
 	var defVal any = nil
 	if len(defaultValue) > 0 {
@@ -650,7 +650,7 @@ func (this *Exchange) SafeStringN(obj any, keys2 any, defaultValue ...any) any {
 	return SafeStringN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -666,7 +666,7 @@ func SafeStringLowerN(obj any, keys []any, defaultValue any) any {
 	return strings.ToLower(value.(string))
 }
 
-func (this *Exchange) SafeFloat(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeFloat(obj any, key any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -674,7 +674,7 @@ func (this *Exchange) SafeFloat(obj any, key any, defaultValue ...any) any {
 	return SafeFloat(obj, key, defVal)
 }
 
-func (this *Exchange) SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -682,7 +682,7 @@ func (this *Exchange) SafeFloat2(obj any, key any, key2 any, defaultValue ...any
 	return SafeFloat2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) SafeFloatN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeFloatN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -690,7 +690,7 @@ func (this *Exchange) SafeFloatN(obj any, keys []any, defaultValue ...any) any {
 	return SafeFloatN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeInteger(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -698,7 +698,7 @@ func (this *Exchange) SafeInteger(obj any, key any, defaultValue ...any) any {
 	return SafeInteger(obj, key, defVal)
 }
 
-func (this *Exchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -706,7 +706,7 @@ func (this *Exchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...a
 	return SafeInteger2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) SafeIntegerN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -714,7 +714,7 @@ func (this *Exchange) SafeIntegerN(obj any, keys []any, defaultValue ...any) any
 	return SafeIntegerN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeValue(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeValue(obj any, key any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -722,11 +722,11 @@ func (this *Exchange) SafeValue(obj any, key any, defaultValue ...any) any {
 	return SafeValue(obj, key, defVal)
 }
 
-func (this *Exchange) SafeValue2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeValue2(obj any, key any, key2 any, defaultValue ...any) any {
 	return SafeValueN(obj, []any{key, key2}, defaultValue...)
 }
 
-func (this *Exchange) SafeValueN(obj any, keys any, defaultValue ...any) any {
+func (this *BaseExchange) SafeValueN(obj any, keys any, defaultValue ...any) any {
 	keysArray := keys.([]any)
 	var defVal any = nil
 	if len(defaultValue) > 0 {
@@ -735,7 +735,7 @@ func (this *Exchange) SafeValueN(obj any, keys any, defaultValue ...any) any {
 	return SafeValueN(obj, keysArray, defVal)
 }
 
-func (this *Exchange) SafeTimestamp(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeTimestamp(obj any, key any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -743,7 +743,7 @@ func (this *Exchange) SafeTimestamp(obj any, key any, defaultValue ...any) any {
 	return SafeTimestamp(obj, key, defVal)
 }
 
-func (this *Exchange) SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -751,7 +751,7 @@ func (this *Exchange) SafeTimestamp2(obj any, key1, key2 any, defaultValue ...an
 	return SafeTimestamp2(obj, key1, key2, defVal)
 }
 
-func (this *Exchange) SafeTimestampN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeTimestampN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -759,7 +759,7 @@ func (this *Exchange) SafeTimestampN(obj any, keys []any, defaultValue ...any) a
 	return SafeTimestampN(obj, keys, defVal)
 }
 
-func (this *Exchange) SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -767,7 +767,7 @@ func (this *Exchange) SafeIntegerProduct(obj any, key any, multiplier any, defau
 	return SafeIntegerProduct(obj, key, multiplier, defVal)
 }
 
-func (this *Exchange) SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -775,7 +775,7 @@ func (this *Exchange) SafeIntegerProduct2(obj any, key1, key2 any, multiplier an
 	return SafeIntegerProduct2(obj, key1, key2, multiplier, defVal)
 }
 
-func (this *Exchange) SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -783,7 +783,7 @@ func (this *Exchange) SafeIntegerProductN(obj any, keys []any, multiplier any, d
 	return SafeIntegerProductN(obj, keys, multiplier, defVal)
 }
 
-// func (this *Exchange) safeBool(obj any, key any, defaultValue ...bool) bool {
+// func (this *BaseExchange) safeBool(obj any, key any, defaultValue ...bool) bool {
 // 	defVal := false
 // 	if len(defaultValue) > 0 {
 // 		defVal = defaultValue[0]
@@ -791,6 +791,6 @@ func (this *Exchange) SafeIntegerProductN(obj any, keys []any, multiplier any, d
 // 	return SafeBool(obj, key, defVal)
 // }
 
-// func (this *Exchange) safeBool(obj any, key any, defaultValue bool) bool {
+// func (this *BaseExchange) safeBool(obj any, key any, defaultValue bool) bool {
 // 	return SafeBool(obj, key, defaultValue)
 // }

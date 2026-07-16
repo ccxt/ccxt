@@ -10,6 +10,8 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class p2b extends \ccxt\async\p2b {
     public function describe(): mixed {

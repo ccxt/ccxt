@@ -1063,7 +1063,7 @@ func (this *BitfinexCore) HandleBalance(client any, message any, subscription an
 	//         0.06729727, // wallet balance
 	//         0, // unsettled balance
 	//         0.06729727, // available balance might be null
-	//         "ccxt.Exchange 0.4 LTC for UST @ 65.075",
+	//         "Exchange 0.4 LTC for UST @ 65.075",
 	//         {
 	//           "reason": "TRADE",
 	//           "order_id": 96596397973,

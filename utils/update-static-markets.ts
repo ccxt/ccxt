@@ -208,12 +208,78 @@ function updateMarketOrCurrency (exchange: any, symbolOrCurrency:string) {
 }
 
 
+// cache prediction-market events (event -> markets -> outcomes) into static/events/<id>.json,
+// the offline fixture the static request/response tests inject to resolve outcomes. re-run this to
+// refresh the fixture when an outcome settles (pick a currently-available event query).
+//   npm run static-updater -- --prediction hyperliquid "world cup champion"
+async function update_events () {
+    try {
+        // positional args only (skip flags like --update / --prediction / --events)
+        const positional = args.filter ((a) => !a.startsWith ('--'));
+        const exchangeId = positional[0];
+        if (!exchangeId) {
+            die ('provide a prediction exchange id, e.g.: npm run static-updater -- --prediction hyperliquid "world cup champion"');
+        }
+        const predictionNs = (ccxt as any).prediction;
+        const predictionExchanges = (predictionNs !== undefined) ? predictionNs.exchanges : [];
+        if (!predictionExchanges.includes (exchangeId)) {
+            console.log ('Exchange id ' + exchangeId + ' is not a prediction exchange (ccxt.prediction)');
+            process.exit (1);
+        }
+        const queries = positional.slice (1);
+        if (!queries.length) {
+            die ('provide at least one fetchEvents query, e.g.: npm run static-updater -- --prediction hyperliquid "world cup champion"');
+        }
+        const eventsPath = rootDir + `/ts/src/test/static/events/${exchangeId}.json`;
+        const existingStr = readFileInit (eventsPath, '[]');
+        const indent = twoSpacedIndent (existingStr) ? 2 : 4;
+        let existing = [];
+        try {
+            existing = JSON.parse (existingStr);
+        } catch (e) {
+            existing = [];
+        }
+        // merge by event id/handle so re-running accumulates (and refreshes) without duplicating
+        const byId: any = {};
+        for (const ev of existing) {
+            const id = ev['id'] || ev['event'] || ev['slug'];
+            if (id) {
+                byId[id] = ev;
+            }
+        }
+        const settings = getExchangeSettings (exchangeId);
+        const exchange = new predictionNs[exchangeId] ({ ...settings });
+        for (const query of queries) {
+            const events = await exchange.fetchEvents ({ 'query': query });
+            for (const ev of events) {
+                const id = ev['id'] || ev['event'] || ev['slug'];
+                if (id) {
+                    byId[id] = ev;
+                }
+            }
+        }
+        const merged = Object.keys (byId).map ((k) => byId[k]);
+        writeJson (eventsPath, merged, indent);
+        // @ts-expect-error
+        die ('Finished! cached ' + merged.length + ' events for ' + exchangeId + ' -> ' + eventsPath, 0);
+    } catch (e) {
+        // @ts-expect-error
+        die ('Static events write error: ' + e.stack.toString (), 1);
+    }
+}
+
+
 export default {};
 
-export { update_markets_and_currencies };
+export { update_markets_and_currencies, update_events };
 
 
 if (process.argv.includes ('--update')) {
     args.shift ();
-    update_markets_and_currencies();
+    // prediction exchanges cache their event -> markets -> outcomes hierarchy under static/events/
+    if (process.argv.includes ('--prediction') || process.argv.includes ('--events')) {
+        update_events ();
+    } else {
+        update_markets_and_currencies();
+    }
 }

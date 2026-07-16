@@ -25,7 +25,7 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             succeeded = false;
         }
         if ((succeeded === true) && (response !== undefined)) {
-            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an object. ' + exchange.json (response));
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return a dictionary. ' + exchange.json (response));
             currentTime = exchange.milliseconds ();
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook (exchange, skippedProperties, method, response, undefined);

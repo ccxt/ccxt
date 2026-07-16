@@ -13,6 +13,10 @@ use ccxt\NetworkError;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class apex extends \ccxt\async\apex {
     public function describe(): mixed {

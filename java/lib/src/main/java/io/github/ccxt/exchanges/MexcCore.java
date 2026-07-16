@@ -41,7 +41,7 @@ public class MexcCore extends MexcApi
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
                 put( "cancelOrders", null );
-                put( "closeAllPositions", false );
+                put( "closeAllPositions", true );
                 put( "closePosition", false );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
@@ -163,7 +163,7 @@ public class MexcCore extends MexcApi
                     }} );
                 }} );
                 put( "www", "https://www.mexc.com/" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://mexcdevelop.github.io/apidocs/")) );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.mexc.com/api-docs/spot-v3/introduction", "https://www.mexc.com/api-docs/futures/integration-guide")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.mexc.com/fee")) );
                 put( "referral", "https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1" );
             }} );
@@ -175,16 +175,16 @@ public class MexcCore extends MexcApi
                             put( "time", 1 );
                             put( "defaultSymbols", 1 );
                             put( "symbol/offline", 10 );
-                            put( "exchangeInfo", 10 );
-                            put( "depth", 1 );
+                            put( "exchangeInfo", 25 );
+                            put( "depth", 3 );
                             put( "trades", 5 );
                             put( "historicalTrades", 1 );
                             put( "aggTrades", 1 );
                             put( "klines", 1 );
                             put( "avgPrice", 1 );
-                            put( "ticker/24hr", 1 );
-                            put( "ticker/price", 1 );
-                            put( "ticker/bookTicker", 1 );
+                            put( "ticker/24hr", 25 );
+                            put( "ticker/price", 10 );
+                            put( "ticker/bookTicker", 10 );
                             put( "etf/info", 1 );
                         }} );
                     }} );
@@ -199,12 +199,12 @@ public class MexcCore extends MexcApi
                             put( "myTrades", 10 );
                             put( "strategy/group", 20 );
                             put( "strategy/group/uid", 20 );
-                            put( "tradeFee", 10 );
+                            put( "tradeFee", 20 );
                             put( "sub-account/list", 1 );
                             put( "sub-account/apiKey", 1 );
                             put( "sub-account/asset", 1 );
                             put( "capital/config/getall", 10 );
-                            put( "capital/deposit/hisrec", 1 );
+                            put( "capital/deposit/hisrec", 10 );
                             put( "capital/withdraw/history", 1 );
                             put( "capital/withdraw/address", 10 );
                             put( "capital/deposit/address", 10 );
@@ -238,6 +238,7 @@ public class MexcCore extends MexcApi
                             put( "rebate/affiliate/campaign", 1 );
                             put( "rebate/affiliate/referral", 1 );
                             put( "rebate/affiliate/subaffiliates", 1 );
+                            put( "rebate/affiliate/list", 1 );
                             put( "mxDeduct/enable", 1 );
                             put( "userDataStream", 1 );
                             put( "selfSymbols", 1 );
@@ -246,6 +247,7 @@ public class MexcCore extends MexcApi
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "order", 1 );
                             put( "order/test", 1 );
+                            put( "apiKeyInfo", 1 );
                             put( "sub-account/virtualSubAccount", 1 );
                             put( "sub-account/apiKey", 1 );
                             put( "sub-account/futures", 1 );
@@ -254,7 +256,7 @@ public class MexcCore extends MexcApi
                             put( "strategy/group", 20 );
                             put( "capital/withdraw/apply", 1 );
                             put( "capital/withdraw", 1 );
-                            put( "capital/transfer", 1 );
+                            put( "capital/transfer", 50 );
                             put( "capital/transfer/internal", 1 );
                             put( "capital/deposit/address", 1 );
                             put( "capital/sub-account/universalTransfer", 1 );
@@ -268,6 +270,7 @@ public class MexcCore extends MexcApi
                         put( "delete", new java.util.HashMap<String, Object>() {{
                             put( "order", 1 );
                             put( "openOrders", 1 );
+                            put( "order/all", 1 );
                             put( "sub-account/apiKey", 1 );
                             put( "strategy/group", 1 );
                             put( "strategy/group/uid", 1 );
@@ -352,7 +355,7 @@ public class MexcCore extends MexcApi
                             put( "position/change_leverage", 2 );
                             put( "position/change_position_mode", 2 );
                             put( "position/reverse", 2 );
-                            put( "position/close_all", 2 );
+                            put( "position/close_all", 10 );
                             put( "order/create", 2 );
                             put( "order/submit", 2 );
                             put( "order/submit_batch", 40 );
@@ -733,6 +736,28 @@ public class MexcCore extends MexcApi
                     put( "-1128", BadRequest.class );
                     put( "-2011", BadRequest.class );
                     put( "-1121", BadSymbol.class );
+                    put( "401", AuthenticationError.class );
+                    put( "402", AuthenticationError.class );
+                    put( "403", PermissionDenied.class );
+                    put( "406", PermissionDenied.class );
+                    put( "429", RateLimitExceeded.class );
+                    put( "500", ExchangeError.class );
+                    put( "501", ExchangeNotAvailable.class );
+                    put( "503", ExchangeNotAvailable.class );
+                    put( "504", RequestTimeout.class );
+                    put( "510", RateLimitExceeded.class );
+                    put( "511", PermissionDenied.class );
+                    put( "513", BadRequest.class );
+                    put( "601", BadRequest.class );
+                    put( "603", BadRequest.class );
+                    put( "604", OnMaintenance.class );
+                    put( "701", PermissionDenied.class );
+                    put( "702", PermissionDenied.class );
+                    put( "703", PermissionDenied.class );
+                    put( "704", PermissionDenied.class );
+                    put( "801", OnMaintenance.class );
+                    put( "1000", AuthenticationError.class );
+                    put( "1001", BadSymbol.class );
                     put( "10101", InsufficientFunds.class );
                     put( "2009", InvalidOrder.class );
                     put( "2011", BadRequest.class );
@@ -780,6 +805,7 @@ public class MexcCore extends MexcApi
                     put( "10259", ExchangeError.class );
                     put( "10265", ExchangeError.class );
                     put( "10268", BadRequest.class );
+                    put( "11444", OnMaintenance.class );
                     put( "20001", ExchangeError.class );
                     put( "20002", ExchangeError.class );
                     put( "22222", BadRequest.class );
@@ -851,8 +877,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -904,8 +930,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -943,7 +969,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1059,8 +1085,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchMarkets
      * @description retrieves data on all markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1089,7 +1115,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchMarkets
      * @description retrieves data on all spot markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1227,7 +1253,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchMarkets
      * @description retrieves data on all swap markets for mexc
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1362,8 +1388,8 @@ public class MexcCore extends MexcApi
     /**
      * @method
      * @name mexc#fetchOrderBook
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth // swap
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -1459,9 +1485,9 @@ public class MexcCore extends MexcApi
     /**
      * @method
      * @name mexc#fetchTrades
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list // spot
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list // spot aggregated
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades // swap
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1723,8 +1749,10 @@ public class MexcCore extends MexcApi
     /**
      * @method
      * @name mexc#fetchOHLCV
-     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
-     * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data // swap
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles // index
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles // mark
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1875,8 +1903,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1959,8 +1987,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2163,7 +2191,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
+     * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2212,7 +2240,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2245,7 +2273,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2278,10 +2306,9 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#createOrder
      * @description create a trade order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
-     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order // swap trigger
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2412,7 +2439,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#createSpotOrder
      * @description create a trade order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
      * @param {string} market unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2486,10 +2513,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#createSwapOrder
      * @description create a trade order
-     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order
      * @param {string} market unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2647,7 +2672,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#createOrders
      * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2728,8 +2753,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id // swap
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2828,9 +2853,9 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3128,9 +3153,9 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3249,9 +3274,9 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3276,9 +3301,9 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
@@ -3336,9 +3361,9 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#cancelOrder
      * @description cancels an open order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3447,7 +3472,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#cancelOrders
      * @description cancel multiple orders
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3497,12 +3522,12 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#cancelAllOrders
      * @description cancel all open orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
@@ -3516,34 +3541,32 @@ public class MexcCore extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
-            var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
-            var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument on spot")) ;
+                    ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "spotPrivateDeleteOrderAll", new Object[] { parameters })).join();
+                    //
+                    //     {
+                    //         "code": 200,
+                    //         "msg": "success",
+                    //         "timestamp": 1778744778528
+                    //     }
+                    //
+                    return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
-                Object response = null;
-                if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
-                {
-                    if (Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated")))
-                    {
-                        throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelAllOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
-                    }
-                    response = (this.spotPrivateDeleteMarginOpenOrders(this.extend(request, query))).join();
-                } else
-                {
-                    response = (this.spotPrivateDeleteOpenOrders(this.extend(request, query))).join();
-                }
+                Object response = (this.spotPrivateDeleteOpenOrders(this.extend(request, parameters))).join();
                 //
                 // spot
                 //
@@ -3558,28 +3581,6 @@ public class MexcCore extends MexcApi
                 //         },
                 //     ]
                 //
-                // margin
-                //
-                //     [
-                //         {
-                //             "symbol": "BTCUSDT",
-                //             "orderId": "762640232574226432",
-                //             "orderListId": "-1",
-                //             "clientOrderId": null,
-                //             "price": "18000",
-                //             "origQty": "0.00147",
-                //             "executedQty": "0",
-                //             "cummulativeQuoteQty": "0",
-                //             "status": "NEW",
-                //             "type": "LIMIT",
-                //             "side": "BUY",
-                //             "isIsolated": true,
-                //             "isWorking": true,
-                //             "time": 1661994066000,
-                //             "updateTime": 1661994066000
-                //         }
-                //     ]
-                //
                 return this.parseOrders(response, market);
             } else
             {
@@ -3590,14 +3591,14 @@ public class MexcCore extends MexcApi
                 // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
                 // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
                 Object method = this.safeString(this.options, "cancelAllOrders", "contractPrivatePostOrderCancelAll");
-                method = this.safeString(query, "method", method);
+                method = this.safeString(parameters, "method", method);
                 Object response = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(Helpers.isEqual(method, "contractPrivatePostOrderCancelAll")))
                 {
-                    response = (this.contractPrivatePostOrderCancelAll(this.extend(request, query))).join();
+                    response = (this.contractPrivatePostOrderCancelAll(this.extend(request, parameters))).join();
                 } else if (Helpers.isTrue(Helpers.isEqual(method, "contractPrivatePostPlanorderCancelAll")))
                 {
-                    response = (this.contractPrivatePostPlanorderCancelAll(this.extend(request, query))).join();
+                    response = (this.contractPrivatePostPlanorderCancelAll(this.extend(request, parameters))).join();
                 }
                 //
                 //     {
@@ -3955,8 +3956,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -3998,7 +3999,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -4184,8 +4185,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbols] // required for margin, market id's separated by commas
@@ -4338,8 +4339,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order // swap legacy endpoint
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -4440,8 +4441,8 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+     * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id // swap
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -4551,7 +4552,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#reduceMargin
      * @description remove margin from a position
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4572,7 +4573,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#addMargin
      * @description add margin
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4593,7 +4594,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#setLeverage
      * @description set the level of leverage for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4641,7 +4642,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4788,7 +4789,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4808,7 +4809,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4853,7 +4854,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] not used by mexc, but filtered internally by ccxt
      * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
@@ -4937,7 +4938,7 @@ public class MexcCore extends MexcApi
      * @method
      * @name mexc#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+     * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
@@ -5122,7 +5123,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchDepositAddressesByNetwork
      * @description fetch a dictionary of addresses for a currency, indexed by network
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
@@ -5185,7 +5186,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#createDepositAddress
      * @description create a currency deposit address
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
@@ -5244,7 +5245,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
@@ -5289,7 +5290,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -5365,7 +5366,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -5586,9 +5587,41 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     /**
      * @method
+     * @name mexc#closeAllPositions
+     * @description closes all open swap positions
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> closeAllPositions(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object response = (this.contractPrivatePostPositionCloseAll(parameters)).join();
+            //
+            //     {
+            //         "success": true,
+            //         "code": 0,
+            //         "data": []
+            //     }
+            //
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parsePositions(data);
+        });
+
+    }
+
+    /**
+     * @method
      * @name mexc#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5617,7 +5650,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchPositions
      * @description fetch all open positions
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5834,9 +5867,8 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history // spot universal transfer
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records // swap
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -5951,7 +5983,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -6131,8 +6163,8 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#withdraw
      * @description make a withdrawal
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -6213,7 +6245,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol not used by mexc setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6245,7 +6277,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode
      * @param {string} symbol not used by mexc fetchPositionMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -6279,7 +6311,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchTransactionFees
      * @description fetch deposit and withdrawal fees
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
      * @param {string[]|undefined} codes returns fees for all currencies if undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6398,7 +6430,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchDepositWithdrawFees
      * @description fetch deposit and withdrawal fees
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
      * @param {string[]|undefined} codes returns fees for all currencies if undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6503,7 +6535,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -6620,7 +6652,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#fetchPositionsHistory
      * @description fetches historical positions
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] not used by mexc fetchPositionsHistory
      * @param {int} [limit] the maximum amount of candles to fetch, default=1000
@@ -6710,7 +6742,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @method
      * @name mexc#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+     * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} [symbol] required when there is no position, else provide params["positionId"]
      * @param {object} [params] extra parameters specific to the exchange API endpoint

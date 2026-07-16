@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\InvalidNonce;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class extended extends \ccxt\async\extended {
     public function describe(): mixed {

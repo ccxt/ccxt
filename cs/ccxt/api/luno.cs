@@ -21,6 +21,31 @@ public partial class luno : Exchange
         return await this.callAsync ("exchangePrivateGetCandles",parameters);
     }
 
+    public async Task<object> exchangePrivateGetMove (object parameters = null)
+    {
+        return await this.callAsync ("exchangePrivateGetMove",parameters);
+    }
+
+    public async Task<object> exchangePrivateGetMoveListMoves (object parameters = null)
+    {
+        return await this.callAsync ("exchangePrivateGetMoveListMoves",parameters);
+    }
+
+    public async Task<object> exchangePrivateGetTransfers (object parameters = null)
+    {
+        return await this.callAsync ("exchangePrivateGetTransfers",parameters);
+    }
+
+    public async Task<object> exchangePrivatePostConvert (object parameters = null)
+    {
+        return await this.callAsync ("exchangePrivatePostConvert",parameters);
+    }
+
+    public async Task<object> exchangePrivatePostMove (object parameters = null)
+    {
+        return await this.callAsync ("exchangePrivatePostMove",parameters);
+    }
+
     public async Task<object> publicGetOrderbook (object parameters = null)
     {
         return await this.callAsync ("publicGetOrderbook",parameters);
@@ -114,6 +139,11 @@ public partial class luno : Exchange
     public async Task<object> privateGetTransfers (object parameters = null)
     {
         return await this.callAsync ("privateGetTransfers",parameters);
+    }
+
+    public async Task<object> privateGetUsersLinked (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUsersLinked",parameters);
     }
 
     public async Task<object> privatePostAccounts (object parameters = null)
