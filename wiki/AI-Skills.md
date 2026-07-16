@@ -42,7 +42,7 @@ You need either [Claude Code](https://claude.ai/download) or [OpenCode](https://
 
 Install all skills with a single command using the [skills CLI](https://github.com/vercel-labs/skills):
 
-```bash
+```sh
 npx skills add ccxt/ccxt
 ```
 
@@ -50,8 +50,8 @@ This works with Claude Code, Cursor, Copilot, Windsurf, Codex, and 30+ other AI 
 
 ### Alternative: Shell Script
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | bash
+```sh
+curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh
 ```
 
 This will automatically download and install all five CCXT skills to your system.
@@ -62,7 +62,7 @@ If you have the CCXT repository cloned, you can use these options:
 
 #### Option 1: Interactive Installation (Recommended)
 
-```bash
+```sh
 ./install-skills.sh
 ```
 
@@ -84,13 +84,13 @@ Enter your choice (1-7):
 
 #### Option 2: Install All Skills
 
-```bash
+```sh
 ./install-skills.sh --all
 ```
 
 #### Option 3: Install Specific Languages
 
-```bash
+```sh
 # Install single skill
 ./install-skills.sh --typescript
 
@@ -312,7 +312,7 @@ if (exchange.has['fetchOHLCV']) {
 ### Skills Not Showing Up
 
 1. Verify installation location:
-```bash
+```sh
 ls ~/.claude/skills/ccxt-*
 ls ~/.opencode/skills/ccxt-*
 ```
@@ -320,7 +320,7 @@ ls ~/.opencode/skills/ccxt-*
 2. Restart Claude Code / OpenCode
 
 3. Re-run installation:
-```bash
+```sh
 ./install-skills.sh --all
 ```
 
@@ -339,7 +339,7 @@ The AI assistant automatically uses skills when you ask CCXT-related questions. 
 
 If the installation script doesn't work, you can install manually:
 
-```bash
+```sh
 # Create directories
 mkdir -p ~/.claude/skills/
 mkdir -p ~/.opencode/skills/
