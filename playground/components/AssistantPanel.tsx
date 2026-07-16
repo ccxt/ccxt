@@ -11,6 +11,7 @@ const SUGGESTIONS = [
   "Fetch the BTC/USDT order book on kraken",
   "Compare ETH price across 3 exchanges",
   "Get 1-day OHLCV for SOL and find the high",
+  "Search Polymarket for a Bitcoin event and get its ticker",
 ];
 
 export default function AssistantPanel({

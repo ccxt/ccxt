@@ -171,6 +171,128 @@ foreach ($ids as $id) {
     },
   },
   {
+    id: "predictionTicker",
+    label: "Prediction market (Polymarket)",
+    description: "Search Polymarket events by keyword, then fetch an outcome's ticker.",
+    code: {
+      js: `import ccxt from 'ccxt';
+
+// Prediction markets live under the ccxt.prediction namespace (Polymarket,
+// Kalshi, Limitless, Myriad, Hyperliquid). Requires ccxt >= 4.5.66.
+const exchange = new ccxt.prediction.polymarket ();
+
+// 1) search events by keyword (fetchEvents must be scoped by a query)
+const events = await exchange.fetchEvents ({ query: 'Bitcoin', limit: 5 });
+console.log (\`found \${events.length} events for "Bitcoin"\`);
+
+// 2) collect the outcome tokens of still-open markets (resolved ones have no book)
+const outcomes = [];
+for (const event of events) {
+    for (const market of (event.markets || [])) {
+        if (market.resolved) continue;
+        for (const outcome of (market.outcomes || [])) {
+            outcomes.push ({ event: event.title, market: market.market, outcome });
+        }
+    }
+}
+
+// 3) fetch the ticker of the first outcome that has a live order book —
+//    its price is the market-implied probability of that outcome.
+for (const candidate of outcomes) {
+    try {
+        const ticker = await exchange.fetchTicker (candidate.outcome.outcome);
+        console.log ('event:  ', candidate.event);
+        console.log ('market: ', candidate.market);
+        console.log ('outcome:', candidate.outcome.label, '->', candidate.outcome.outcome);
+        console.log (\`bid=\${ticker.bid}  ask=\${ticker.ask}  last=\${ticker.last}\`);
+        const prob = (ticker.last !== undefined) ? ticker.last : ticker.bid;
+        if (prob !== undefined) {
+            console.log (\`implied probability: \${(prob * 100).toFixed (1)}%\`);
+        }
+        break;
+    } catch (e) {
+        continue; // no order book for this outcome — try the next one
+    }
+}
+`,
+      ts: `import ccxt from 'ccxt';
+
+// Prediction markets live under the ccxt.prediction namespace (Polymarket,
+// Kalshi, Limitless, Myriad, Hyperliquid). Requires ccxt >= 4.5.66.
+const exchange = new ccxt.prediction.polymarket ();
+
+// 1) search events by keyword (fetchEvents must be scoped by a query)
+const events = await exchange.fetchEvents ({ query: 'Bitcoin', limit: 5 });
+console.log (\`found \${events.length} events for "Bitcoin"\`);
+
+// 2) collect the outcome tokens of still-open markets (resolved ones have no book)
+const outcomes = [];
+for (const event of events) {
+    for (const market of (event.markets || [])) {
+        if (market.resolved) continue;
+        for (const outcome of (market.outcomes || [])) {
+            outcomes.push ({ event: event.title, market: market.market, outcome });
+        }
+    }
+}
+
+// 3) fetch the ticker of the first outcome that has a live order book —
+//    its price is the market-implied probability of that outcome.
+for (const candidate of outcomes) {
+    try {
+        const ticker = await exchange.fetchTicker (candidate.outcome.outcome);
+        console.log ('event:  ', candidate.event);
+        console.log ('market: ', candidate.market);
+        console.log ('outcome:', candidate.outcome.label, '->', candidate.outcome.outcome);
+        console.log (\`bid=\${ticker.bid}  ask=\${ticker.ask}  last=\${ticker.last}\`);
+        const prob = (ticker.last !== undefined) ? ticker.last : ticker.bid;
+        if (prob !== undefined) {
+            console.log (\`implied probability: \${(prob * 100).toFixed (1)}%\`);
+        }
+        break;
+    } catch (e) {
+        continue; // no order book for this outcome — try the next one
+    }
+}
+`,
+      python: `import asyncio
+import ccxt.prediction  # prediction markets are async-only in Python (ccxt >= 4.5.66)
+
+async def main():
+    exchange = ccxt.prediction.polymarket()
+    # 1) search events by keyword (fetch_events must be scoped by a query)
+    events = await exchange.fetch_events({'query': 'Bitcoin', 'limit': 5})
+    print(f'found {len(events)} events for "Bitcoin"')
+    # 2) collect the outcome tokens of still-open markets (resolved ones have no book)
+    outcomes = []
+    for event in events:
+        for market in (event['markets'] or []):
+            if market.get('resolved'):
+                continue
+            for outcome in (market['outcomes'] or []):
+                outcomes.append({'event': event['title'], 'market': market['market'], 'outcome': outcome})
+    # 3) fetch the ticker of the first outcome that has a live order book —
+    #    its price is the market-implied probability of that outcome.
+    for candidate in outcomes:
+        try:
+            ticker = await exchange.fetch_ticker(candidate['outcome']['outcome'])
+            print('event:  ', candidate['event'])
+            print('market: ', candidate['market'])
+            print('outcome:', candidate['outcome']['label'], '->', candidate['outcome']['outcome'])
+            print('bid=', ticker['bid'], 'ask=', ticker['ask'], 'last=', ticker['last'])
+            prob = ticker['last'] if ticker['last'] is not None else ticker['bid']
+            if prob is not None:
+                print(f'implied probability: {prob * 100:.1f}%')
+            break
+        except Exception:
+            continue  # no order book for this outcome — try the next one
+    await exchange.close(True)
+
+asyncio.run(main())
+`,
+    },
+  },
+  {
     id: "watchTicker",
     label: "Watch ticker (WebSocket)",
     description: "Stream live ticker updates with CCXT Pro (ccxt.pro / watch*).",
