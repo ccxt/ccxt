@@ -320,8 +320,8 @@ export class BaseExchange {
     enableLastResponseHeaders: boolean = true;
     last_http_response!: string;
     last_json_response: any = undefined;
-    last_response_headers!: Dictionary<string>;
-    last_request_headers!: Dictionary<string>;
+    last_response_headers!: Dictionary<string> | undefined;
+    last_request_headers!: Dictionary<string> | undefined;
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
@@ -330,9 +330,9 @@ export class BaseExchange {
 
     id: string = 'Exchange';
 
-    markets!: Dictionary<any>;
+    markets!: Dictionary<any> | undefined;
     has!: Dictionary<boolean | 'emulated' | undefined>;
-    features!: Dictionary<Dictionary<any>>;
+    features!: Dictionary<Dictionary<any> | undefined>;
     status!: {
         status: Str,
         updated: Num,
@@ -384,14 +384,14 @@ export class BaseExchange {
         },
     };
 
-    markets_by_id!: Dictionary<any>;
+    markets_by_id!: Dictionary<any> | undefined;
     symbols: Strings = undefined;
     ids: Strings = undefined;
     currencies: Currencies = {};
 
-    baseCurrencies!: Dictionary<CurrencyInterface>;
-    quoteCurrencies!: Dictionary<CurrencyInterface>;
-    currencies_by_id!: Dictionary<CurrencyInterface>;
+    baseCurrencies!: Dictionary<CurrencyInterface> | undefined;
+    quoteCurrencies!: Dictionary<CurrencyInterface> | undefined;
+    currencies_by_id!: Dictionary<CurrencyInterface> | undefined;
     codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
@@ -3609,7 +3609,10 @@ export class BaseExchange {
         return result;
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict | undefined, market: Market = undefined): Ticker {
+        if (ticker === undefined) {
+            throw new NotSupported (this.id + ' parseTicker() is not supported yet');
+        }
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
@@ -3617,7 +3620,10 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    parseTrade (trade: Dict | undefined, market: Market = undefined): Trade {
+        if (trade === undefined) {
+            throw new NotSupported (this.id + ' parseTrade() is not supported yet');
+        }
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
@@ -3637,7 +3643,10 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    parseOrder (order: Dict | undefined, market: Market = undefined): Order {
+        if (order === undefined) {
+            throw new NotSupported (this.id + ' parseOrder() is not supported yet');
+        }
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
@@ -4778,7 +4787,7 @@ export class BaseExchange {
         });
     }
 
-    parseOrders (orders: object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+    parseOrders (orders: object | undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -4800,6 +4809,9 @@ export class BaseExchange {
         //         ...
         //     ]
         //
+        if (orders === undefined) {
+            return [];
+        }
         let results = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
@@ -5727,7 +5739,10 @@ export class BaseExchange {
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
+    parseOrderBook (orderbook: object | undefined, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
+        if (orderbook === undefined) {
+            orderbook = {};
+        }
         const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
@@ -5740,7 +5755,10 @@ export class BaseExchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
+    parseOHLCVs (ohlcvs: object[] | undefined, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
+        if (ohlcvs === undefined) {
+            return [];
+        }
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));

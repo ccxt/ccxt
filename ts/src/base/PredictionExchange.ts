@@ -15,10 +15,10 @@ import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, P
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
  */
 export default class PredictionExchange extends BaseExchange {
-    outcomes: Dictionary<any> = undefined;
-    outcomes_by_id: Dictionary<any> = undefined;
-    events: Dictionary<any> = undefined;
-    events_by_slug: Dictionary<any> = undefined;
+    outcomes: Dictionary<any> | undefined = undefined;
+    outcomes_by_id: Dictionary<any> | undefined = undefined;
+    events: Dictionary<any> | undefined = undefined;
+    events_by_slug: Dictionary<any> | undefined = undefined;
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
