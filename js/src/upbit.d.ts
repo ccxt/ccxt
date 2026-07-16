@@ -8,36 +8,36 @@ export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: string, params?: {}): Promise<{
         info: any;
-        id: string;
-        code: string;
-        name: string;
+        id: Str;
+        code: Str;
+        name: Str;
         active: boolean;
-        fee: number;
-        precision: any;
+        fee: Num;
+        precision: undefined;
         limits: {
             withdraw: {
-                min: number;
+                min: Num;
                 max: number;
             };
         };
     }>;
     fetchCurrencyById(id: string, params?: {}): Promise<{
         info: any;
-        id: string;
-        code: string;
-        name: string;
+        id: Str;
+        code: Str;
+        name: Str;
         active: boolean;
-        fee: number;
-        precision: any;
+        fee: Num;
+        precision: undefined;
         limits: {
             withdraw: {
-                min: number;
+                min: Num;
                 max: number;
             };
         };
     }>;
-    fetchMarket(symbol: string, params?: {}): Promise<import("./base/types.js").MarketInterface>;
-    fetchMarketById(id: string, params?: {}): Promise<import("./base/types.js").MarketInterface>;
+    fetchMarket(symbol: string, params?: {}): Promise<Market>;
+    fetchMarketById(id: Str, params?: {}): Promise<Market>;
     /**
      * @method
      * @name upbit#fetchMarkets
@@ -156,7 +156,7 @@ export default class upbit extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    calcOrderPrice(symbol: string, amount: number, price?: Num, params?: {}): string;
+    calcOrderPrice(symbol: string, amount: Num, price?: Num, params?: {}): Str;
     /**
      * @method
      * @name upbit#createOrder
@@ -265,9 +265,9 @@ export default class upbit extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -377,7 +377,7 @@ export default class upbit extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: Dict;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

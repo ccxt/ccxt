@@ -24,10 +24,10 @@ export default class bitmart extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: number;
-        url: any;
+        status: Str;
+        updated: undefined;
+        eta: Int;
+        url: undefined;
         info: any;
     }>;
     fetchSpotMarkets(params?: {}): Promise<MarketInterface[]>;
@@ -70,12 +70,12 @@ export default class bitmart extends Exchange {
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
-            fee: number;
-            percentage: any;
+            fee: Num;
+            percentage: undefined;
         };
         deposit: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         networks: {};
     };
@@ -270,8 +270,8 @@ export default class bitmart extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
-    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createSwapOrderRequest(symbol: Str, type: Str, side: Str, amount: number, price?: Num, params?: {}): any;
+    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name bitmart#cancelOrder
@@ -466,7 +466,7 @@ export default class bitmart extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -493,12 +493,12 @@ export default class bitmart extends Exchange {
      */
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: string;
-        currency: string;
-        amount: any;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
+        id: Str;
+        currency: Str;
+        amount: undefined;
+        symbol: undefined;
+        timestamp: undefined;
+        datetime: undefined;
         info: any;
     };
     /**
@@ -707,14 +707,14 @@ export default class bitmart extends Exchange {
     parseFundingHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
     };
     parseFundingHistories(contracts: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
-    fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<List>;
+    fetchWithdrawAddresses(code: string, note?: Str, networkCode?: Str, params?: {}): Promise<List>;
     /**
      * @method
      * @name bitmart#setPositionMode
@@ -743,8 +743,8 @@ export default class bitmart extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

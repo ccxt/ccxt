@@ -1,5 +1,5 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Currencies, Currency, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
@@ -64,7 +64,7 @@ export default class grvt extends Exchange {
     signIn(params?: {}): Promise<boolean>;
     signInWithApiKey(params?: {}): Promise<any>;
     signInWithPrivateKey(params?: {}): Promise<any>;
-    initializeClient(params?: {}): Promise<boolean>;
+    initializeClient(params?: {}): Promise<boolean | undefined>;
     /**
      * @method
      * @name grvt#fetchMarkets
@@ -84,7 +84,7 @@ export default class grvt extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name grvt#fetchTicker
@@ -155,9 +155,9 @@ export default class grvt extends Exchange {
     parseFundingRateHistory(rawItem: any, market?: Market): {
         info: any;
         symbol: string;
-        fundingRate: number;
-        timestamp: number;
-        datetime: string;
+        fundingRate: Num;
+        timestamp: Int;
+        datetime: string | undefined;
     };
     getSubAccountId(params: any): string;
     /**
@@ -266,7 +266,7 @@ export default class grvt extends Exchange {
     eipMessageForOrder(order: any, structureType: any): {
         subAccountID: any;
         isMarket: any;
-        timeInForce: number;
+        timeInForce: Int;
         postOnly: any;
         reduceOnly: any;
         legs: List;
@@ -329,8 +329,8 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Str[], params?: {}): Promise<MarginModes>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name grvt#fetchFundingHistory
@@ -348,11 +348,11 @@ export default class grvt extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
     };
     /**
      * @method
@@ -394,7 +394,7 @@ export default class grvt extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(type: Str): Str;
     timeInForceToInt(timeInForce: Str): Int;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name grvt#cancelAllOrders
@@ -423,7 +423,7 @@ export default class grvt extends Exchange {
         chainId: number;
     };
     feeAmountMultiplier(): number;
-    createSignedRequest(request: any, structureType: string, currencyObj?: any, signerAddress?: Str): Dict;
+    createSignedRequest(request: any, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): {
         signer: string;
@@ -440,7 +440,7 @@ export default class grvt extends Exchange {
         url: any;
         method: string;
         body: any;
-        headers: Dict;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

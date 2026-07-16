@@ -140,7 +140,7 @@ export default class coinex extends coinexRest {
     handleBidAsk(client: Client, message: any): void;
     parseWsBidAsk(ticker: any, market?: Market): Ticker;
     handleMessage(client: Client, message: any): void;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     handleAuthenticationMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     authenticate(type: string): Promise<any>;

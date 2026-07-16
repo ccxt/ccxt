@@ -133,14 +133,15 @@ export default class Client {
         return this.future (messageHash)
     }
 
-    future (messageHash: string | undefined | undefined) {
-        if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = Future ()
+    future (messageHash: string | undefined) {
+        const hash = (messageHash === undefined) ? '' : messageHash;
+        if (!(hash in this.futures)) {
+            this.futures[hash] = Future ()
         }
-        const future = this.futures[messageHash]
-        if (messageHash in this.rejections) {
-            future.reject (this.rejections[messageHash])
-            delete this.rejections[messageHash]
+        const future = this.futures[hash]
+        if (hash in this.rejections) {
+            future.reject (this.rejections[hash])
+            delete this.rejections[hash]
         }
         return future
     }

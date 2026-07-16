@@ -1828,7 +1828,7 @@ export class BaseExchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
-        if ((subscribeHash === undefined) && (messageHash in client.futures)) {
+        if ((subscribeHash === undefined) && (messageHash !== undefined) && (messageHash in client.futures)) {
             return client.futures[messageHash];
         }
         const future = client.future (messageHash);
@@ -8849,14 +8849,14 @@ export class BaseExchange {
     }
 
     cleanUnsubscription (client, subHash: Str, unsubHash: Str, subHashIsPrefix = false) {
-        if (unsubHash in client.subscriptions) {
+        if ((unsubHash !== undefined) && (unsubHash in client.subscriptions)) {
             delete client.subscriptions[unsubHash];
         }
         if (!subHashIsPrefix) {
-            if (subHash in client.subscriptions) {
+            if ((subHash !== undefined) && (subHash in client.subscriptions)) {
                 delete client.subscriptions[subHash];
             }
-            if (subHash in client.futures) {
+            if ((subHash !== undefined) && (subHash in client.futures)) {
                 const error = new UnsubscribeError (this.id + ' ' + subHash);
                 client.reject (error, subHash);
             }

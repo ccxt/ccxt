@@ -31,7 +31,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    fetchRawEventsBySearch(queries: any[], params?: {}): Promise<any[]>;
+    fetchRawEventsBySearch(queries: string[], params?: {}): Promise<any[]>;
     /**
      * @ignore
      * @method
@@ -342,7 +342,7 @@ export default class polymarket extends Exchange {
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    buildClobOrderBody(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    buildClobOrderBody(outcome: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
      * @name polymarket#createMarketBuyOrderWithCost
@@ -354,7 +354,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     createMarketBuyOrderWithCost(outcome: string, cost: number, params?: {}): Promise<PredictionOrder>;
-    polymarketOrderRawAmounts(side: string, size: number, price: number, tickSize: string, cost?: Num): Dict;
+    polymarketOrderRawAmounts(side: Str, size: Num, price: Num, tickSize: Str, cost?: Num): Dict;
     signClobOrder(message: Dict, exchangeAddress: string, domainVersion: string, sigType: number): string;
     /**
      * @method
@@ -430,7 +430,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of event structures
      */
     parseEvents(rawEvents: any[]): any[];
-    handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @ignore
      * @method
@@ -554,6 +554,6 @@ export default class polymarket extends Exchange {
     subscribeUserChannel(messageHash: string, params?: {}): Promise<any>;
     handleOrder(client: any, event: any): void;
     handleMyTrade(client: any, event: any): void;
-    tokenIdToSymbol(tokenId: string): Str;
+    tokenIdToSymbol(tokenId: Str): Str;
     parsePolyTimestamp(raw: Str): number;
 }

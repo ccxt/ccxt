@@ -166,7 +166,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): [Dict, Str];
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): [Dict, Str];
     batchOrdersRequest(actions: any[]): {
         actions: any[];
     };
@@ -245,7 +245,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params?: {}): Dict;
+    editOrderRequest(id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params?: {}): Dict;
     /**
      * @method
      * @name pacifica#fetchFundingRateHistory
@@ -350,10 +350,10 @@ export default class pacifica extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    parseOrderStatus(status: Str): string;
-    mapTimeInForce(tifRaw: Str): string;
-    mapSide(sideRaw: string): string;
-    parseOrderType(status: string): string;
+    parseOrderStatus(status: Str): Str;
+    mapTimeInForce(tifRaw: Str): Str;
+    mapSide(sideRaw: Str): Str;
+    parseOrderType(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -484,12 +484,12 @@ export default class pacifica extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
         amount: number;
-        rate: number;
+        rate: Num;
     };
     /**
      * @method
@@ -527,11 +527,11 @@ export default class pacifica extends Exchange {
     fetchBuilderApprovals(address: string): Promise<any>;
     revokeBuilderCode(builderCode: string, params?: {}): Promise<any>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
+        body: Str;
         headers: Dict;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;

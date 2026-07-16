@@ -1,5 +1,5 @@
 import mexcRest from '../mexc.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Tickers, Strings, FundingRate, Market } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
@@ -108,7 +108,7 @@ export default class mexc extends mexcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: any, subscription?: any): void;
+    handleMyTrade(client: Client, message: any, subscription?: Dict | undefined): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -127,8 +127,8 @@ export default class mexc extends mexcRest {
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any, market?: Market): string;
-    parseWsOrderType(type: any): string;
-    parseWsTimeInForce(timeInForce: any): string;
+    parseWsOrderType(type: any): Str;
+    parseWsTimeInForce(timeInForce: any): Str;
     /**
      * @method
      * @name mexc#watchBalance
@@ -219,11 +219,11 @@ export default class mexc extends mexcRest {
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleUnsubscriptions(client: Client, messageHashes: string[]): void;
-    authenticate(subscriptionHash: any, params?: {}): Promise<string>;
+    authenticate(subscriptionHash: any, params?: {}): Promise<Str>;
     keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): void;
-    handleProtobufMessage(client: Client, message: any): boolean;
+    handleProtobufMessage(client: Client, message: any): true | undefined;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         method: string;

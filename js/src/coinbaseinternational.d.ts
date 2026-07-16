@@ -1,13 +1,13 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
     describe(): any;
-    handlePortfolioAndParams(methodName: string, params?: {}): Promise<any[]>;
-    handleNetworkIdAndParams(currencyCode: string, methodName: string, params?: {}): Promise<any[]>;
+    handlePortfolioAndParams(methodName: string, params?: {}): Promise<[Str, Dict]>;
+    handleNetworkIdAndParams(currencyCode: string, methodName: string, params?: {}): Promise<[Str, Dict]>;
     /**
      * @method
      * @name coinbaseinternational#fetchAccounts
@@ -18,9 +18,9 @@ export default class coinbaseinternational extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<import("./base/types.js").Account[]>;
     parseAccount(account: any): {
-        id: string;
-        type: any;
-        code: any;
+        id: Str;
+        type: undefined;
+        code: undefined;
         info: any;
     };
     /**
@@ -56,21 +56,21 @@ export default class coinbaseinternational extends Exchange {
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        markPrice: number;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
+        markPrice: Num;
+        indexPrice: undefined;
+        interestRate: undefined;
+        estimatedSettlePrice: undefined;
+        timestamp: number | undefined;
+        datetime: Str;
+        fundingRate: Num;
+        fundingTimestamp: number | undefined;
+        fundingDatetime: Str;
+        nextFundingRate: undefined;
+        nextFundingTimestamp: undefined;
+        nextFundingDatetime: undefined;
+        previousFundingRate: undefined;
+        previousFundingTimestamp: undefined;
+        previousFundingDatetime: undefined;
     };
     /**
      * @method
@@ -87,12 +87,12 @@ export default class coinbaseinternational extends Exchange {
     parseIncome(income: any, market?: Market): {
         info: any;
         symbol: string;
-        code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
-        rate: any;
+        code: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
+        rate: undefined;
     };
     /**
      * @method
@@ -126,22 +126,22 @@ export default class coinbaseinternational extends Exchange {
     parseNetworks(networks: any, params?: {}): Dict;
     parseNetwork(network: any, params?: {}): {
         info: any;
-        id: string;
-        name: string;
-        network: string;
-        active: boolean;
-        deposit: boolean;
-        withdraw: boolean;
-        fee: number;
-        precision: number;
+        id: Str;
+        name: Str;
+        network: Str;
+        active: boolean | undefined;
+        deposit: boolean | undefined;
+        withdraw: boolean | undefined;
+        fee: Num;
+        precision: Num;
         limits: {
             withdraw: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
             deposit: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
         };
     };
@@ -227,7 +227,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -249,7 +249,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name coinbaseinternational#fetchTickers
@@ -317,8 +317,8 @@ export default class coinbaseinternational extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
     /**
      * @method
      * @name coinbaseinternational#cancelOrder
@@ -415,8 +415,8 @@ export default class coinbaseinternational extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

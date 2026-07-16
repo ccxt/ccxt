@@ -9,8 +9,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         signature: any;
         passphrase: string;
     };
-    subscribe(name: any, symbol?: any, messageHashStart?: any, params?: {}): Promise<any>;
-    subscribeMultiple(name: any, symbols?: any[], messageHashStart?: any, params?: {}): Promise<any>;
+    subscribe(name: any, symbol?: Str, messageHashStart?: Str, params?: {}): Promise<any>;
+    subscribeMultiple(name: any, symbols?: string[], messageHashStart?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name coinbaseexchange#watchTicker

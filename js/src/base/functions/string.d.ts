@@ -1,5 +1,5 @@
 declare const unCamelCase: (s: string) => string;
-declare const capitalize: (s: string) => string;
+declare const capitalize: (s: string | undefined) => string;
 declare const strip: (s: string) => string;
 declare const uuid: (a?: any) => string;
 declare const uuid16: (a?: any) => string;

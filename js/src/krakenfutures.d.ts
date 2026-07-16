@@ -69,7 +69,7 @@ export default class krakenfutures extends Exchange {
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name krakenfutures#createOrder
@@ -225,7 +225,7 @@ export default class krakenfutures extends Exchange {
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(orderType: any): string;
     verifyOrderActionSuccess(status: any, method: any, omit?: string[]): void;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -289,25 +289,25 @@ export default class krakenfutures extends Exchange {
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
         symbol: string;
-        timestamp: number;
-        datetime: string;
-        initialMargin: any;
-        initialMarginPercentage: any;
-        maintenanceMargin: any;
-        maintenanceMarginPercentage: any;
-        entryPrice: number;
-        notional: any;
-        leverage: number;
-        unrealizedPnl: any;
-        contracts: number;
-        contractSize: number;
-        marginRatio: any;
-        liquidationPrice: any;
-        markPrice: any;
-        collateral: any;
+        timestamp: number | undefined;
+        datetime: Str;
+        initialMargin: undefined;
+        initialMarginPercentage: undefined;
+        maintenanceMargin: undefined;
+        maintenanceMarginPercentage: undefined;
+        entryPrice: Num;
+        notional: undefined;
+        leverage: Num;
+        unrealizedPnl: undefined;
+        contracts: Num;
+        contractSize: Num;
+        marginRatio: undefined;
+        liquidationPrice: undefined;
+        markPrice: undefined;
+        collateral: undefined;
         marginType: string;
-        side: string;
-        percentage: any;
+        side: Str;
+        percentage: undefined;
     };
     /**
      * @method
@@ -378,11 +378,11 @@ export default class krakenfutures extends Exchange {
      */
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
 }

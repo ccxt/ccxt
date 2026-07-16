@@ -163,7 +163,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation | undefined;
     handleLiquidation(client: Client, message: any): void;
     /**
      * @method

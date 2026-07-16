@@ -1,5 +1,5 @@
 import krakenRest from '../kraken.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Fee, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): any;
@@ -161,7 +161,7 @@ export default class kraken extends krakenRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    loadMarkets(reload?: boolean, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").MarketInterface>>;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("../base/types.js").Dictionary<Market>>;
     ping(client: Client): {};
     handlePong(client: Client, message: any): any;
     watchHeartbeat(params?: {}): Promise<any>;
@@ -170,7 +170,7 @@ export default class kraken extends krakenRest {
     customHandleDeltas(bookside: any, deltas: any): void;
     formatNumber(data: any): string;
     handleSystemStatus(client: Client, message: any): any;
-    authenticate(params?: {}): Promise<string>;
+    authenticate(params?: {}): Promise<Str>;
     watchPrivate(name: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     /**
      * @method
@@ -184,21 +184,21 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: any): void;
-    parseWsTrade(trade: any, market?: any): {
+    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsTrade(trade: any, market?: Market): {
         info: any;
-        id: string;
-        order: string;
-        timestamp: number;
-        datetime: string;
-        symbol: string;
-        type: string;
-        side: string;
+        id: Str;
+        order: Str;
+        timestamp: number | undefined;
+        datetime: Str;
+        symbol: Str;
+        type: Str;
+        side: Str;
         takerOrMaker: string;
-        price: number;
-        amount: number;
-        cost: number;
-        fee: any;
+        price: Num;
+        amount: Num;
+        cost: Num;
+        fee: Fee;
     };
     /**
      * @method
@@ -212,8 +212,8 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any, subscription?: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    handleOrders(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsOrder(order: any, market?: Market): Order;
     watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
     /**
      * @method

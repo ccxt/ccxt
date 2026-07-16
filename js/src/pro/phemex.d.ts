@@ -1,15 +1,15 @@
 import phemexRest from '../phemex.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): any;
-    fromEn(en: any, scale: any): string;
-    fromEp(ep: any, market?: any): any;
-    fromEv(ev: any, market?: any): any;
-    fromEr(er: any, market?: any): any;
+    fromEn(en: any, scale: any): string | undefined;
+    fromEp(ep: any, market?: Market): any;
+    fromEv(ev: any, market?: Market): any;
+    fromEr(er: any, market?: Market): any;
     requestId(): any;
-    parseSwapTicker(ticker: any, market?: any): Ticker;
-    parsePerpetualTicker(ticker: any, market?: any): Ticker;
+    parseSwapTicker(ticker: any, market?: Market): Ticker;
+    parsePerpetualTicker(ticker: any, market?: Market): Ticker;
     handleTicker(client: Client, message: any): void;
     /**
      * @method
@@ -94,8 +94,8 @@ export default class phemex extends phemexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    customHandleDelta(bookside: any, delta: any, market?: any): void;
-    customHandleDeltas(bookside: any, deltas: any, market?: any): void;
+    customHandleDelta(bookside: any, delta: any, market?: Market): void;
+    customHandleDeltas(bookside: any, deltas: any, market?: Market): void;
     handleOrderBook(client: Client, message: any): void;
     /**
      * @method
@@ -121,7 +121,7 @@ export default class phemex extends phemexRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWSSwapOrder(order: any, market?: any): Order;
+    parseWSSwapOrder(order: any, market?: Market): Order;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;

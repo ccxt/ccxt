@@ -1,5 +1,5 @@
 import Exchange from './abstract/bullish.js';
-import { Account, Balances, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
+import { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 /**
  * @class bullish
  * @augments Exchange
@@ -24,7 +24,7 @@ export default class bullish extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name bullish#fetchMarkets
@@ -282,8 +282,8 @@ export default class bullish extends Exchange {
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
     /**
      * @method
      * @name bullish#fetchDepositsWithdrawals
@@ -314,7 +314,7 @@ export default class bullish extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: any): string;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     loadAccount(params?: {}): Promise<string>;
     /**
      * @method
@@ -364,7 +364,7 @@ export default class bullish extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    parsePositionSide(side: Str): string;
+    parsePositionSide(side: Str): Str;
     /**
      * @method
      * @name bullish#fetchTransfers
@@ -393,13 +393,13 @@ export default class bullish extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        currency: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
+        id: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        currency: Str;
+        amount: Num;
+        fromAccount: Str;
+        toAccount: Str;
         status: string;
         info: any;
     };
@@ -419,11 +419,11 @@ export default class bullish extends Exchange {
      */
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRate(info: any, currency?: Currency): {
-        currency: string;
-        rate: number;
+        currency: Str;
+        rate: Num;
         period: number;
-        timestamp: number;
-        datetime: string;
+        timestamp: Int;
+        datetime: string | undefined;
         info: any;
     };
     getTimestamp(): number;
@@ -441,8 +441,8 @@ export default class bullish extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
     /**
      * @method
@@ -454,5 +454,5 @@ export default class bullish extends Exchange {
      */
     signIn(params?: {}): Promise<string>;
     handleToken(params?: {}): Promise<string>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

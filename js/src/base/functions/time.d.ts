@@ -7,9 +7,9 @@ declare const setTimeout_safe: (done: any, ms: any, setTimeout?: any, targetTime
 declare class TimedOut extends Error {
     constructor();
 }
-declare const iso8601: (timestamp: any) => string;
-declare const parse8601: (x: any) => number;
-declare const parseDate: (x: any) => number;
+declare const iso8601: (timestamp: any) => string | undefined;
+declare const parse8601: (x: any) => number | undefined;
+declare const parseDate: (x: any) => number | undefined;
 declare const mdy: (timestamp: any, infix?: string) => string;
 declare const ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
 declare const yymmdd: (timestamp: any, infix?: string) => string;

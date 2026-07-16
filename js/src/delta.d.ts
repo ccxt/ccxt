@@ -1,13 +1,13 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
  */
 export default class delta extends Exchange {
     describe(): any;
-    createExpiredOptionMarket(symbol: string): MarketInterface;
-    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
+    createExpiredOptionMarket(symbol: string): Market;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): Market;
     /**
      * @method
      * @name delta#fetchTime
@@ -25,9 +25,9 @@ export default class delta extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: number;
-        eta: any;
-        url: any;
+        updated: Int;
+        eta: undefined;
+        url: undefined;
         info: any;
     }>;
     /**
@@ -39,9 +39,9 @@ export default class delta extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
-    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<MarketInterface>>;
-    indexByStringifiedNumericId(input: any): Dict;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<Market>>;
+    indexByStringifiedNumericId(input: any): Dict | undefined;
     /**
      * @method
      * @name delta#fetchMarkets
@@ -142,7 +142,7 @@ export default class delta extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -363,11 +363,11 @@ export default class delta extends Exchange {
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;
-        price: number;
-        timestamp: number;
-        datetime: string;
+        price: Num;
+        timestamp: number | undefined;
+        datetime: Str;
     };
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): Dict[];
     /**
      * @method
      * @name delta#fetchGreeks
@@ -440,5 +440,5 @@ export default class delta extends Exchange {
         body: any;
         headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

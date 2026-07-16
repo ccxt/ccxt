@@ -6,5 +6,5 @@ declare var encode: (str: any, defaultEncoder: any, charset: any) => any;
 declare var compact: (value: any) => any;
 declare var isRegExp: (obj: any) => boolean;
 declare var isBuffer: (obj: any) => boolean;
-declare var combine: (a: any, b: any) => any[];
+declare var combine: (a: any, b: any) => never[];
 export { arrayToObject, assign, combine, compact, decode, encode, isBuffer, isRegExp, merge };

@@ -2273,14 +2273,14 @@ class testMainClass {
 
     async testBybit () {
         const exchange = this.initOfflineExchange ('bybit');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['brokerId'] === id, 'id not in options');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2292,7 +2292,7 @@ class testMainClass {
     async testKucoin () {
         const exchange = this.initOfflineExchange ('kucoin');
         exchange.options['uta'] = false; // prevents fetching account mode inside createOrder
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const spotId =  exchange.options['partner']['spot']['id'];
         const spotKey =  exchange.options['partner']['spot']['key'];
         assert (spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
@@ -2305,27 +2305,27 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         let id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
         id = 'ccxtfutures';
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync ()) {
@@ -2336,7 +2336,7 @@ class testMainClass {
 
     async testKucoinfutures () {
         const exchange = this.initOfflineExchange ('kucoinfutures');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'ccxtfutures';
         const futureId = exchange.options['partner']['future']['id'];
         const futureKey = exchange.options['partner']['future']['key'];
@@ -2346,14 +2346,14 @@ class testMainClass {
             exchange.options['uta'] = false;
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
             exchange.options['uta'] = true;
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync ()) {
@@ -2364,13 +2364,13 @@ class testMainClass {
 
     async testBitget () {
         const exchange = this.initOfflineExchange ('bitget');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'p4sve';
         assert (exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2381,14 +2381,14 @@ class testMainClass {
 
     async testMexc () {
         const exchange = this.initOfflineExchange ('mexc');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2463,14 +2463,14 @@ class testMainClass {
 
     async testBitmart () {
         const exchange = this.initOfflineExchange ('bitmart');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'CCXTxBitmart000';
         assert (exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
         if (!isSync ()) {
@@ -2500,14 +2500,14 @@ class testMainClass {
 
     async testBingx () {
         const exchange = this.initOfflineExchange ('bingx');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2663,14 +2663,14 @@ class testMainClass {
         exchange.options['authToken'] = 'token';
         exchange.options['systemConfig'] =
         { "starknet_gateway_url":"https://potc-testnet-sepolia.starknet.io", "starknet_fullnode_rpc_url":"https://pathfinder.api.testnet.paradex.trade/rpc/v0_7", "starknet_chain_id":"PRIVATE_SN_POTC_SEPOLIA", "block_explorer_url":"https://voyager.testnet.paradex.trade/", "paraclear_address":"0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6", "paraclear_decimals":8, "paraclear_account_proxy_hash":"0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9", "paraclear_account_hash":"0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e", "oracle_address":"0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f", "bridged_tokens":[ { "name":"TEST USDC", "symbol":"USDC", "decimals":6, "l1_token_address":"0x29A873159D5e14AcBd63913D4A7E2df04570c666", "l1_bridge_address":"0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C", "l2_token_address":"0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e", "l2_bridge_address":"0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" } ], "l1_core_contract_address":"0x582CC5d9b509391232cd544cDF9da036e55833Af", "l1_operator_address":"0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB", "l1_chain_id":"11155111", "liquidation_fee":"0.2" };
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'paradex - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
         try {
             await exchange.createOrder ('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync ()) {
@@ -2681,13 +2681,13 @@ class testMainClass {
 
     async testHashkey () {
         const exchange = this.initOfflineExchange ('hashkey');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = "10000700011";
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2765,13 +2765,13 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('backpack');
         exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
         exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = '1400';
         try {
             await exchange.createOrder ('ETH/USDC', 'limit', 'buy', 1, 5000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync ()) {
@@ -2782,13 +2782,13 @@ class testMainClass {
 
     async testToobit () {
         const exchange = this.initOfflineExchange ('toobit');
-        let reqHeaders: NullableDict = {};
+        let reqHeaders: Dict = {};
         const id = '177321641268789';
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert (reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync ()) {

@@ -1,4 +1,4 @@
-import type { Market, Str, Strings, Str} from './../base/types.js';
+import type { Market } from './../base/types.js';
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseRest from '../coinbase.js';

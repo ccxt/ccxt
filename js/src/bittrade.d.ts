@@ -1,5 +1,5 @@
 import Exchange from './abstract/bittrade.js';
-import type { Account, Balances, Currencies, Currency, Dict, NullableDict, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 /**
  * @class bittrade
  * @augments Exchange
@@ -15,12 +15,12 @@ export default class bittrade extends Exchange {
      */
     fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
-    fetchTradingLimitsById(id: string, params?: {}): Promise<{
+    fetchTradingLimitsById(id: Str, params?: {}): Promise<{
         info: any;
         limits: {
             amount: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
         };
     }>;
@@ -28,8 +28,8 @@ export default class bittrade extends Exchange {
         info: any;
         limits: {
             amount: {
-                min: number;
-                max: number;
+                min: Num;
+                max: Num;
             };
         };
     };
@@ -135,7 +135,7 @@ export default class bittrade extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -191,7 +191,7 @@ export default class bittrade extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrdersV2(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -247,10 +247,10 @@ export default class bittrade extends Exchange {
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
+        currency: Str;
+        address: Str;
+        tag: Str;
+        network: Str;
         info: any;
     };
     /**
@@ -276,7 +276,7 @@ export default class bittrade extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name bittrade#withdraw
@@ -293,7 +293,7 @@ export default class bittrade extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: Dict;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }
