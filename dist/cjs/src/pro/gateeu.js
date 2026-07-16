@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var gate = require('./gate.js');
 var gateeu$1 = require('../gateeu.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class gateeu extends gate["default"] {
     describe() {

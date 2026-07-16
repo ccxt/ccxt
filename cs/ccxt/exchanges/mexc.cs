@@ -3329,7 +3329,7 @@ public partial class mexc : Exchange
         {
             if (isTrue(isEqual(symbol, null)))
             {
-                await ((Task<object>)callDynamically(this, "spotPrivateDeleteOrderAll", new object[] { parameters }));
+                await this.spotPrivateDeleteOrderAll(parameters);
                 //
                 //     {
                 //         "code": 200,

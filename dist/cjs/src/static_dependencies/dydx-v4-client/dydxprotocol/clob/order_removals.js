@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require('./order.js');
 require('protobufjs/minimal.js');
 
-// ----------------------------------------------------------------------------
 exports.OrderRemoval_RemovalReason = void 0;
 (function (OrderRemoval_RemovalReason) {
     /**
