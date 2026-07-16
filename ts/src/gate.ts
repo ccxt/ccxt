@@ -1641,6 +1641,7 @@ export default class gate extends Exchange {
             amountPrecision = minAmount;
         }
         const status = this.safeString (market, 'status', 'trading'); // or "suspend"
+        const active = (status === 'trading');
         return {
             'id': id,
             'symbol': symbol,
@@ -1654,9 +1655,9 @@ export default class gate extends Exchange {
             'spot': false,
             'margin': false,
             'swap': swap,
-            'future': marketType === 'future',
-            'option': marketType === 'option',
-            'active': status === 'trading',
+            'future': (marketType === 'future'),
+            'option': (marketType === 'option'),
+            'active': active,
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
