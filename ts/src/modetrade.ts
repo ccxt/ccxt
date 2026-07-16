@@ -524,7 +524,7 @@ export default class modetrade extends Exchange {
         const settleId: Str = this.safeString (parts, 2);
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -572,7 +572,7 @@ export default class modetrade extends Exchange {
             },
             'created': this.safeInteger (market, 'created_time'),
             'info': market,
-        };
+        });
     }
 
     /**

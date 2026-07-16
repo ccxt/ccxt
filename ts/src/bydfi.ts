@@ -1467,7 +1467,7 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data);
     }
 
-    createEditOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+    createEditOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {};
         if ((id === undefined) && (clientOrderId === undefined)) {

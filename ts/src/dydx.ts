@@ -853,7 +853,7 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
+    handlePublicAddress (methodName: Str, params: Dict): [Str, Dict] {
         let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
@@ -989,7 +989,7 @@ export default class dydx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let userAddress: string | Dict = undefined;
+        let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
@@ -1164,7 +1164,7 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        let userAddress: string | Dict = undefined;
+        let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
@@ -1244,7 +1244,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee: any = undefined): string {
+    signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee: any = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
@@ -1306,7 +1306,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: string) {
+    pow (n: string, m: Str) {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
@@ -1851,7 +1851,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: string, account: any): Promise<any> {
+    async estimateTxFee (message: any, memo: Str, account: any): Promise<any> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request = {
             'txBytes': txBytes,
@@ -2274,7 +2274,7 @@ export default class dydx extends Exchange {
     async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = this.safeString (params, 'methodName');
         params = this.omit (params, 'methodName');
-        let userAddress: string | Dict = undefined;
+        let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress (methodName, params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, methodName, 'subAccountNumber', '0');
@@ -2319,7 +2319,7 @@ export default class dydx extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        let userAddress: string | Dict = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
         const request: Dict = {
             'address': userAddress,
@@ -2397,7 +2397,7 @@ export default class dydx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let userAddress: string | Dict = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
         let subaccountNumber: Int = undefined;
         [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'subaccountNumber', 0);

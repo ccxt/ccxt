@@ -1373,7 +1373,7 @@ export default class gate extends gateRest {
             market = this.getMarketFromSymbols (symbols);
         }
         let type: Str = undefined;
-        let query: Dict = undefined;
+        let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         if (type === 'spot') {
             type = 'swap';
@@ -1554,7 +1554,7 @@ export default class gate extends gateRest {
             symbol = market['symbol'];
         }
         let type: Str = undefined;
-        let query: Dict = undefined;
+        let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
             'spot': 'spot',
@@ -1701,7 +1701,7 @@ export default class gate extends gateRest {
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
-        let query: Dict = undefined;
+        let query: NullableDict = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         const typeId = this.getSupportedMapping (type, {
             'future': 'futures',
@@ -1939,7 +1939,7 @@ export default class gate extends gateRest {
         return false;
     }
 
-    handleBalanceSubscription (client: Client, message, subscription: Dict = undefined) {
+    handleBalanceSubscription (client: Client, message, subscription: Dict | undefined = undefined) {
         this.balance = {};
     }
 
@@ -2216,7 +2216,7 @@ export default class gate extends gateRest {
         return reqid;
     }
 
-    async subscribePublic (url, messageHash, payload, channel, params = {}, subscription: Dict = undefined) {
+    async subscribePublic (url, messageHash, payload, channel, params = {}, subscription: Dict | undefined = undefined) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {

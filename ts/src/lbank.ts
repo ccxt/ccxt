@@ -1536,7 +1536,11 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        return this.parseBalance (response);
+        const balanceResult = this.parseBalance (response || {});
+        if (balanceResult === undefined) {
+            throw new NullResponse (this.id + ' fetchBalance() returned empty response');
+        }
+        return balanceResult;
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
@@ -3125,7 +3129,7 @@ export default class lbank extends Exchange {
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return undefined;
+            throw new NullResponse (this.id + ' parseBalance() returned empty response');
         }
         const success = this.safeValue (response, 'result');
         if (success === 'false' || !success) {

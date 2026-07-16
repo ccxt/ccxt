@@ -191,7 +191,7 @@ export default class blofin extends blofinRest {
         }
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
-        let channelName = undefined;
+        let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
         // due to some problem, temporarily disable other channels
         if (channelName !== 'books') {

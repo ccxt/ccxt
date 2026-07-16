@@ -832,7 +832,7 @@ export default class limitless extends Exchange {
         const groupId = this.safeString (event, 'address', this.safeString (event, 'groupId', this.safeString (event, 'slug')));
         const endDate = this.safeString (event, 'deadline', this.safeString (event, 'expiresAt'));
         const title = this.safeString (event, 'title', groupId);
-        const markets: Dict[] = [];
+        const markets: Market[] = [];
         const rawMarkets = this.safeList (event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
         let totalVolume = 0;
@@ -1042,7 +1042,7 @@ export default class limitless extends Exchange {
         //
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         let raw = ticker;
-        let book: Dict = undefined;
+        let book: NullableDict = undefined;
         if ('market' in ticker) {
             raw = this.safeDict (ticker, 'market', {});
             book = this.safeDict (ticker, 'book');
@@ -1459,7 +1459,7 @@ export default class limitless extends Exchange {
             } else {
                 const candle = candles[key];
                 candle[2] = Math.max (candle[2], (pPrice === undefined) ? 0 : pPrice);
-                candle[3] = Math.min (candle[3], pPrice);
+                candle[3] = Math.min ((candle[3] === undefined) ? pPrice : candle[3], (pPrice === undefined) ? candle[3] : pPrice);
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }
@@ -1874,8 +1874,8 @@ export default class limitless extends Exchange {
         let rawStatus = this.safeString (rawOrder, 'status');
         const execution = this.safeDict (data, 'execution');
         let fee: Fee = undefined;
-        let filled = undefined;
-        let cost = undefined;
+        let filled: Str = undefined;
+        let cost: Str = undefined;
         if (execution !== undefined) {
             rawStatus = this.safeString (execution, 'settlementStatus');
             const totals = this.safeDict (execution, 'totalsRaw');
@@ -2792,7 +2792,7 @@ export default class limitless extends Exchange {
         return result;
     }
 
-    getPositionFromClobEntry (label: string, entry: NullableDict = undefined) {
+    getPositionFromClobEntry (label: Str, entry: NullableDict = undefined) {
         if (entry === undefined) {
             return undefined;
         }

@@ -576,7 +576,7 @@ export default class mudrex extends Exchange {
         const requested = this.safeStringN (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         params = this.omit (params, [ 'trade_currency', 'tradeCurrency', 'currency' ]);
         const request: Dict = {};
-        let response = undefined;
+        let response: any = undefined;
         if (type === 'spot') {
             if (requested !== undefined) {
                 request['currency'] = requested;

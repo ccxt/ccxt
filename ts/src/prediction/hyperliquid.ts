@@ -8,8 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
-} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict} from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -1784,7 +1783,7 @@ export default class hyperliquid extends Exchange {
         const fee = this.safeNumber (trade, 'fee');
         const feeCurrency = this.safeString (trade, 'feeToken', 'USDC');
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
-        let feeObject: Dict = undefined;
+        let feeObject: NullableDict = undefined;
         if (fee !== undefined) {
             feeObject = { 'cost': fee, 'currency': feeCurrency };
         }
@@ -1973,7 +1972,7 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    amountToPrecision (outcome: string, amount: any): string {
+    amountToPrecision (outcome: Str, amount: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
@@ -1987,7 +1986,7 @@ export default class hyperliquid extends Exchange {
         return this.decimalToPrecision (amount, 1, decimals, 2, this.paddingMode);
     }
 
-    priceToPrecision (outcome: string, price: any): string {
+    priceToPrecision (outcome: Str, price: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
         let decimals = 4;

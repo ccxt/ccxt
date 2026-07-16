@@ -274,7 +274,7 @@ export default class zaif extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -322,7 +322,7 @@ export default class zaif extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {

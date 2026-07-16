@@ -629,7 +629,7 @@ export default class ndax extends Exchange {
         const sessionStatus = this.safeString (market, 'SessionStatus');
         const isDisable = this.safeValue (market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -677,7 +677,7 @@ export default class ndax extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseOrderBook (orderbook, symbol, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {

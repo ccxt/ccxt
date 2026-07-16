@@ -1138,7 +1138,7 @@ export default class kraken extends krakenRest {
         return await this.watchPrivate ('myTrades', symbol, since, limit, params);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict = undefined) {
+    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "channel": "executions",
@@ -1269,7 +1269,7 @@ export default class kraken extends krakenRest {
         return this.watchPrivate ('orders', symbol, since, limit, this.extend (params, { 'snap_orders': true }));
     }
 
-    handleOrders (client: Client, message, subscription: Dict = undefined) {
+    handleOrders (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "channel": "executions",
@@ -1584,7 +1584,7 @@ export default class kraken extends krakenRest {
             const requestId = this.safeString2 (message, 'reqid', 'req_id');
             const broad = this.exceptions['ws']['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            let exception: ExchangeError = undefined;
+            let exception: ExchangeError | undefined = undefined;
             if (broadKey === undefined) {
                 exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
             } else {

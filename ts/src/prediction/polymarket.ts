@@ -1942,7 +1942,10 @@ export default class polymarket extends Exchange {
         const orderOutcomes: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
-            orderOutcomes.push (this.safeString (o, 'outcome'));
+            const __oc = this.safeString (o, 'outcome');
+            if (__oc !== undefined) {
+                orderOutcomes.push (__oc);
+            }
         }
         await this.loadOutcomes (orderOutcomes);
         const bodies: Dict[] = [];
@@ -1957,9 +1960,9 @@ export default class polymarket extends Exchange {
                 orderParams = this.extend (orderParams, { 'salt': this.numberToString (this.sum (batchSalt, i)) });
             }
             const built = this.buildClobOrderBody (this.safeString (o, 'outcome'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
-            bodies.push (this.safeDict (built, 'body'));
-            outcomes.push (this.safeDict (built, 'outcome'));
-            requests.push (this.safeDict (built, 'request'));
+            bodies.push (this.safeDict (built, 'body', {}));
+            outcomes.push (this.safeDict (built, 'outcome', {}));
+            requests.push (this.safeDict (built, 'request', {}));
         }
         const response = await this.clobPrivatePostOrders (bodies);
         const result: PredictionOrder[] = [];
@@ -1984,7 +1987,7 @@ export default class polymarket extends Exchange {
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    buildClobOrderBody (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+    buildClobOrderBody (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
         // dict, which throws a TypeError
@@ -2132,7 +2135,7 @@ export default class polymarket extends Exchange {
         return await this.createOrder (outcome, 'market', 'buy', cost, undefined, request);
     }
 
-    polymarketOrderRawAmounts (side: string, size: Num, price: Num, tickSize: string, cost: Num = undefined): Dict {
+    polymarketOrderRawAmounts (side: Str, size: Num, price: Num, tickSize: Str, cost: Num = undefined): Dict {
         const configs: Dict = {
             '0.1': { 'price': 1, 'size': 2, 'amount': 3 },
             '0.01': { 'price': 2, 'size': 2, 'amount': 4 },
@@ -3249,7 +3252,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    tokenIdToSymbol (tokenId: string): Str {
+    tokenIdToSymbol (tokenId: Str): Str {
         if (!tokenId) {
             return undefined;
         }

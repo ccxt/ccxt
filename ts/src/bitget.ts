@@ -4312,7 +4312,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let marketType: Str = undefined;
-        let timeframes: Dict = undefined;
+        let timeframes: NullableDict = undefined;
         const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);

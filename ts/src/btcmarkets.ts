@@ -530,7 +530,7 @@ export default class btcmarkets extends Exchange {
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -580,7 +580,7 @@ export default class btcmarkets extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**

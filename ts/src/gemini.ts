@@ -830,7 +830,7 @@ export default class gemini extends Exchange {
         }
         const type = swap ? 'swap' : 'spot';
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -878,7 +878,7 @@ export default class gemini extends Exchange {
             },
             'created': undefined,
             'info': response,
-        };
+        });
     }
 
     /**

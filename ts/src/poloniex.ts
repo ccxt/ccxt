@@ -826,7 +826,7 @@ export default class poloniex extends Exchange {
         const active = state === 'NORMAL';
         const symbolTradeLimit = this.safeValue (market, 'symbolTradeLimit');
         // these are known defaults
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -870,7 +870,7 @@ export default class poloniex extends Exchange {
             },
             'created': this.safeInteger (market, 'tradableStartTime'),
             'info': market,
-        };
+        });
     }
 
     parseSwapMarket (market: Dict): Market {
@@ -931,7 +931,7 @@ export default class poloniex extends Exchange {
             type = 'future';
         }
         const marketType = (type === 'future') ? 'future' : 'swap';
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -981,7 +981,7 @@ export default class poloniex extends Exchange {
             },
             'created': this.safeInteger (market, 'oDate'),
             'info': market,
-        };
+        });
     }
 
     /**

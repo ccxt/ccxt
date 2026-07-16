@@ -143,7 +143,7 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async subscribeMultiple (unifiedName: string, channel: string, type: string, symbols: Strings = undefined, params = {}) {
+    async subscribeMultiple (unifiedName: string, channel: Str, type: Str, symbols: Strings = undefined, params = {}) {
         symbols = this.marketSymbols (symbols, type, false, true);
         if (symbols === undefined) {
             symbols = [];

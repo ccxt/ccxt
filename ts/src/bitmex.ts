@@ -878,7 +878,7 @@ export default class bitmex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' parseMarket() requires a symbol');
         }
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -929,7 +929,7 @@ export default class bitmex extends Exchange {
             },
             'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {

@@ -870,7 +870,7 @@ export default class htx extends htxRest {
         let market: Market = undefined;
         let messageHash: Str = undefined;
         let channel: Str = undefined;
-        let trades = undefined;
+        let trades: any = undefined;
         let subType: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1215,7 +1215,7 @@ export default class htx extends htxRest {
             marketId = this.safeString2 (data, 'contract_code', 'symbol');
         }
         const market = this.safeMarket (marketId);
-        let parsedOrder: Dict = undefined;
+        let parsedOrder: NullableDict = undefined;
         if (data !== undefined) {
             // spot updates
             const eventType = this.safeString (data, 'eventType');
@@ -2195,11 +2195,11 @@ export default class htx extends htxRest {
             }
         }
         if ('unsubbed' in message) {
-            this.handleUnSubscription (client, subscription);
+            this.handleUnSubscription (client, subscription || {});
         }
     }
 
-    handleUnSubscription (client: Client, subscription: Dict) {
+    handleUnSubscription (client: Client, subscription: Dict | undefined) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -2207,7 +2207,7 @@ export default class htx extends htxRest {
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
-        this.cleanCache (subscription);
+        this.cleanCache (subscription || {});
     }
 
     handleSystemStatus (client: Client, message) {

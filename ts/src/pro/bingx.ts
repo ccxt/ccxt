@@ -5,7 +5,7 @@ import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList } from '../base/types.js';
+import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList, NullableDict} from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1010,7 +1010,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
-        let request: Dict = undefined;
+        let request: NullableDict = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
@@ -1127,7 +1127,7 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        let request: Dict = undefined;
+        let request: NullableDict = undefined;
         let baseUrl: Str = undefined;
         const uuid = this.uuid ();
         if (type === 'swap') {

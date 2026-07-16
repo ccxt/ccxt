@@ -2741,7 +2741,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        let subType = 'linear';
+        let subType: any = 'linear';
         let firstMarket: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);

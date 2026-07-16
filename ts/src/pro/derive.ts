@@ -507,7 +507,7 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let subaccountId: string | Dict = undefined;
+        let subaccountId: any = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchOrders', params);
         const topic = this.numberToString (subaccountId) + '.orders';
         let messageHash = topic;
@@ -631,7 +631,7 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let subaccountId: string | Dict = undefined;
+        let subaccountId: any = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
         const topic = this.numberToString (subaccountId) + '.trades';
         let messageHash = topic;

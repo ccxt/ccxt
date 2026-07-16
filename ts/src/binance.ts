@@ -5599,7 +5599,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    editContractOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    editContractOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -11424,7 +11424,7 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        let filterClosed = undefined;
+        let filterClosed: Bool = undefined;
         [ filterClosed, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'filterClosed', false);
         const result = this.parseAccountPositions (response, filterClosed);
         symbols = this.marketSymbols (symbols);
@@ -12362,7 +12362,7 @@ export default class binance extends Exchange {
         return this.safeString (ledgerType, (type as string), type);
     }
 
-    getNetworkCodeByNetworkUrl (currencyCode: string, depositUrl: Str = undefined): Str {
+    getNetworkCodeByNetworkUrl (currencyCode: Str, depositUrl: Str = undefined): Str {
         // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
         if (depositUrl === undefined) {
             return undefined;
@@ -12561,7 +12561,7 @@ export default class binance extends Exchange {
         return {};
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: Str, url: Str, method: Str, headers: Dict, body: Str, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }

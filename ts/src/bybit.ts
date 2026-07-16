@@ -2067,7 +2067,7 @@ export default class bybit extends Exchange {
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
         const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (params);
         } else {
@@ -4176,7 +4176,7 @@ export default class bybit extends Exchange {
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
         }
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
         let response: Dict;
         if (method === 'privatePostV5PositionTradingStop') {
@@ -4260,7 +4260,7 @@ export default class bybit extends Exchange {
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
         }
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
         const endpointIsTradingStop = method === 'privatePostV5PositionTradingStop';
         if ((price === undefined) && (lowerCaseType === 'limit') && !endpointIsTradingStop) {
@@ -4586,7 +4586,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    editOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -6721,7 +6721,7 @@ export default class bybit extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', symbols as any, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if ((symbols !== undefined) && Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {

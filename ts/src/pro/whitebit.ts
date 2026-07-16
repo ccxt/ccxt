@@ -457,7 +457,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict = undefined) {
+    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         //   {
         //       "method": "deals_update",
@@ -562,7 +562,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription: Dict = undefined) {
+    handleOrder (client: Client, message, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "method": "ordersPending_update",

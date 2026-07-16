@@ -4691,7 +4691,7 @@ export default class phemex extends Exchange {
         market = this.safeMarket (marketId, market);
         const riskLimits = (market['info']['riskLimits']);
         const tiers: LeverageTier[] = [];
-        let minNotional = 0;
+        let minNotional: Int = 0;
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
             const maxNotional = this.safeInteger (tier, 'limit');

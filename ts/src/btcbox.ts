@@ -322,7 +322,7 @@ export default class btcbox extends Exchange {
         const quoteId = this.safeString (market, 'quote');
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure ({
             'id': this.safeString (market, 'symbol'),
             'uppercaseId': undefined,
             'symbol': symbol,
@@ -371,7 +371,7 @@ export default class btcbox extends Exchange {
             'active': undefined,
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseBalance (response): Balances {

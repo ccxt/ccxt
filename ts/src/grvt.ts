@@ -3162,7 +3162,7 @@ export default class grvt extends Exchange {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: any, structureType: string, currencyObj: Dict = undefined, signerAddress: Str = undefined): Dict {
+    createSignedRequest (request: any, structureType: string, currencyObj: Dict | undefined = undefined, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');

@@ -4433,7 +4433,7 @@ export default class hashkey extends Exchange {
         }
         const market = this.market (symbol);
         const methodName = 'fetchTradingFee';
-        let response: TradingFees = undefined;
+        let response: TradingFees | undefined = undefined;
         if (market['spot']) {
             response = await this.fetchTradingFees (params);
             return this.safeDict (response, symbol) as TradingFeeInterface;

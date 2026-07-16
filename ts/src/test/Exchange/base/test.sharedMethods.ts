@@ -6,7 +6,7 @@ import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Bool, Num, Order, Str } from '../../../base/types.js';
 
-function logTemplate (exchange: Exchange, method: string, entry: object) {
+function logTemplate (exchange: Exchange, method: Str, entry: object | undefined) {
     // there are cases when exchange is undefined (eg. base tests)
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
@@ -253,7 +253,7 @@ function assertGreater (exchange: Exchange, skippedProperties: object, method: s
     }
 }
 
-function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
+function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -277,7 +277,7 @@ function assertLess (exchange: Exchange, skippedProperties: object, method: stri
     }
 }
 
-function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
+function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -313,7 +313,7 @@ function assertNonEqual (exchange: Exchange, skippedProperties: object, method: 
     }
 }
 
-function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedArray: any[], allowNull: boolean = true) {
+function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object | undefined, key: string | number, expectedArray: any[], allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -353,7 +353,7 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     }
 }
 
-function assertTimestampOrder (exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending = true) {
+function assertTimestampOrder (exchange: Exchange, method: Str, codeOrSymbol: string, items: any[], ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const currentTs = items[i - 1]['timestamp'];
@@ -577,7 +577,7 @@ function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
-function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string) {
+function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str) {
     exchange.proxyUrl = proxyUrl;
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;

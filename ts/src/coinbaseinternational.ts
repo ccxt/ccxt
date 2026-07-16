@@ -1445,7 +1445,7 @@ export default class coinbaseinternational extends Exchange {
         if (marketId === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing marketId');
         }
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'lowercaseId': marketId.toLowerCase (),
             'symbol': symbol,
@@ -1497,7 +1497,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'info': market,
             'created': undefined,
-        };
+        });
     }
 
     /**

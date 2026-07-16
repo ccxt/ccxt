@@ -2357,7 +2357,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances: Dict = undefined;
+        let balances: NullableDict = undefined;
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeValue (response, 'result', []);
         } else {

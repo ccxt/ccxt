@@ -10,7 +10,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
     const ends = now + 15000;
     const returnedSymbols: string[] = [];
     while (now < ends || returnedSymbols.length < symbols.length) {
-        let response: Trade[] = undefined;
+        let response: Trade[] | undefined = undefined;
         const success = true;
         try {
             response = await exchange.watchTradesForSymbols (symbols);

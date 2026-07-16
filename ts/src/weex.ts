@@ -1127,7 +1127,7 @@ export default class weex extends Exchange {
         if (symbolsLength === 1) {
             request['symbol'] = this.safeString (market, 'id');
         }
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             //
             //     [
@@ -1196,7 +1196,7 @@ export default class weex extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'spot') {
             response = await this.publicGetApiV3MarketTickerBookTicker (params);
         } else {
@@ -1582,7 +1582,7 @@ export default class weex extends Exchange {
         } else if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
-        let isSpot = true;
+        let isSpot: Bool = true;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'symbol');
             const realizedPnl = this.safeString (trade, 'realizedPnl');
@@ -1953,7 +1953,7 @@ export default class weex extends Exchange {
         };
     }
 
-    parseTransferStatus (status: Str): string {
+    parseTransferStatus (status: Str): Str {
         const statuses: Dict = {
             'Successful': 'ok',
         };
