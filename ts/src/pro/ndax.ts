@@ -280,6 +280,9 @@ export default class ndax extends ndaxRest {
                 const interval = this.safeString (this.timeframes, timeframe, timeframe);
                 const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
+                if (timestamp === undefined) {
+                    return;
+                }
                 const parsed = [
                     this.parseToInt ((timestamp / duration) * duration),
                     this.safeFloat (ohlcv, 3),

@@ -3,7 +3,7 @@
 import { sha384 } from '@noble/hashes/sha2.js';
 import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
@@ -55,6 +55,9 @@ export default class gemini extends geminiRest {
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTrades() marketId is required');
+        }
         const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
@@ -379,6 +382,9 @@ export default class gemini extends geminiRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
+        if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBook() marketId is required');
+        }
         const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
@@ -898,6 +904,9 @@ export default class gemini extends geminiRest {
             const ts = this.safeInteger (message, 'timestampms', this.milliseconds ());
             const eventId = this.safeInteger (message, 'eventId');
             const events = this.safeList (message, 'events');
+            if (events === undefined) {
+                return;
+            }
             const orderBookItems: Dict[] = [];
             const bidaskItems: Dict[] = [];
             const collectedEventsOfTrades: Dict[] = [];
@@ -933,6 +942,9 @@ export default class gemini extends geminiRest {
 
     async authenticate (params = {}) {
         const url = this.safeString (params, 'url');
+        if (url === undefined) {
+            return;
+        }
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }

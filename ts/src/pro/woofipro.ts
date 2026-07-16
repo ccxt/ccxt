@@ -2,7 +2,7 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import woofiproRest from '../woofipro.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -1017,7 +1017,13 @@ export default class woofipro extends woofiproRest {
         const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             for (let i = 0; i < symbols.length; i++) {
+                if (symbols === undefined) {
+                    throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+                }
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);
             }
@@ -1344,6 +1350,9 @@ export default class woofipro extends woofiproRest {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString (splitTopic, 1);
+                if (name === undefined) {
+                    return;
+                }
                 method = this.safeValue (methods, name);
                 if (method !== undefined) {
                     method.call (this, client, message);

@@ -597,6 +597,9 @@ export default class lbank extends lbankRest {
             myOrders = new ArrayCacheBySymbolById (limit);
         }
         const order = this.parseWsOrder (message);
+        if (myOrders === undefined) {
+            return;
+        }
         myOrders.append (order);
         this.orders = myOrders;
         client.resolve (myOrders, 'orders');

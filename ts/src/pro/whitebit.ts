@@ -756,6 +756,9 @@ export default class whitebit extends whitebitRest {
         //   }
         //
         const method = this.safeString (message, 'method');
+        if (method === undefined) {
+            return;
+        }
         const data = this.safeValue (message, 'params');
         const balanceDict = this.safeValue (data, 0);
         this.balance['info'] = balanceDict;

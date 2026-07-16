@@ -144,6 +144,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() symbols is required');
+        }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
@@ -647,6 +650,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const makerOrderId = this.safeString (message, 'maker_order_id');
             const takerOrderId = this.safeString (message, 'taker_order_id');
             const orders = this.orders;
+            if (orders === undefined) {
+                return;
+            }
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             let previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
@@ -658,6 +664,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 client.resolve (orders, messageHash);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
+                if (sequence === undefined) {
+                    return;
+                }
                 const previousInfo = this.safeValue (previousOrder, 'info', {});
                 const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
@@ -714,6 +723,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             }
                         }
                         // update the newUpdates count
+                        if (orders === undefined) {
+                            return;
+                        }
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
                     }

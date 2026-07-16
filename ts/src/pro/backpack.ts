@@ -122,9 +122,15 @@ export default class backpack extends backpackRest {
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
                 const symbol = this.safeString (splitHashes, 2);
+                if (symbol === undefined) {
+                    return;
+                }
                 const timeframe = this.safeString (splitHashes, 3);
+                if (timeframe === undefined) {
+                    return;
+                }
                 if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
-                    if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
+                    if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
                 }
@@ -298,6 +304,9 @@ export default class backpack extends backpackRest {
         //     }
         //
         const microseconds = this.safeInteger (ticker, 'E');
+        if (microseconds === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
@@ -422,6 +431,9 @@ export default class backpack extends backpackRest {
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         const microseconds = this.safeInteger (ticker, 'E');
+        if (microseconds === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         const ask = this.safeString (ticker, 'a');
         const askVolume = this.safeString (ticker, 'A');
@@ -564,8 +576,14 @@ export default class backpack extends backpackRest {
         const market = this.market (marketId);
         const symbol = market['symbol'];
         const stream = this.safeString (message, 'stream');
+        if (stream === undefined) {
+            return;
+        }
         const parts = stream.split ('.');
         const timeframe = this.safeString (parts, 1);
+        if (timeframe === undefined) {
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -756,6 +774,9 @@ export default class backpack extends backpackRest {
         //     }
         //
         const microseconds = this.safeInteger (trade, 'E');
+        if (microseconds === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         const id = this.safeString (trade, 't');
         const marketId = this.safeString (trade, 's');
@@ -910,6 +931,9 @@ export default class backpack extends backpackRest {
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaNonce = this.safeInteger (data, 'u');
+        if (deltaNonce === undefined) {
+            return;
+        }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -954,6 +978,9 @@ export default class backpack extends backpackRest {
         const firstDelta = this.safeDict (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
+        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
+            return;
+        }
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
@@ -961,6 +988,9 @@ export default class backpack extends backpackRest {
             const delta = cache[i];
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                return;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1101,6 +1131,9 @@ export default class backpack extends backpackRest {
         const id = this.safeString (order, 'i');
         const clientOrderId = this.safeString (order, 'c');
         const microseconds = this.safeInteger (order, 'E');
+        if (microseconds === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         const status = this.parseWsOrderStatus (this.safeString (order, 'X'), market);
         const marketId = this.safeString (order, 's');
@@ -1263,7 +1296,13 @@ export default class backpack extends backpackRest {
         }
         const cache = this.positions;
         const parsedPosition = this.parseWsPosition (data);
+        if (parsedPosition === undefined) {
+            return;
+        }
         const microseconds = this.safeInteger (data, 'E');
+        if (microseconds === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601 (timestamp);
@@ -1296,8 +1335,9 @@ export default class backpack extends backpackRest {
         //
         const id = this.safeString (position, 'i');
         const marketId = this.safeString (position, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const notional = this.safeString (position, 'n');
         const liquidationPrice = this.safeString (position, 'l');
         const entryPrice = this.safeString (position, 'b');
@@ -1306,6 +1346,9 @@ export default class backpack extends backpackRest {
         const contracts = this.safeString (position, 'Q');
         const markPrice = this.safeString (position, 'M');
         const netQuantity = this.safeNumber (position, 'q');
+        if (netQuantity === undefined) {
+            return;
+        }
         let hedged = false;
         let side = 'long';
         if (netQuantity < 0) {
@@ -1316,6 +1359,9 @@ export default class backpack extends backpackRest {
             side = undefined;
         }
         const microseconds = this.safeInteger (position, 'E');
+        if (microseconds === undefined) {
+            return;
+        }
         const timestamp = this.parseToInt (microseconds / 1000);
         const maintenanceMarginPercentage = this.safeNumber (position, 'm');
         const initialMarginPercentage = this.safeNumber (position, 'f');

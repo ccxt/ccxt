@@ -105,8 +105,9 @@ export default class phemex extends phemexRest {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp (this.safeString (ticker, 'close'), market);
         const last = this.parseNumber (lastString);
@@ -166,8 +167,9 @@ export default class phemex extends phemexRest {
         //    ]
         //
         const marketId = this.safeString (ticker, 0);
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const lastString = this.fromEp (this.safeString (ticker, 4), market);
         const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 6), market));
@@ -1355,8 +1357,9 @@ export default class phemex extends phemexRest {
             clientOrderId = undefined;
         }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
@@ -1496,6 +1499,9 @@ export default class phemex extends phemexRest {
         //     ]
         // }
         const id = this.safeString (message, 'id');
+        if (id === undefined) {
+            return;
+        }
         if (id in client.subscriptions) {
             const method = this.safeValue (client.subscriptions, id);
             if (id !== undefined) {

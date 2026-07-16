@@ -726,6 +726,9 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const events = this.safeList (message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const event = this.safeValue (events, 0);
         const trades = this.safeList (event, 'trades');
         const trade = this.safeDict (trades, 0);
@@ -741,6 +744,9 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < events.length; i++) {
             const currentEvent = events[i];
             const currentTrades = this.safeList (currentEvent, 'trades');
+            if (currentTrades === undefined) {
+                return;
+            }
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[j];
                 tradesArray.append (this.parseTrade (item));
@@ -780,6 +786,9 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const events = this.safeList (message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const marketIds: string[] = [];
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -788,11 +797,17 @@ export default class coinbase extends coinbaseRest {
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             const responseOrders = this.safeList (event, 'orders');
+            if (responseOrders === undefined) {
+                return;
+            }
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
                 const cachedOrders = this.orders;
                 const marketId = this.safeString (responseOrder, 'product_id');
+                if (marketId === undefined) {
+                    return;
+                }
                 if (!(marketId in marketIds)) {
                     marketIds.push (marketId);
                 }
@@ -902,6 +917,9 @@ export default class coinbase extends coinbaseRest {
         //    }
         //
         const events = this.safeList (message, 'events');
+        if (events === undefined) {
+            return;
+        }
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
             const event = events[i];

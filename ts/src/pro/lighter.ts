@@ -366,7 +366,7 @@ export default class lighter extends lighterRest {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push (this.getMessageHash ('ticker'));
         } else {
             for (let i = 0; i < symbols.length; i++) {
@@ -868,6 +868,9 @@ export default class lighter extends lighterRest {
         const price = this.safeString (liquidation, 'price');
         const baseValue = Precise.stringMul (contracts, contractSize);
         const quoteValue = Precise.stringMul (baseValue, price);
+        if (market === undefined) {
+            return;
+        }
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': market['symbol'],
