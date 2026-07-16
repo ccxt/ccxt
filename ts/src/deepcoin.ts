@@ -579,7 +579,9 @@ export default class deepcoin extends Exchange {
             const market = markets[symbol];
             if (market['swap']) {
                 const additionalId = market['baseId'] + market['quoteId'];
-                this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
+                if (this.markets_by_id !== undefined) {
+                    this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
+                }
             }
         }
         return this.markets;

@@ -788,7 +788,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (newOrders, messageHash);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //    {
@@ -881,14 +881,13 @@ export default class bitmart extends bitmartRest {
             const updatedTimestamp = this.safeInteger (orderInfo, 'update_time');
             const lastTrade = this.safeDict (orderInfo, 'last_trade');
             const cachedOrders = this.orders;
-            if (cachedOrders === undefined) {
-                return;
-            }
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const cachedOrder = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
             let trades: NullableList = undefined;
-            if (cachedOrder !== undefined) {
-                trades = this.safeValue (order, 'trades');
+            if (cachedOrders !== undefined) {
+                const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+                const cachedOrder = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
+                if (cachedOrder !== undefined) {
+                    trades = this.safeValue (order, 'trades');
+                }
             }
             if (lastTrade !== undefined) {
                 if (trades === undefined) {

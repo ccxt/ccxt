@@ -589,7 +589,7 @@ export default class mexc extends mexcRest {
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        let ohlcv = undefined;
+        let ohlcv: any = undefined;
         if (market['spot']) {
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
@@ -788,7 +788,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = undefined;
+        let orderbook: any = undefined;
         if (market['spot']) {
             let frequency: Str = undefined;
             [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
@@ -1318,7 +1318,7 @@ export default class mexc extends mexcRest {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        let orders = undefined;
+        let orders: any = undefined;
         if (type === 'spot') {
             const channel = 'spot@private.orders.v3.api.pb';
             orders = await this.watchSpotPrivate (channel, messageHash, params);

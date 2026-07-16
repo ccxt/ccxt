@@ -1120,8 +1120,8 @@ export default class btcmarkets extends Exchange {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        const market = this.markets[symbol];
-        let currency: Currency = undefined;
+        const market = this.market (symbol);
+        let currency: Str = undefined;
         let cost: Str = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];

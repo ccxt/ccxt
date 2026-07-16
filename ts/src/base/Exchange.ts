@@ -760,7 +760,7 @@ export class BaseExchange {
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
-        let chosenAgent = undefined;
+        let chosenAgent: any = undefined;
         // in browser-side, proxy modules are not supported in 'fetch/ws' methods
         if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
             throw new NotSupported (this.id + ' - proxies in browser-side projects are not supported. You have several choices: [A] Use `exchange.proxyUrl` property to redirect requests through local/remote cors-proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder, which can be used for REST requests only) [B] override `exchange.fetch` && `exchange.watch` methods to send requests through your custom proxy');
@@ -1151,7 +1151,7 @@ export class BaseExchange {
         if ((res.statusCode === 204) || (res.statusCode === 304)) {
             contentEncoding = undefined; // bodyless statuses, nothing to inflate
         }
-        let decompressor = undefined;
+        let decompressor: any = undefined;
         if ((contentEncoding === 'gzip') || (contentEncoding === 'x-gzip')) {
             decompressor = this.zlibModule.createGunzip ();
         } else if (contentEncoding === 'br') {
@@ -1535,7 +1535,12 @@ export class BaseExchange {
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise ((resolve, reject) => {
-            resolve (Object.values (this.markets));
+            const markets = this.markets;
+            if (markets === undefined) {
+                resolve ([]);
+                return;
+            }
+            resolve (Object.values (markets));
         });
     }
 
@@ -1545,7 +1550,12 @@ export class BaseExchange {
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise ((resolve, reject) => {
-            resolve (Object.values (this.markets));
+            const markets = this.markets;
+            if (markets === undefined) {
+                resolve ([]);
+                return;
+            }
+            resolve (Object.values (markets));
         });
     }
 
@@ -4913,7 +4923,11 @@ export class BaseExchange {
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
-        const market = this.markets[symbol];
+        const markets = this.markets;
+        if (markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        const market = markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let useQuote: Bool = undefined;
         if (feeSide === 'get') {
@@ -5427,7 +5441,7 @@ export class BaseExchange {
                 return undefined;
             }
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);
-            let response = undefined;
+            let response: any = undefined;
             let retry = 0;
             let shouldBreak = false;
             while (retry < maxRetries) {
@@ -5445,7 +5459,7 @@ export class BaseExchange {
                     break; // this is needed because of GO
                 }
             }
-            let content = response;
+            let content: any = response;
             if (content === undefined) {
                 throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
             }
@@ -5927,9 +5941,13 @@ export class BaseExchange {
             if (reload || !('limitsLoaded' in this.options)) {
                 const response = await this.fetchTradingLimits (symbols);
                 const symbolsArray = this.requireValue (symbols, 'loadTradingLimits() requires a symbols argument');
+                const markets = this.markets;
+                if (markets === undefined) {
+                    throw new ExchangeError (this.id + ' markets not loaded');
+                }
                 for (let i = 0; i < symbolsArray.length; i++) {
                     const symbol = symbolsArray[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
+                    markets[symbol] = this.deepExtend (markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
@@ -6285,18 +6303,18 @@ export class BaseExchange {
             try {
                 this.setLastRestRequestTimestamp ();
                 const request = this.sign (path, api, method, params, headers, body);
-                if (fetchDataCacheEnabled) {
+                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
                     fetchData['request'] = request;
                 }
                 this.setLastRequest (request);
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
-                if (fetchDataCacheEnabled) {
+                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
                     fetchData['response']['body'] = response;
                     this.addFetchCache (fetchData);
                 }
                 return response;
             } catch (e) {
-                if (fetchDataCacheEnabled) {
+                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
                     fetchData['error'] = e;
                     this.addFetchCache (fetchData);
                 }
@@ -7098,10 +7116,12 @@ export class BaseExchange {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
         if (typeof code === 'string') {
-            if (code in this.currencies) {
-                return this.currencies[code];
-            } else if (code in this.currencies_by_id) {
-                return this.currencies_by_id[code];
+            const currencies = this.currencies;
+            const currenciesById = this.currencies_by_id;
+            if (code in currencies) {
+                return currencies[code];
+            } else if ((currenciesById !== undefined) && (code in currenciesById)) {
+                return currenciesById[code];
             }
         }
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
@@ -7111,21 +7131,23 @@ export class BaseExchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' market() requires a symbol argument');
         }
-        if (this.markets === undefined) {
+        const markets = this.markets;
+        if (markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        if (symbol in this.markets) {
-            return this.markets[symbol];
-        } else if (symbol in this.markets_by_id) {
-            const markets = this.markets_by_id[symbol];
+        const marketsById = this.markets_by_id;
+        if (symbol in markets) {
+            return markets[symbol];
+        } else if ((marketsById !== undefined) && (symbol in marketsById)) {
+            const marketsList = marketsById[symbol];
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
-            for (let i = 0; i < markets.length; i++) {
-                const market = markets[i];
+            for (let i = 0; i < marketsList.length; i++) {
+                const market = marketsList[i];
                 if (market[defaultType as string]) {
                     return market;
                 }
             }
-            return markets[0];
+            return marketsList[0];
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
             return this.createExpiredOptionMarket (symbol);
         }
@@ -7150,7 +7172,7 @@ export class BaseExchange {
                 } else {
                     // check if base currency is inside dict
                     const baseCurrencyCode = currencyCode.replace (leverageSuffix, '');
-                    if (baseCurrencyCode in existingCurrencies) {
+                    if ((existingCurrencies !== undefined) && (baseCurrencyCode in existingCurrencies)) {
                         return true;
                     }
                 }
@@ -7851,7 +7873,10 @@ export class BaseExchange {
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
-        } else if ((account in this.markets) || (account in this.markets_by_id)) {
+        }
+        const markets = this.markets;
+        const marketsById = this.markets_by_id;
+        if (((markets !== undefined) && (account in markets)) || ((marketsById !== undefined) && (account in marketsById))) {
             const market = this.market (account);
             return market['id'];
         } else {

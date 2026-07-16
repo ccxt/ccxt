@@ -49,7 +49,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
     if (symbolForMarket !== undefined) {
-        if (symbolForMarket in exchange.markets) {
+        if ((exchange.markets !== undefined) && (symbolForMarket in exchange.markets)) {
             market = exchange.market (symbolForMarket);
         } else {
             isUnrecognizedSymbol = true;

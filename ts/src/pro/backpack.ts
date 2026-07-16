@@ -147,14 +147,16 @@ export default class backpack extends backpackRest {
             } else if (messageHash.indexOf ('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
                     const cache = this.orders;
-                    const keys = Object.keys (cache);
-                    for (let j = 0; j < keys.length; j++) {
-                        const symbol = keys[j];
-                        delete this.orders[symbol];
+                    if (cache !== undefined) {
+                        const keys = Object.keys (cache);
+                        for (let j = 0; j < keys.length; j++) {
+                            const symbol = keys[j];
+                            delete cache[symbol];
+                        }
                     }
                 } else {
                     const symbol = messageHash.replace ('unsubscribe:orders:', '');
-                    if (symbol in this.orders) {
+                    if ((this.orders !== undefined) && (symbol in this.orders)) {
                         delete this.orders[symbol];
                     }
                 }
@@ -762,7 +764,7 @@ export default class backpack extends backpackRest {
         client.resolve (cache, 'trades');
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         E: '1754601477746429',
@@ -777,10 +779,7 @@ export default class backpack extends backpackRest {
         //         t: 10782547
         //     }
         //
-        const microseconds = this.safeInteger (trade, 'E');
-        if (microseconds === undefined) {
-            return;
-        }
+        const microseconds = this.safeInteger (trade, 'E', 0);
         const timestamp = this.parseToInt (microseconds / 1000);
         const id = this.safeString (trade, 't');
         const marketId = this.safeString (trade, 's');
@@ -1105,7 +1104,7 @@ export default class backpack extends backpackRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    parseWsOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         E: '1754939110175879',
@@ -1134,10 +1133,7 @@ export default class backpack extends backpackRest {
         //
         const id = this.safeString (order, 'i');
         const clientOrderId = this.safeString (order, 'c');
-        const microseconds = this.safeInteger (order, 'E');
-        if (microseconds === undefined) {
-            return;
-        }
+        const microseconds = this.safeInteger (order, 'E', 0);
         const timestamp = this.parseToInt (microseconds / 1000);
         const status = this.parseWsOrderStatus (this.safeString (order, 'X'), market);
         const marketId = this.safeString (order, 's');

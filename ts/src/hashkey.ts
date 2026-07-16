@@ -2890,7 +2890,7 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'orders': ordersRequests,
         };
-        let response = undefined;
+        let response: any = undefined;
         if (market['spot']) {
             response = await this.privatePostApiV1SpotBatchOrders (this.extend (request, params));
             //
@@ -3002,7 +3002,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
             //
@@ -3090,7 +3090,7 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        let response = undefined;
+        let response: any = undefined;
         if (market['spot']) {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -3135,7 +3135,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);
             //
@@ -3188,7 +3188,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -3326,7 +3326,7 @@ export default class hashkey extends Exchange {
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         let market: Market = undefined;
         const request: Dict = {};
-        let response = undefined;
+        let response: any = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3410,7 +3410,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response: any = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3512,7 +3512,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];

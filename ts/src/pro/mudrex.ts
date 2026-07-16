@@ -77,7 +77,7 @@ export default class mudrex extends mudrexRest {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
             'params': [ 'ticker@1s' ],
-            'assets': [ market['baseId'].toLowerCase () + market['quoteId'].toLowerCase () ],
+            'assets': [ ((market['baseId'] !== undefined) ? market['baseId'] : '').toLowerCase () + ((market['quoteId'] !== undefined) ? market['quoteId'] : '').toLowerCase () ],
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
@@ -94,7 +94,7 @@ export default class mudrex extends mudrexRest {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
                 messageHashes.push ('ticker:' + market['symbol']);
-                assets.push (market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ());
+                assets.push (((market['baseId'] !== undefined) ? market['baseId'] : '').toLowerCase () + ((market['quoteId'] !== undefined) ? market['quoteId'] : '').toLowerCase ());
             }
         }
         const url = this.urls['api']['ws'];
@@ -131,7 +131,7 @@ export default class mudrex extends mudrexRest {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const stream = prefix + '@' + interval + '@' + market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+        const stream = prefix + '@' + interval + '@' + ((market['baseId'] !== undefined) ? market['baseId'] : '').toLowerCase () + ((market['quoteId'] !== undefined) ? market['quoteId'] : '').toLowerCase ();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();

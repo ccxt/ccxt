@@ -1708,7 +1708,7 @@ export default class htx extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
     /**
@@ -2067,7 +2067,7 @@ export default class htx extends Exchange {
     }
 
     tryGetSymbolFromFutureMarkets (symbolOrMarketId: string) {
-        if (symbolOrMarketId in this.markets) {
+        if ((this.markets !== undefined) && (symbolOrMarketId in this.markets)) {
             return symbolOrMarketId;
         }
         // only on "future" market type (inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
@@ -7778,7 +7778,7 @@ export default class htx extends Exchange {
                     };
                 }
             } else {
-                if (Object.keys (query).length) {
+                if ((query !== undefined) && Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -7803,7 +7803,7 @@ export default class htx extends Exchange {
             hostname = hostnames;
             url += this.implodeParams (path, params);
             if (access === 'public') {
-                if (Object.keys (query).length) {
+                if ((query !== undefined) && Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (access === 'private') {

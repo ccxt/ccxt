@@ -251,11 +251,7 @@ export default class PredictionExchange extends BaseExchange {
     filterEventsByTags (events: any[], tags: Strings = undefined): any[] {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        let tagsLength = 0;
-        if (tags !== undefined) {
-            tagsLength = tags.length;
-        }
-        if (tagsLength === 0) {
+        if ((tags === undefined) || (tags.length === 0)) {
             return events;
         }
         const wanted: string[] = [];
@@ -569,10 +565,14 @@ export default class PredictionExchange extends BaseExchange {
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        const marketKeys = Object.keys (this.markets);
+        const marketsMap = this.markets;
+        if (marketsMap === undefined) {
+            return this.markets;
+        }
+        const marketKeys = Object.keys (marketsMap);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            this.markets[key] = this.omit (this.markets[key], 'symbol');
+            marketsMap[key] = this.omit (marketsMap[key], 'symbol');
         }
         this.populateOutcomes ();
         return this.markets;

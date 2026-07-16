@@ -1177,7 +1177,7 @@ export default class hyperliquid extends Exchange {
                 return this.safeDict (this.outcomes_by_id, key, {});
             }
         }
-        if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (outcomeInput in this.markets)) || ((this.markets_by_id !== undefined) && (outcomeInput in this.markets_by_id))) {
             const market = this.safeMarket (outcomeInput);
             const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
             const found = this.findOutcomeInMarket (market, sideHintOrDefault);

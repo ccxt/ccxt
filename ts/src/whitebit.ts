@@ -1044,10 +1044,14 @@ export default class whitebit extends Exchange {
         //
         const result: Dict = {};
         // Process all markets from the loaded markets cache
-        const marketIds = Object.keys (this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        const marketIds = Object.keys (markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.markets[marketId];
+            const market = markets[marketId];
             if (!market || !market['symbol']) {
                 continue; // Skip invalid markets silently
             }

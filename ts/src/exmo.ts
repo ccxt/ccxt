@@ -2353,7 +2353,7 @@ export default class exmo extends Exchange {
         const symbols = Object.keys (tradesBySymbol);
         const numSymbols = symbols.length;
         if (numSymbols === 1) {
-            return this.markets[symbols[0]];
+            return this.market (symbols[0]);
         }
         return undefined;
     }

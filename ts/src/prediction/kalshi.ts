@@ -1408,6 +1408,9 @@ export default class kalshi extends Exchange {
             // the ticker filter narrows to the market; a market has both legs, so the
             // wanted-leg filter below still drops the opposite-leg fills
             outcomeObj = this.outcome (outcome);
+            if (outcomeObj === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
         if (limit !== undefined) {
@@ -1770,6 +1773,9 @@ export default class kalshi extends Exchange {
         let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome (outcome);
+            if (outcomeObj === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));
@@ -1797,6 +1803,9 @@ export default class kalshi extends Exchange {
         let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome (outcome);
+            if (outcomeObj === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a valid outcome');
+            }
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
         const response = await this.kalshiPrivateGetPortfolioOrders (this.extend (request, params));

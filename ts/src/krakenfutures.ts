@@ -2525,6 +2525,9 @@ export default class krakenfutures extends Exchange {
             const currencyId = currencyIds[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
+            if (code === undefined) {
+                continue;
+            }
             const splitCode = code.split ('_');
             const codeLength = splitCode.length;
             if (codeLength > 1) {
@@ -2971,7 +2974,7 @@ export default class krakenfutures extends Exchange {
         };
         if (account in accountByType) {
             return accountByType[account];
-        } else if (account in this.markets) {
+        } else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market (account);
             const marketId = market['id'];
             const splitId = (marketId as string).split ('_');
