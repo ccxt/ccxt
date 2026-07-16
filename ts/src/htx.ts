@@ -3455,7 +3455,9 @@ export default class htx extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const assetType = this.safeString (rawCurrency, 'assetType');
         const type = (assetType === '1') ? 'crypto' : 'fiat';
-        this.options['networkChainIdsByNames'][code] = {};
+        if (code !== undefined) {
+            this.options['networkChainIdsByNames'][code] = {};
+        }
         const chains = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
@@ -3773,7 +3775,7 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available_margin');
                 account['total'] = this.safeString (balance, 'equity');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             result = this.safeBalance (result);
         } else if (spot || margin) {
@@ -3787,7 +3789,7 @@ export default class htx extends Exchange {
                         const balance = balances[j];
                         const currencyId = this.safeString (balance, 'currency');
                         const code = this.safeCurrencyCode (currencyId);
-                        subResult[code] = this.parseMarginBalanceHelper (balance, code, subResult);
+                        this.storeByKey (subResult, code, this.parseMarginBalanceHelper (balance, code, subResult));
                     }
                     result[symbol] = this.safeBalance (subResult);
                 }
@@ -3797,7 +3799,7 @@ export default class htx extends Exchange {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
-                    result[code] = this.parseMarginBalanceHelper (balance, code, result);
+                    this.storeByKey (result, code, this.parseMarginBalanceHelper (balance, code, result));
                 }
                 result = this.safeBalance (result);
             }
@@ -3809,7 +3811,7 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'margin_available');
                 account['used'] = this.safeString (balance, 'margin_frozen');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             result = this.safeBalance (result);
         }

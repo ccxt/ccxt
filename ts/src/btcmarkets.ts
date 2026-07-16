@@ -610,7 +610,7 @@ export default class btcmarkets extends Exchange {
             const account = this.account ();
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

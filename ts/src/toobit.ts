@@ -1712,7 +1712,7 @@ export default class toobit extends Exchange {
             account['free'] = this.safeString2 (balance, 'free', 'availableBalance');
             account['total'] = this.safeString2 (balance, 'total', 'balance');
             account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

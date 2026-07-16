@@ -860,15 +860,19 @@ export default class bitstamp extends Exchange {
         }
         const parts = minimumOrder.split (' ');
         const cost = parts[0];
-        if (!(base in existing)) {
+        if ((base === undefined) || !(base in existing)) {
             const baseDecimals = this.safeInteger (market, 'base_decimals');
-            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            if (base !== undefined) {
+                this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+            }
         }
-        if (!(quote in existing)) {
+        if ((quote === undefined) || !(quote in existing)) {
             const counterDecimals = this.safeInteger (market, 'counter_decimals');
-            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+            if (quote !== undefined) {
+                this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+            }
         }
-        return this.options['_temp_currencies_result'][quote];
+        return this.safeValue (this.options['_temp_currencies_result'], quote);
     }
 
     /**
@@ -1383,7 +1387,7 @@ export default class bitstamp extends Exchange {
             account['free'] = this.safeString (currencyBalance, 'available');
             account['used'] = this.safeString (currencyBalance, 'reserved');
             account['total'] = this.safeString (currencyBalance, 'total');
-            result[currencyCode] = account;
+            this.storeByKey (result, currencyCode, account);
         }
         return this.safeBalance (result);
     }
@@ -1544,11 +1548,13 @@ export default class bitstamp extends Exchange {
             if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            result[code] = {
-                'withdraw_fee': this.safeNumber (fees, 'fee'),
-                'deposit': {},
-                'info': this.safeDict (currencies, id),
-            };
+            if (code !== undefined) {
+                result[code] = {
+                    'withdraw_fee': this.safeNumber (fees, 'fee'),
+                    'deposit': {},
+                    'info': this.safeDict (currencies, id),
+                };
+            }
         }
         return result;
     }

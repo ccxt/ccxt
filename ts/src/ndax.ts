@@ -1266,7 +1266,7 @@ export default class ndax extends Exchange {
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'Amount');
                 account['used'] = this.safeString (balance, 'Hold');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         return this.safeBalance (result);

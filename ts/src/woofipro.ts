@@ -2363,7 +2363,7 @@ export default class woofipro extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['frozen'] = this.safeString (balance, 'frozen');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

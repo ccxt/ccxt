@@ -1705,7 +1705,9 @@ export default class weex extends weexRest {
             account['free'] = this.safeString2 (entry, 'available', 'amount');
             account['used'] = this.safeString (entry, 'frozen');
             account['total'] = this.safeString2 (entry, 'equity', 'legacyAmount');
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         const timestamp = this.safeInteger (message, 'E');
         this.balance[accountType]['timestamp'] = timestamp;

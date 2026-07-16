@@ -397,7 +397,7 @@ export default class btcturk extends Exchange {
             account['total'] = this.safeString (entry, 'balance');
             account['free'] = this.safeString (entry, 'free');
             account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

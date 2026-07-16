@@ -527,7 +527,7 @@ export default class bitbns extends Exchange {
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode (currencyId);
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         return this.safeBalance (result);

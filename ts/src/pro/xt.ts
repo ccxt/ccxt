@@ -1366,7 +1366,7 @@ export default class xt extends xtRest {
         account['free'] = this.safeString (data, 'availableBalance');
         account['used'] = this.safeString (data, 'f');
         account['total'] = this.safeString2 (data, 'b', 'walletBalance');
-        this.balance[code] = account;
+        this.storeByKey (this.balance, code, account);
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
         client.resolve (this.balance, 'balance::' + tradeType);

@@ -1335,7 +1335,7 @@ export default class lbank extends Exchange {
                 const account = this.account ();
                 account['used'] = this.safeString (used, currencyId);
                 account['free'] = this.safeString (free, currencyId);
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             return this.safeBalance (result);
         }
@@ -1349,7 +1349,7 @@ export default class lbank extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (item, 'free');
                 account['used'] = this.safeString (item, 'locked');
-                result[codeInner] = account;
+                this.storeByKey (result, codeInner, account);
             }
             return this.safeBalance (result);
         }
@@ -1363,7 +1363,7 @@ export default class lbank extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (item, 'usableAmt');
                 account['used'] = this.safeString (item, 'freezeAmt');
-                result[codeInner] = account;
+                this.storeByKey (result, codeInner, account);
             }
             return this.safeBalance (result);
         }
@@ -2741,14 +2741,16 @@ export default class lbank extends Exchange {
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const networkList = this.safeValue (entry, 'networkList', []);
-            withdrawFees[code] = {};
+            this.storeByKey (withdrawFees, code, {});
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
                     const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
                     if (networkCode !== undefined) {
-                        withdrawFees[code][networkCode] = fee;
+                        if ((code !== undefined) && (networkCode !== undefined)) {
+                            withdrawFees[code][networkCode] = fee;
+                        }
                     }
                 }
             }
@@ -2808,10 +2810,12 @@ export default class lbank extends Exchange {
                     network = codeInner;
                 }
                 const fee = this.safeString (item, 'fee');
-                if (withdrawFees[codeInner] === undefined) {
-                    withdrawFees[codeInner] = {};
+                if (this.safeValue (withdrawFees, codeInner) === undefined) {
+                    this.storeByKey (withdrawFees, codeInner, {});
                 }
-                withdrawFees[codeInner][network] = this.parseNumber (fee);
+                if ((codeInner !== undefined) && (network !== undefined)) {
+                    withdrawFees[codeInner][network] = this.parseNumber (fee);
+                }
             }
         }
         return {
@@ -2951,7 +2955,7 @@ export default class lbank extends Exchange {
             if (canWithdraw === true) {
                 const currencyId = this.safeString (fee, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
-                if (codes === undefined || this.inArray (code, codes)) {
+                if ((code !== undefined) && (codes === undefined || this.inArray (code, codes))) {
                     const withdrawFee = this.safeNumber (fee, 'fee');
                     if (withdrawFee !== undefined) {
                         const resultValue = this.safeValue (result, code);

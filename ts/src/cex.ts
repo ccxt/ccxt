@@ -1012,7 +1012,7 @@ export default class cex extends Exchange {
                 'used': this.safeString (balance, 'balanceOnHold'),
                 'total': this.safeString (balance, 'balance'),
             };
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

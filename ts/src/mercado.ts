@@ -533,7 +533,7 @@ export default class mercado extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available');
                 account['total'] = this.safeString (balance, 'total');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         return this.safeBalance (result);

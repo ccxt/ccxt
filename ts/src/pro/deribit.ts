@@ -157,7 +157,7 @@ export default class deribit extends deribitRest {
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const balance = this.parseBalance (data);
-        this.balance[currencyCode] = balance;
+        this.storeByKey (this.balance, currencyCode, balance);
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }

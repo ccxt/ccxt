@@ -1103,7 +1103,7 @@ export default class cryptocom extends cryptocomRest {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'quantity');
             account['used'] = this.safeString (balance, 'reserved_qty');
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
             this.balance = this.safeBalance (this.balance);
         }
         client.resolve (this.balance, messageHash);

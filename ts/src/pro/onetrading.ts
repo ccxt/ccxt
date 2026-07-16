@@ -1055,7 +1055,7 @@ export default class onetrading extends onetradingRest {
         const account = this.account ();
         account['free'] = this.safeString (balance, 'new_available');
         account['used'] = this.safeString (balance, 'new_locked');
-        this.balance[code] = account;
+        this.storeByKey (this.balance, code, account);
         this.balance = this.safeBalance (this.balance);
     }
 

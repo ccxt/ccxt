@@ -400,7 +400,7 @@ export default class phemex extends phemexRest {
             }
             account['used'] = used;
             account['total'] = total;
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
             this.balance = this.safeBalance (this.balance);
         }
         const messageHash = type + ':balance';

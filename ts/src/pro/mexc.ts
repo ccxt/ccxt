@@ -1662,7 +1662,9 @@ export default class mexc extends mexcRest {
         const account = this.account ();
         account['free'] = this.safeString2 (data, 'balanceAmount', 'availableBalance');
         account['used'] = this.safeString2 (data, 'frozenBalance', 'frozenAmount');
-        this.balance[type][code] = account;
+        if ((type !== undefined) && (code !== undefined)) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], messageHash);
     }

@@ -3963,8 +3963,8 @@ export default class mexc extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
                 const subResult: Dict = {};
-                subResult[baseCode] = this.parseBalanceHelper (base);
-                subResult[quoteCode] = this.parseBalanceHelper (quote);
+                this.storeByKey (subResult, baseCode, this.parseBalanceHelper (base));
+                this.storeByKey (subResult, quoteCode, this.parseBalanceHelper (quote));
                 result[symbol] = this.safeBalance (subResult);
             }
             return result;
@@ -3976,7 +3976,7 @@ export default class mexc extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (entry, 'availableBalance');
                 account['used'] = this.safeString (entry, 'frozenBalance');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             return this.safeBalance (result);
         } else {
@@ -3987,7 +3987,7 @@ export default class mexc extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (entry, 'free');
                 account['used'] = this.safeString (entry, 'locked');
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
             return this.safeBalance (result);
         }

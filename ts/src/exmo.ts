@@ -683,10 +683,12 @@ export default class exmo extends Exchange {
                     };
                 }
             }
-            result['networks'][networkCode][type as string] = {
-                'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
-                'percentage': percentage,
-            };
+            if ((networkCode !== undefined) && (type !== undefined)) {
+                result['networks'][networkCode][type as string] = {
+                    'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
+                    'percentage': percentage,
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees (result);
     }
@@ -799,7 +801,7 @@ export default class exmo extends Exchange {
                 const minValue = this.safeString (provider, 'min');
                 const maxValue = this.safeString (provider, 'max');
                 const activeProvider = this.safeBool (provider, 'enabled');
-                const networkEntry = networks[networkCode];
+                const networkEntry = this.safeValue (networks, networkCode);
                 if (typeInner === 'deposit') {
                     networkEntry['deposit'] = activeProvider;
                     networkEntry['limits']['deposit']['min'] = minValue;
@@ -1080,7 +1082,7 @@ export default class exmo extends Exchange {
                 account['used'] = this.safeString (item, 'used');
                 account['free'] = this.safeString (item, 'free');
                 account['total'] = this.safeString (item, 'balance');
-                result[currency] = account;
+                this.storeByKey (result, currency, account);
             }
         } else {
             const free = this.safeValue (response, 'balances', {});
@@ -1096,7 +1098,7 @@ export default class exmo extends Exchange {
                 if (currencyId in used) {
                     account['used'] = this.safeString (used, currencyId);
                 }
-                result[code] = account;
+                this.storeByKey (result, code, account);
             }
         }
         return this.safeBalance (result);

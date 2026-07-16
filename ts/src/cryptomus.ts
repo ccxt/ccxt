@@ -693,7 +693,7 @@ export default class cryptomus extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balanceEntry, 'available');
             account['used'] = this.safeString (balanceEntry, 'held');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

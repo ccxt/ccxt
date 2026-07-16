@@ -1224,7 +1224,7 @@ export default class bittrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             let account: NullableDict = undefined;
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 account = result[code];
             } else {
                 account = this.account ();
@@ -1241,7 +1241,7 @@ export default class bittrade extends Exchange {
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeString (balance, 'balance');
             }
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         return this.safeBalance (result);
     }

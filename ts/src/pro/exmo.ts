@@ -166,7 +166,7 @@ export default class exmo extends exmoRest {
                 const account = this.account ();
                 account['free'] = this.safeString (balances, currencyId);
                 account['used'] = this.safeString (reserved, currencyId);
-                this.balance[code] = account;
+                this.storeByKey (this.balance, code, account);
             }
         } else if (event === 'update') {
             const currencyId = this.safeString (data, 'currency');
@@ -174,7 +174,7 @@ export default class exmo extends exmoRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'balance');
             account['used'] = this.safeString (data, 'reserved');
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
         }
         this.balance = this.safeBalance (this.balance);
     }
@@ -205,7 +205,7 @@ export default class exmo extends exmoRest {
             account['free'] = this.safeString (wallet, 'free');
             account['used'] = this.safeString (wallet, 'used');
             account['total'] = this.safeString (wallet, 'balance');
-            this.balance[code] = account;
+            this.storeByKey (this.balance, code, account);
             this.balance = this.safeBalance (this.balance);
         }
     }

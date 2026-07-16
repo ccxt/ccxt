@@ -116,7 +116,7 @@ export default class blockchaincom extends blockchaincomRest {
             const account = this.account ();
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
-            result[code] = account;
+            this.storeByKey (result, code, account);
         }
         const messageHash = 'balance';
         this.balance = this.safeBalance (result);
