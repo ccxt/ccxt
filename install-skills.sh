@@ -6,6 +6,11 @@
 # Usage:
 #   Local:  ./install-skills.sh
 #   Remote: curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh
+#   Remote with options: 
+#       curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --all
+#       curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --typescript
+#       curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --python
+#       ...
 
 set -e
 
