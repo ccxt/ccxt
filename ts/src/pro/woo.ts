@@ -39,12 +39,16 @@ export default class woo extends wooRest {
                     'ws': {
                         'public': 'wss://wss.woox.io/ws/stream',
                         'private': 'wss://wss.woox.io/v2/ws/private/stream',
+                        'publicV3': 'wss://wss.woox.io/v3/public',
+                        'privateV3': 'wss://wss.woox.io/v3/private',
                     },
                 },
                 'test': {
                     'ws': {
                         'public': 'wss://wss.staging.woox.io/ws/stream',
                         'private': 'wss://wss.staging.woox.io/v2/ws/private/stream',
+                        'publicV3': 'wss://wss.staging.woox.io/v3/public',
+                        'privateV3': 'wss://wss.staging.woox.io/v3/private',
                     },
                 },
             },
@@ -95,6 +99,22 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
+    async watchPublicV3 (messageHash: string, topic: string, params = {}): Promise<FundingRate> {
+        const url = this.urls['api']['ws']['publicV3'];
+        const requestId = this.requestId (url);
+        const request: Dict = {
+            'id': requestId,
+            'cmd': 'SUBSCRIBE',
+            'params': [ topic ],
+        };
+        const subscription: Dict = {
+            'id': requestId.toString (),
+            'version': 'v3',
+            'topic': topic,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
     async unwatchPublic (subHash: string, symbol: string, topic: string, params = {}): Promise<any> {
         const urlUid = (this.uid) ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
@@ -118,6 +138,27 @@ export default class woo extends wooRest {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
             params = this.omit (params, 'symbolsAndTimeframes');
         }
+        return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
+    }
+
+    async unwatchPublicV3 (subHash: string, symbol: string, topic: string, params = {}): Promise<Bool> {
+        const url = this.urls['api']['ws']['publicV3'];
+        const requestId = this.requestId (url);
+        const unsubHash = 'unsubscribe::' + subHash;
+        const message: Dict = {
+            'id': requestId,
+            'cmd': 'UN_SUBSCRIBE',
+            'params': [ subHash ],
+        };
+        const subscription: Dict = {
+            'id': requestId.toString (),
+            'version': 'v3',
+            'unsubscribe': true,
+            'symbols': [ symbol ],
+            'topic': topic,
+            'subMessageHashes': [ subHash ],
+            'unsubMessageHashes': [ unsubHash ],
+        };
         return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
     }
 
@@ -1460,7 +1501,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchFundingRate
      * @description watch the current funding rate
-     * @see https://docs.woox.io/#estfundingrate
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/FUNDING_RATE
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1471,29 +1512,33 @@ export default class woo extends wooRest {
         }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = market['id'] + '@estfundingrate';
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        return await this.watchPublic (topic, message);
+        const topic = 'estfundingrate@' + market['id'];
+        return await this.subscribePublicV3 (topic, topic, params);
     }
 
     handleFundingRate (client: Client, message) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@estfundingrate",
-        //         "ts": 1771484159016,
+        //         "topic": "estfundingrate@PERP_BTC_USDT",
+        //         "ts": 1618820361552,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
-        //             "fundingRate": 0.0001,
-        //             "fundingTs": 1771488000000
+        //             "s": "PERP_BTC_USDT",
+        //             "r": "1.27988",
+        //             "ft": 1618820360000,
+        //             "ts": 1618820200000
         //         }
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const fundingRate = this.parseFundingRate (data);
+        const marketId = this.safeString2 (data, 's', 'symbol');
+        const normalized: Dict = {
+            'symbol': marketId,
+            'fundingRate': this.safeString2 (data, 'r', 'fundingRate'),
+            'fundingTs': this.safeInteger2 (data, 'ft', 'fundingTs'),
+            'estFundingRateTimestamp': this.safeInteger2 (data, 'ts', 'estFundingRateTimestamp'),
+        };
+        const fundingRate = this.parseFundingRate (normalized);
+        fundingRate['info'] = data;
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
         const messageHash = this.safeString (message, 'topic');
@@ -1534,6 +1579,8 @@ export default class woo extends wooRest {
 
     handleUnSubscription (client: Client, message) {
         //
+        // legacy
+        //
         //     {
         //         "id": "2",
         //         "event": "unsubscribe",
@@ -1542,17 +1589,33 @@ export default class woo extends wooRest {
         //         "data": "SPOT_BTC_USDT@orderbook"
         //     }
         //
-        const subscribeHash = this.safeString (message, 'data');
-        const unsubscribeHash = 'unsubscribe::' + subscribeHash;
-        const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
-        for (let i = 0; i < subMessageHashes.length; i++) {
-            const subHash = subMessageHashes[i];
-            const unsubHash = unsubMessageHashes[i];
-            this.cleanUnsubscription (client, subHash, unsubHash);
+        // v3
+        //
+        //     {
+        //         "id": "1",
+        //         "cmd": "UN_SUBSCRIBE",
+        //         "success": true,
+        //         "time": 1759568478343,
+        //         "data": [ "estfundingrate@PERP_BTC_USDT" ]
+        //     }
+        //
+        let subscribeHashes = this.safeList (message, 'data');
+        if (subscribeHashes === undefined) {
+            subscribeHashes = [ this.safeString (message, 'data') ];
         }
-        this.cleanCache (subscription);
+        for (let i = 0; i < subscribeHashes.length; i++) {
+            const subscribeHash = subscribeHashes[i];
+            const unsubscribeHash = 'unsubscribe::' + subscribeHash;
+            const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
+            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
+            for (let j = 0; j < subMessageHashes.length; j++) {
+                const subHash = subMessageHashes[j];
+                const unsubHash = unsubMessageHashes[j];
+                this.cleanUnsubscription (client, subHash, unsubHash);
+            }
+            this.cleanCache (subscription);
+        }
     }
 
     handleMessage (client: Client, message) {
@@ -1564,6 +1627,7 @@ export default class woo extends wooRest {
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,
             'unsubscribe': this.handleUnSubscription,
+            'un_subscribe': this.handleUnSubscription,
             'orderbook': this.handleOrderBook,
             'orderbookupdate': this.handleOrderBook,
             'ticker': this.handleTicker,
@@ -1578,7 +1642,10 @@ export default class woo extends wooRest {
             'bbos': this.handleBidAsk,
             'estfundingrate': this.handleFundingRate,
         };
-        const event = this.safeString (message, 'event');
+        let event = this.safeString (message, 'event');
+        if (event === undefined) {
+            event = this.safeStringLower (message, 'cmd');
+        }
         let method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
@@ -1593,7 +1660,13 @@ export default class woo extends wooRest {
             }
             const splitTopic = topic.split ('@');
             const splitLength = splitTopic.length;
-            if (splitLength === 2) {
+            if (splitLength >= 2) {
+                const firstName = this.safeString (splitTopic, 0);
+                method = this.safeValue (methods, firstName);
+                if (method !== undefined) {
+                    method.call (this, client, message);
+                    return;
+                }
                 const name = this.safeString (splitTopic, 1);
                 method = this.safeValue (methods, name);
                 if (method !== undefined) {
@@ -1613,6 +1686,12 @@ export default class woo extends wooRest {
     }
 
     ping (client: Client) {
+        if (client.url.indexOf ('/v3/') >= 0) {
+            return {
+                'cmd': 'PING',
+                'ts': this.milliseconds (),
+            };
+        }
         return { 'event': 'ping' };
     }
 
