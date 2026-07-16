@@ -1717,6 +1717,7 @@ export default class gate extends Exchange {
         if (swap && enableDecimal && (orderSizeMin !== undefined) && (minAmount !== undefined) && Precise.stringGt (orderSizeMin, '0')) {
             amountPrecision = minAmount;
         }
+        const active = (status === 'trading');
         return {
             'id': id,
             'symbol': symbol,
@@ -1730,9 +1731,9 @@ export default class gate extends Exchange {
             'spot': false,
             'margin': false,
             'swap': swap,
-            'future': marketType === 'future',
+            'future': (marketType === 'future'),
             'option': false,
-            'active': status === 'trading',
+            'active': active,
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
