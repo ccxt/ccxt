@@ -52,6 +52,10 @@ This works with Claude Code, Cursor, Copilot, Windsurf, Codex, and 30+ other AI 
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh
+# or
+curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --all
+# or
+curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --typescript
 ```
 
 This will automatically download and install all five CCXT skills to your system.
