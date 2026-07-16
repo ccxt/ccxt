@@ -115,6 +115,72 @@
         ],
         "createOrder": [
             {
+                "description": "trigger order with stoploss & takeprofit",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A70%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=80&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784225232270&type=TRIGGER_MARKET&signature=b06fe3504118cd0bc077b057e021f4cf30c4b99bccaff1925b1132b0f0fe3ac9",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.6,
+                    0,
+                    {
+                        "triggerPrice": 80,
+                        "stopLoss": {
+                            "triggerPrice": 70
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 90
+                        }
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "trigger order with stoploss & takeprofit",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A70%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=80&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784222445005&type=TRIGGER_MARKET&signature=3079a012eee6d8abbdec82fec4d9d7c7acaa392b9eddfbb079fe6090113c0214",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.6,
+                    0,
+                    {
+                        "triggerPrice": 80,
+                        "stopLoss": {
+                            "triggerPrice": 70
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 90
+                        }
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "trigger order with stoploss & takeprofit",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.6&side=BUY&stopLoss=%7B%22stopPrice%22%3A70%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A0.6%7D&stopPrice=80&symbol=SOL-USDT&takeProfit=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.6%7D&timestamp=1784213969659&type=TRIGGER_MARKET&signature=160c234258816af8c5cfd9da82f812b50988351841d1bd5c27b2f52c7a65340d",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.6,
+                    0,
+                    {
+                        "triggerPrice": 80,
+                        "stopLoss": {
+                            "triggerPrice": 70
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 90
+                        }
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "with stopLoss (exchange-specific)",
                 "disabledGO": true,
                 "disabledJava": true,
