@@ -5,6 +5,7 @@
     "methods": {
         "editOrder": [
             {
+                "disabled": true,
                 "description": "trigger order with stoploss & takeprofit",
                 "method": "editOrder",
                 "input": [
