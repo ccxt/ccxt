@@ -438,9 +438,21 @@ export default class alpaca extends Exchange {
         //     }
         //
         const timestamp = this.safeString (response, 'timestamp');
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const localTime = timestamp.slice (0, 23);
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrStart = timestamp.length - 6;
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrEnd = timestamp.length - 3;
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
         const iso = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
@@ -507,6 +519,9 @@ export default class alpaca extends Exchange {
         //     }
         //
         const marketId = this.safeString (asset, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('/');
         const assetClass = this.safeString (asset, 'class');
         const baseId = this.safeString (parts, 0);

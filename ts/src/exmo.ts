@@ -6,7 +6,7 @@ import Exchange from './abstract/exmo.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, NullableDict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress, OrderBooks, Bool, List } from './base/types.js';
+import type { Dict, NullableDict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, CurrencyInterface, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress, OrderBooks, Bool, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -476,8 +476,9 @@ export default class exmo extends Exchange {
         //     }
         //
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
             const fee = this.safeValue (response, market['id'], {});
             const makerString = this.safeString (fee, 'commission_maker_percent');
@@ -743,7 +744,7 @@ export default class exmo extends Exchange {
         return this.parseCurrencies (newArray);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currency = this.safeDict (rawCurrency, 'currency', {});
         const providers = this.safeList (rawCurrency, 'providers', []);
         const currencyId = this.safeString (currency, 'name');
@@ -757,6 +758,9 @@ export default class exmo extends Exchange {
                 const provider = providers[j];
                 const name = this.safeString (provider, 'name');
                 // get network-id by removing extra things
+                if (name === undefined) {
+                    throw new ExchangeError (this.id + ' parseCurrency() missing name');
+                }
                 let networkId = name.replace (currencyId + ' ', '');
                 networkId = networkId.replace ('(', '');
                 const replaceChar = ')'; // transpiler trick
@@ -2470,7 +2474,9 @@ export default class exmo extends Exchange {
                 const numParts = parts.length;
                 if (numParts === 2) {
                     address = this.safeString (parts, 1);
-                    address = address.replace (' ', '');
+                    if (address !== undefined) {
+                        address = address.replace (' ', '');
+                    }
                 }
             }
         }
@@ -2868,6 +2874,9 @@ export default class exmo extends Exchange {
             if (!success) {
                 let code: Str = undefined;
                 const message = this.safeString2 (response, 'error', 'errmsg');
+                if (message === undefined) {
+                    throw new ExchangeError (this.id + ' handleErrors() missing message');
+                }
                 const errorParts = message.split (':');
                 const numParts = errorParts.length;
                 if (numParts > 1) {

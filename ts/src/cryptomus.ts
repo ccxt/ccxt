@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee, List, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, CurrencyInterface, Fee, List, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -316,6 +316,9 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const marketId = this.safeString (market, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('_');
         const baseId = parts[0];
         const quoteId = parts[1];
@@ -413,7 +416,7 @@ export default class cryptomus extends Exchange {
         return this.parseCurrencies (groupedArray);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         // currency here is array of networks
         let id: Str = undefined; // all entried have same id, as they were grouped by
         let code: Str = undefined;

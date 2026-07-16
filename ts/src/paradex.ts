@@ -1403,6 +1403,9 @@ export default class paradex extends Exchange {
         const now = this.nonce ();
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger (this.options, 'expires');
+            if (cachedExpires === undefined) {
+                throw new ExchangeError (this.id + ' authenticateRest() missing cachedExpires');
+            }
             if (now < cachedExpires) {
                 return cachedToken;
             }
@@ -1656,6 +1659,9 @@ export default class paradex extends Exchange {
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const orderType = this.safeString (request, 'type');
+        if (orderType === undefined) {
+            throw new ExchangeError (this.id + ' signOrderRequest() missing orderType');
+        }
         const isMarket = (orderType.indexOf ('MARKET') >= 0);
         const orderReq: Dict = {
             'timestamp': now * 1000,
@@ -2884,8 +2890,8 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market ((symbol as string));
-        let leverage: Str = undefined;
-        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
+        let leverage = 1;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', leverage);
         const request: Dict = {
             'market': market['id'],
             'leverage': leverage,

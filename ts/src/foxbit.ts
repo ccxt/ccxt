@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -370,7 +370,7 @@ export default class foxbit extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const precision = this.safeInteger (rawCurrency, 'precision');
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const name = this.safeString (rawCurrency, 'name');
@@ -948,6 +948,9 @@ export default class foxbit extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'market_symbol': market['id'],
             'side': side.toUpperCase (),
@@ -1530,6 +1533,9 @@ export default class foxbit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
+        }
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1990,9 +1996,21 @@ export default class foxbit extends Exchange {
             'cost': this.safeNumber (item, 'fee'),
             'currency': currencySymbol,
         };
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+        }
         if (amount < 0) {
             direction = 'out';
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+            }
             realAmount = amount * -1;
+        }
+        if (balance === undefined) {
+            throw new ExchangeError (this.id + ' parseLedgerEntry() missing balance');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
         return {
             'id': id,

@@ -267,6 +267,9 @@ export default class zaif extends Exchange {
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'currency_pair');
         const name = this.safeString (market, 'name');
+        if (name === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing name');
+        }
         const [ baseId, quoteId ] = name.split ('/');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);

@@ -2,7 +2,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder } from '../base/errors.js';
+import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
 import type {
     Int, int, Str, Num, Dict, Strings,
     Market, PredictionOrderBook, OHLCV,
@@ -358,6 +358,9 @@ export default class kalshi extends Exchange {
                 if (this.markets === undefined) {
                     this.markets = this.createSafeDictionary ();
                 }
+                if (parsed === undefined) {
+                    throw new ExchangeError (this.id + ' fetchOutcome() could not resolve parsed');
+                }
                 this.markets[parsed['market']] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -443,6 +446,9 @@ export default class kalshi extends Exchange {
             const rawMarkets = this.safeList (response, 'markets', []) as any[];
             for (let i = 0; i < rawMarkets.length; i++) {
                 const parsed = this.parseMarket (rawMarkets[i]);
+                if (parsed === undefined) {
+                    throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve parsed');
+                }
                 this.markets[parsed['market']] = parsed;
                 this.indexMarketOutcomes (parsed);
             }
@@ -1568,6 +1574,9 @@ export default class kalshi extends Exchange {
             return parsed as PredictionPosition[];
         }
         const wantedTickers: Dict = {};
+        if (outcomes === undefined) {
+            throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');
+        }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -2149,6 +2158,9 @@ export default class kalshi extends Exchange {
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const queries = this.parseSearchQueries (params);
+        if (queries === undefined) {
+            throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         params = this.omit (params, [ 'query', 'queries' ]);
         const userLimit = this.safeInteger (params, 'limit');

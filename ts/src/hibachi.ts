@@ -805,8 +805,9 @@ export default class hibachi extends Exchange {
         const makerFeeRate = this.safeNumber (response, 'tradeMakerFeeRate');
         const takerFeeRate = this.safeNumber (response, 'tradeTakerFeeRate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

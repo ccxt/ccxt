@@ -542,8 +542,14 @@ export default class myriad extends Exchange {
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
         let rHex = this.safeString (signature, 'r');
         let sHex = this.safeString (signature, 's');
+        if (rHex === undefined) {
+            throw new ExchangeError (this.id + ' signEvmTransaction() missing rHex');
+        }
         if ((rHex.length % 2) !== 0) {
             rHex = '0' + rHex;
+        }
+        if (sHex === undefined) {
+            throw new ExchangeError (this.id + ' signEvmTransaction() missing sHex');
         }
         if ((sHex.length % 2) !== 0) {
             sHex = '0' + sHex;
@@ -962,7 +968,13 @@ export default class myriad extends Exchange {
         const scaled = Precise.stringMul (valueStr, '1000000000000000000');
         // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
+        if (scaled === undefined) {
+            throw new ExchangeError (this.id + ' toOrderbookWei() missing scaled');
+        }
         const dotIndex = scaled.indexOf ('.');
+        if (scaled === undefined) {
+            throw new ExchangeError (this.id + ' toOrderbookWei() missing scaled');
+        }
         if (dotIndex > -1) {
             return scaled.slice (0, dotIndex);
         }
@@ -1379,6 +1391,9 @@ export default class myriad extends Exchange {
             return undefined;
         }
         let scale = '1';
+        if (decimals === undefined) {
+            throw new ExchangeError (this.id + ' fromWeiWithDecimals() missing decimals');
+        }
         for (let i = 0; i < decimals; i++) {
             scale = scale + '0';
         }
@@ -1828,6 +1843,9 @@ export default class myriad extends Exchange {
         let percentage = undefined;
         if ((price !== undefined) && (change !== undefined)) {
             previousClose = price - change;
+            if (previousClose === undefined) {
+                throw new ExchangeError (this.id + ' method() missing previousClose');
+            }
             if (previousClose !== 0) {
                 percentage = change / previousClose * 100;
             }
@@ -2378,6 +2396,9 @@ export default class myriad extends Exchange {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
+        if (queries === undefined) {
+            throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         const eventId = this.safeString (params, 'eventId');
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
@@ -2408,6 +2429,9 @@ export default class myriad extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
             const m = this.parseMyriadMarket (raw);
+            if (m === undefined) {
+                throw new ExchangeError (this.id + ' fetchEvents() missing m');
+            }
             this.markets[m['market'] as string] = m;
             const ev = this.parseMarketToEvent (raw, m);
             result.push (ev);

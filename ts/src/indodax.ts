@@ -1430,10 +1430,19 @@ export default class indodax extends Exchange {
                 let network = undefined;
                 if (marketId in networks) {
                     const networkId = this.safeString (networks, marketId);
+                    if (networkId === undefined) {
+                        throw new ExchangeError (this.id + ' fetchDepositAddresses() missing networkId');
+                    }
                     if (networkId.indexOf (',') >= 0) {
                         network = [];
+                        if (networkId === undefined) {
+                            throw new ExchangeError (this.id + ' fetchDepositAddresses() missing networkId');
+                        }
                         const networkIds = networkId.split (',');
                         for (let j = 0; j < networkIds.length; j++) {
+                            if (network === undefined) {
+                                throw new ExchangeError (this.id + ' fetchDepositAddresses() missing network');
+                            }
                             network.push (this.networkIdToCode (networkIds[j], code).toUpperCase ());
                         }
                     } else {

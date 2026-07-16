@@ -3,10 +3,10 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/htx.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported } from './base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, CurrencyInterface, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1636,6 +1636,9 @@ export default class htx extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
+        if (symbols === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
         const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1888,6 +1891,9 @@ export default class htx extends Exchange {
             // check if parsed market is contract
             if (contract) {
                 id = this.safeString (market, 'contract_code');
+                if (id === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing id');
+                }
                 lowercaseId = id.toLowerCase ();
                 const delivery_date = this.safeString (market, 'delivery_date');
                 const business_type = this.safeString (market, 'business_type');
@@ -1897,6 +1903,9 @@ export default class htx extends Exchange {
                 inverse = !linear;
                 if (swap) {
                     type = 'swap';
+                    if (id === undefined) {
+                        throw new ExchangeError (this.id + ' method() missing id');
+                    }
                     const parts = id.split ('-');
                     baseId = this.safeStringLower (market, 'symbol');
                     quoteId = this.safeStringLower (parts, 1);
@@ -1909,6 +1918,9 @@ export default class htx extends Exchange {
                         settleId = baseId;
                     } else {
                         const pair = this.safeString (market, 'pair');
+                        if (pair === undefined) {
+                            throw new ExchangeError (this.id + ' method() missing pair');
+                        }
                         const parts = pair.split ('-');
                         quoteId = this.safeStringLower (parts, 1);
                         settleId = quoteId;
@@ -1918,6 +1930,12 @@ export default class htx extends Exchange {
                 type = 'spot';
                 baseId = this.safeString (market, 'base-currency');
                 quoteId = this.safeString (market, 'quote-currency');
+                if (quoteId === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing quoteId');
+                }
+                if (baseId === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing baseId');
+                }
                 id = baseId + quoteId;
                 lowercaseId = id.toLowerCase ();
             }
@@ -2592,6 +2610,9 @@ export default class htx extends Exchange {
         //         }
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchOrderBook() returned empty response');
+        }
         if ('tick' in response) {
             if (!response['tick']) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
@@ -3423,7 +3444,7 @@ export default class htx extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         if (!('networkNamesByChainIds' in this.options)) {
             this.options['networkNamesByChainIds'] = {};
         }
@@ -3554,7 +3575,10 @@ export default class htx extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let subType: SubType = undefined;
         let isMultiAssetMode: Bool = undefined;
-        [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType');
+        if (subType === undefined) {
+            subType = 'linear';
+        }
         [ isMultiAssetMode, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
@@ -4013,8 +4037,14 @@ export default class htx extends Exchange {
         } else {
             account = this.account ();
         }
+        if (account === undefined) {
+            throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
+        }
         if (balance['type'] === 'trade') {
             account['free'] = this.safeString (balance, 'balance');
+        }
+        if (account === undefined) {
+            throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
         if (balance['type'] === 'frozen') {
             account['used'] = this.safeString (balance, 'balance');
@@ -6461,6 +6491,9 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        if (timeout === undefined) {
+            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const request: Dict = {
             'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
         };
@@ -6785,6 +6818,9 @@ export default class htx extends Exchange {
         }
         const networkId = this.safeString (transaction, 'chain');
         let txHash = this.safeString (transaction, 'tx-hash');
+        if (txHash === undefined) {
+            throw new ExchangeError (this.id + ' parseTransaction() missing txHash');
+        }
         if (networkId === 'ETH' && txHash.indexOf ('0x') < 0) {
             txHash = '0x' + txHash;
         }
@@ -7481,7 +7517,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        const defaultSubType: SubType = 'linear';
         let subType: SubType = undefined;
         [ subType, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
         if (symbols !== undefined) {

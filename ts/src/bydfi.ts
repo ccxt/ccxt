@@ -618,6 +618,9 @@ export default class bydfi extends Exchange {
         const limits = [ 5, 10, 20, 50, 100, 500, 1000 ];
         let result = 1000;
         for (let i = 0; i < limits.length; i++) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' getClosestLimit() requires a limit argument');
+            }
             if (limit <= limits[i]) {
                 result = limits[i];
                 break;
@@ -858,6 +861,9 @@ export default class bydfi extends Exchange {
             startTime = now - timeDelta;
             until = now;
         } else if (until === undefined) {
+            if (startTime === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
+            }
             until = startTime + timeDelta;
             if (until > now) {
                 until = now;
@@ -1233,6 +1239,9 @@ export default class bydfi extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),

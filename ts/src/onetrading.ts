@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, NullableDict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -441,7 +441,7 @@ export default class onetrading extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'code');
         const code = this.safeCurrencyCode (id);
         return this.safeCurrencyStructure ({
@@ -675,8 +675,9 @@ export default class onetrading extends Exchange {
         const firstSpotTier = this.safeDict (spotTiers, 0, {});
         const firstFuturesTier = this.safeDict (futuresTiers, 0, {});
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
             const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
@@ -742,8 +743,9 @@ export default class onetrading extends Exchange {
         futuresTakerFee = Precise.stringDiv (futuresTakerFee, '100');
         const result: Dict = {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
             const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
             const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
@@ -1032,6 +1034,9 @@ export default class onetrading extends Exchange {
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' parseOHLCV() missing timestamp');
+        }
         const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
@@ -1063,6 +1068,9 @@ export default class onetrading extends Exchange {
         }
         const market = this.market (symbol);
         const periodUnit = this.safeString (this.timeframes, timeframe);
+        if (periodUnit === undefined) {
+            throw new ExchangeError (this.id + ' fetchOHLCV() missing periodUnit');
+        }
         const [ period, unit ] = periodUnit.split ('/');
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
@@ -1386,6 +1394,9 @@ export default class onetrading extends Exchange {
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP

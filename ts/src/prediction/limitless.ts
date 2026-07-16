@@ -27,7 +27,7 @@ import type {
     Account, fetchEventsParams,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound, ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions.js';
 
@@ -1163,6 +1163,9 @@ export default class limitless extends Exchange {
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
+            if (slug === undefined) {
+                throw new ExchangeError (this.id + ' fetchTickers() missing slug');
+            }
             if (!(slug in outcomesBySlug)) {
                 outcomesBySlug[slug] = [];
                 slugs.push (slug);
@@ -1405,6 +1408,9 @@ export default class limitless extends Exchange {
                 for (let i = 0; i < rawHistory.length; i++) {
                     const series = this.safeDict (rawHistory, i, {});
                     const title = this.safeStringUpper (series, 'title', '');
+                    if (title === undefined) {
+                        throw new ExchangeError (this.id + ' fetchOHLCV() missing title');
+                    }
                     if ((outcomeLabel !== undefined) && (title.indexOf (outcomeLabel) >= 0)) {
                         selectedSeries = series;
                         break;
@@ -1443,6 +1449,9 @@ export default class limitless extends Exchange {
             const point = sorted[i];
             const pTs = this.safeInteger (point, 'timestamp');
             const pPrice = this.safeNumber (point, 'price');
+            if (pTs === undefined) {
+                throw new ExchangeError (this.id + ' method() missing pTs');
+            }
             const bucket = this.parseToInt (pTs / ms) * ms;
             const key = bucket.toString ();
             if (!(key in candles)) {
@@ -2060,6 +2069,9 @@ export default class limitless extends Exchange {
             'buy': 0,
             'sell': 1,
         };
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const sideValue = this.safeInteger (sides, side.toLowerCase ());
         const rank = this.safeDict (accountInfo, 'rank');
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2606,13 +2618,22 @@ export default class limitless extends Exchange {
         const amount = this.safeString (trade, 'outcomeTokenAmount');
         const cost = this.safeString (trade, 'collateralAmount');
         const rawSide = this.safeStringLower (trade, 'strategy');
+        if (rawSide === undefined) {
+            throw new ExchangeError (this.id + ' parsePredictionTrade() missing rawSide');
+        }
         const sellIndex = rawSide.indexOf ('sell');
         const side = (sellIndex >= 0) ? 'sell' : 'buy';
         let type = undefined;
         let takerOrMaker = undefined;
+        if (rawSide === undefined) {
+            throw new ExchangeError (this.id + ' parsePredictionTrade() missing rawSide');
+        }
         if (rawSide.indexOf ('limit') >= 0) {
             type = 'limit';
             takerOrMaker = 'maker';
+        if (rawSide === undefined) {
+            throw new ExchangeError (this.id + ' method() missing rawSide');
+        }
         } else if (rawSide.indexOf ('market') >= 0) {
             type = 'market';
             takerOrMaker = 'taker';
@@ -2871,6 +2892,9 @@ export default class limitless extends Exchange {
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
+        if (queries === undefined) {
+            throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ]);
         const eventId = this.safeString2 (params, 'eventId', 'slug');
@@ -2883,6 +2907,9 @@ export default class limitless extends Exchange {
             const limit = Math.min (requestedLimit, 50);
             const seen: Dict = {};
             for (let i = 0; i < queries.length; i++) {
+                if (queries === undefined) {
+                    throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+                }
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({
                     'query': q,
@@ -2927,6 +2954,9 @@ export default class limitless extends Exchange {
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
             const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
+            if (m === undefined) {
+                throw new ExchangeError (this.id + ' fetchEvents() missing m');
+            }
             this.markets[m['market'] as string] = m;
             if (eventKey) {
                 if (!(eventKey in eventGroups)) {
@@ -3033,6 +3063,9 @@ export default class limitless extends Exchange {
             const categoryId = this.safeString (category, 'id');
             let matched = false;
             for (let wi = 0; wi < wanted.length; wi++) {
+                if (name === undefined) {
+                    throw new ExchangeError (this.id + ' fetchRawMarketsByTags() missing name');
+                }
                 if (name.indexOf (wanted[wi]) >= 0) {
                     matched = true;
                     break;

@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -856,7 +856,7 @@ export default class weex extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
@@ -1036,6 +1036,9 @@ export default class weex extends Exchange {
             pricePrecision = this.parseNumber (pricePrecisionString);
         }
         const fees = this.safeDict (this.fees, isSpot ? 'spot' : 'contract', {});
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' method() missing id');
+        }
         return this.safeMarketStructure ({
             'id': id,
             'lowercaseId': id.toLowerCase (),
@@ -1442,6 +1445,9 @@ export default class weex extends Exchange {
                     endTime = now;
                     startTime = now - timeDelta;
                 } else if (since === undefined) {
+                    if (until === undefined) {
+                        throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
+                    }
                     startTime = until - timeDelta;
                 } else {
                     endTime = since + timeDelta;
@@ -2016,6 +2022,9 @@ export default class weex extends Exchange {
 
     createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createSpotOrderRequest() requires a side argument');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -2081,6 +2090,9 @@ export default class weex extends Exchange {
 
     createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createContractOrderRequest() requires a side argument');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -3115,6 +3127,9 @@ export default class weex extends Exchange {
             currency = this.currency (code);
         }
         if (accountType === 'contract') {
+            if (currency === undefined) {
+                throw new ExchangeError (this.id + ' fetchLedger() could not resolve currency');
+            }
             if (code !== undefined) {
                 request['currency'] = currency['id'];
             }
@@ -3202,6 +3217,9 @@ export default class weex extends Exchange {
         const before = Precise.stringSub (after, amountRaw);
         const amount = this.parseNumber (Precise.stringAbs (amountRaw));
         let direction = 'in';
+        if (amountRaw === undefined) {
+            throw new ExchangeError (this.id + ' parseLedgerEntry() missing amountRaw');
+        }
         if (amountRaw.indexOf ('-') >= 0) {
             direction = 'out';
         }

@@ -522,6 +522,9 @@ export default class upbit extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'market');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);

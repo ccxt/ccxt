@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseexchange.js';
 import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, List, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -522,7 +522,7 @@ export default class coinbaseexchange extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency): Currency {
+    parseCurrency (rawCurrency): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'id');
         const name = this.safeString (rawCurrency, 'name');
         const code = this.safeCurrencyCode (id);

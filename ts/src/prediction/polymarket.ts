@@ -14,7 +14,7 @@ import type {
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable, ExchangeError } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -854,6 +854,9 @@ export default class polymarket extends Exchange {
                 const ccxtMarketsLength = ccxtMarkets.length;
                 for (let i = 0; i < ccxtMarketsLength; i++) {
                     const mkt = ccxtMarkets[i];
+                    if (mkt === undefined) {
+                        throw new ExchangeError (this.id + ' fetchOutcome() could not resolve mkt');
+                    }
                     this.markets[mkt['market'] as string] = mkt;
                 }
                 this.populateOutcomes ();
@@ -911,6 +914,9 @@ export default class polymarket extends Exchange {
                 const ccxtMarkets = this.parseEventToMarkets ({ 'markets': rawMarkets });
                 for (let i = 0; i < ccxtMarkets.length; i++) {
                     const mkt = ccxtMarkets[i];
+                    if (mkt === undefined) {
+                        throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve mkt');
+                    }
                     this.markets[mkt['market'] as string] = mkt;
                 }
                 startIndex = this.sum (startIndex, chunkSize);
@@ -1674,6 +1680,9 @@ export default class polymarket extends Exchange {
             return parsed;
         }
         const wantedIds: Dict = {};
+        if (outcomes === undefined) {
+            throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');
+        }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             wantedIds[outcomeObj['outcomeId']] = true;
@@ -2350,6 +2359,9 @@ export default class polymarket extends Exchange {
         const requestedSlug = this.safeString (params, 'slug');
         const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries', 'eventId', 'slug' ]);
+        if (queries === undefined) {
+            throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         let rawEvents: any[] = [];
         if ((requestedEventId !== undefined) || (requestedSlug !== undefined)) {
@@ -2397,6 +2409,9 @@ export default class polymarket extends Exchange {
             }
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
                 const m = ccxtMarkets[mi];
+                if (m === undefined) {
+                    throw new ExchangeError (this.id + ' fetchEvents() missing m');
+                }
                 this.markets[m['market'] as string] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
@@ -3069,6 +3084,9 @@ export default class polymarket extends Exchange {
         const messageHash = 'ticker::' + outcome;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
+        if (outcome === undefined) {
+            throw new ExchangeError (this.id + ' watchTicker() missing outcome');
+        }
         if (!(outcome in this.orderbooks)) {
             const seededBook = this.orderBook ({});
             this.orderbooks[outcome] = seededBook;

@@ -6,7 +6,7 @@ import Exchange from './abstract/xt.js';
 import type { Bool, Currencies, Currency, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, List, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, SubType, Tickers, Transaction, TransferEntry, int, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5181,8 +5181,14 @@ export default class xt extends Exchange {
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
+                if (body === undefined) {
+                    throw new NullResponse (this.id + ' sign() returned empty body');
+                }
                 if (payload.indexOf ('future') > -1) {
                     body['clientMedia'] = id;
+                if (body === undefined) {
+                    throw new NullResponse (this.id + ' sign() returned empty body');
+                }
                 } else {
                     body['media'] = id;
                 }

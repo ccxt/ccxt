@@ -6,7 +6,7 @@ import Exchange from './abstract/bitopro.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, List } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -373,7 +373,7 @@ export default class bitopro extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -442,6 +442,9 @@ export default class bitopro extends Exchange {
     parseMarket (market: Dict): Market {
         const active = !this.safeBool (market, 'maintain');
         const id = this.safeString (market, 'pair');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         const uppercaseId = id.toUpperCase ();
         const baseId = this.safeString (market, 'base');
         const quoteId = this.safeString (market, 'quote');
@@ -855,8 +858,9 @@ export default class bitopro extends Exchange {
         const result: Dict = {};
         const maker = this.safeNumber (first, 'makerFee');
         const taker = this.safeNumber (first, 'takerFee');
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.requireSymbols ();
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': first,
                 'symbol': symbol,
@@ -1088,6 +1092,9 @@ export default class bitopro extends Exchange {
         const id = this.safeString2 (order, 'id', 'orderId');
         const timestamp = this.safeInteger2 (order, 'timestamp', 'createdTimestamp');
         let side = this.safeString (order, 'action');
+        if (side === undefined) {
+            throw new ExchangeError (this.id + ' parseOrder() returned no side');
+        }
         side = side.toLowerCase ();
         const amount = this.safeString2 (order, 'amount', 'originalAmount');
         const price = this.safeString (order, 'price');

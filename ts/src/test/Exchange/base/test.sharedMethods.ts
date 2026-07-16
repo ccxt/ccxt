@@ -169,6 +169,9 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
             const tsMs = entry['timestamp'];
+            if (dtParsed === undefined) {
+                assert (false, 'datetime is not parseable: ' + dt + logText);
+            }
             const diff = Math.abs (dtParsed - tsMs);
             if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
                 const dtParsedString = exchange.iso8601 (dtParsed);
