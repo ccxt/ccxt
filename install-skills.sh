@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This is CCXT Skills Installation Script (POSIX sh)
+# CCXT Skills Installation Script (POSIX sh)
 # Installs CCXT usage skills for Claude Code, OpenCode, Codex, and Gemini
 #
 # Usage:
@@ -75,13 +75,16 @@ OPTIONS:
     --go            Install only ccxt-go skill
     --cli           Install only ccxt-cli skill
     --all           Install all skills (default)
+    --remote        Force download from GitHub, even inside the repo
+    --github        Alias for --remote
     --help          Display this help message
 
 EXAMPLES:
-    $0                     # Interactive mode
+    $0                      # Interactive mode
     $0 --all               # Install all skills
     $0 --typescript        # Install only TypeScript skill
     $0 --python --php      # Install Python and PHP skills
+    $0 --remote --go       # Install Go skill from GitHub, ignore working tree
 
 The skills will be installed to:
   - ~/.claude/skills/ (for Claude Code)
@@ -145,9 +148,9 @@ setup_remote_install() {
         exit 1
     }
 
-    # Download all selected skills
+    # Download the selected skills
     ri_download_success=true
-    for ri_skill in $ALL_SKILLS; do
+    for ri_skill in $selected_skills; do
         if ! download_skill "$ri_skill"; then
             ri_download_success=false
         fi
@@ -264,7 +267,20 @@ interactive_mode() {
     echo "  8) Exit            - Cancel installation"
     echo ""
     printf 'Enter your choice (1-8): '
-    read -r choice
+
+    # When the script is piped into sh (curl ... | sh), stdin is the script
+    # itself and is already at EOF, so read from the terminal directly.
+    if [ -t 0 ]; then
+        read -r choice
+    elif (exec < /dev/tty) 2>/dev/null; then
+        read -r choice < /dev/tty
+    else
+        # No terminal available (CI, docker build, etc.) - default to all
+        echo ""
+        print_warning "No terminal available for interactive input - installing all skills"
+        selected_skills="$ALL_SKILLS"
+        return 0
+    fi
 
     case $choice in
         1)
@@ -304,61 +320,69 @@ interactive_mode() {
 # Main installation function
 main() {
     selected_skills=""
+    FORCE_REMOTE=false
 
-    # Detect if running remotely and setup if needed
-    if detect_remote_install; then
-        # Remote installation - download skills from GitHub
-        # In remote mode, default to installing all skills
-        if [ $# -eq 0 ]; then
-            selected_skills="$ALL_SKILLS"
-        fi
+    # Parse command line arguments first, so --remote/--github can
+    # influence source detection below
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --help|-h)
+                usage
+                ;;
+            --remote|--github)
+                FORCE_REMOTE=true
+                ;;
+            --typescript)
+                selected_skills="$selected_skills ccxt-typescript"
+                ;;
+            --python)
+                selected_skills="$selected_skills ccxt-python"
+                ;;
+            --php)
+                selected_skills="$selected_skills ccxt-php"
+                ;;
+            --csharp)
+                selected_skills="$selected_skills ccxt-csharp"
+                ;;
+            --go)
+                selected_skills="$selected_skills ccxt-go"
+                ;;
+            --cli)
+                selected_skills="$selected_skills ccxt-cli"
+                ;;
+            --all)
+                selected_skills="$ALL_SKILLS"
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Use --help for usage information."
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    # Decide the skills source:
+    #   --remote/--github  -> always pull from GitHub
+    #   otherwise          -> local working tree if present (default),
+    #                         GitHub if not (e.g. piped via curl outside the repo)
+    if [ "$FORCE_REMOTE" = true ]; then
+        IS_REMOTE_INSTALL=true
+        print_info "Remote mode forced - will download skills from GitHub"
+    else
+        detect_remote_install || true
     fi
 
-    # Parse command line arguments
-    if [ $# -eq 0 ]; then
-        # No arguments
-        if [ "$IS_REMOTE_INSTALL" = false ]; then
-            # Local mode - run interactive mode
+    # If no skills were selected via flags:
+    #   remote mode -> default to all skills
+    #   local mode  -> interactive menu
+    if [ -z "$selected_skills" ]; then
+        if [ "$IS_REMOTE_INSTALL" = true ]; then
+            selected_skills="$ALL_SKILLS"
+        else
             check_source_directory
             interactive_mode
         fi
-        # Remote mode - already set selected_skills to ALL_SKILLS above
-    else
-        # Parse flags
-        while [ $# -gt 0 ]; do
-            case "$1" in
-                --help|-h)
-                    usage
-                    ;;
-                --typescript)
-                    selected_skills="$selected_skills ccxt-typescript"
-                    ;;
-                --python)
-                    selected_skills="$selected_skills ccxt-python"
-                    ;;
-                --php)
-                    selected_skills="$selected_skills ccxt-php"
-                    ;;
-                --csharp)
-                    selected_skills="$selected_skills ccxt-csharp"
-                    ;;
-                --go)
-                    selected_skills="$selected_skills ccxt-go"
-                    ;;
-                --cli)
-                    selected_skills="$selected_skills ccxt-cli"
-                    ;;
-                --all)
-                    selected_skills="$ALL_SKILLS"
-                    ;;
-                *)
-                    print_error "Unknown option: $1"
-                    echo "Use --help for usage information."
-                    exit 1
-                    ;;
-            esac
-            shift
-        done
     fi
 
     # Trim leading whitespace from accumulated list
