@@ -296,7 +296,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         let messageHash = '';
         symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             messageHash = '::' + symbols.join (',');
         }
         messageHash = 'positions' + messageHash;
@@ -1095,8 +1095,9 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const marketId = this.safeString (ticker, 'product_id');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket (marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
@@ -1165,7 +1166,13 @@ export default class krakenfutures extends krakenfuturesRest {
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         const orderbook = this.orderbooks[symbol];
         const bids = this.safeList (message, 'bids');
+        if (bids === undefined) {
+            return;
+        }
         const asks = this.safeList (message, 'asks');
+        if (asks === undefined) {
+            return;
+        }
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
             const price = this.safeNumber (bid, 'price');

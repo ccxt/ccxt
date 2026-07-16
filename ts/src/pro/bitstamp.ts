@@ -101,6 +101,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -108,6 +111,9 @@ export default class bitstamp extends bitstampRest {
         const nonce = this.safeValue (storedOrderBook, 'nonce');
         const delta = this.safeValue (message, 'data');
         const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+        if (deltaNonce === undefined) {
+            return;
+        }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -150,8 +156,11 @@ export default class bitstamp extends bitstampRest {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
+        if (firstElementNonce === undefined) {
+            return;
+        }
         const nonce = this.safeInteger (orderbook, 'nonce');
-        if (nonce < firstElementNonce) {
+        if ((nonce === undefined) || (nonce < firstElementNonce)) {
             return -1;
         }
         for (let i = 0; i < deltas.length; i++) {
@@ -213,10 +222,16 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const microtimestamp = this.safeInteger (trade, 'microtimestamp');
+        if (microtimestamp === undefined) {
+            return;
+        }
         const id = this.safeString (trade, 'id');
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
+        if (market === undefined) {
+            return;
+        }
         const symbol = market['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');
         const side = (sideRaw === 0) ? 'buy' : 'sell';
@@ -259,6 +274,9 @@ export default class bitstamp extends bitstampRest {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
@@ -424,6 +442,9 @@ export default class bitstamp extends bitstampRest {
 
     handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -444,6 +465,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         if (channel.indexOf ('order_book') > -1) {
             this.handleOrderBookSubscription (client, message);
         }
@@ -488,6 +512,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const methods: Dict = {
             'live_trades': this.handleTrade,
             'diff_order_book': this.handleOrderBook,

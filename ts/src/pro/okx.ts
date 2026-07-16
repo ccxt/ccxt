@@ -136,13 +136,22 @@ export default class okx extends okxRest {
         const url = this.getUrl (channel, access);
         const messageHashes: List = [];
         const args: List = [];
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbols is required');
+        }
         for (let i = 0; i < symbols.length; i++) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbols is required');
+            }
             const marketId = this.marketId (symbols[i]);
             const arg: Dict = {
                 'channel': channel,
                 'instId': marketId,
             };
             args.push (this.extend (arg, params));
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' subscribeMultiple() symbols is required');
+            }
             messageHashes.push (channel + '::' + symbols[i]);
         }
         const request: Dict = {
@@ -750,6 +759,9 @@ export default class okx extends okxRest {
         } else if (type === 'future') {
             type = 'futures';
         }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchLiquidationsForSymbols() type is required');
+        }
         const uppercaseType = type.toUpperCase ();
         const request = {
             'op': 'subscribe',
@@ -1148,6 +1160,9 @@ export default class okx extends okxRest {
         //
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const data = this.safeValue (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
@@ -1756,6 +1771,9 @@ export default class okx extends okxRest {
         if (type === 'future') {
             type = 'futures';
         }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() type is required');
+        }
         let uppercaseType = type.toUpperCase ();
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchMyTrades', params);
@@ -1947,6 +1965,9 @@ export default class okx extends okxRest {
         }
         if (type === 'future') {
             type = 'futures';
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() type is required');
         }
         let uppercaseType = type.toUpperCase ();
         let marginMode: Str = undefined;
@@ -2562,6 +2583,9 @@ export default class okx extends okxRest {
         } else {
             const arg = this.safeValue (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
+            if (channel === undefined) {
+                return;
+            }
             const methods: Dict = {
                 'bbo-tbt': this.handleOrderBook, // newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': this.handleOrderBook, // all API users can subscribe, public depth channel, verification not required
@@ -2616,6 +2640,9 @@ export default class okx extends okxRest {
     handleUnsubscriptionOHLCV (client: Client, symbol: string, channel: string) {
         const tf = channel.replace ('candle', '');
         const timeframe = this.findTimeframe (tf);
+        if (timeframe === undefined) {
+            return;
+        }
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);

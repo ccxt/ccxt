@@ -763,6 +763,9 @@ export default class bitmart extends bitmartRest {
             const stored = this.orders;
             for (let i = 0; i < orders.length; i++) {
                 const order = this.parseWsOrder (orders[i]);
+                if (order === undefined) {
+                    continue;
+                }
                 stored.append (order);
                 newOrders.push (order);
                 const symbol = order['symbol'];
@@ -874,6 +877,9 @@ export default class bitmart extends bitmartRest {
             const updatedTimestamp = this.safeInteger (orderInfo, 'update_time');
             const lastTrade = this.safeDict (orderInfo, 'last_trade');
             const cachedOrders = this.orders;
+            if (cachedOrders === undefined) {
+                return;
+            }
             const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
             const cachedOrder = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
             let trades: NullableList = undefined;

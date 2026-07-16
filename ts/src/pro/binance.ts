@@ -732,6 +732,9 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
             const subscriptionHash = market['lowercaseId'] + '@' + name;
+            if (watchOrderBookRate === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
+            }
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString () + 'ms';
             subParams.push (symbolHash);
         }
@@ -937,7 +940,13 @@ export default class binance extends binanceRest {
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const U = this.safeInteger (messageItem, 'U');
+                if (U === undefined) {
+                    return;
+                }
                 const u = this.safeInteger (messageItem, 'u');
+                if (u === undefined) {
+                    return;
+                }
                 const pu = this.safeInteger (messageItem, 'pu');
                 if (type === 'future') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
@@ -1034,7 +1043,13 @@ export default class binance extends binanceRest {
         } else {
             try {
                 const U = this.safeInteger (message, 'U');
+                if (U === undefined) {
+                    return;
+                }
                 const u = this.safeInteger (message, 'u');
+                if (u === undefined) {
+                    return;
+                }
                 const pu = this.safeInteger (message, 'pu');
                 if (pu === undefined) {
                     // spot
@@ -1558,6 +1573,9 @@ export default class binance extends binanceRest {
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
             let marketId = market['lowercaseId'];
+            if (marketId === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchOHLCVForSymbols() marketId is required');
+            }
             if (klineType === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
@@ -1627,6 +1645,9 @@ export default class binance extends binanceRest {
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
             let marketId = market['lowercaseId'];
+            if (marketId === undefined) {
+                throw new ArgumentsRequired (this.id + ' unWatchOHLCVForSymbols() marketId is required');
+            }
             if (klineType === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
@@ -2085,7 +2106,7 @@ export default class binance extends binanceRest {
         let firstMarket: Market = undefined;
         let marketType: Str = undefined;
         const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
+        if (symbols !== undefined) {
             firstMarket = this.market (symbols[0]);
         }
         const defaultMarket = (isMarkPrice) ? 'swap' : undefined;
@@ -2120,7 +2141,7 @@ export default class binance extends binanceRest {
         } else {
             unifiedPrefix = 'ticker';
         }
-        if (symbolsDefined) {
+        if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -2145,7 +2166,7 @@ export default class binance extends binanceRest {
             unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
         }
         let streamHash = channelName;
-        if (symbolsDefined) {
+        if (symbols !== undefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
         const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash);
@@ -2566,6 +2587,9 @@ export default class binance extends binanceRest {
             const response = await this.sapiPostUserListenToken (request);
             const listenToken = this.safeString (response, 'token');
             const expirationTime = this.safeInteger (response, 'expirationTime');
+            if (expirationTime === undefined) {
+                return;
+            }
             // Step 2: Subscribe to user data stream via WebSocket API
             const requestId = this.requestId (url);
             const messageHash = requestId.toString ();
@@ -3157,6 +3181,9 @@ export default class binance extends binanceRest {
         } else {
             message = this.safeDict (message, 'a', message);
             const B = this.safeList (message, 'B');
+            if (B === undefined) {
+                return;
+            }
             for (let i = 0; i < B.length; i++) {
                 const entry = B[i];
                 const currencyId = this.safeString (entry, 'a');
@@ -4184,6 +4211,9 @@ export default class binance extends binanceRest {
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
@@ -4262,7 +4292,7 @@ export default class binance extends binanceRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -4568,7 +4598,8 @@ export default class binance extends binanceRest {
         let type: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            const marketResolved = this.market (symbol);
+            market = marketResolved;
             symbol = market['symbol'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
@@ -4580,7 +4611,7 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         let messageHash = 'myTrades';
-        if (symbol !== undefined) {
+        if ((symbol !== undefined) && (market !== undefined)) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
             params = this.extend (params, { 'type': market['type'], 'symbol': symbol });

@@ -124,6 +124,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         if (type === 'spot') {
@@ -288,6 +291,9 @@ export default class exmo extends exmoRest {
         //      }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const topicParts = topic.split (':');
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -346,6 +352,9 @@ export default class exmo extends exmoRest {
         //      }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -463,6 +472,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'myTrades:' + type;
@@ -475,6 +487,9 @@ export default class exmo extends exmoRest {
             this.myTrades = myTrades;
         } else {
             myTrades = this.myTrades;
+        }
+        if (myTrades === undefined) {
+            return;
         }
         if (event === 'snapshot') {
             rawTrades = this.safeValue (message, 'data', []);
@@ -563,6 +578,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -695,6 +713,9 @@ export default class exmo extends exmoRest {
         // }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'orders:' + type;

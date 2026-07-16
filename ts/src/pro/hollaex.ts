@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
-import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool, Market, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -111,6 +111,9 @@ export default class hollaex extends hollaexRest {
             this.orderbooks[symbol] = orderbook;
         } else {
             orderbook = this.orderbooks[symbol];
+            if (orderbook === undefined) {
+                return;
+            }
             orderbook.reset (snapshot);
         }
         const messageHash = channel + ':' + marketId;
@@ -456,6 +459,9 @@ export default class hollaex extends hollaexRest {
         if (expires === undefined) {
             const timeout = parseInt ((this.timeout / 1000).toString ());
             expires = this.sum (this.seconds (), timeout);
+            if (expires === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPrivate() expires is required');
+            }
             expires = expires.toString ();
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message

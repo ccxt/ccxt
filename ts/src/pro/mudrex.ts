@@ -180,6 +180,9 @@ export default class mudrex extends mudrexRest {
 
     handleOHLCV (client, message) {
         const stream = this.safeString (message, 'stream');
+        if (stream === undefined) {
+            return;
+        }
         const parts = stream.split ('@');
         const interval = parts[1];
         const tf = this.findTimeframe (interval);

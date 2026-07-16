@@ -5384,10 +5384,15 @@ export class BaseExchange {
     marketIds (symbols: string[]): string[];
     marketIds (symbols?: Strings): Strings;
     marketIds (symbols: Strings = undefined): Strings {
+        /**
+         * @param {string[]|undefined} symbols list of unified symbols
+         * @returns {string[]|undefined} list of exchange-specific market ids
+         * Overloads: non-null `string[]` input yields `string[]`; optional input yields `Strings`.
+         */
         if (symbols === undefined) {
             return symbols;
         }
-        const result = [];
+        const result: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.marketId (symbols[i]));
         }
@@ -5418,9 +5423,20 @@ export class BaseExchange {
         return result;
     }
 
+    // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
+    marketSymbols (symbols: Strings, type: Str | undefined, allowEmpty: false, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): string[];
     marketSymbols (symbols: string[], type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): string[];
     marketSymbols (symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): Strings;
     marketSymbols (symbols: Strings = undefined, type: Str = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false): Strings {
+        /**
+         * @param {string[]|undefined} symbols list of unified symbols
+         * @param {string|undefined} type filter by market type
+         * @param {boolean} allowEmpty whether empty/undefined symbols is allowed
+         * @param {boolean} sameTypeOnly require all markets to share type
+         * @param {boolean} sameSubTypeOnly require all markets to share linear/inverse subType
+         * @returns {string[]|undefined} validated unified symbols
+         * Overloads: `allowEmpty: false` or non-null `string[]` input yields `string[]`; permissive form yields `Strings`.
+         */
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
@@ -5434,7 +5450,7 @@ export class BaseExchange {
             }
             return symbols;
         }
-        const result = [];
+        const result: string[] = [];
         let marketType = undefined;
         let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
@@ -7783,13 +7799,18 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    getMarketFromSymbols (symbols: Strings = undefined) {
+    getMarketFromSymbols (symbols: string[]): MarketInterface;
+    getMarketFromSymbols (symbols?: Strings): Market;
+    getMarketFromSymbols (symbols: Strings = undefined): Market {
+        /**
+         * @param {string[]|undefined} symbols list of unified symbols (first element selects the market)
+         * @returns {MarketInterface|undefined} market structure for the first symbol, or undefined if symbols is undefined
+         * Overloads: non-null `string[]` input yields `MarketInterface`; optional input yields `Market`.
+         */
         if (symbols === undefined) {
             return undefined;
         }
-        const firstMarket = this.safeString (symbols, 0);
-        const market = this.market (firstMarket);
-        return market;
+        return this.market (symbols[0]);
     }
 
     parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {

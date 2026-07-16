@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
@@ -157,6 +157,9 @@ export default class poloniex extends poloniexRest {
         if (this.isEmpty (symbols)) {
             marketIds.push ('all');
         } else {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' subscribe() symbols is required');
+            }
             messageHash = messageHash + '::' + symbols.join (',');
             marketIds = this.marketIds (symbols);
         }
@@ -215,6 +218,9 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const market = this.market (symbol);
         let uppercaseType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderWs() side is required');
+        }
         const uppercaseSide = side.toUpperCase ();
         const isPostOnly = this.isPostOnly (uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {

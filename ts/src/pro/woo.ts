@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import wooRest from '../woo.js';
-import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, NullableDict, List, Bool, FundingRate, Market } from '../base/types.js';
@@ -213,6 +213,9 @@ export default class woo extends wooRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const method = this.safeString (topic.split ('@'), 1);
         if (method === 'orderbookupdate') {
             if (!(symbol in this.orderbooks)) {
@@ -225,6 +228,9 @@ export default class woo extends wooRest {
             } else {
                 try {
                     const ts = this.safeInteger (message, 'ts');
+                    if (ts === undefined) {
+                        return;
+                    }
                     if (ts > timestamp) {
                         this.handleOrderBookMessage (client, message, orderbook);
                         client.resolve (orderbook, topic);
@@ -254,6 +260,9 @@ export default class woo extends wooRest {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
+        if (symbol === undefined) {
+            return;
+        }
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
@@ -279,6 +288,9 @@ export default class woo extends wooRest {
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const ts = this.safeInteger (messageItem, 'ts');
+                if (ts === undefined) {
+                    return;
+                }
                 if (ts < orderbook['timestamp']) {
                     continue;
                 } else {
@@ -587,6 +599,9 @@ export default class woo extends wooRest {
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i);
+            if (ticker === undefined) {
+                return;
+            }
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
@@ -1276,7 +1291,13 @@ export default class woo extends wooRest {
         const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             for (let i = 0; i < symbols.length; i++) {
+                if (symbols === undefined) {
+                    throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+                }
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);
             }
@@ -1323,7 +1344,7 @@ export default class woo extends wooRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -1595,6 +1616,9 @@ export default class woo extends wooRest {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString (splitTopic, 1);
+                if (name === undefined) {
+                    return;
+                }
                 method = this.safeValue (methods, name);
                 if (method !== undefined) {
                     method.call (this, client, message);

@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -364,6 +364,9 @@ export default class toobit extends toobitRest {
         const params = this.safeDict (message, 'params', {});
         const timeframeId = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (timeframeId);
+        if (timeframe === undefined) {
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -496,6 +499,9 @@ export default class toobit extends toobitRest {
         //    }
         //
         const data = this.safeList (message, 'data');
+        if (data === undefined) {
+            return;
+        }
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
@@ -698,6 +704,9 @@ export default class toobit extends toobitRest {
         const swapMessageHash = 'contract:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        if (subscriptionHash === undefined) {
+            return;
+        }
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
         this.setBalanceCache (client, marketType, subscriptionHash, params);
@@ -706,7 +715,7 @@ export default class toobit extends toobitRest {
     }
 
     setBalanceCache (client: Client, marketType, subscriptionHash: Str = undefined, params = {}) {
-        if (subscriptionHash in client.subscriptions) {
+        if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
         const type = (marketType === 'spot') ? 'spot' : 'contract';
@@ -1011,6 +1020,9 @@ export default class toobit extends toobitRest {
         let messageHash = '';
         if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             messageHash = '::' + symbols.join (',');
         }
         const url = this.getUserStreamUrl ();

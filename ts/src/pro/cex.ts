@@ -233,6 +233,9 @@ export default class cex extends cexRest {
     handleTradesInner (client: Client, message) {
         const data = this.safeList (message, 'data', []);
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[(symbol as string)] = new ArrayCache (limit);
@@ -836,10 +839,16 @@ export default class cex extends cexRest {
         const remainsPrecision = this.safeString (order, 'remains');
         let remaining: Str = undefined;
         if (remainsPrecision !== undefined) {
+            if (market === undefined) {
+                return;
+            }
             remaining = this.currencyFromPrecision (market['base'], remainsPrecision);
         }
         const amount = this.safeString (order, 'amount');
         if (!isTransaction) {
+            if (market === undefined) {
+                return;
+            }
             this.currencyFromPrecision (market['base'], amount);
         }
         let baseId = this.safeString (order, 'symbol');
@@ -945,10 +954,16 @@ export default class cex extends cexRest {
             const market = this.safeMarket (symbol);
             const order = this.parseOrder (rawOrder, market);
             order['status'] = 'open';
+            if (myOrders === undefined) {
+                return;
+            }
             myOrders.append (order);
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
+        if (myOrders === undefined) {
+            return;
+        }
         const ordersLength = myOrders.length;
         if (ordersLength > 0) {
             client.resolve (myOrders, messageHash);
@@ -1143,6 +1158,9 @@ export default class cex extends cexRest {
         //     }
         //
         const pair = this.safeString (message, 'pair');
+        if (pair === undefined) {
+            return;
+        }
         const parts = pair.split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);

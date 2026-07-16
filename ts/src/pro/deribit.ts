@@ -924,7 +924,13 @@ export default class deribit extends deribitRest {
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         this.marketSymbols (symbols, undefined, false);
+        if (symbolsArray === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMultipleWrapper() symbolsArray is required');
+        }
         for (let i = 0; i < symbolsArray.length; i++) {
+            if (symbolsArray === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchMultipleWrapper() symbolsArray is required');
+            }
             const current = symbolsArray[i];
             let market: Market = undefined;
             if (isOHLCV) {

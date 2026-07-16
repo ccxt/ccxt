@@ -547,6 +547,9 @@ export default class gate extends gateRest {
         const result = this.safeDict (message, 'result', {});
         const full = this.safeBool (result, 'full', false);
         const marketIdWithPrefix = this.safeString (result, 's');
+        if (marketIdWithPrefix === undefined) {
+            return;
+        }
         const marketIdParts = marketIdWithPrefix.split ('.');
         const marketId = this.safeString (marketIdParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '_', 'spot');
@@ -563,6 +566,9 @@ export default class gate extends gateRest {
         } else {
             const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaStart = this.safeInteger (result, 'u');
+            if (deltaStart === undefined) {
+                return;
+            }
             if (nonce === undefined || nonce >= deltaStart) {
                 return;
             }
@@ -636,7 +642,13 @@ export default class gate extends gateRest {
         const marketType = isSpot ? 'spot' : 'contract';
         const delta = this.safeValue (message, 'result');
         const deltaStart = this.safeInteger (delta, 'U');
+        if (deltaStart === undefined) {
+            return;
+        }
         const deltaEnd = this.safeInteger (delta, 'u');
+        if (deltaEnd === undefined) {
+            return;
+        }
         const marketId = this.safeString (delta, 's');
         const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         const messageHash = 'orderbook:' + symbol;
@@ -677,6 +689,9 @@ export default class gate extends gateRest {
         const nonce = this.safeInteger (orderBook, 'nonce');
         const firstDelta = cache[0];
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
+        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
+            return;
+        }
         if (nonce < firstDeltaStart) {
             return -1;
         }
@@ -684,6 +699,9 @@ export default class gate extends gateRest {
             const delta = cache[i];
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                return;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1362,6 +1380,9 @@ export default class gate extends gateRest {
         });
         let messageHash = type + ':positions';
         if (!this.isEmpty (symbols)) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             messageHash += '::' + symbols.join (',');
         }
         const channel = typeId + '.positions';
@@ -1410,7 +1431,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -1523,7 +1544,8 @@ export default class gate extends gateRest {
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            const marketResolved = this.market (symbol);
+            market = marketResolved;
             symbol = market['symbol'];
         }
         let type = undefined;
@@ -1539,7 +1561,7 @@ export default class gate extends gateRest {
         const channel = typeId + '.orders';
         let messageHash = 'orders';
         let payload = [ '!' + 'all' ];
-        if (symbol !== undefined) {
+        if (market !== undefined) {
             messageHash += ':' + market['id'];
             payload = [ market['id'] ];
         }
@@ -1922,6 +1944,9 @@ export default class gate extends gateRest {
             'options.order_book_update': this.handleOrderBookSubscription,
         };
         const id = this.safeString (message, 'id');
+        if (id === undefined) {
+            return;
+        }
         if (channel in methods) {
             const subscriptionHash = this.safeString (client.subscriptions, id);
             const subscription = this.safeValue (client.subscriptions, subscriptionHash);
@@ -2130,8 +2155,14 @@ export default class gate extends gateRest {
     }
 
     getTypeByMarket (market: Market) {
+        if (market === undefined) {
+            return;
+        }
         if (market['spot']) {
             return 'spot';
+        if (market === undefined) {
+            return;
+        }
         } else if (market['option']) {
             return 'options';
         } else {

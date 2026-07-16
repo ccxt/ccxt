@@ -1059,6 +1059,9 @@ export default class pacifica extends pacificaRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const timeframe = this.safeString (data, 'i');
+        if (timeframe === undefined) {
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1268,6 +1271,9 @@ export default class pacifica extends pacificaRest {
         const symbol = market['symbol'];
         const interval = this.safeString (subscription, 'interval');
         const timeframe = this.findTimeframe (interval);
+        if (timeframe === undefined) {
+            return;
+        }
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);

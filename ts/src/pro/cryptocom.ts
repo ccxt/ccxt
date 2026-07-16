@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -420,6 +420,9 @@ export default class cryptocom extends cryptocomRest {
         // }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const marketId = this.safeString (message, 'instrument_name');
         const symbolSpecificMessageHash = this.safeString (message, 'subscription');
         const market = this.safeMarket (marketId);
@@ -921,6 +924,9 @@ export default class cryptocom extends cryptocomRest {
         let messageHash = 'positions';
         symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            }
             messageHash = '::' + symbols.join (',');
         }
         const client = this.client (url);
@@ -958,7 +964,7 @@ export default class cryptocom extends cryptocomRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }

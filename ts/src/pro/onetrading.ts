@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import onetradingRest from '../onetrading.js';
-import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1199,6 +1199,9 @@ export default class onetrading extends onetradingRest {
 
     findTimeframe (timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
+        if (timeframes === undefined) {
+            throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
+        }
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
