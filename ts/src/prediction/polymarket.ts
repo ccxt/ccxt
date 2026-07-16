@@ -1302,7 +1302,7 @@ export default class polymarket extends Exchange {
             }
         }
         const bucketKeys = Object.keys (buckets);
-        const unsortedCandles = [];
+        const unsortedCandles: OHLCV[] = [];
         for (let i = 0; i < bucketKeys.length; i++) {
             unsortedCandles.push (buckets[bucketKeys[i]] as OHLCV);
         }
@@ -1524,7 +1524,7 @@ export default class polymarket extends Exchange {
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
         const trades = await this.fetchMyTrades (outcome, undefined, undefined, params);
-        const result = [];
+        const result: PredictionTrade[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const info = this.safeDict (trade, 'info', {});
@@ -1678,7 +1678,7 @@ export default class polymarket extends Exchange {
             const outcomeObj = this.outcome (outcomes[i]);
             wantedIds[outcomeObj['outcomeId']] = true;
         }
-        const result = [];
+        const result: PredictionPosition[] = [];
         for (let i = 0; i < parsed.length; i++) {
             const position = parsed[i];
             const info = this.safeDict (position, 'info', {});
@@ -1931,15 +1931,15 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
         // requested outcomes first (one gamma request for all uncached token ids)
-        const orderOutcomes = [];
+        const orderOutcomes: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
             orderOutcomes.push (this.safeString (o, 'outcome'));
         }
         await this.loadOutcomes (orderOutcomes);
-        const bodies = [];
-        const outcomes = [];
-        const requests = [];
+        const bodies: Dict[] = [];
+        const outcomes: Dict[] = [];
+        const requests: Dict[] = [];
         const batchSalt = this.milliseconds ();
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
@@ -1954,7 +1954,7 @@ export default class polymarket extends Exchange {
             requests.push (this.safeDict (built, 'request'));
         }
         const response = await this.clobPrivatePostOrders (bodies);
-        const result = [];
+        const result: PredictionOrder[] = [];
         if (Array.isArray (response)) {
             for (let i = 0; i < response.length; i++) {
                 // request echo first so the response's real orderID/status win on overlap
@@ -2288,7 +2288,7 @@ export default class polymarket extends Exchange {
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
         const response = await this.clobPrivateDeleteOrders (ids);
         const canceled = this.safeList (response, 'canceled', []);
-        const orders = [];
+        const orders: PredictionOrder[] = [];
         for (let i = 0; i < canceled.length; i++) {
             orders.push (this.safePredictionOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
         }
@@ -2318,7 +2318,7 @@ export default class polymarket extends Exchange {
             response = await this.clobPrivateDeleteCancelAll (params);
         }
         const canceled = this.safeList (response, 'canceled', []);
-        const orders = [];
+        const orders: PredictionOrder[] = [];
         for (let i = 0; i < canceled.length; i++) {
             orders.push (this.safePredictionOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
         }
@@ -2519,7 +2519,7 @@ export default class polymarket extends Exchange {
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
         const rawTags = this.safeList (rawEvent, 'tags', []);
         const rawTagsLength = rawTags.length;
-        const parsedTags = [];
+        const parsedTags: string[] = [];
         for (let ti = 0; ti < rawTagsLength; ti++) {
             const tagLabel = this.safeString2 (rawTags[ti], 'slug', 'label');
             if (tagLabel !== undefined) {
@@ -2914,12 +2914,12 @@ export default class polymarket extends Exchange {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const rawBids = this.safeList (event, 'bids', []) as any[];
         const rawAsks = this.safeList (event, 'asks', []) as any[];
-        const bids = [];
+        const bids: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
             const b = rawBids[i];
             bids.push ([ this.safeNumber (b, 'price'), this.safeNumber (b, 'size') ]);
         }
-        const asks = [];
+        const asks: Num[][] = [];
         for (let j = 0; j < rawAsks.length; j++) {
             const a = rawAsks[j];
             asks.push ([ this.safeNumber (a, 'price'), this.safeNumber (a, 'size') ]);

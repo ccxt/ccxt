@@ -124,7 +124,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'event': 'subscribe',
             'feed': name,
         };
-        const marketIds = [ ];
+        const marketIds: string[] = [];
         let messageHash = name;
         if (symbols === undefined) {
             symbols = [];
@@ -339,7 +339,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'positions', []);
-        const newPositions = [];
+        const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
@@ -1538,8 +1538,8 @@ export default class krakenfutures extends krakenfuturesRest {
         const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
-        const messageHashes = [];
-        const rawSubs = [];
+        const messageHashes: string[] = [];
+        const rawSubs: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const messageHash = this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i]));
             messageHashes.push (messageHash);

@@ -657,7 +657,7 @@ export default class bitstamp extends Exchange {
         //             "isin": "EZHKD4DNKHY3"
         //         }
         //
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
@@ -2727,7 +2727,7 @@ export default class bitstamp extends Exchange {
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
         if ((status === 'error') || (error !== undefined)) {
-            let errors = [];
+            let errors: string[] = [];
             if (typeof error === 'string') {
                 errors.push (error);
             } else if (error !== undefined) {

@@ -88,8 +88,8 @@ export default class mudrex extends mudrexRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const messageHashes = [];
-        const assets = [];
+        const messageHashes: string[] = [];
+        const assets: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);

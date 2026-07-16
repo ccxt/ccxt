@@ -563,7 +563,7 @@ export default class kalshi extends Exchange {
         const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        let eventParts = [];
+        let eventParts: string[] = [];
         if (eventTicker) {
             eventParts = eventTicker.split ('-');
         }
@@ -1213,7 +1213,7 @@ export default class kalshi extends Exchange {
         //     }
         //
         const candles = this.safeList (response, 'candlesticks', []) as any[];
-        const usableCandles = [];
+        const usableCandles: Dict[] = [];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const priceObj = this.safeDict (candle, 'price', {});
@@ -1576,7 +1576,7 @@ export default class kalshi extends Exchange {
                 wantedTickers[marketTicker] = true;
             }
         }
-        const result = [];
+        const result: PredictionPosition[] = [];
         for (let i = 0; i < parsed.length; i++) {
             const position = parsed[i];
             const positionInfo = this.safeDict (position, 'info', {});
@@ -2116,7 +2116,7 @@ export default class kalshi extends Exchange {
         const restingResponse = await this.kalshiPrivateGetPortfolioOrders (request);
         const restingOrders = this.safeList (restingResponse, 'orders', []);
         const restingOrdersLength = restingOrders.length;
-        const canceledOrders = [];
+        const canceledOrders: PredictionOrder[] = [];
         for (let i = 0; i < restingOrdersLength; i++) {
             const restingOrder = restingOrders[i];
             const orderId = this.safeString (restingOrder, 'order_id');

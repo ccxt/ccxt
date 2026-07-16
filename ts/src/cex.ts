@@ -318,7 +318,7 @@ export default class cex extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const promises = [];
+        const promises: Promise<Dict>[] = [];
         promises.push (this.publicPostGetCurrenciesInfo (params));
         //
         //    {
@@ -1420,7 +1420,7 @@ export default class cex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const ids = this.safeList (data, 'clientOrderIds', []);
-        const orders = [];
+        const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             orders.push ({ 'clientOrderId': id });

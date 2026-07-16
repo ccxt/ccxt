@@ -946,7 +946,7 @@ export default class bitopro extends Exchange {
         if (length === 0) {
             return candles;
         }
-        const result = [];
+        const result: Dict[] = [];
         let copyFrom = candles[0];
         let timestamp: Int = undefined;
         if (since === undefined) {
@@ -1240,7 +1240,7 @@ export default class bitopro extends Exchange {
 
     parseCancelOrders (data) {
         const dataKeys = Object.keys (data);
-        const orders = [];
+        const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
             const marketId = dataKeys[i];
             const orderIds = data[marketId];

@@ -766,7 +766,7 @@ export default class btcturk extends Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
-        const results = [];
+        const results: OHLCV[] = [];
         const timestamp = this.safeList (ohlcvs, 't', []);
         const high = this.safeList (ohlcvs, 'h', []);
         const open = this.safeList (ohlcvs, 'o', []);

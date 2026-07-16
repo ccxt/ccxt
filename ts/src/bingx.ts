@@ -3442,8 +3442,8 @@ export default class bingx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests = [];
-        const marketIds = [];
+        const ordersRequests: Dict[] = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -4313,7 +4313,7 @@ export default class bingx extends Exchange {
         if (areClientOrderIds) {
             idsToParse = clientOrderIds;
         }
-        const parsedIds = [];
+        const parsedIds: string[] = [];
         for (let i = 0; i < idsToParse.length; i++) {
             const id = idsToParse[i];
             const stringId = id.toString ();
@@ -6473,7 +6473,7 @@ export default class bingx extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const success = this.safeList (data, 'success', []) as List;
-        const positions = [];
+        const positions: Position[] = [];
         for (let i = 0; i < success.length; i++) {
             const position = this.parsePosition ({ 'positionId': success[i] });
             positions.push (position);
@@ -6926,7 +6926,7 @@ export default class bingx extends Exchange {
         //         }
         //     ]
         //
-        const tiers = [];
+        const tiers: LeverageTier[] = [];
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict (info, i);
             const tierString = this.safeString (tier, 'tier') as string;

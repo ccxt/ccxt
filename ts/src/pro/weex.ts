@@ -203,8 +203,8 @@ export default class weex extends weexRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
-        const messageHashes = [];
-        const channels = [];
+        const messageHashes: string[] = [];
+        const channels: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -254,9 +254,9 @@ export default class weex extends weexRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
-        const subHashes = [];
-        const channels = [];
-        const unSubHashes = [];
+        const subHashes: string[] = [];
+        const channels: string[] = [];
+        const unSubHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -396,8 +396,8 @@ export default class weex extends weexRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
-        const messageHashes = [];
-        const channels = [];
+        const messageHashes: string[] = [];
+        const channels: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -447,9 +447,9 @@ export default class weex extends weexRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
-        const subHashes = [];
-        const channels = [];
-        const unSubHashes = [];
+        const subHashes: string[] = [];
+        const channels: string[] = [];
+        const unSubHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -497,7 +497,7 @@ export default class weex extends weexRest {
         }
         const tradesArray = this.trades[symbol];
         const data = this.safeList (message, 'd', []);
-        const newTrades = [];
+        const newTrades: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const rawTrade = this.safeDict (data, i, {});
             const trade = this.parseWsTrade (rawTrade, market);
@@ -580,8 +580,8 @@ export default class weex extends weexRest {
         }
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOHLCVForSymbols');
         params = this.omit (params, 'callerMethodName');
-        const channels = [];
-        const messageHashes = [];
+        const channels: string[] = [];
+        const messageHashes: string[] = [];
         const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
         const firstSymbol = this.safeString (firstEntry, 0);
         const firstMarket = this.market (firstSymbol);
@@ -645,9 +645,9 @@ export default class weex extends weexRest {
         }
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
         params = this.omit (params, 'callerMethodName');
-        const channels = [];
-        const subHashes = [];
-        const unSubHashes = [];
+        const channels: string[] = [];
+        const subHashes: string[] = [];
+        const unSubHashes: string[] = [];
         const firstEntry = this.safeList (symbolsAndTimeframes, 0, []);
         const firstSymbol = this.safeString (firstEntry, 0);
         const firstMarket = this.market (firstSymbol);
@@ -803,8 +803,8 @@ export default class weex extends weexRest {
         params = this.omit (params, 'callerMethodName');
         let depth = '200';
         [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
-        const messageHashes = [];
-        const channels = [];
+        const messageHashes: string[] = [];
+        const channels: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -858,9 +858,9 @@ export default class weex extends weexRest {
         params = this.omit (params, 'callerMethodName');
         let depth = '200';
         [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
-        const subHashes = [];
-        const channels = [];
-        const unSubHashes = [];
+        const subHashes: string[] = [];
+        const channels: string[] = [];
+        const unSubHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -950,8 +950,8 @@ export default class weex extends weexRest {
         if (firstMarket['contract']) {
             throw new NotSupported (this.id + ' watchBidsAsks is supported for spot markets only');
         }
-        const messageHashes = [];
-        const channels = [];
+        const messageHashes: string[] = [];
+        const channels: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -987,9 +987,9 @@ export default class weex extends weexRest {
         if (firstMarket['contract']) {
             throw new NotSupported (this.id + ' unWatchBidsAsks is supported for spot markets only');
         }
-        const subHashes = [];
-        const channels = [];
-        const unSubHashes = [];
+        const subHashes: string[] = [];
+        const channels: string[] = [];
+        const unSubHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1830,7 +1830,7 @@ export default class weex extends weexRest {
             this.positions = new ArrayCacheBySymbolById ();
         }
         const cache = this.positions;
-        const newPositions = [];
+        const newPositions: Position[] = [];
         const data = this.safeList (message, 'd', []);
         for (let i = 0; i < data.length; i++) {
             const rawPosition = this.safeDict (data, i, {});

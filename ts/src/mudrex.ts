@@ -447,7 +447,7 @@ export default class mudrex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const aggregated = [];
+        const aggregated: Dict[] = [];
         let offset = 0;
         const pageLimit = 100;
         let paging: boolean = true;
@@ -455,7 +455,7 @@ export default class mudrex extends Exchange {
             const q = this.extend ({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures (q);
             const data = this.safeValue (response, 'data', []);
-            let items = [];
+            let items: Dict[] = [];
             if (typeof data === 'object' && !Array.isArray (data)) {
                 items = this.safeList (data, 'items', []);
                 if (!items.length) {
@@ -480,7 +480,7 @@ export default class mudrex extends Exchange {
                 offset += pageLimit;
             }
         }
-        const result = [];
+        const result: Market[] = [];
         for (let i = 0; i < aggregated.length; i++) {
             result.push (this.parseMarket (aggregated[i]));
         }
@@ -952,7 +952,7 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = [];
+        const orders: Order[] = [];
         for (let i = 0; i < rows.length; i++) {
             orders.push (this.parseOrder (rows[i], market));
         }

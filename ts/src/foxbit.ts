@@ -1006,7 +1006,7 @@ export default class foxbit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests = [];
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');

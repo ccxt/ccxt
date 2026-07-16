@@ -1675,7 +1675,7 @@ export default class pacifica extends Exchange {
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
-        const actions = [];
+        const actions: Dict[] = [];
         const timestamp = this.milliseconds (); // unified sequence
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1737,7 +1737,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -1798,7 +1798,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
-        const ordersToReturn = [];
+        const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
             const error = this.safeString (order, 'error', undefined);
@@ -1815,7 +1815,7 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params = {}) {
-        const actions = [];
+        const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const request = this.cancelOrderRequest (id, symbol, params);
@@ -2077,7 +2077,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.addPaginationCursorToResult (response);
-        const result = [];
+        const result: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'created_at');
@@ -2688,7 +2688,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557431179
         // }
         const data = this.safeList (response, 'data', []);
-        const result = [];
+        const result: Position[] = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i], undefined));
         }
@@ -3477,7 +3477,7 @@ export default class pacifica extends Exchange {
             }
             return result;
         } else if (Array.isArray (value)) {
-            const result = [];
+            const result: Dict[] = [];
             for (let i = 0; i < value.length; i++) {
                 result.push (this.sortJsonKeys (value[i]));
             }

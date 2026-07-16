@@ -937,7 +937,7 @@ export default class alpaca extends Exchange {
         //         }
         //     }
         //
-        const results = [];
+        const results: Ticker[] = [];
         const snapshots = this.safeDict (response, 'snapshots', {});
         const marketIds = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1727,7 +1727,7 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results = [];
+        const results: Transaction[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const direction = this.safeString (entry, 'direction');

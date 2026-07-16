@@ -153,12 +153,13 @@ export default class poloniex extends poloniexRest {
                 name,
             ],
         };
-        let marketIds = [ ];
+        let marketIds: string[] = [];
         if (this.isEmpty (symbols)) {
             marketIds.push ('all');
         } else {
             messageHash = messageHash + '::' + symbols.join (',');
-            marketIds = this.marketIds (symbols);
+            const ids = this.marketIds (symbols);
+            marketIds = (ids === undefined) ? [] : ids;
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
@@ -332,7 +333,7 @@ export default class poloniex extends poloniexRest {
         //
         const messageHash = this.safeString (message, 'id');
         const data = this.safeValue (message, 'data', []);
-        const orders = [];
+        const orders: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const parsedOrder = this.parseWsOrder (order);
@@ -451,7 +452,7 @@ export default class poloniex extends poloniexRest {
             'symbols': marketIds,
         };
         const request = this.extend (subscribe, params);
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 messageHashes.push (name + '::' + symbols[i]);
@@ -850,7 +851,7 @@ export default class poloniex extends poloniexRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const marketIds = [];
+        const marketIds: string[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeValue (data, i);
             const marketId = this.safeString (order, 'symbol');

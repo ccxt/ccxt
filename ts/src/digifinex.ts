@@ -587,7 +587,7 @@ export default class digifinex extends Exchange {
     async fetchMarketsV2 (params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
-        const promisesRaw = [];
+        const promisesRaw: Promise<Dict>[] = [];
         if (marginMode !== undefined) {
             promisesRaw.push (this.publicSpotGetMarginSymbols (query));
         } else {
@@ -652,7 +652,7 @@ export default class digifinex extends Exchange {
         const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
         const swapData = this.safeValue (swapMarkets, 'data', []);
         const response = this.arrayConcat (spotData, swapData);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString2 (market, 'symbol', 'instrument_id');
@@ -762,7 +762,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'data', []);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market');
@@ -1727,7 +1727,7 @@ export default class digifinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests = [];
+        const ordersRequests: Dict[] = [];
         let symbol: Str = undefined;
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -1791,13 +1791,13 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        let data = [];
+        let data: string[] = [];
         if (market['swap']) {
             data = this.safeValue (response, 'data', []);
         } else {
             data = this.safeValue (response, 'order_ids', []);
         }
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const individualOrder: Dict = {};
@@ -2023,7 +2023,7 @@ export default class digifinex extends Exchange {
     parseCancelOrders (response) {
         const success = this.safeList (response, 'success', []);
         const error = this.safeList (response, 'error', []);
-        const result = [];
+        const result: Order[] = [];
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
             result.push (this.safeOrder ({
@@ -3275,7 +3275,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'list', []);
-        let result = [];
+        let result: Dict = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (this.safeString (entry, 'currency') === code) {
@@ -3509,7 +3509,7 @@ export default class digifinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const result = this.safeValue (data, 'funding_rates', []);
-        const rates = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (data, 'instrument_id');
@@ -3685,7 +3685,7 @@ export default class digifinex extends Exchange {
         //
         const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
         const positions = this.safeValue (response, positionRequest, []);
-        const result = [];
+        const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i], market));
         }
@@ -4103,7 +4103,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const tiers = [];
+        const tiers: LeverageTier[] = [];
         const brackets = this.safeValue (info, 'open_max_limits', {});
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];

@@ -1124,7 +1124,7 @@ export default class apex extends Exchange {
         //     "totalSize": 11
         // }
         //
-        const rates = [];
+        const rates: FundingRateHistory[] = [];
         const data = this.safeDict (response, 'data', {});
         const resultList = this.safeList (data, 'historyFunds', []);
         for (let i = 0; i < resultList.length; i++) {
@@ -1485,7 +1485,7 @@ export default class apex extends Exchange {
         const ethAddress = this.safeString (accountData, 'ethereumAddress', '');
         const accountId = this.safeString (accountData, 'id', '');
         let currency = {};
-        let assets = [];
+        let assets: Dict[] = [];
         if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
             assets = contractAssets;
         } else {

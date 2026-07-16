@@ -407,7 +407,7 @@ export default class myriad extends Exchange {
         const rest = this.omit (params, [ 'address', 'user' ]);
         const response = await this.myriadPublicGetUsersAddressPortfolio (this.extend ({ 'address': address }, rest));
         const data = this.safeList (response, 'data', []);
-        const result = [];
+        const result: PredictionPosition[] = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePredictionPosition (data[i]));
         }
@@ -549,7 +549,7 @@ export default class myriad extends Exchange {
             sHex = '0' + sHex;
         }
         const yParity = this.safeInteger (signature, 'v');
-        const signedFields = [];
+        const signedFields: string[] = [];
         for (let i = 0; i < fields.length; i++) {
             signedFields.push (fields[i]);
         }
@@ -754,12 +754,12 @@ export default class myriad extends Exchange {
      */
     async createOrders (orders: PredictionOrderRequest[], params = {}): Promise<PredictionOrder[]> {
         const ordersLength = orders.length;
-        const orderOutcomes = [];
+        const orderOutcomes: string[] = [];
         for (let i = 0; i < ordersLength; i++) {
             orderOutcomes.push (this.safeString (orders[i], 'outcome'));
         }
         await this.loadOutcomes (orderOutcomes);
-        const result = [];
+        const result: PredictionOrder[] = [];
         for (let i = 0; i < ordersLength; i++) {
             const o = orders[i];
             const outcome = this.safeString (o, 'outcome');
@@ -1131,8 +1131,8 @@ export default class myriad extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a privateKey to sign the cancellations');
         }
         const idsLength = ids.length;
-        const signedOrders = [];
-        const wrappers = [];
+        const signedOrders: Dict[] = [];
+        const wrappers: Dict[] = [];
         let networkId = this.safeString (this.options, 'defaultNetworkId', '56');
         for (let i = 0; i < idsLength; i++) {
             const id = ids[i];
@@ -1280,7 +1280,7 @@ export default class myriad extends Exchange {
             'status': 'filled',
         };
         const orders = await this.fetchOrders (outcome, since, limit, this.extend (request, params));
-        const trades = [];
+        const trades: PredictionTrade[] = [];
         const ordersLength = orders.length;
         for (let i = 0; i < ordersLength; i++) {
             const order = orders[i];
@@ -2148,7 +2148,7 @@ export default class myriad extends Exchange {
             const bucket = this.safeValue (priceCharts, bucketKey, {});
             points = this.safeList (bucket, outcomeId, this.safeList (bucket, 'data', [])) as any[];
         }
-        const usablePoints = [];
+        const usablePoints: Dict[] = [];
         for (let i = 0; i < points.length; i++) {
             const point = points[i];
             const pointOpen = this.safeNumber (point, 'open');
@@ -2391,7 +2391,7 @@ export default class myriad extends Exchange {
             rawMarkets = [ rawMarket ];
         } else {
             const requestedTags = this.safeList (params, 'tags', []);
-            const tagQueries = [];
+            const tagQueries: Dict[] = [];
             const requestedTagsLength = requestedTags.length;
             for (let i = 0; i < requestedTagsLength; i++) {
                 // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
@@ -2778,7 +2778,7 @@ export default class myriad extends Exchange {
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         const myWallet = this.walletAddressOrUndefined ();
         if (myWallet !== undefined) {
-            const myLegs = [];
+            const myLegs: PredictionTrade[] = [];
             const takerTrader = this.safeStringLower (taker, 'trader');
             if (takerTrader === myWallet) {
                 myLegs.push (trade);
@@ -2871,7 +2871,7 @@ export default class myriad extends Exchange {
         await this.loadOutcomes (outcomes);
         const client = this.client (url);
         const seenChannels: Dict = {};
-        const resolvedSymbols = [];
+        const resolvedSymbols: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
@@ -2906,7 +2906,7 @@ export default class myriad extends Exchange {
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         const trades = await this.watchTrades (outcome, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades as any, timeframe, 0, 2147483647);
-        const result = [];
+        const result: Num[][] = [];
         const ohlcvcLength = ohlcvc.length;
         for (let i = 0; i < ohlcvcLength; i++) {
             const candle = ohlcvc[i];

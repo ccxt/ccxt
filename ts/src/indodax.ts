@@ -1427,7 +1427,7 @@ export default class indodax extends Exchange {
             const address = this.safeString (addresses, marketId);
             if ((address !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 this.checkAddress (address);
-                let network = undefined;
+                let network: Str | string[] = undefined;
                 if (marketId in networks) {
                     const networkId = this.safeString (networks, marketId);
                     if (networkId.indexOf (',') >= 0) {

@@ -38,7 +38,7 @@ import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
-import { Future } from './ws/Future.js';
+import { Future, type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 //
@@ -1161,7 +1161,7 @@ export class BaseExchange {
         if (decompressor === undefined) {
             return binary ? await res.body.arrayBuffer () : await res.body.text ();
         }
-        const chunks = [];
+        const chunks: Buffer[] = [];
         res.body.pipe (decompressor);
         for await (const chunk of decompressor) {
             chunks.push (chunk);
@@ -1716,7 +1716,7 @@ export class BaseExchange {
         const future = Future.race (messageHashes.map ((messageHash) => client.future (messageHash)));
         // read and write subscription, this is done before connecting the client
         // to avoid race conditions when other parts of the code read or write to the client.subscriptions
-        const missingSubscriptions = [];
+        const missingSubscriptions: string[] = [];
         if (subscribeHashes !== undefined) {
             for (let i = 0; i < subscribeHashes.length; i++) {
                 const subscribeHash = subscribeHashes[i];
@@ -1879,7 +1879,7 @@ export class BaseExchange {
         // [WS]
         await this.sleep (0); // allow other futures to run
         const clients = Object.values (this.clients || {});
-        const closedClients = [];
+        const closedClients: FutureInterface[] = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
@@ -2182,8 +2182,9 @@ export class BaseExchange {
         const messages = [ message ];
         const sequence = this.milliseconds ();
         if (fee === undefined) {
+            const emptyAmount: Dict[] = [];
             fee = {
-                'amount': [],
+                'amount': emptyAmount,
                 'gasLimit': 1000000,
             };
         }
@@ -2313,7 +2314,7 @@ export class BaseExchange {
 
     lighterSignCreateGroupedOrders (signer, request): any[] {
         const orders = request['orders'];
-        const ordersArr = [];
+        const ordersArr: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             ordersArr.push ({
@@ -3168,8 +3169,8 @@ export class BaseExchange {
         return -1;
     }
 
-    arraysConcat (arraysOfArrays: any[]) {
-        let result = [];
+    arraysConcat (arraysOfArrays: any[]): any[] {
+        let result: any[] = [];
         for (let i = 0; i < arraysOfArrays.length; i++) {
             result = this.arrayConcat (result, arraysOfArrays[i]);
         }
@@ -3618,7 +3619,7 @@ export class BaseExchange {
     }
 
     parseMarkets (markets): Market[] {
-        const result = [];
+        const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
         }
@@ -4570,7 +4571,7 @@ export class BaseExchange {
         const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeList (order, 'fees', []);
-        let trades = [];
+        let trades: any[] = [];
         const isTriggerOrSLTpOrder = ((this.safeString (order, 'triggerPrice') !== undefined || (this.safeString (order, 'stopLossPrice') !== undefined)) || (this.safeString (order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue (order, 'trades', trades);
@@ -4840,7 +4841,7 @@ export class BaseExchange {
         if (orders === undefined) {
             return [];
         }
-        let results = [];
+        let results: Order[] = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
                 const parsed = this.parseOrder (orders[i], market); // don't inline this call
@@ -5051,7 +5052,7 @@ export class BaseExchange {
     }
 
     addKeyInArrayItems (obj, keyName) {
-        const result = [];
+        const result: Dict[] = [];
         const keys = Object.keys (obj);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -5158,7 +5159,7 @@ export class BaseExchange {
                 }
             }
         }
-        let result = [];
+        let result: any[] = [];
         const feeValues = Object.values (reduced);
         for (let i = 0; i < feeValues.length; i++) {
             const reducedFeeValues = Object.values (feeValues[i] as Dict);
@@ -5317,8 +5318,8 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
 
-    convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
-        const result = [];
+    convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false): OHLCV[] {
+        const result: OHLCV[] = [];
         const timestamps = this.safeList (ohlcvs, timestamp, []);
         const opens = this.safeList (ohlcvs, open, []);
         const highs = this.safeList (ohlcvs, high, []);
@@ -5427,7 +5428,7 @@ export class BaseExchange {
         if (symbols === undefined) {
             return symbols;
         }
-        const result = [];
+        const result: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.marketId (symbols[i]));
         }
@@ -5440,18 +5441,18 @@ export class BaseExchange {
         if (codes === undefined) {
             return codes;
         }
-        const result = [];
+        const result: string[] = [];
         for (let i = 0; i < codes.length; i++) {
             result.push (this.currencyId (codes[i]));
         }
         return result;
     }
 
-    marketsForSymbols (symbols: Strings = undefined) {
+    marketsForSymbols (symbols: Strings = undefined): MarketInterface[] | undefined {
         if (symbols === undefined) {
-            return symbols;
+            return undefined;
         }
-        const result = [];
+        const result: MarketInterface[] = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.market (symbols[i]));
         }
@@ -5474,7 +5475,7 @@ export class BaseExchange {
             }
             return symbols;
         }
-        const result = [];
+        const result: string[] = [];
         let marketType = undefined;
         let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
@@ -5506,7 +5507,7 @@ export class BaseExchange {
         if (codes === undefined) {
             return codes;
         }
-        const result = [];
+        const result: string[] = [];
         for (let i = 0; i < codes.length; i++) {
             result.push (this.commonCurrencyCode (codes[i]));
         }
@@ -5515,7 +5516,7 @@ export class BaseExchange {
 
     parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
-        const result = [];
+        const result: Num[][] = [];
         for (let i = 0; i < bidasks.length; i++) {
             result.push (this.parseOrderBookBidAsk (bidasks[i], priceKey, amountKey, countOrIdKey));
         }
@@ -5526,7 +5527,7 @@ export class BaseExchange {
         if (value === undefined) {
             return objects;
         }
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < objects.length; i++) {
             const objectValue = this.safeString (objects[i], key);
             if (objectValue === value) {
@@ -5654,7 +5655,7 @@ export class BaseExchange {
             return networkId;
         }
         // fall back to scanning loaded currencies
-        let currenciesToCheck = [];
+        let currenciesToCheck: (string | Dict | undefined)[] = [];
         if (currencyCode === undefined) {
             currenciesToCheck = Object.keys (this.currencies);
         } else {
@@ -5787,7 +5788,7 @@ export class BaseExchange {
         if (ohlcvs === undefined) {
             return [];
         }
-        const results = [];
+        const results: OHLCV[] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
         }
@@ -5875,7 +5876,7 @@ export class BaseExchange {
     parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
-        const result = [];
+        const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const position = this.extend (this.parsePosition (positions[i]), params);
             result.push (position);
@@ -5893,7 +5894,7 @@ export class BaseExchange {
     parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
         ranks = this.toArray (ranks);
-        const result = [];
+        const result: ADL[] = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = this.extend (this.parseADLRank (ranks[i]), params);
             result.push (rank);
@@ -5903,7 +5904,7 @@ export class BaseExchange {
 
     parseAccounts (accounts: any[], params = {}): Account[] {
         accounts = this.toArray (accounts);
-        const result = [];
+        const result: Account[] = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = this.extend (this.parseAccount (accounts[i]), params);
             result.push (account);
@@ -5913,7 +5914,7 @@ export class BaseExchange {
 
     parseTradesHelper (isWs: boolean, trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         trades = this.toArray (trades);
-        let result = [];
+        let result: Trade[] = [];
         for (let i = 0; i < trades.length; i++) {
             let parsed = undefined;
             if (isWs) {
@@ -5939,7 +5940,7 @@ export class BaseExchange {
 
     parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         transactions = this.toArray (transactions);
-        let result = [];
+        let result: Transaction[] = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.extend (this.parseTransaction (transactions[i], currency), params);
             result.push (transaction);
@@ -5951,7 +5952,7 @@ export class BaseExchange {
 
     parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
         transfers = this.toArray (transfers);
-        let result = [];
+        let result: TransferEntry[] = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = this.extend (this.parseTransfer (transfers[i], currency), params);
             result.push (transfer);
@@ -5962,7 +5963,7 @@ export class BaseExchange {
     }
 
     parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
-        let result = [];
+        let result: LedgerEntry[] = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
             const itemOrItems = this.parseLedgerEntry (arrayData[i], currency);
@@ -6090,7 +6091,7 @@ export class BaseExchange {
         if (!Array.isArray (objects)) {
             newArray = this.toArray (objects);
         }
-        const results = [];
+        const results: string[] = [];
         for (let i = 0; i < newArray.length; i++) {
             results.push (newArray[i][key]);
         }
@@ -6106,7 +6107,7 @@ export class BaseExchange {
             this.checkRequiredArgument ('getSymbolsForMarketType', subType, 'subType', [ 'linear', 'inverse', 'quanto' ]);
             filteredMarkets = this.filterBy (filteredMarkets, 'subType', subType);
         }
-        const activeStatuses = [];
+        const activeStatuses: Bool[] = [];
         if (symbolWithActiveStatus) {
             activeStatuses.push (true);
         }
@@ -6128,7 +6129,7 @@ export class BaseExchange {
                 return objects;
             }
         }
-        const results = [];
+        const results: Dict[] = [];
         for (let i = 0; i < objects.length; i++) {
             if (this.inArray (objects[i][key], values)) {
                 results.push (objects[i]);
@@ -6152,7 +6153,7 @@ export class BaseExchange {
                 return objects;
             }
         }
-        const results = [];
+        const results: Dict[] = [];
         for (let i = 0; i < objects.length; i++) {
             if (!this.inArray (objects[i][key], values)) {
                 results.push (objects[i]);
@@ -6240,7 +6241,7 @@ export class BaseExchange {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
         const ms = this.parseTimeframe (timeframe) * 1000;
-        const ohlcvs = [];
+        const ohlcvs: OHLCVC[] = [];
         const i_timestamp = 0;
         // const open = 1;
         const i_high = 2;
@@ -7220,7 +7221,7 @@ export class BaseExchange {
         //         ...
         //     ]
         //
-        const results = [];
+        const results: LastPrice[] = [];
         if (Array.isArray (pricesData)) {
             for (let i = 0; i < pricesData.length; i++) {
                 const priceData = this.extend (this.parseLastPrice (pricesData[i]), params);
@@ -7262,7 +7263,7 @@ export class BaseExchange {
         //         ...
         //     ]
         //
-        const results = [];
+        const results: Ticker[] = [];
         if (Array.isArray (tickers)) {
             for (let i = 0; i < tickers.length; i++) {
                 const parsedTicker = this.parseTicker (tickers[i]);
@@ -7284,7 +7285,7 @@ export class BaseExchange {
     }
 
     parseDepositAddresses (addresses, codes: Strings = undefined, indexed = true, params = {}): DepositAddress[] {
-        let result = [];
+        let result: Dict[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
             result.push (address);
@@ -7299,7 +7300,7 @@ export class BaseExchange {
     }
 
     parseBorrowInterests (response, market: Market = undefined): BorrowInterest[] {
-        const interests = [];
+        const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
             interests.push (this.parseBorrowInterest (row, market));
@@ -7312,7 +7313,7 @@ export class BaseExchange {
     }
 
     parseBorrowRateHistory (response, code: Str, since: Int, limit: Int) {
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const borrowRate = this.parseBorrowRate (item);
@@ -7334,7 +7335,7 @@ export class BaseExchange {
     }
 
     parseFundingRateHistories (response, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
-        const rates = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             rates.push (this.parseFundingRateHistory (entry, market));
@@ -7368,7 +7369,7 @@ export class BaseExchange {
     }
 
     parseLongShortRatioHistory (response, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
-        const rates = [];
+        const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             rates.push (this.parseLongShortRatio (entry, market));
@@ -7538,7 +7539,7 @@ export class BaseExchange {
     }
 
     parseOpenInterestsHistory (response, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
-        const interests = [];
+        const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const interest = this.parseOpenInterest (entry, market);
@@ -7693,7 +7694,7 @@ export class BaseExchange {
         }
     }
 
-    checkRequiredArgument (methodName: string, argument, argumentName, options = []) {
+    checkRequiredArgument (methodName: string, argument, argumentName, options: string[] = []) {
         /**
          * @ignore
          * @method
@@ -7821,7 +7822,7 @@ export class BaseExchange {
          * @param {int} [limit] limits the number of items in the response
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < incomes.length; i++) {
             const entry = incomes[i];
             const parsed = this.parseIncome (entry, market);
@@ -7842,7 +7843,7 @@ export class BaseExchange {
     }
 
     parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
-        const results = [];
+        const results: OHLCV[] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseWsOHLCV (ohlcvs[i], market));
         }
@@ -7925,7 +7926,7 @@ export class BaseExchange {
         let removeRepeatedOption = removeRepeated;
         [ removeRepeatedOption, params ] = this.handleOptionAndParams (params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
-        let result = [];
+        let result: any[] = [];
         let errors = 0;
         const until = this.safeIntegerN (params, [ 'until', 'untill', 'till' ]); // do not omit it from params here
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
@@ -8030,7 +8031,7 @@ export class BaseExchange {
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
-        const tasks = [];
+        const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
         const step = time * maxEntriesPerRequest;
         let currentSince = current - (maxCalls * step) - 1;
@@ -8057,7 +8058,7 @@ export class BaseExchange {
             currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
-        let result = [];
+        let result: any[] = [];
         for (let i = 0; i < results.length; i++) {
             result = this.arrayConcat (result, results[i]);
         }
@@ -8075,7 +8076,7 @@ export class BaseExchange {
         let cursorValue = undefined;
         let i = 0;
         let errors = 0;
-        let result = [];
+        let result: any[] = [];
         const timeframe = this.safeString (params, 'timeframe');
         params = this.omit (params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         while (i < maxCalls) {
@@ -8149,7 +8150,7 @@ export class BaseExchange {
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let i = 0;
         let errors = 0;
-        let result = [];
+        let result: any[] = [];
         while (i < maxCalls) {
             try {
                 params[pageKey as string] = i + 1;
@@ -8193,7 +8194,7 @@ export class BaseExchange {
 
     removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
         const uniqueDic = {};
-        const uniqueResult = [];
+        const uniqueResult: Dict[] = [];
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
             const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
@@ -8283,7 +8284,7 @@ export class BaseExchange {
          * @param {int} [limit] limits the number of items in the response
          * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
-        const result = [];
+        const result: Liquidation[] = [];
         for (let i = 0; i < liquidations.length; i++) {
             const entry = liquidations[i];
             const parsed = this.parseLiquidation (entry, market);
@@ -8302,7 +8303,7 @@ export class BaseExchange {
         //
         // the value of greeks is either a dict or a list
         //
-        const results = [];
+        const results: Dict[] = [];
         if (Array.isArray (greeks)) {
             for (let i = 0; i < greeks.length; i++) {
                 const parsedTicker = this.parseGreeks (greeks[i]);
@@ -8382,7 +8383,7 @@ export class BaseExchange {
 
     parseConversions (conversions: any[], code: Str = undefined, fromCurrencyKey: Str = undefined, toCurrencyKey: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Conversion[] {
         conversions = this.toArray (conversions);
-        const result = [];
+        const result: Dict[] = [];
         let fromCurrency = undefined;
         let toCurrency = undefined;
         for (let i = 0; i < conversions.length; i++) {
@@ -8504,7 +8505,7 @@ export class BaseExchange {
     }
 
     parseMarginModifications (response: object[] | undefined, symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModification[] {
-        const marginModifications = [];
+        const marginModifications: MarginModification[] = [];
         if (response === undefined) {
             return marginModifications;
         }
