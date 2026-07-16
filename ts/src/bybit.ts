@@ -5995,7 +5995,7 @@ export default class bybit extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
     /**
@@ -8078,7 +8078,7 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            this.storeByKey (result, symbol, fee);
         }
         return result;
     }
@@ -8848,8 +8848,9 @@ export default class bybit extends Exchange {
         //
         const tiers: Dict = {};
         const marketIds = this.marketIds (symbols);
-        const filteredResults = this.filterByArray (response, marketIdKey, marketIds, false);
-        const grouped = this.groupBy (filteredResults, marketIdKey);
+        const idKey = (marketIdKey === undefined) ? 'symbol' : marketIdKey;
+        const filteredResults = this.filterByArray (response, idKey, marketIds, false);
+        const grouped = this.groupBy (filteredResults, idKey);
         const keys = Object.keys (grouped);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];

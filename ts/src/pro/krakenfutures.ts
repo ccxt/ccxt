@@ -880,7 +880,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const order = orders[i];
             const parsed = this.parseWsOrder (order);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            this.storeByKey (symbols, symbol, true);
             cachedOrders.append (parsed);
         }
         const length = this.orders.length;
@@ -1012,7 +1012,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker (message);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            this.storeByKey (this.tickers, symbol, ticker);
             const messageHash = this.getMessageHash ('ticker', undefined, symbol);
             client.resolve (ticker, messageHash);
         }
@@ -1039,7 +1039,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker (message);
             const symbol = ticker['symbol'];
-            this.bidsasks[symbol] = ticker;
+            this.storeByKey (this.bidsasks, symbol, ticker);
             const messageHash = this.getMessageHash ('bidask', undefined, symbol);
             client.resolve (ticker, messageHash);
         }
@@ -1474,7 +1474,7 @@ export default class krakenfutures extends krakenfuturesRest {
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsedTrade = this.parseWsMyTrade (trade);
-            tradeSymbols[parsedTrade['symbol']] = true;
+            this.storeByKey (tradeSymbols, parsedTrade['symbol'], true);
             stored.append (parsedTrade);
         }
         const tradeSymbolKeys = Object.keys (tradeSymbols);

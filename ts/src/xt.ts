@@ -1790,7 +1790,7 @@ export default class xt extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            this.storeByKey (result, symbol, ticker);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }

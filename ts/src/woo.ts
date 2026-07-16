@@ -1049,7 +1049,7 @@ export default class woo extends Exchange {
             };
             const parsed = this.parseCurrency (customCurrency);
             const code = this.safeString (parsed, 'code');
-            result[code] = parsed;
+            this.storeByKey (result, code, parsed);
         }
         return result;
     }

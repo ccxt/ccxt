@@ -367,11 +367,13 @@ export default class toobit extends toobitRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options['ws'], 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            }
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);
@@ -501,8 +503,8 @@ export default class toobit extends toobitRest {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
-            newTickers[symbol] = parsed;
+            this.storeByKey (this.tickers, symbol, parsed);
+            this.storeByKey (newTickers, symbol, parsed);
             const messageHash = 'ticker::' + symbol;
             client.resolve (parsed, messageHash);
         }

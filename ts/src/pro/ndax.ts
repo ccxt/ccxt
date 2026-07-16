@@ -105,7 +105,7 @@ export default class ndax extends ndaxRest {
         const ticker = this.parseTicker (payload);
         const symbol = ticker['symbol'];
         const market = this.market (symbol);
-        this.tickers[symbol] = ticker;
+        this.storeByKey (this.tickers, symbol, ticker);
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
         client.resolve (ticker, messageHash);
@@ -184,8 +184,8 @@ export default class ndax extends ndaxRest {
                 tradesArray = new ArrayCache (limit);
             }
             tradesArray.append (trade);
-            this.trades[symbol] = tradesArray;
-            updates[symbol] = true;
+            this.storeByKey (this.trades, symbol, tradesArray);
+            this.storeByKey (updates, symbol, true);
         }
         const symbols = Object.keys (updates);
         for (let i = 0; i < symbols.length; i++) {
@@ -272,7 +272,7 @@ export default class ndax extends ndaxRest {
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            updates[marketId] = {};
+            this.storeByKey (updates, marketId, {});
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
@@ -300,7 +300,9 @@ export default class ndax extends ndaxRest {
                         parsed[4],
                         this.sum (parsed[5], previous[5]),
                     ];
-                    updates[marketId][timeframe] = true;
+                    if ((marketId !== undefined) && (timeframe !== undefined)) {
+                        updates[marketId][timeframe] = true;
+                    }
                 } else {
                     if (length && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
                         continue;
@@ -310,7 +312,9 @@ export default class ndax extends ndaxRest {
                         if (length >= limit) {
                             stored.shift ();
                         }
+                        if ((marketId !== undefined) && (timeframe !== undefined)) {
                         updates[marketId][timeframe] = true;
+                    }
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;
@@ -487,7 +491,7 @@ export default class ndax extends ndaxRest {
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
         const orderbook = this.orderBook (snapshot, limit);
-        this.orderbooks[symbol] = orderbook;
+        this.storeByKey (this.orderbooks, symbol, orderbook);
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (orderbook, messageHash);
     }

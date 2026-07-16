@@ -880,7 +880,7 @@ export default class cex extends Exchange {
                 market = this.safeMarket (key);
             }
             const parsed = this.parseTradingFee (response[key], market);
-            result[parsed['symbol']] = parsed;
+            this.storeByKey (result, parsed['symbol'], parsed);
         }
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];

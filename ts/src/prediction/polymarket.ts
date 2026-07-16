@@ -3071,7 +3071,7 @@ export default class polymarket extends Exchange {
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         if (!(outcome in this.orderbooks)) {
             const seededBook = this.orderBook ({});
-            this.orderbooks[outcome] = seededBook;
+            this.storeByKey (this.orderbooks, outcome, seededBook);
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);

@@ -718,11 +718,13 @@ export default class weex extends weexRest {
         const firstEntry = this.safeDict (data, 0, {});
         const interval = this.safeString (firstEntry, 'i');
         const timeframe = this.findTimeframe (interval);
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            }
         }
-        const stored = this.ohlcvs[symbol][timeframe];
+        const stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i, {});
             const parsed = this.parseWsOHLCV (entry);
@@ -1024,7 +1026,7 @@ export default class weex extends weexRest {
         const market = this.getMarketFromClientAndMessage (client, message);
         const ticker = this.parseWsBidAsk (message, market);
         const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        this.storeByKey (this.bidsasks, symbol, ticker);
         const messageHash = 'bidask::' + symbol;
         client.resolve (ticker, messageHash);
     }
@@ -1170,7 +1172,7 @@ export default class weex extends weexRest {
             const trade = this.safeDict (data, i, {});
             const parsed = this.parseWsMyTrade (trade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            this.storeByKey (symbols, symbol, true);
             trades.append (parsed);
         }
         let messageHash = 'myTrades';
@@ -1376,7 +1378,7 @@ export default class weex extends weexRest {
             const parsed = this.parseWsOrder (rawOrder);
             orders.append (parsed);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            this.storeByKey (symbols, symbol, true);
         }
         let messageHash = 'orders';
         const symbolKeys = Object.keys (symbols);

@@ -618,7 +618,7 @@ export default class kraken extends krakenRest {
         const interval = this.safeInteger (first, 'interval');
         const timeframe = this.findTimeframe (interval) as string;
         const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);

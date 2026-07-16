@@ -199,11 +199,13 @@ export default class mudrex extends mudrexRest {
             this.safeNumber (data, 'v'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], tf);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), tf);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][tf] = stored;
+            if (symbol !== undefined && tf !== undefined) {
+                this.ohlcvs[symbol][tf] = stored;
+            }
         }
         stored.append (parsed);
         const messageHash = stream;

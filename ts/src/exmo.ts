@@ -581,7 +581,11 @@ export default class exmo extends Exchange {
                 const typeInner = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue (commissionDesc);
-                result[code][typeInner] = fee;
+                if (code !== undefined && typeInner !== undefined) {
+                    if (typeInner !== undefined) {
+                    result[code][typeInner] = fee;
+                }
+                }
             }
             result[code]['info'] = providers;
         }
@@ -676,10 +680,12 @@ export default class exmo extends Exchange {
                     },
                 };
             }
-            result['networks'][networkCode][type] = {
-                'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
-                'percentage': percentage,
-            };
+            if ((networkCode !== undefined) && (type !== undefined)) {
+                result['networks'][networkCode][type] = {
+                    'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
+                    'percentage': percentage,
+                };
+            }
         }
         return this.assignDefaultDepositWithdrawFees (result);
     }
@@ -1309,7 +1315,7 @@ export default class exmo extends Exchange {
         }
         const response = await this.publicGetTicker (params);
         const market = this.market (symbol);
-        return this.parseTicker (response[market['id']], market);
+        return this.parseTicker (this.safeValue (response, market['id']), market);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {

@@ -3235,7 +3235,7 @@ export default class kucoin extends kucoinRest {
         const data = this.safeDict (message, 'd', {});
         const fundingRate = this.parseWsFundingRate (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.storeByKey (this.fundingRates, symbol, fundingRate);
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }

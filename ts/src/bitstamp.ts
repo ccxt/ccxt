@@ -1460,7 +1460,7 @@ export default class bitstamp extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            this.storeByKey (result, symbol, fee);
         }
         return result;
     }

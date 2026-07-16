@@ -1483,7 +1483,7 @@ export default class bitmart extends bitmartRest {
                 const parsed = this.parseOHLCV (rawOHLCV, market);
                 parsed[0] = this.parseToInt (this.parseToInt (parsed[0]) / durationInMs) * durationInMs;
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
                 if (stored === undefined) {
                     const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                     stored = new ArrayCacheByTimestamp (limit);
@@ -1499,7 +1499,7 @@ export default class bitmart extends bitmartRest {
             const symbol = market['symbol'];
             const items = this.safeList (data, 'items', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);

@@ -473,7 +473,9 @@ export default class PredictionExchange extends BaseExchange {
         for (let i = 0; i < replacementKeys.length; i++) {
             const replacementKey = replacementKeys[i];
             const replacementValue = this.safeString (replacements, replacementKey);
-            s = s.replaceAll (replacementKey, replacementValue);
+            if (replacementValue !== undefined) {
+                s = s.replaceAll (replacementKey, replacementValue);
+            }
         }
         const rawParts = s.split ('-');
         const parts = [];

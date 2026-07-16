@@ -766,7 +766,7 @@ export default class pacifica extends pacificaRest {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            this.storeByKey (symbols, symbol, true);
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -1062,12 +1062,14 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
+        const ohlcv = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
@@ -1196,7 +1198,7 @@ export default class pacifica extends pacificaRest {
             const order = this.parseOrder (rawOrder);
             stored.append (order);
             const symbol = this.safeString (order, 'symbol');
-            marketSymbols[symbol] = true;
+            this.storeByKey (marketSymbols, symbol, true);
         }
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1271,8 +1273,8 @@ export default class pacifica extends pacificaRest {
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
-        if (symbol in this.ohlcvs) {
-            if (timeframe in this.ohlcvs[symbol]) {
+        if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
+            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }

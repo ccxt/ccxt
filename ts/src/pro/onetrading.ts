@@ -1104,9 +1104,11 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionMarketId = this.safeValue (subscription, marketId);
         if (subscriptionMarketId === undefined) {
-            subscription[marketId] = {};
+            this.storeByKey (subscription, marketId, {});
         }
-        subscription[marketId][timeframe] = true;
+        if ((marketId !== undefined) && (timeframe !== undefined)) {
+            subscription[marketId][timeframe] = true;
+        }
         const properties: List = [];
         const marketIds = Object.keys (subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1187,13 +1189,15 @@ export default class onetrading extends onetradingRest {
             this.safeNumber (message, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
         }
         stored.append (parsed);
-        this.ohlcvs[symbol][timeframe] = stored;
+        if (symbol !== undefined && timeframe !== undefined) {
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         client.resolve (stored, channel);
     }
 

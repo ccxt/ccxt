@@ -2891,7 +2891,7 @@ export default class binance extends Exchange {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (market[defaultType]) {
+                    if (this.safeValue (market, defaultType)) {
                         return market;
                     }
                 }
@@ -9981,7 +9981,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const fee = this.parseTradingFee (response[i]);
                 const symbol = fee['symbol'];
-                result[symbol] = fee;
+                this.storeByKey (result, symbol, fee);
             }
             return result;
         } else if (isLinear) {
@@ -13873,7 +13873,7 @@ export default class binance extends Exchange {
             const market = markets[i];
             const symbol = this.safeString (market, 'symbol');
             if ((symbols === undefined) || (this.inArray (symbol, symbols))) {
-                tradingLimits[symbol] = market['limits']['amount'];
+                this.storeByKey (tradingLimits, symbol, market['limits']['amount']);
             }
         }
         return tradingLimits;
