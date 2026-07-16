@@ -49,7 +49,6 @@ dependencies = [
     "cryptography==49.0.0",
     "typing_extensions==4.16.0",
     "aiohttp==3.14.1",
-    "aiodns==4.0.4",
     "yarl==1.24.2",
     # fast zlib backend for aiohttp, enabled in ccxt.async_support.base.exchange
     "aiohttp-fast-zlib==0.3.0",
@@ -82,8 +81,9 @@ dependencies = [
     "frozenlist==1.8.0",
     "multidict==6.7.1",
     "propcache==0.5.2",
-    # transitive dependencies of aiodns
-    "pycares==5.0.1",
+    # "aiodns==4.0.4",
+    # # transitive dependencies of aiodns
+    # "pycares==5.0.1",
     # transitive dependencies of cryptography
     "cffi==2.0.0",
     "pycparser==3.0",
